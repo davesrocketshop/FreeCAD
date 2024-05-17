@@ -273,9 +273,8 @@ unsigned long ViewProviderGeometryObject::getBoundColor() const
 
 void ViewProviderGeometryObject::setCoinAppearance(const App::Material& source)
 {
-#if 0
     if (!source.image.empty()) {
-        Base::Console().Log("setCoinAppearance(Texture)\n");
+        // Base::Console().Log("setCoinAppearance(Texture)\n");
         activateTexture2D();
 
         QByteArray by = QByteArray::fromBase64(QString::fromStdString(source.image).toUtf8());
@@ -285,11 +284,9 @@ void ViewProviderGeometryObject::setCoinAppearance(const App::Material& source)
         Gui::BitmapFactory().convert(image, texture);
         pcShapeTexture2D->image = texture;
     } else {
-        Base::Console().Log("setCoinAppearance(Material)\n");
+        // Base::Console().Log("setCoinAppearance(Material)\n");
         activateMaterial();
     }
-#endif
-    activateMaterial();
 
     // Always set the material for items such as lines that don't support textures
     pcShapeMaterial->ambientColor.setValue(source.ambientColor.r,

@@ -626,89 +626,399 @@ std::vector<Base::Vector3d> ViewProviderPartExt::getSelectionShape(const char* /
     return {};
 }
 
+TextureMode ViewProviderPartExt::getTextureMode(const std::vector<App::Material>& materials)
+{
+    int size = static_cast<int>(materials.size());
+
+    // Determine if the faces are materials, textures, or both
+    bool imageOnly = false;
+    bool matOnly = false;
+    bool mixed = false;
+    for (int i = 0; i < size; i++) {
+        if (!materials[i].image.empty()) {
+            if (matOnly) {
+                mixed = true;
+                imageOnly = false;
+                matOnly = false;
+                break;
+            }
+            else {
+                imageOnly = true;
+            }
+        }
+        else {
+            if (imageOnly) {
+                mixed = true;
+                imageOnly = false;
+                matOnly = false;
+                break;
+            }
+            else {
+                matOnly = true;
+            }
+        }
+    }
+    if (imageOnly) {
+        activateTexture3D();
+        return Texture_ImageOnly;
+    }
+    else if (matOnly) {
+        activateMaterial();
+        return Texture_MaterialOnly;
+    }
+    activateMixed3D();
+    return Texture_Mixed;
+}
+
+TextureMode ViewProviderPartExt::getTextureMode(const App::PropertyMaterialList& appearance)
+{
+    int size = static_cast<int>(appearance.getSize());
+
+    // Determine if the faces are materials, textures, or both
+    bool imageOnly = false;
+    bool matOnly = false;
+    bool mixed = false;
+    for (int i = 0; i < size; i++) {
+        if (!appearance[i].image.empty()) {
+            if (matOnly) {
+                mixed = true;
+                imageOnly = false;
+                matOnly = false;
+                break;
+            }
+            else {
+                imageOnly = true;
+            }
+        }
+        else {
+            if (imageOnly) {
+                mixed = true;
+                imageOnly = false;
+                matOnly = false;
+                break;
+            }
+            else {
+                matOnly = true;
+            }
+        }
+    }
+    if (imageOnly) {
+        activateTexture3D();
+        return Texture_ImageOnly;
+    }
+    else if (matOnly) {
+        activateMaterial();
+        return Texture_MaterialOnly;
+    }
+    activateMixed3D();
+    return Texture_Mixed;
+}
+
 void ViewProviderPartExt::setHighlightedFaces(const std::vector<App::Material>& materials)
 {
     int size = static_cast<int>(materials.size());
+    TextureMode textureMode = getTextureMode(materials);
+
     if (size > 1 && size == this->faceset->partIndex.getNum()) {
         pcFaceBind->value = SoMaterialBinding::PER_PART;
-        activateMaterial();
 
-        pcShapeMaterial->diffuseColor.setNum(size);
-        pcShapeMaterial->ambientColor.setNum(size);
-        pcShapeMaterial->specularColor.setNum(size);
-        pcShapeMaterial->emissiveColor.setNum(size);
-        pcShapeMaterial->shininess.setNum(size);
+        if (textureMode == Texture_Mixed || textureMode == Texture_ImageOnly) {
+            Base::Console().Log("setCoinAppearance(Texture)\n");
+            for (int i = 0; i < size; i++) {
+                if (!materials[i].image.empty()) {
+                    QByteArray by =
+                        QByteArray::fromBase64(QString::fromStdString(materials[i].image).toUtf8());
+                    auto image =
+                        QImage::fromData(by, "PNG");  //.scaled(64, 64, Qt::KeepAspectRatio);
+                    SbVec3s imageSize(image.size().width(), image.size().height(), 0);
+                    SbVec2s bitmapSize(image.size().width(), image.size().height());
 
-        SbColor* dc = pcShapeMaterial->diffuseColor.startEditing();
-        SbColor* ac = pcShapeMaterial->ambientColor.startEditing();
-        SbColor* sc = pcShapeMaterial->specularColor.startEditing();
-        SbColor* ec = pcShapeMaterial->emissiveColor.startEditing();
-        float* sh = pcShapeMaterial->shininess.startEditing();
+                    SoSFImage texture;
+                    Gui::BitmapFactory().convert(image, texture);
 
-        for (int i = 0; i < size; i++) {
-            dc[i].setValue(materials[i].diffuseColor.r, materials[i].diffuseColor.g, materials[i].diffuseColor.b);
-            ac[i].setValue(materials[i].ambientColor.r, materials[i].ambientColor.g, materials[i].ambientColor.b);
-            sc[i].setValue(materials[i].specularColor.r, materials[i].specularColor.g, materials[i].specularColor.b);
-            ec[i].setValue(materials[i].emissiveColor.r, materials[i].emissiveColor.g, materials[i].emissiveColor.b);
-            sh[i] = materials[i].shininess;
+                    int nc = 1;
+                    pcShapeTexture3D->images.setValue(imageSize,
+                                                      nc,
+                                                      texture.getValue(bitmapSize, nc));
+
+                    pcShapeCoordinates->point.deleteValues(0, -1);
+                }
+            }
+
+            // Show coordinates
+            Base::Console().Log("Coordinates:\n");
+            auto values = coords->point.getValues(0);
+            for (int i = 0; i < coords->point.getNum(); i++) {
+                Base::Console().Log("\t%d: %s\n", i, values[i].toString().getString());
+            }
+
+            // if (!materials[0].image.empty()) {
+            //     // activateTexture3D();
+            //     // pcShapeTexture3D->filenames.set1Value(
+            //     //     0,
+            //     //     SbString("D:/wrapper/TCom_Wall_Stone3_2x2_1K_albedo.tif"));
+
+            //     // pcShapeTexture->texture.setNum(size);
+            // }
         }
+        else if (textureMode == Texture_Mixed || textureMode == Texture_MaterialOnly) {
+            Base::Console().Log("setCoinAppearance(Material)\n");
 
-        pcShapeMaterial->diffuseColor.finishEditing();
-        pcShapeMaterial->ambientColor.finishEditing();
-        pcShapeMaterial->specularColor.finishEditing();
-        pcShapeMaterial->emissiveColor.finishEditing();
-        pcShapeMaterial->shininess.finishEditing();
+            pcShapeMaterial->diffuseColor.setNum(size);
+            pcShapeMaterial->ambientColor.setNum(size);
+            pcShapeMaterial->specularColor.setNum(size);
+            pcShapeMaterial->emissiveColor.setNum(size);
+            pcShapeMaterial->shininess.setNum(size);
+
+            SbColor* dc = pcShapeMaterial->diffuseColor.startEditing();
+            SbColor* ac = pcShapeMaterial->ambientColor.startEditing();
+            SbColor* sc = pcShapeMaterial->specularColor.startEditing();
+            SbColor* ec = pcShapeMaterial->emissiveColor.startEditing();
+            float* sh = pcShapeMaterial->shininess.startEditing();
+
+            for (int i = 0; i < size; i++) {
+                dc[i].setValue(materials[i].diffuseColor.r,
+                               materials[i].diffuseColor.g,
+                               materials[i].diffuseColor.b);
+                ac[i].setValue(materials[i].ambientColor.r,
+                               materials[i].ambientColor.g,
+                               materials[i].ambientColor.b);
+                sc[i].setValue(materials[i].specularColor.r,
+                               materials[i].specularColor.g,
+                               materials[i].specularColor.b);
+                ec[i].setValue(materials[i].emissiveColor.r,
+                               materials[i].emissiveColor.g,
+                               materials[i].emissiveColor.b);
+                sh[i] = materials[i].shininess;
+
+                Base::Console().Log("%d:\tambient(%s)\n", i, ac[i].toString().getString());
+                Base::Console().Log("\tdiffuse(%s)\n", dc[i].toString().getString());
+                Base::Console().Log("\tspecular(%s)\n", sc[i].toString().getString());
+                Base::Console().Log("\temissive(%s)\n", ec[i].toString().getString());
+                Base::Console().Log("\tshininess(%f)\n", sh[i]);
+            }
+
+            pcShapeMaterial->diffuseColor.finishEditing();
+            pcShapeMaterial->ambientColor.finishEditing();
+            pcShapeMaterial->specularColor.finishEditing();
+            pcShapeMaterial->emissiveColor.finishEditing();
+            pcShapeMaterial->shininess.finishEditing();
+        }
     }
     else if (size == 1) {
         pcFaceBind->value = SoMaterialBinding::OVERALL;
         setCoinAppearance(materials[0]);
+    }
+    else {
+        Base::Console().Log("*** ShapeAppearance size -- %d\n", size);
     }
 }
 
 void ViewProviderPartExt::setHighlightedFaces(const App::PropertyMaterialList& appearance)
 {
     int size = static_cast<int>(appearance.getSize());
+    TextureMode textureMode = getTextureMode(appearance);
+
     if (size > 1 && size == this->faceset->partIndex.getNum()) {
         pcFaceBind->value = SoMaterialBinding::PER_PART;
-        activateMaterial();
 
-        pcShapeMaterial->diffuseColor.setNum(size);
-        pcShapeMaterial->ambientColor.setNum(size);
-        pcShapeMaterial->specularColor.setNum(size);
-        pcShapeMaterial->emissiveColor.setNum(size);
-        pcShapeMaterial->shininess.setNum(size);
+        if (textureMode == Texture_Mixed || textureMode == Texture_ImageOnly) {
+            Base::Console().Log("setCoinAppearance(Texture)\n");
+            for (int i = 0; i < size; i++) {
+                if (!appearance[i].image.empty()) {
+                    QByteArray by = QByteArray::fromBase64(
+                        QString::fromStdString(appearance[i].image).toUtf8());
+                    auto image =
+                        QImage::fromData(by, "PNG");  //.scaled(64, 64, Qt::KeepAspectRatio);
+                    SbVec3s imageSize(image.size().width(), image.size().height(), 0);
+                    SbVec2s bitmapSize(image.size().width(), image.size().height());
 
-        SbColor* dc = pcShapeMaterial->diffuseColor.startEditing();
-        SbColor* ac = pcShapeMaterial->ambientColor.startEditing();
-        SbColor* sc = pcShapeMaterial->specularColor.startEditing();
-        SbColor* ec = pcShapeMaterial->emissiveColor.startEditing();
-        float* sh = pcShapeMaterial->shininess.startEditing();
+                    SoSFImage texture;
+                    Gui::BitmapFactory().convert(image, texture);
 
-        for (int i = 0; i < size; i++) {
-            dc[i].setValue(appearance.getDiffuseColor(i).r,
-                        appearance.getDiffuseColor(i).g,
-                        appearance.getDiffuseColor(i).b);
-            ac[i].setValue(appearance.getAmbientColor(i).r,
-                        appearance.getAmbientColor(i).g,
-                        appearance.getAmbientColor(i).b);
-            sc[i].setValue(appearance.getSpecularColor(i).r,
-                        appearance.getSpecularColor(i).g,
-                        appearance.getSpecularColor(i).b);
-            ec[i].setValue(appearance.getEmissiveColor(i).r,
-                        appearance.getEmissiveColor(i).g,
-                        appearance.getEmissiveColor(i).b);
-            sh[i] = appearance.getShininess(i);
+                    int nc = 1;
+                    pcShapeTexture3D->images.setValue(imageSize,
+                                                      nc,
+                                                      texture.getValue(bitmapSize, nc));
+                    // pcShapeTexture3D->layout = SoTexture3::Layout::ARRAY;
+
+                    // Coordinates: 8 vertices because they can be shared between faces.
+                    // Texture Coordinates: The Z value tells Inventor which layer of the 3D
+                    //   texture to use as the texture image.
+                    float step = 1;
+                    SbVec3f vertices[] = {{0, 0, 0},
+                                          {step, 0, 0},
+                                          {step, 0, step},
+                                          {0, 0, step},
+                                          {step, step, 0},
+                                          {0, step, 0},
+                                          {0, step, step},
+                                          {step, step, step}};
+                    SbVec3f texCoords[] = {
+                        {0, 0, 0},
+                        {1, 0, 0},
+                        {1, 1, 0},
+                        {0, 1, 0}  // front
+                        // {0,0,0.2f}, {1,0,0.2f}, {1,1,0.2f}, {0,1,0.2f}, // back
+                        // {0,0,0.4f}, {1,0,0.4f}, {1,1,0.4f}, {0,1,0.4f}, // left
+                        // {0,0,0.6f}, {1,0,0.6f}, {1,1,0.6f}, {0,1,0.6f}, // right
+                        // {0,0,0.8f}, {1,0,0.8f}, {1,1,0.8f}, {0,1,0.8f}, // top
+                        // {0,0,1   }, {1,0,1   }, {1,1,1   }, {0,1,1   }  // bottom
+                    };
+                    auto vprop = new SoVertexProperty();
+                    vprop->vertex.setValues(0, sizeof(vertices) / sizeof(SbVec3f), vertices);
+                    vprop->texCoord3.setValues(0, sizeof(texCoords) / sizeof(SbVec3f), texCoords);
+
+                    // Shape
+                    // auto faceSet = new SoIndexedFaceSet;
+                    int indices[] = {
+                        0, 1, 2, 3, -1,  // front
+                        // 4, 5, 6, 7, -1,  // back
+                        // 5, 0, 3, 6, -1,  // left
+                        // 1, 4, 7, 2, -1,  // right
+                        // 3, 2, 7, 6, -1,  // top
+                        // 5, 4, 1, 0, -1   // bottom
+                    };
+                    int texCoordIndices[] = {
+                        0,  1,  2,  3   // front
+                        // 4,  5,  6,  7,   // back
+                        // 8,  9,  10, 11,  // left
+                        // 12, 13, 14, 15,  // right
+                        // 16, 17, 18, 19,  // top
+                        // 20, 21, 22, 23   // bottom
+                    };
+                    pcShapeFaceset->coordIndex.setValues(0, sizeof(indices) / sizeof(int), indices);
+                    pcShapeFaceset->textureCoordIndex.setValues(0,
+                                                                sizeof(texCoordIndices)
+                                                                    / sizeof(int),
+                                                                texCoordIndices);
+                    pcShapeFaceset->vertexProperty = vprop;
+                    // root->addChild(pcShapeFaceset);
+
+                    // pcShapeCoordinates->point.deleteValues(0, -1);
+                }
+            }
+
+            // Show coordinates
+            Base::Console().Log("Coordinates:\n");
+            auto values = coords->point.getValues(0);
+            for (int i = 0; i < coords->point.getNum(); i++) {
+                Base::Console().Log("\t%d: %s\n", i, values[i].toString().getString());
+            }
+
+            Base::Console().Log("Face set:\n");
+            Base::Console().Log("Coordinate index: %d\n", faceset->coordIndex.getNum());
+            const int32_t* idx = faceset->coordIndex.getValues(0);
+            for (int i = 0; i < faceset->coordIndex.getNum(); i++) {
+                Base::Console().Log("\t%d: %d\n", i, idx[i]);
+            }
+            Base::Console().Log("Part index: %d\n", faceset->partIndex.getNum());
+            idx = faceset->partIndex.getValues(0);
+            for (int i = 0; i < faceset->partIndex.getNum(); i++) {
+                Base::Console().Log("\t%d: %d\n", i, idx[i]);
+            }
+
+            // Base::Console().Log("Node set:\n");
+            // auto values = nodeset->point.getValues(0);
+            // for (int i = 0; i < nodeset->numPoints; i++) {
+            //     Base::Console().Log("\t%d: %s\n", i, values[i].toString().getString());
+            // }
+            // nodeset;
+
+            // if (!materials[0].image.empty()) {
+            //     // activateTexture3D();
+            //     // pcShapeTexture3D->filenames.set1Value(
+            //     //     0,
+            //     //     SbString("D:/wrapper/TCom_Wall_Stone3_2x2_1K_albedo.tif"));
+
+            //     // pcShapeTexture->texture.setNum(size);
+            // }
         }
+        else if (textureMode == Texture_Mixed || textureMode == Texture_MaterialOnly) {
+            Base::Console().Log("setCoinAppearance(Material)\n");
 
-        pcShapeMaterial->diffuseColor.finishEditing();
-        pcShapeMaterial->ambientColor.finishEditing();
-        pcShapeMaterial->specularColor.finishEditing();
-        pcShapeMaterial->emissiveColor.finishEditing();
-        pcShapeMaterial->shininess.finishEditing();
+            pcShapeMaterial->diffuseColor.setNum(size);
+            pcShapeMaterial->ambientColor.setNum(size);
+            pcShapeMaterial->specularColor.setNum(size);
+            pcShapeMaterial->emissiveColor.setNum(size);
+            pcShapeMaterial->shininess.setNum(size);
+
+            SbColor* dc = pcShapeMaterial->diffuseColor.startEditing();
+            SbColor* ac = pcShapeMaterial->ambientColor.startEditing();
+            SbColor* sc = pcShapeMaterial->specularColor.startEditing();
+            SbColor* ec = pcShapeMaterial->emissiveColor.startEditing();
+            float* sh = pcShapeMaterial->shininess.startEditing();
+
+            for (int i = 0; i < size; i++) {
+                dc[i].setValue(appearance.getDiffuseColor(i).r,
+                               appearance.getDiffuseColor(i).g,
+                               appearance.getDiffuseColor(i).b);
+                ac[i].setValue(appearance.getAmbientColor(i).r,
+                               appearance.getAmbientColor(i).g,
+                               appearance.getAmbientColor(i).b);
+                sc[i].setValue(appearance.getSpecularColor(i).r,
+                               appearance.getSpecularColor(i).g,
+                               appearance.getSpecularColor(i).b);
+                ec[i].setValue(appearance.getEmissiveColor(i).r,
+                               appearance.getEmissiveColor(i).g,
+                               appearance.getEmissiveColor(i).b);
+                sh[i] = appearance.getShininess(i);
+
+                Base::Console().Log("%d:\tambient(%s)\n", i, ac[i].toString().getString());
+                Base::Console().Log("\tdiffuse(%s)\n", dc[i].toString().getString());
+                Base::Console().Log("\tspecular(%s)\n", sc[i].toString().getString());
+                Base::Console().Log("\temissive(%s)\n", ec[i].toString().getString());
+                Base::Console().Log("\tshininess(%f)\n", sh[i]);
+            }
+
+            pcShapeMaterial->diffuseColor.finishEditing();
+            pcShapeMaterial->ambientColor.finishEditing();
+            pcShapeMaterial->specularColor.finishEditing();
+            pcShapeMaterial->emissiveColor.finishEditing();
+            pcShapeMaterial->shininess.finishEditing();
+        }
+        // activateMaterial();
+
+        // pcShapeMaterial->diffuseColor.setNum(size);
+        // pcShapeMaterial->ambientColor.setNum(size);
+        // pcShapeMaterial->specularColor.setNum(size);
+        // pcShapeMaterial->emissiveColor.setNum(size);
+        // pcShapeMaterial->shininess.setNum(size);
+
+        // SbColor* dc = pcShapeMaterial->diffuseColor.startEditing();
+        // SbColor* ac = pcShapeMaterial->ambientColor.startEditing();
+        // SbColor* sc = pcShapeMaterial->specularColor.startEditing();
+        // SbColor* ec = pcShapeMaterial->emissiveColor.startEditing();
+        // float* sh = pcShapeMaterial->shininess.startEditing();
+
+        // for (int i = 0; i < size; i++) {
+        //     dc[i].setValue(appearance.getDiffuseColor(i).r,
+        //                 appearance.getDiffuseColor(i).g,
+        //                 appearance.getDiffuseColor(i).b);
+        //     ac[i].setValue(appearance.getAmbientColor(i).r,
+        //                 appearance.getAmbientColor(i).g,
+        //                 appearance.getAmbientColor(i).b);
+        //     sc[i].setValue(appearance.getSpecularColor(i).r,
+        //                 appearance.getSpecularColor(i).g,
+        //                 appearance.getSpecularColor(i).b);
+        //     ec[i].setValue(appearance.getEmissiveColor(i).r,
+        //                 appearance.getEmissiveColor(i).g,
+        //                 appearance.getEmissiveColor(i).b);
+        //     sh[i] = appearance.getShininess(i);
+        // }
+
+        // pcShapeMaterial->diffuseColor.finishEditing();
+        // pcShapeMaterial->ambientColor.finishEditing();
+        // pcShapeMaterial->specularColor.finishEditing();
+        // pcShapeMaterial->emissiveColor.finishEditing();
+        // pcShapeMaterial->shininess.finishEditing();
     }
     else if (size == 1) {
         pcFaceBind->value = SoMaterialBinding::OVERALL;
         setCoinAppearance(appearance[0]);
+    }
+    else {
+        Base::Console().Log("*** ShapeAppearance size -- %d\n", size);
     }
 }
 

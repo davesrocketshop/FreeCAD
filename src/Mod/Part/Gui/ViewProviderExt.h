@@ -60,6 +60,13 @@ class SoBrepFaceSet;
 class SoBrepEdgeSet;
 class SoBrepPointSet;
 
+enum TextureMode
+{
+    Texture_MaterialOnly,
+    Texture_ImageOnly,
+    Texture_Mixed
+};
+
 class PartGuiExport ViewProviderPartExt : public Gui::ViewProviderGeometryObject
 {
     PROPERTY_HEADER_WITH_OVERRIDE(PartGui::ViewProviderPartExt);
@@ -168,6 +175,8 @@ protected:
     void handleChangedPropertyName(Base::XMLReader& reader,
                                    const char* TypeName,
                                    const char* PropName) override;
+    TextureMode getTextureMode(const std::vector<App::Material>& materials);
+    TextureMode getTextureMode(const App::PropertyMaterialList& appearance);
 
     // nodes for the data representation
     SoMaterialBinding * pcFaceBind;
