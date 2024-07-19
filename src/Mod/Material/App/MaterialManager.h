@@ -59,6 +59,7 @@ public:
     static std::shared_ptr<App::Material> defaultAppearance();
     static std::shared_ptr<Material> defaultMaterial();
     static QString defaultMaterialUUID();
+    static void verify();
 
     std::shared_ptr<std::map<QString, std::shared_ptr<Material>>> getMaterials() const
     {

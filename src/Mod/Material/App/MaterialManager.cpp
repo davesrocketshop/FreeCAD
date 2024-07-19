@@ -77,6 +77,21 @@ void MaterialManager::initLibraries()
     }
 }
 
+void MaterialManager::verify()
+{
+    MaterialManager manager;
+
+    // Ensure the standard materials are available by checking for default materials. This
+    // will throw a MaterialNotFound exception if it's not available
+    try {
+        auto material = manager.getMaterial(QLatin1String("7f9fd73b-50c9-41d8-b7b2-575a030c1eeb"));
+    }
+    catch (MaterialNotFound&) {
+        Base::Console().Log("Unable to load default material\n");
+        throw MaterialNotFound();
+    }
+}
+
 void MaterialManager::cleanup()
 {
     QMutexLocker locker(&_mutex);
