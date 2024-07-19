@@ -354,7 +354,11 @@ void ModelLoader::getModelLibraries()
 {
     auto param = App::GetApplication().GetParameterGroupByPath(
         "User parameter:BaseApp/Preferences/Mod/Material/Resources");
-    bool useBuiltInMaterials = param->GetBool("UseBuiltInMaterials", true);
+
+    // This parameter needs to be used carefully. It is intended to mark the standard materials as
+    // ignored when unit testing or when a suitable replacement is provided. Setting it to true
+    // could disrupt normal operation of FreeCAD.
+    bool useBuiltInMaterials = !param->GetBool("IgnoreBuiltinStdMaterials", false);
     bool useMatFromModules = param->GetBool("UseMaterialsFromWorkbenches", true);
     bool useMatFromConfigDir = param->GetBool("UseMaterialsFromConfigDir", true);
     bool useMatFromCustomDir = param->GetBool("UseMaterialsFromCustomDir", true);

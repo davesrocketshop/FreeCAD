@@ -52,7 +52,7 @@ class MaterialFilterTestCases(unittest.TestCase):
         # Use our test files as a custom directory
         param = FreeCAD.ParamGet("User parameter:BaseApp/Preferences/Mod/Material/Resources")
         self.customDir = param.GetString("CustomMaterialsDir", "")
-        self.useBuiltInDir = param.GetBool("UseBuiltInMaterials", True)
+        self.useBuiltInDir = not param.GetBool("IgnoreBuiltinStdMaterials", False)
         self.useWorkbenchDir = param.GetBool("UseMaterialsFromWorkbenches", True)
         self.useUserDir = param.GetBool("UseMaterialsFromConfigDir", True)
         self.useCustomDir = param.GetBool("UseMaterialsFromCustomDir", False)
@@ -60,7 +60,7 @@ class MaterialFilterTestCases(unittest.TestCase):
         filePath = os.path.dirname(__file__) + os.sep
         testPath = filePath + "Materials"
         param.SetString("CustomMaterialsDir", testPath)
-        param.SetBool("UseBuiltInMaterials", False)
+        param.SetBool("IgnoreBuiltinStdMaterials", True)
         param.SetBool("UseMaterialsFromWorkbenches", False)
         param.SetBool("UseMaterialsFromConfigDir", False)
         param.SetBool("UseMaterialsFromCustomDir", True)
@@ -72,7 +72,7 @@ class MaterialFilterTestCases(unittest.TestCase):
 
         # Restore preferences
         param.SetString("CustomMaterialsDir", self.customDir)
-        param.SetBool("UseBuiltInMaterials", self.useBuiltInDir)
+        param.SetBool("IgnoreBuiltinStdMaterials", not self.useBuiltInDir)
         param.SetBool("UseMaterialsFromWorkbenches", self.useWorkbenchDir)
         param.SetBool("UseMaterialsFromConfigDir", self.useUserDir)
         param.SetBool("UseMaterialsFromCustomDir", self.useCustomDir)

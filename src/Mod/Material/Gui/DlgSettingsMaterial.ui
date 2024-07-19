@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>434</width>
-    <height>553</height>
+    <width>520</width>
+    <height>641</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -25,25 +25,6 @@
      <layout class="QVBoxLayout" name="verticalLayout_2">
       <item>
        <layout class="QVBoxLayout" name="verticalLayout_6">
-        <item>
-         <widget class="Gui::PrefCheckBox" name="cb_use_built_in_materials">
-          <property name="toolTip">
-           <string>The cards built-in to FreeCAD will be listed as available.</string>
-          </property>
-          <property name="text">
-           <string>Use built-in materials</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-          <property name="prefEntry" stdset="0">
-           <cstring>UseBuiltInMaterials</cstring>
-          </property>
-          <property name="prefPath" stdset="0">
-           <cstring>Mod/Material/Resources</cstring>
-          </property>
-         </widget>
-        </item>
         <item>
          <widget class="Gui::PrefCheckBox" name="cb_use_mat_from_workbenches">
           <property name="toolTip">

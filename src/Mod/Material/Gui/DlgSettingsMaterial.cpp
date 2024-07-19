@@ -36,7 +36,6 @@ DlgSettingsMaterial::DlgSettingsMaterial(QWidget* parent)
 
 void DlgSettingsMaterial::saveSettings()
 {
-    ui->cb_use_built_in_materials->onSave();
     ui->cb_use_mat_from_workbenches->onSave();
     ui->cb_use_mat_from_config_dir->onSave();
     ui->cb_use_mat_from_custom_dir->onSave();
@@ -60,7 +59,6 @@ void DlgSettingsMaterial::saveSettings()
 
 void DlgSettingsMaterial::loadSettings()
 {
-    ui->cb_use_built_in_materials->onRestore();
     ui->cb_use_mat_from_workbenches->onRestore();
     ui->cb_use_mat_from_config_dir->onRestore();
     ui->cb_use_mat_from_custom_dir->onRestore();
