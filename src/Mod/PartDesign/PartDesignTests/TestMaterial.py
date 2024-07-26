@@ -94,4 +94,3 @@ class TestMaterial(unittest.TestCase):
         #closing doc
         FreeCAD.closeDocument("PartDesignTestMaterial")
         # print ("omit closing document for debugging")
-
