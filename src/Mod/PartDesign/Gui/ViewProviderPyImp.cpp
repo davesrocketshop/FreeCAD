@@ -37,28 +37,13 @@ std::string ViewProviderPy::representation() const
     return {"<PartDesign::ViewProvider>"};
 }
 
-PyObject* ViewProviderPy::getCustomAttributes(const char* attr) const
+PyObject* ViewProviderPy::getCustomAttributes(const char* ) const
 {
-    PartDesignGui::ViewProvider* vp = getViewProviderPtr();
-    if (strcmp(attr, "DiffuseColor") == 0) {
-        // Get the color properties
-        App::PropertyColorList prop;
-        prop.setValues(vp->ShapeAppearance.getDiffuseColors());
-        return prop.getPyObject();
-    }
     return nullptr;
 }
 
-int ViewProviderPy::setCustomAttributes(const char* attr, PyObject* obj)
+int ViewProviderPy::setCustomAttributes(const char* , PyObject*)
 {
-    PartDesignGui::ViewProvider* vp = getViewProviderPtr();
-    if (strcmp(attr, "DiffuseColor") == 0) {
-        // Set the color properties
-        App::PropertyColorList prop;
-        prop.setPyObject(obj);
-        vp->ShapeAppearance.setDiffuseColors(prop.getValues());
-        return 1;
-    }
     return 0;
 }
 
