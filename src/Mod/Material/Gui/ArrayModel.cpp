@@ -52,7 +52,9 @@ Array2DModel::Array2DModel(const std::shared_ptr<Materials::MaterialProperty>& p
     : AbstractArrayModel(parent)
     , _property(property)
     , _value(value)
-{}
+{
+    _value = std::make_shared<Materials::Material2DArray>(*value);
+}
 
 int Array2DModel::rowCount(const QModelIndex& parent) const
 {

@@ -194,6 +194,8 @@ void Array2D::deleteSelected()
 
 void Array2D::accept()
 {
+    auto model = static_cast<Array2DModel*>(ui->tableView->model());
+    *_value = *model->getValue();
     QDialog::accept();
 }
 

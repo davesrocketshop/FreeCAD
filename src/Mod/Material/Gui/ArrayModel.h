@@ -68,6 +68,7 @@ public:
     bool removeRows(int row, int count, const QModelIndex& parent = QModelIndex()) override;
     bool insertColumns(int column, int count, const QModelIndex& parent = QModelIndex()) override;
     bool removeColumns(int column, int count, const QModelIndex& parent = QModelIndex()) override;
+    const std::shared_ptr<Materials::Material2DArray>& getValue() { return _value; }
 
 private:
     std::shared_ptr<Materials::MaterialProperty> _property;
