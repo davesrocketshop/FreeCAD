@@ -48,9 +48,11 @@ namespace MatGui
 
 class Ui_MaterialsEditor;
 
-class MaterialsEditor: public QDialog
+class MaterialsEditor: public QDialog, public Base::BaseClass
 {
     Q_OBJECT
+
+    TYPESYSTEM_HEADER_WITH_OVERRIDE();
 
 public:
     explicit MaterialsEditor(std::shared_ptr<Materials::MaterialFilter> filter,

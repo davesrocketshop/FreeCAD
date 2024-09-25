@@ -33,6 +33,7 @@ import FreeCAD
 import FreeCADGui
 # import Material_rc
 from materialtools.cardutils import get_material_preferred_directory, get_material_preferred_save_directory
+import MatGui
 
 
 # is this still needed after the move to card utils???
@@ -963,10 +964,14 @@ def editMaterial(material=None, card_path=None, category="Solid"):
     # TODO: add some text in combo box, may be "custom material data" or "user material data"
     # TODO: if card_path is None, all known cards could be checked,
     # if one fits exact ALL provided data, this card name could be displayed
-    editor = MaterialEditor(material=material, card_path=card_path, category=category)
-    result = editor.exec_()
+    # return {}
+    # editor = MaterialEditor(material=material, card_path=card_path, category=category)
+    # result = editor.exec_()
+    editor = MatGui.MaterialsEditor()
+    result = editor.exec()
     if result:
-        return editor.getDict()
+        material = editor.Material
+        return material.Properties
     else:
         # on cancel button an empty dict is returned
         return {}

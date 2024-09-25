@@ -60,6 +60,8 @@ using namespace MatGui;
 
 /* TRANSLATOR MatGui::MaterialsEditor */
 
+TYPESYSTEM_SOURCE(MatGui::MaterialsEditor, Base::BaseClass)
+
 MaterialsEditor::MaterialsEditor(std::shared_ptr<Materials::MaterialFilter> filter, QWidget* parent)
     : QDialog(parent)
     , ui(new Ui_MaterialsEditor)

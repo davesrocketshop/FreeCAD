@@ -35,6 +35,8 @@
 #include "DlgSettingsMaterial.h"
 #include "Workbench.h"
 #include "WorkbenchManipulator.h"
+#include "MaterialsEditor.h"
+#include "MaterialsEditorPy.h"
 #include "MaterialTreeWidget.h"
 #include "MaterialTreeWidgetPy.h"
 
@@ -112,6 +114,9 @@ PyMOD_INIT_FUNC(MatGui)
     // add resources and reloads the translators
     loadMaterialResource();
 
+    Base::Interpreter().addType(&MatGui::MaterialsEditorPy::Type,
+                                matGuiModule,
+                                "MaterialsEditor");
     Base::Interpreter().addType(&MatGui::MaterialTreeWidgetPy::Type,
                                 matGuiModule,
                                 "MaterialTreeWidget");
@@ -119,6 +124,7 @@ PyMOD_INIT_FUNC(MatGui)
 
     // Initialize types
 
+    MatGui::MaterialsEditor::init();
     MatGui::MaterialTreeWidget::init();
 
     // Add custom widgets

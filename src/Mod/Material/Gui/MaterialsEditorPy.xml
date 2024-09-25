@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GenerateModel xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="generateMetaModel_Module.xsd">
+  <PythonExport
+      Father="BaseClassPy"
+      Name="MaterialsEditorPy"
+      Twin="MaterialsEditor"
+      TwinPointer="MaterialsEditor"
+      Include="Mod/Material/Gui/MaterialsEditor.h"
+      Namespace="MatGui"
+      FatherInclude="Base/BaseClassPy.h"
+      FatherNamespace="Base"
+      Constructor="true"
+      Delete="true">
+    <Documentation>
+      <Author Licence="LGPL" Name="DavidCarter" EMail="dcarter@davidcarter.ca" />
+      <UserDocu>Material editor.</UserDocu>
+    </Documentation>
+    <Attribute Name="Material" ReadOnly="true">
+      <Documentation>
+        <UserDocu>Selected or edited material.</UserDocu>
+      </Documentation>
+      <Parameter Name="Material" Type="Object"/>
+    </Attribute>
+    <Methode Name="setFilter">
+      <Documentation>
+        <UserDocu>Set the material filter or list of filters.</UserDocu>
+      </Documentation>
+    </Methode>
+    <Methode Name="selectFilter">
+      <Documentation>
+        <UserDocu>Set the current material filter.</UserDocu>
+      </Documentation>
+    </Methode>
+    <Methode Name="exec">
+      <Documentation>
+        <UserDocu>Show the dialog (blocking).</UserDocu>
+      </Documentation>
+    </Methode>
+    <Methode Name="show">
+      <Documentation>
+        <UserDocu>Show the dialog.</UserDocu>
+      </Documentation>
+    </Methode>
+  </PythonExport>
+</GenerateModel>
