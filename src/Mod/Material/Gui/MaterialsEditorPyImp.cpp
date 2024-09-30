@@ -44,7 +44,8 @@ std::string MaterialsEditorPy::representation() const
 PyObject* MaterialsEditorPy::PyMake(struct _typeobject*, PyObject*, PyObject*)  // Python wrapper
 {
     // never create such objects with the constructor
-    return new MaterialsEditorPy(new MaterialsEditor(Gui::getMainWindow()));
+    return new MaterialsEditorPy(new MaterialsEditor());
+    // return new MaterialsEditorPy();
 }
 
 // constructor method
@@ -53,6 +54,7 @@ int MaterialsEditorPy::PyInit(PyObject* args, PyObject* /*kwd*/)
     auto widget = new MaterialsEditor(Gui::getMainWindow());
     _pcTwinPointer = widget;
     widget->setAttribute(Qt::WA_DeleteOnClose);
+    // getMaterialsEditorPtr()->setAttribute(Qt::WA_DeleteOnClose);
     return 0;
     // PyObject* obj {};
     // if (PyArg_ParseTuple(args, "")) {

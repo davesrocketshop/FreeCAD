@@ -42,11 +42,12 @@
 #include <Mod/Material/App/ModelManager.h>
 
 #include "AppearancePreview.h"
+#include "ui_MaterialsEditor.h"
 
 namespace MatGui
 {
 
-class Ui_MaterialsEditor;
+// class Ui_MaterialsEditor;
 
 class MaterialsEditor: public QDialog, public Base::BaseClass
 {
