@@ -32,12 +32,13 @@
 # include <TopoDS.hxx>
 #endif
 
+#include "App/OriginFeature.h"
 #include <App/Document.h>
 #include <App/DocumentObject.h>
-#include <App/FeaturePythonPyImp.h>
 #include <App/ElementNamingUtils.h>
-#include "App/OriginFeature.h"
+#include <App/FeaturePythonPyImp.h>
 #include <Base/Console.h>
+#include <Mod/Material/App/MaterialManager.h>
 
 #include "Feature.h"
 #include "FeaturePy.h"
@@ -66,6 +67,8 @@ Feature::Feature()
 
 App::DocumentObjectExecReturn* Feature::recompute()
 {
+    setMaterialToBodyMaterial();
+
     SuppressedShape.setValue(TopoShape());
 
     if (!Suppressed.getValue()) {
@@ -95,6 +98,23 @@ App::DocumentObjectExecReturn* Feature::recompute()
         Shape.setValue(getBaseTopoShape(true));
     }
     return App::DocumentObject::StdReturn;
+}
+
+void Feature::setMaterialToBodyMaterial()
+{
+    auto body = getFeatureBody();
+    if (body) {
+        // Ensure the part has the same material as the body
+        auto mat = Materials::MaterialManager::defaultMaterial();
+        auto feature = dynamic_cast<Part::Feature*>(body);
+        if (feature) {
+            if (ShapeMaterial.getValue().getUUID() != feature->ShapeMaterial.getValue().getUUID()) {
+                if (ShapeMaterial.getValue().getUUID() == mat->getUUID()) {
+                    ShapeMaterial.setValue(feature->ShapeMaterial.getValue());
+                }
+            }
+        }
+    }
 }
 
 void Feature::updateSuppressedShape()
