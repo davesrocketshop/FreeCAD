@@ -33,6 +33,8 @@
 #include <App/Application.h>
 #include <Base/Parameter.h>
 
+#include <Mod/Material/App/MaterialManager.h>
+
 #include "FeaturePartCommon.h"
 #include "TopoShapeOpCode.h"
 #include "modelRefine.h"
@@ -117,6 +119,18 @@ App::DocumentObjectExecReturn *MultiCommon::execute()
         res = res.makeElementRefine();
     }
     this->Shape.setValue(res);
+    if (Shapes.getSize() > 0) {
+        App::DocumentObject* link = Shapes.getValues()[0];
+        auto mat = Materials::MaterialManager::defaultMaterial();
+        auto feature = dynamic_cast<Part::Feature*>(link);
+        if (feature) {
+            if (ShapeMaterial.getValue().getUUID() != feature->ShapeMaterial.getValue().getUUID()) {
+                if (ShapeMaterial.getValue().getUUID() == mat->getUUID()) {
+                    ShapeMaterial.setValue(feature->ShapeMaterial.getValue());
+                }
+            }
+        }
+    }
 
     return Part::Feature::execute();
 }
