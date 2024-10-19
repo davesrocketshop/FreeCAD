@@ -186,6 +186,11 @@ void Feature::onChanged(const App::Property *prop)
                         body->insertObject(BaseFeature.getValue(), this);
                 }
             }
+        } else if (prop == &ShapeMaterial) {
+            auto body = Body::findBodyOf(this);
+            if (body) {
+                body->ShapeMaterial.setValue(ShapeMaterial.getValue());
+            }
         }
     }
     Part::Feature::onChanged(prop);
@@ -395,7 +400,7 @@ Body* Feature::getFeatureBody() const {
     return nullptr;
 }
 
-App::DocumentObject *Feature::getSubObject(const char *subname, 
+App::DocumentObject *Feature::getSubObject(const char *subname,
         PyObject **pyObj, Base::Matrix4D *pmat, bool transform, int depth) const
 {
     if (subname && subname != Data::findElementName(subname)) {
@@ -420,7 +425,7 @@ App::DocumentObject *Feature::getSubObject(const char *subname,
                         // an inverse transform.
                         _mat = Placement.getValue().inverse().toMatrix();
                         if (pmat)
-                            *pmat *= _mat; 
+                            *pmat *= _mat;
                         else
                             pmat = &_mat;
                     }

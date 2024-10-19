@@ -247,9 +247,6 @@ void ViewProviderBody::updateData(const App::Property* prop)
                 static_cast<PartDesignGui::ViewProvider*>(vp)->setTipIcon(feature == tip);
             }
         }
-
-        if (tip)
-            copyColorsfromTip(tip);
     }
 
     PartGui::ViewProviderPart::updateData(prop);
