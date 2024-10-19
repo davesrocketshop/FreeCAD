@@ -29,6 +29,8 @@
 # include <TopTools_IndexedMapOfShape.hxx>
 #endif
 
+#include <Mod/Material/App/MaterialManager.h>
+
 #include "FeatureCompound.h"
 
 
@@ -69,6 +71,18 @@ App::DocumentObjectExecReturn *Compound::execute()
             }
         }
         this->Shape.setValue(TopoShape().makeElementCompound(shapes));
+        if (Links.getSize() > 0) {
+            App::DocumentObject* link = Links.getValues()[0];
+            auto mat = Materials::MaterialManager::defaultMaterial();
+            auto feature = dynamic_cast<Part::Feature*>(link);
+            if (feature) {
+                if (ShapeMaterial.getValue().getUUID() != feature->ShapeMaterial.getValue().getUUID()) {
+                    if (ShapeMaterial.getValue().getUUID() == mat->getUUID()) {
+                        ShapeMaterial.setValue(feature->ShapeMaterial.getValue());
+                    }
+                }
+            }
+        }
         return Part::Feature::execute();
     }
     catch (Standard_Failure& e) {
