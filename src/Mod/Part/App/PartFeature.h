@@ -210,7 +210,8 @@ public:
     App::PropertyLinkSub   EdgeLinks;
 
     short mustExecute() const override;
-    void onUpdateElementReference(const App::Property *prop) override;
+    App::DocumentObjectExecReturn* execute() override;
+    void onUpdateElementReference(const App::Property* prop) override;
 
 protected:
     void onDocumentRestored() override;

@@ -1709,6 +1709,24 @@ short FilletBase::mustExecute() const
     return 0;
 }
 
+App::DocumentObjectExecReturn* FilletBase::execute()
+{
+    App::DocumentObject* link = this->Base.getValue();
+    if (!link) {
+        return new App::DocumentObjectExecReturn("No object linked");
+    }
+    auto mat = Materials::MaterialManager::defaultMaterial();
+    auto feature = dynamic_cast<Part::Feature*>(link);
+    if (feature) {
+        if (ShapeMaterial.getValue().getUUID() != feature->ShapeMaterial.getValue().getUUID()) {
+            if (ShapeMaterial.getValue().getUUID() == mat->getUUID()) {
+                ShapeMaterial.setValue(feature->ShapeMaterial.getValue());
+            }
+        }
+    }
+    return Part::Feature::execute();
+}
+
 void FilletBase::onChanged(const App::Property *prop) {
     if(getDocument() && !getDocument()->testStatus(App::Document::Restoring)) {
         if(prop == &Edges || prop == &Base) {
