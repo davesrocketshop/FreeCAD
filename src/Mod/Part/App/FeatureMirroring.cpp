@@ -38,6 +38,7 @@
 # include <TopExp_Explorer.hxx>
 #endif
 
+#include <Mod/Material/App/MaterialManager.h>
 #include <Mod/Part/App/PrimitiveFeature.h>
 #include <App/Link.h>
 #include <App/OriginFeature.h>
@@ -257,6 +258,16 @@ App::DocumentObjectExecReturn *Mirroring::execute()
         if (shape.isNull())
             Standard_Failure::Raise("Cannot mirror empty shape");
         this->Shape.setValue(TopoShape(0).makeElementMirror(shape,ax2));
+
+        auto mat = Materials::MaterialManager::defaultMaterial();
+        auto feature = dynamic_cast<Part::Feature*>(link);
+        if (feature) {
+            if (ShapeMaterial.getValue().getUUID() != feature->ShapeMaterial.getValue().getUUID()) {
+                if (ShapeMaterial.getValue().getUUID() == mat->getUUID()) {
+                    ShapeMaterial.setValue(feature->ShapeMaterial.getValue());
+                }
+            }
+        }
         return Part::Feature::execute();
     }
     catch (Standard_Failure& e) {
