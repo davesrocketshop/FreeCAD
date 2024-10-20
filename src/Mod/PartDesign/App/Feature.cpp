@@ -189,7 +189,10 @@ void Feature::onChanged(const App::Property *prop)
         } else if (prop == &ShapeMaterial) {
             auto body = Body::findBodyOf(this);
             if (body) {
-                body->ShapeMaterial.setValue(ShapeMaterial.getValue());
+                if (body->ShapeMaterial.getValue().getUUID()
+                    != ShapeMaterial.getValue().getUUID()) {
+                    body->ShapeMaterial.setValue(ShapeMaterial.getValue());
+                }
             }
         }
     }
