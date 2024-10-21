@@ -128,6 +128,26 @@ PyObject *Feature::getPyObject()
     return Py::new_reference_to(PythonObject);
 }
 
+void Feature::copyMaterial(Feature* feature)
+{
+    auto mat = Materials::MaterialManager::defaultMaterial();
+    if (feature) {
+        if (ShapeMaterial.getValue().getUUID() != feature->ShapeMaterial.getValue().getUUID()) {
+            if (ShapeMaterial.getValue().getUUID() == mat->getUUID()) {
+                ShapeMaterial.setValue(feature->ShapeMaterial.getValue());
+            }
+        }
+    }
+}
+
+void Feature::copyMaterial(App::DocumentObject* link)
+{
+    auto feature = dynamic_cast<Part::Feature*>(link);
+    if (feature) {
+        copyMaterial(feature);
+    }
+}
+
 /**
  * Override getElementName to support the Export type.  Other calls are passed to the original
  * method
@@ -1715,15 +1735,7 @@ App::DocumentObjectExecReturn* FilletBase::execute()
     if (!link) {
         return new App::DocumentObjectExecReturn("No object linked");
     }
-    auto mat = Materials::MaterialManager::defaultMaterial();
-    auto feature = dynamic_cast<Part::Feature*>(link);
-    if (feature) {
-        if (ShapeMaterial.getValue().getUUID() != feature->ShapeMaterial.getValue().getUUID()) {
-            if (ShapeMaterial.getValue().getUUID() == mat->getUUID()) {
-                ShapeMaterial.setValue(feature->ShapeMaterial.getValue());
-            }
-        }
-    }
+    copyMaterial(link);
     return Part::Feature::execute();
 }
 

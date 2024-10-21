@@ -34,8 +34,6 @@
 #include <Base/Console.h>
 #include <Base/Parameter.h>
 
-#include <Mod/Material/App/MaterialManager.h>
-
 #include "FeaturePartFuse.h"
 #include "TopoShape.h"
 #include "modelRefine.h"
@@ -212,16 +210,7 @@ App::DocumentObjectExecReturn *MultiFuse::execute()
             this->History.setValues(history);
 
             App::DocumentObject* link = Shapes.getValues()[0];
-            auto mat = Materials::MaterialManager::defaultMaterial();
-            auto feature = dynamic_cast<Part::Feature*>(link);
-            if (feature) {
-                if (ShapeMaterial.getValue().getUUID()
-                    != feature->ShapeMaterial.getValue().getUUID()) {
-                    if (ShapeMaterial.getValue().getUUID() == mat->getUUID()) {
-                        ShapeMaterial.setValue(feature->ShapeMaterial.getValue());
-                    }
-                }
-            }
+            copyMaterial(link);
             return Part::Feature::execute();
         }
         catch (Standard_Failure& e) {

@@ -169,6 +169,9 @@ protected:
     void onBeforeChange(const App::Property* prop) override;
     void onChanged(const App::Property* prop) override;
 
+    void copyMaterial(Feature* feature);
+    void copyMaterial(App::DocumentObject* link);
+
     void registerElementCache(const std::string &prefix, PropertyPartShape *prop);
 
     /** Helper function to obtain mapped and indexed element name from a shape

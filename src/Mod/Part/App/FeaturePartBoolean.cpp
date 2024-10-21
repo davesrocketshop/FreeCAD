@@ -32,8 +32,6 @@
 #include <App/Application.h>
 #include <Base/Parameter.h>
 
-#include <Mod/Material/App/MaterialManager.h>
-
 #include "FeaturePartBoolean.h"
 #include "TopoShapeOpCode.h"
 #include "modelRefine.h"
@@ -138,15 +136,7 @@ App::DocumentObjectExecReturn* Boolean::execute()
             res = res.makeElementRefine();
         }
         this->Shape.setValue(res);
-        auto mat = Materials::MaterialManager::defaultMaterial();
-        auto feature = dynamic_cast<Part::Feature*>(base);
-        if (feature) {
-            if (ShapeMaterial.getValue().getUUID() != feature->ShapeMaterial.getValue().getUUID()) {
-                if (ShapeMaterial.getValue().getUUID() == mat->getUUID()) {
-                    ShapeMaterial.setValue(feature->ShapeMaterial.getValue());
-                }
-            }
-        }
+        copyMaterial(base);
         return Part::Feature::execute();
     }
     catch (...) {
