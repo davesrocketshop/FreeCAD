@@ -89,8 +89,34 @@ Feature::Feature()
 {
     ADD_PROPERTY(Shape, (TopoDS_Shape()));
     auto mat = Materials::MaterialManager::defaultMaterial();
-    // ADD_PROPERTY_TYPE(ShapeMaterial, (mat), osgroup, App::Prop_None, "Shape material");
     ADD_PROPERTY(ShapeMaterial, (*mat));
+
+    // Read only properties based on the material
+    static const char* group = "Physical Properties";
+    ADD_PROPERTY_TYPE(
+        MaterialName,
+        ("Default"),
+        group,
+        static_cast<App::PropertyType>(App::Prop_ReadOnly | App::Prop_Output | App::Prop_Transient),
+        "Feature material");
+    ADD_PROPERTY_TYPE(
+        Density,
+        (1.0),
+        group,
+        static_cast<App::PropertyType>(App::Prop_ReadOnly | App::Prop_Output | App::Prop_Transient),
+        "Feature density");
+    ADD_PROPERTY_TYPE(
+        Mass,
+        (0.0),
+        group,
+        static_cast<App::PropertyType>(App::Prop_ReadOnly | App::Prop_Output | App::Prop_Transient),
+        "Feature mass");
+    ADD_PROPERTY_TYPE(
+        Volume,
+        (1.0),
+        group,
+        static_cast<App::PropertyType>(App::Prop_ReadOnly | App::Prop_Output | App::Prop_Transient),
+        "Feature volume");
 }
 
 Feature::~Feature() = default;
@@ -1472,9 +1498,41 @@ void Feature::onChanged(const App::Property* prop)
                 }
             }
         }
+        updatePhysicalProperties();
+    } else if (prop == &this->ShapeMaterial) {
+        updatePhysicalProperties();
     }
 
     GeoFeature::onChanged(prop);
+}
+
+void Feature::updatePhysicalProperties()
+{
+    MaterialName.setValue(ShapeMaterial.getValue().getName().toStdString());
+    if (ShapeMaterial.getValue().hasPhysicalProperty(QString::fromLatin1("Density"))) {
+        Density.setValue(ShapeMaterial.getValue()
+                             .getPhysicalQuantity(QString::fromLatin1("Density"))
+                             .getValue());
+    } else {
+        Base::Console().Log("Density is undefined\n");
+        Density.setValue(1.0); // default density
+    }
+    // Base::Console().Log("Density %g\n", Density.getValue());
+
+    auto topoShape = Shape.getValue();
+    if (!topoShape.IsNull()) {
+        GProp_GProps props;
+        BRepGProp::VolumeProperties(topoShape, props);
+        Volume.setValue(props.Mass());  // Seriously, it uses mass when density = 1.0!!!!
+        // Base::Console().Log("Volume %g\n", Volume.getValue());
+        Mass.setValue(Volume.getValue() * Density.getValue());
+        // Base::Console().Log("Mass %g\n", Mass.getValue());
+    } else {
+        // No shape
+        Base::Console().Log("No shape defined\n");
+        Volume.setValue(0.0);
+        Mass.setValue(0.0);
+    }
 }
 
 
