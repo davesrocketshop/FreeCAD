@@ -92,31 +92,31 @@ Feature::Feature()
     ADD_PROPERTY(ShapeMaterial, (*mat));
 
     // Read only properties based on the material
-    static const char* group = "Physical Properties";
-    ADD_PROPERTY_TYPE(
-        MaterialName,
-        ("Default"),
-        group,
-        static_cast<App::PropertyType>(App::Prop_ReadOnly | App::Prop_Output | App::Prop_Transient),
-        "Feature material");
-    ADD_PROPERTY_TYPE(
-        Density,
-        (1.0),
-        group,
-        static_cast<App::PropertyType>(App::Prop_ReadOnly | App::Prop_Output | App::Prop_Transient),
-        "Feature density");
-    ADD_PROPERTY_TYPE(
-        Mass,
-        (0.0),
-        group,
-        static_cast<App::PropertyType>(App::Prop_ReadOnly | App::Prop_Output | App::Prop_Transient),
-        "Feature mass");
-    ADD_PROPERTY_TYPE(
-        Volume,
-        (1.0),
-        group,
-        static_cast<App::PropertyType>(App::Prop_ReadOnly | App::Prop_Output | App::Prop_Transient),
-        "Feature volume");
+    static const char* group = "PhysicalProperties";
+    ADD_PROPERTY_TYPE(MaterialName,
+                      (""),
+                      group,
+                      static_cast<App::PropertyType>(App::Prop_ReadOnly | App::Prop_Output
+                                                     | App::Prop_NoRecompute | App::Prop_NoPersist),
+                      "Feature material");
+    ADD_PROPERTY_TYPE(Density,
+                      (0.0),
+                      group,
+                      static_cast<App::PropertyType>(App::Prop_ReadOnly | App::Prop_Output
+                                                     | App::Prop_NoRecompute | App::Prop_NoPersist),
+                      "Feature density");
+    ADD_PROPERTY_TYPE(Mass,
+                      (0.0),
+                      group,
+                      static_cast<App::PropertyType>(App::Prop_ReadOnly | App::Prop_Output
+                                                     | App::Prop_NoRecompute | App::Prop_NoPersist),
+                      "Feature mass");
+    ADD_PROPERTY_TYPE(Volume,
+                      (1.0),
+                      group,
+                      static_cast<App::PropertyType>(App::Prop_ReadOnly | App::Prop_Output
+                                                     | App::Prop_NoRecompute | App::Prop_NoPersist),
+                      "Feature volume");
 }
 
 Feature::~Feature() = default;
@@ -1515,18 +1515,15 @@ void Feature::updatePhysicalProperties()
                              .getValue());
     } else {
         Base::Console().Log("Density is undefined\n");
-        Density.setValue(1.0); // default density
+        Density.setValue(0.0);
     }
-    // Base::Console().Log("Density %g\n", Density.getValue());
 
     auto topoShape = Shape.getValue();
     if (!topoShape.IsNull()) {
         GProp_GProps props;
         BRepGProp::VolumeProperties(topoShape, props);
-        Volume.setValue(props.Mass());  // Seriously, it uses mass when density = 1.0!!!!
-        // Base::Console().Log("Volume %g\n", Volume.getValue());
+        Volume.setValue(props.Mass());
         Mass.setValue(Volume.getValue() * Density.getValue());
-        // Base::Console().Log("Mass %g\n", Mass.getValue());
     } else {
         // No shape
         Base::Console().Log("No shape defined\n");
