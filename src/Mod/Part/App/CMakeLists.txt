@@ -191,6 +191,8 @@ SET(Features_SRCS
     FeatureFace.h
     FeatureFillet.cpp
     FeatureFillet.h
+    FeatureMaterial.cpp
+    FeatureMaterial.h
     FeatureMirroring.cpp
     FeatureMirroring.h
     FeatureRevolution.cpp
