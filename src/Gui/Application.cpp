@@ -115,7 +115,6 @@
 #include "ViewProviderLink.h"
 #include "ViewProviderLinkPy.h"
 #include "ViewProviderMaterialObject.h"
-#include "ViewProviderMaterialGroupExtension.h"
 #include "ViewProviderOrigin.h"
 #include "ViewProviderOriginFeature.h"
 #include "ViewProviderOriginGroup.h"
@@ -2049,8 +2048,6 @@ void Application::initTypes()
     Gui::ViewProviderGroupExtensionPython       ::init();
     Gui::ViewProviderGeoFeatureGroupExtension   ::init();
     Gui::ViewProviderGeoFeatureGroupExtensionPython::init();
-    Gui::ViewProviderMaterialGroupExtension     ::init();
-    Gui::ViewProviderMaterialGroupExtensionPython::init();
     Gui::ViewProviderOriginGroupExtension       ::init();
     Gui::ViewProviderOriginGroupExtensionPython ::init();
     Gui::ViewProviderSuppressibleExtension      ::init();

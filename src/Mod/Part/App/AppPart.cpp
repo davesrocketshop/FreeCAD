@@ -42,17 +42,17 @@
 #include "ArcOfHyperbolaPy.h"
 #include "ArcOfParabolaPy.h"
 #include "ArcPy.h"
-#include "Attacher.h"
-#include "AttachExtension.h"
 #include "AttachEnginePy.h"
-#include "BezierCurvePy.h"
-#include "BezierSurfacePy.h"
-#include "BodyBase.h"
-#include "BodyBasePy.h"
+#include "AttachExtension.h"
+#include "Attacher.h"
 #include "BRepOffsetAPI_MakeFillingPy.h"
 #include "BRepOffsetAPI_MakePipeShellPy.h"
 #include "BSplineCurvePy.h"
 #include "BSplineSurfacePy.h"
+#include "BezierCurvePy.h"
+#include "BezierSurfacePy.h"
+#include "BodyBase.h"
+#include "BodyBasePy.h"
 #include "CirclePy.h"
 #include "ConePy.h"
 #include "ConicPy.h"
@@ -66,11 +66,11 @@
 #include "FeatureChamfer.h"
 #include "FeatureCompound.h"
 #include "FeatureExtrusion.h"
-#include "FeatureScale.h"
 #include "FeatureFace.h"
 #include "FeatureFillet.h"
 #include "FeatureGeometrySet.h"
 #include "FeatureMaterial.h"
+#include "FeatureMaterialRoot.h"
 #include "FeatureMirroring.h"
 #include "FeatureOffset.h"
 #include "FeaturePartBoolean.h"
@@ -88,6 +88,7 @@
 #include "FeaturePartSpline.h"
 #include "FeatureProjectOnSurface.h"
 #include "FeatureRevolution.h"
+#include "FeatureScale.h"
 #include "Geometry.h"
 #include "Geometry2d.h"
 #include "GeometryBoolExtensionPy.h"
@@ -101,6 +102,8 @@
 #include "ImportStep.h"
 #include "LinePy.h"
 #include "LineSegmentPy.h"
+#include "MaterialGroupExtension.h"
+#include "OCCError.h"
 #include "OffsetCurvePy.h"
 #include "OffsetSurfacePy.h"
 #include "ParabolaPy.h"
@@ -112,12 +115,15 @@
 #include "PlateSurfacePy.h"
 #include "PointPy.h"
 #include "PrimitiveFeature.h"
+#include "PrismExtension.h"
+#include "PropertyGeometryList.h"
+#include "PropertyTopoShapeList.h"
 #include "RectangularTrimmedSurfacePy.h"
 #include "SpherePy.h"
 #include "SurfaceOfExtrusionPy.h"
 #include "SurfaceOfRevolutionPy.h"
-#include "TopoShapeCompoundPy.h"
 #include "TopoShapeCompSolidPy.h"
+#include "TopoShapeCompoundPy.h"
 #include "TopoShapeEdgePy.h"
 #include "TopoShapeFacePy.h"
 #include "TopoShapePy.h"
@@ -126,10 +132,6 @@
 #include "TopoShapeVertexPy.h"
 #include "TopoShapeWirePy.h"
 #include "ToroidPy.h"
-#include "OCCError.h"
-#include "PrismExtension.h"
-#include "PropertyGeometryList.h"
-#include "PropertyTopoShapeList.h"
 
 #include <BRepFeat/MakePrismPy.h>
 
@@ -491,6 +493,8 @@ PyMOD_INIT_FUNC(Part)
     Part::Thickness             ::init();
     Part::Refine                ::init();
     Part::Reverse               ::init();
+
+    Part::MaterialGroupExtension::init();
 
     // Geometry types
     Part::GeometryExtension       	::init();

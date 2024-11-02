@@ -967,7 +967,6 @@ SET(Viewprovider_CPP_SRCS
     ViewProviderVarSet.cpp
     AxisOriginPyImp.cpp
     AxisOrigin.cpp
-    ViewProviderMaterialGroupExtension.cpp
 )
 SET(Viewprovider_SRCS
     ${Viewprovider_CPP_SRCS}
@@ -1002,7 +1001,6 @@ SET(Viewprovider_SRCS
     ViewProviderLink.h
     ViewProviderVarSet.h
     AxisOrigin.h
-    ViewProviderMaterialGroupExtension.h
 )
 SOURCE_GROUP("View3D\\Viewprovider" FILES ${Viewprovider_SRCS})
 

@@ -58,6 +58,7 @@
 #include "ViewProviderEllipseParametric.h"
 #include "ViewProviderExt.h"
 #include "ViewProviderExtrusion.h"
+#include "ViewProviderMaterialGroupExtension.h"
 #include "ViewProviderScale.h"
 #include "ViewProviderHelixParametric.h"
 #include "ViewProviderPrimitive.h"
@@ -183,6 +184,8 @@ PyMOD_INIT_FUNC(PartGui)
     PartGui::ViewProvider2DObject                   ::init();
     PartGui::ViewProvider2DObjectPython             ::init();
     PartGui::ViewProvider2DObjectGrid               ::init();
+    PartGui::ViewProviderMaterialGroupExtension     ::init();
+    PartGui::ViewProviderMaterialGroupExtensionPython::init();
     PartGui::ViewProviderMirror                     ::init();
     PartGui::ViewProviderFillet                     ::init();
     PartGui::ViewProviderChamfer                    ::init();

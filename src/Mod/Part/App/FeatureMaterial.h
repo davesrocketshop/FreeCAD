@@ -20,8 +20,8 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifndef FEATUREMATERIAL_H
-#define FEATUREMATERIAL_H
+#ifndef PART_FEATUREMATERIAL_H
+#define PART_FEATUREMATERIAL_H
 
 #include <App/GeoFeature.h>
 
@@ -66,4 +66,4 @@ public:
 
 }  // namespace Part
 
-#endif /* end of include guard: FEATUREMATERIAL_H */
+#endif // PART_FEATUREMATERIAL_H

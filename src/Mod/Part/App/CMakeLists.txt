@@ -193,6 +193,8 @@ SET(Features_SRCS
     FeatureFillet.h
     FeatureMaterial.cpp
     FeatureMaterial.h
+    FeatureMaterialRoot.cpp
+    FeatureMaterialRoot.h
     FeatureMirroring.cpp
     FeatureMirroring.h
     FeatureRevolution.cpp
@@ -549,6 +551,8 @@ SET(Part_SRCS
     ImportStep.h
     Interface.cpp
     Interface.h
+    MaterialGroupExtension.cpp
+    MaterialGroupExtension.h
     PreCompiled.cpp
     PreCompiled.h
     ProgressIndicator.cpp
