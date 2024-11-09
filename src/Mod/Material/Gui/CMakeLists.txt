@@ -23,6 +23,15 @@ set(MatGui_LIBS
     FreeCADGui
 )
 
+if(BUILD_MATERIAL_DATABASE)
+    include_directories(
+        ${QtSql_INCLUDE_DIRS}
+    )
+    list(APPEND MatGui_LIBS
+        ${QtSql_LIBRARIES}
+    )
+endif()
+
 include_directories(
     ${QtConcurrent_INCLUDE_DIRS}
 )
@@ -60,6 +69,11 @@ set(MatGui_UIC_SRCS
     ModelSelect.ui
     TextEdit.ui
 )
+if(BUILD_MATERIAL_DATABASE)
+    list(APPEND MatGui_UIC_SRCS
+        DlgSettingsDatabase.ui
+    )
+endif()
 
 SET(MatGui_SRCS
     ${Python_SRCS}
@@ -132,6 +146,13 @@ SET(MatGui_SRCS
     WorkbenchManipulator.cpp
     WorkbenchManipulator.h
 )
+if(BUILD_MATERIAL_DATABASE)
+    list(APPEND MatGui_SRCS
+        DlgSettingsDatabase.cpp
+        DlgSettingsDatabase.h
+        DlgSettingsDatabase.ui
+    )
+endif()
 
 if(FREECAD_USE_PCH)
     add_definitions(-D_PreComp_)

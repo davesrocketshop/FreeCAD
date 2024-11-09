@@ -1,6 +1,10 @@
 # -------------------------------- Qt --------------------------------
 
 set(FREECAD_QT_COMPONENTS Core Concurrent Network Xml)
+if(BUILD_MATERIAL_DATABASE)
+    list (APPEND FREECAD_QT_COMPONENTS Sql)
+endif()
+
 if (FREECAD_QT_MAJOR_VERSION EQUAL 6)
     set (Qt6Core_MOC_EXECUTABLE Qt6::moc)
 endif()
