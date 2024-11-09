@@ -4,6 +4,10 @@ else(MSVC)
     add_definitions(-DHAVE_LIMITS_H -DHAVE_CONFIG_H)
 endif(MSVC)
 
+if(BUILD_MATERIAL_DATABASE)
+    add_definitions(-DBUILD_MATERIAL_DATABASE)
+endif(BUILD_MATERIAL_DATABASE)
+
 include_directories(
     ${CMAKE_BINARY_DIR}
     ${CMAKE_SOURCE_DIR}/src
@@ -30,7 +34,7 @@ if(BUILD_MATERIAL_DATABASE)
     list(APPEND MatGui_LIBS
         ${QtSql_LIBRARIES}
     )
-endif()
+endif(BUILD_MATERIAL_DATABASE)
 
 include_directories(
     ${QtConcurrent_INCLUDE_DIRS}
@@ -73,7 +77,7 @@ if(BUILD_MATERIAL_DATABASE)
     list(APPEND MatGui_UIC_SRCS
         DlgSettingsDatabase.ui
     )
-endif()
+endif(BUILD_MATERIAL_DATABASE)
 
 SET(MatGui_SRCS
     ${Python_SRCS}
@@ -152,7 +156,7 @@ if(BUILD_MATERIAL_DATABASE)
         DlgSettingsDatabase.h
         DlgSettingsDatabase.ui
     )
-endif()
+endif(BUILD_MATERIAL_DATABASE)
 
 if(FREECAD_USE_PCH)
     add_definitions(-D_PreComp_)
