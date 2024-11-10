@@ -99,24 +99,33 @@ void DlgSettingsDatabase::loadSettings()
     if (drivers.contains(QLatin1String("QMARIADB"))) {
         ui->comboConnectionType->addItem(QLatin1String("MariaDB"));
     }
-    if (drivers.contains(QLatin1String("QPSQL"))) {
-        ui->comboConnectionType->addItem(QLatin1String("Postgres"));
-    }
+    // if (drivers.contains(QLatin1String("QPSQL"))) {
+    //     ui->comboConnectionType->addItem(QLatin1String("Postgres"));
+    // }
 
     // Database type - these are products so not translated
     ui->comboDBType->clear();
     ui->comboDBType->addItem(Materials::Database::DB_MySQL);
     ui->comboDBType->addItem(Materials::Database::DB_Maria);
-    ui->comboDBType->addItem(Materials::Database::DB_Postgress);
-    ui->comboDBType->addItem(Materials::Database::DB_SQLServer);
-    ui->comboDBType->addItem(Materials::Database::DB_SQLite);
+    // ui->comboDBType->addItem(Materials::Database::DB_Postgress);
+    // ui->comboDBType->addItem(Materials::Database::DB_SQLServer);
+    // ui->comboDBType->addItem(Materials::Database::DB_SQLite);
 
     ParameterGrp::handle hGrp = App::GetApplication().GetParameterGroupByPath(
         "User parameter:BaseApp/Preferences/Mod/Material/Database");
     auto connectionType = hGrp->GetASCII("DBType", "QODBC");
-    if (connectionType == "OODBC") {
+    if (connectionType == "QODBC") {
         ui->comboConnectionType->setCurrentText(QLatin1String("ODBC"));
     }
+    else if (connectionType == "QMYSQL") {
+        ui->comboConnectionType->setCurrentText(QLatin1String("MySQL"));
+    }
+    else if (connectionType == "QMARIADB") {
+        ui->comboConnectionType->setCurrentText(QLatin1String("MariaDB"));
+    }
+    // else if (connectionType == "QPSQL") {
+    //     ui->comboConnectionType->setCurrentText(QLatin1String("Postgres"));
+    // }
     auto dbType = hGrp->GetASCII("DBType", Materials::Database::DB_MySQL.toStdString().c_str());
     ui->comboDBType->setCurrentText(QString::fromStdString(dbType));
 
