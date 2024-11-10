@@ -38,6 +38,10 @@
 #include "ModelManager.h"
 #include "ModelUuids.h"
 
+#if defined(BUILD_MATERIAL_DATABASE)
+#include "Database.h"
+#endif  // BUILD_MATERIAL_DATABASE
+
 
 using namespace Materials;
 
@@ -407,4 +411,27 @@ void MaterialManager::dereference() const
 void MaterialManager::dereference(std::shared_ptr<Material> material) const
 {
     MaterialLoader::dereference(_materialMap, material);
+}
+
+void MaterialManager::migrateToDatabase()
+{
+    // #if defined(BUILD_MATERIAL_DATABASE)
+
+    // Migrate the models first
+    ModelManager::migrateToDatabase();
+
+    Database db;
+
+    // auto libraries = getMaterialLibraries();
+    for (auto library : *_libraryList) {
+        // Create the library
+        // QIcon icon = QIcon(library->getIconPath());
+        db.createLibrary(library->getName(), QLatin1String(""));
+
+        // Create the folders
+
+        // Copy the models
+    }
+
+    // #endif  // BUILD_MATERIAL_DATABASE
 }

@@ -31,6 +31,10 @@
 #include "ModelLibrary.h"
 #include "ModelManager.h"
 
+#if defined(BUILD_MATERIAL_DATABASE)
+#include "Database.h"
+#endif  // BUILD_MATERIAL_DATABASE
+
 
 using namespace Materials;
 
@@ -180,4 +184,20 @@ ModelLibrary::getModelTree(ModelFilter filter) const
     }
 
     return modelTree;
+}
+
+void ModelLibrary::migrateToDatabase()
+{
+    // #if defined(BUILD_MATERIAL_DATABASE)
+    // ModelManager manager;
+    Database db;
+
+    auto libraryIndex = db.findLibrary(getName());
+
+    // auto libraries = manager.getModelLibraries();
+    for (const auto& [path, model] : *_modelPathMap) {
+        db.createModel(libraryIndex, path, model);
+    }
+
+    // #endif  // BUILD_MATERIAL_DATABASE
 }

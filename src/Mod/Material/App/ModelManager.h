@@ -68,6 +68,8 @@ public:
     static bool isModel(const QString& file);
     static bool passFilter(ModelFilter filter, Model::ModelType modelType);
 
+    static void migrateToDatabase();
+
 private:
     static void initLibraries();
 

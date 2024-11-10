@@ -135,6 +135,8 @@ public:
     void dereference(std::shared_ptr<Material> material) const;
     void dereference() const;
 
+    static void migrateToDatabase();
+
 private:
     static std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>> _libraryList;
     static std::shared_ptr<std::map<QString, std::shared_ptr<Material>>> _materialMap;

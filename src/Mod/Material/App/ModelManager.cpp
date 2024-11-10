@@ -32,6 +32,10 @@
 #include "ModelLoader.h"
 #include "ModelManager.h"
 
+#if defined(BUILD_MATERIAL_DATABASE)
+#include "Database.h"
+#endif  // BUILD_MATERIAL_DATABASE
+
 
 using namespace Materials;
 
@@ -154,4 +158,24 @@ bool ModelManager::passFilter(ModelFilter filter, Model::ModelType modelType)
     }
 
     return false;
+}
+
+void ModelManager::migrateToDatabase()
+{
+// #if defined(BUILD_MATERIAL_DATABASE)
+    // ModelManager manager;
+    Database db;
+
+    // auto libraries = manager.getModelLibraries();
+    for (auto library : *_libraryList) {
+        // Create the library
+        // QIcon icon = QIcon(library->getIconPath());
+        db.createLibrary(library->getName(), QLatin1String(""));
+
+        // Create the folders
+
+        // Copy the models
+    }
+
+// #endif  // BUILD_MATERIAL_DATABASE
 }

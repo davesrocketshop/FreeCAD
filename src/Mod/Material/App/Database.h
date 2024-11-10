@@ -32,12 +32,19 @@
 namespace Materials
 {
 
+class Model;
+
 class MaterialsExport Database
 {
 
 public:
     Database();
     virtual ~Database();
+
+    int findLibrary(const QString &name);
+    void createLibrary(const QString &name, const QString& icon, bool readOnly=false);
+    int createPath(int libraryIndex, const QString& path);
+    void createModel(int libraryIndex, const QString& path, const std::shared_ptr<Model>& model);
 
     bool createTables();
     static bool useDatabase();

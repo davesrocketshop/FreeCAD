@@ -111,6 +111,8 @@ public:
     std::shared_ptr<std::map<QString, std::shared_ptr<ModelTreeNode>>>
     getModelTree(ModelFilter filter) const;
 
+    void migrateToDatabase();
+
 private:
     ModelLibrary(const ModelLibrary&);
 

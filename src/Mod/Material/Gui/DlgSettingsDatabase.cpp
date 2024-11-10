@@ -27,6 +27,7 @@
 #include <App/Application.h>
 
 #include <Mod/Material/App/Database.h>
+#include <Mod/Material/App/MaterialManager.h>
 
 #include "DlgSettingsDatabase.h"
 #include "ui_DlgSettingsDatabase.h"
@@ -182,6 +183,10 @@ void DlgSettingsDatabase::initialize(bool)
 
 void DlgSettingsDatabase::migrate(bool)
 {
+    // Connection settings must be saved before connecting
+    saveSettings();
+
+    Materials::MaterialManager::migrateToDatabase();
 }
 
 #include "moc_DlgSettingsDatabase.cpp"

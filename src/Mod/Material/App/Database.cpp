@@ -194,3 +194,53 @@ void Database::createTablesSQLite()
 {
     createTablesMySQL();
 }
+
+int Database::findLibrary(const QString& name)
+{
+    int result = 0;
+    if (_db.open()) {
+        QSqlQuery query(_db);
+        query.prepare(
+            QLatin1String("SELECT library_id FROM library WHERE library_name = ?"));
+        query.addBindValue(name);
+        query.exec();
+
+        if (query.next()) {
+            result = query.value(0).toInt();
+        }
+
+        _db.close();
+    }
+    return result;
+}
+
+void Database::createLibrary(const QString& name, const QString& icon, bool readOnly)
+{
+    if (_db.open()) {
+        if (_db.transaction()) {
+            QSqlQuery query(_db);
+            query.prepare(QLatin1String("INSERT INTO library (library_name, library_icon, library_read_only) "
+                            "VALUES (?, ?, ?)"));
+            query.addBindValue(name);
+            query.addBindValue(icon);
+            query.addBindValue(readOnly);
+            query.exec();
+        }
+        _db.commit();
+        _db.close();
+    }
+}
+
+int Database::createPath(int libraryIndex, const QString& path)
+{
+    // TODO
+    return 0;
+}
+
+void Database::createModel(int libraryIndex,
+                           const QString& path,
+                           const std::shared_ptr<Model>& model)
+{
+    // TODO
+    auto pathIndex = createPath(libraryIndex, path);
+}
