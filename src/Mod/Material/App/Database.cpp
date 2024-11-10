@@ -21,9 +21,8 @@
 
 #include "PreCompiled.h"
 #ifndef _PreComp_
-#endif
-
 #include <QSqlQuery>
+#endif
 
 #include <App/Application.h>
 
@@ -31,7 +30,8 @@
 
 using namespace Materials;
 
-const QString Database::DB_MySQL = QLatin1String("MySQL/MariaDB");
+const QString Database::DB_MySQL = QLatin1String("MySQL");
+const QString Database::DB_Maria = QLatin1String("MariaDB");
 const QString Database::DB_Postgress = QLatin1String("Postgress");
 const QString Database::DB_SQLServer = QLatin1String("SQL Server");
 const QString Database::DB_SQLite = QLatin1String("SQLite");
@@ -130,7 +130,7 @@ bool Database::createTables()
     }
 
     try {
-        if (_dbType == DB_MySQL) {
+        if (_dbType == DB_MySQL || _dbType == DB_Maria) {
             createTablesMySQL();
         }
         else if (_dbType == DB_Postgress) {

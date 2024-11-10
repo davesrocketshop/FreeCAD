@@ -60,6 +60,11 @@
 #ifndef __QtAll__
 #include <Gui/QtAll.h>
 #endif
+#if defined(BUILD_MATERIAL_DATABASE)
+#include <QSqlDatabase>
+#include <QSqlError>
+#include <QSqlQuery>
+#endif  // BUILD_MATERIAL_DATABASE
 
 // Inventor includes OpenGL
 #ifndef __InventorAll__

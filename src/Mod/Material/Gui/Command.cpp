@@ -22,6 +22,11 @@
 #include "PreCompiled.h"
 #ifndef _PreComp_
 #include <QPointer>
+
+#if defined(BUILD_MATERIAL_DATABASE)
+#include <QSqlDatabase>
+#include <QSqlError>
+#endif  // BUILD_MATERIAL_DATABASE
 #endif
 
 #include <Gui/Command.h>
@@ -36,6 +41,10 @@
 #include "MaterialSave.h"
 #include "MaterialsEditor.h"
 #include "ModelSelect.h"
+
+#if defined(BUILD_MATERIAL_DATABASE)
+#include <Mod/Material/App/Database.h>
+#endif
 
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -189,6 +198,84 @@ bool CmdInspectMaterial::isActive()
     return (Gui::Control().activeDialog() == nullptr);
 }
 
+//===========================================================================
+// Materials_InitializeDatabase
+//===========================================================================
+#if defined(BUILD_MATERIAL_DATABASE)
+
+DEF_STD_CMD_A(CmdInitializeDatabase)
+
+CmdInitializeDatabase::CmdInitializeDatabase()
+    : Command("Materials_InitializeDatabase")
+{
+    sGroup = "Standard-View";
+    sMenuText = QT_TR_NOOP("Initialize database");
+    sToolTipText =
+        QT_TR_NOOP("Initialize the material database. This requires a tested database connection.");
+    sWhatsThis = "Materials_InitializeDatabase";
+    sStatusTip = QT_TR_NOOP("Initialize the material database");
+    // sPixmap = "Materials_Edit";
+}
+
+void CmdInitializeDatabase::activated(int iMsg)
+{
+    Q_UNUSED(iMsg);
+    Materials::Database db;
+
+    if (!db.createTables()) {
+        Base::Console().Log("Fail\n");
+        auto error = db.lastError();
+        Base::Console().Log("%s\n", error.text().toStdString().c_str());
+        // QMessageBox::critical(this, QLatin1String("Database Initialize"), error.text());
+    }
+}
+
+bool CmdInitializeDatabase::isActive()
+{
+    return true;
+}
+
+#endif  // BUILD_MATERIAL_DATABASE
+
+//===========================================================================
+// Materials_MigrateToDatabase
+//===========================================================================
+#if defined(BUILD_MATERIAL_DATABASE)
+
+DEF_STD_CMD_A(CmdMigrateToDatabase)
+
+CmdMigrateToDatabase::CmdMigrateToDatabase()
+    : Command("Materials_MigrateToDatabase")
+{
+    sGroup = "Standard-View";
+    sMenuText = QT_TR_NOOP("Migrate to database");
+    sToolTipText =
+        QT_TR_NOOP("Migrate the materials to the database");
+    sWhatsThis = "Materials_MigrateToDatabase";
+    sStatusTip = QT_TR_NOOP("Migrate existing materials to the database");
+    // sPixmap = "Materials_Edit";
+}
+
+void CmdMigrateToDatabase::activated(int iMsg)
+{
+    Q_UNUSED(iMsg);
+    Materials::Database db;
+
+    // if (!db.migrate()) {
+    //     Base::Console().Log("Fail\n");
+    //     auto error = db.lastError();
+    //     Base::Console().Log("%s\n", error.text().toStdString().c_str());
+    //     // QMessageBox::critical(this, QLatin1String("Database Initialize"), error.text());
+    // }
+}
+
+bool CmdMigrateToDatabase::isActive()
+{
+    return true;
+}
+
+#endif  // BUILD_MATERIAL_DATABASE
+
 //---------------------------------------------------------------
 
 void CreateMaterialCommands()
@@ -200,4 +287,8 @@ void CreateMaterialCommands()
     rcCmdMgr.addCommand(new StdCmdSetMaterial());
     rcCmdMgr.addCommand(new CmdInspectAppearance());
     rcCmdMgr.addCommand(new CmdInspectMaterial());
+#if defined(BUILD_MATERIAL_DATABASE)
+    rcCmdMgr.addCommand(new CmdInitializeDatabase());
+    rcCmdMgr.addCommand(new CmdMigrateToDatabase());
+#endif  // BUILD_MATERIAL_DATABASE
 }

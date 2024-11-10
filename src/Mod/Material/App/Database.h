@@ -49,6 +49,7 @@ public:
 
     // Types of databases
     static const QString DB_MySQL;
+    static const QString DB_Maria;
     static const QString DB_Postgress;
     static const QString DB_SQLServer;
     static const QString DB_SQLite;

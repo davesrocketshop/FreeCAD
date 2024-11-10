@@ -68,6 +68,11 @@
 #include <QTextStream>
 #include <QUuid>
 #include <QVector>
+#if defined(BUILD_MATERIAL_DATABASE)
+#include <QSqlDatabase>
+#include <QSqlError>
+#include <QSqlQuery>
+#endif  // BUILD_MATERIAL_DATABASE
 
 #endif  //_PreComp_
 

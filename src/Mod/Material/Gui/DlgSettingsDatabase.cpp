@@ -60,6 +60,15 @@ void DlgSettingsDatabase::saveSettings()
     if (ui->comboConnectionType->currentText() == QLatin1String("ODBC")) {
         hGrp->SetASCII("ConnectionType", "QODBC");
     }
+    else if (ui->comboConnectionType->currentText() == QLatin1String("MySQL")) {
+        hGrp->SetASCII("ConnectionType", "QMYSQL");
+    }
+    else if (ui->comboConnectionType->currentText() == QLatin1String("MariaDB")) {
+        hGrp->SetASCII("ConnectionType", "QMARIADB");
+    }
+    else if (ui->comboConnectionType->currentText() == QLatin1String("Postgres")) {
+        hGrp->SetASCII("ConnectionType", "QPSQL");
+    }
     ui->comboDBType->onSave();
     ui->inputHostname->onSave();
     ui->inputDatabase->onSave();
@@ -79,14 +88,24 @@ void DlgSettingsDatabase::loadSettings()
 
     // Connection type - these are products so not translated
     ui->comboConnectionType->clear();
-    ui->comboConnectionType->addItem(QLatin1String("ODBC"));
-    // for (auto driver : QSqlDatabase::drivers()) {
-    //     Base::Console().Log("Driver: %s\n", driver.toStdString().c_str());
-    // }
+    auto drivers = QSqlDatabase::drivers();
+    if (drivers.contains(QLatin1String("QODBC"))) {
+        ui->comboConnectionType->addItem(QLatin1String("ODBC"));
+    }
+    if (drivers.contains(QLatin1String("QMYSQL"))) {
+        ui->comboConnectionType->addItem(QLatin1String("MySQL"));
+    }
+    if (drivers.contains(QLatin1String("QMARIADB"))) {
+        ui->comboConnectionType->addItem(QLatin1String("MariaDB"));
+    }
+    if (drivers.contains(QLatin1String("QPSQL"))) {
+        ui->comboConnectionType->addItem(QLatin1String("Postgres"));
+    }
 
     // Database type - these are products so not translated
     ui->comboDBType->clear();
     ui->comboDBType->addItem(Materials::Database::DB_MySQL);
+    ui->comboDBType->addItem(Materials::Database::DB_Maria);
     ui->comboDBType->addItem(Materials::Database::DB_Postgress);
     ui->comboDBType->addItem(Materials::Database::DB_SQLServer);
     ui->comboDBType->addItem(Materials::Database::DB_SQLite);
