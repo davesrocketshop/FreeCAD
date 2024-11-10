@@ -26,6 +26,8 @@
 
 #include <App/Application.h>
 
+#include <Mod/Material/App/Database.h>
+
 #include "DlgSettingsDatabase.h"
 #include "ui_DlgSettingsDatabase.h"
 
@@ -39,18 +41,30 @@ DlgSettingsDatabase::DlgSettingsDatabase(QWidget* parent)
     ui->setupUi(this);
 
     connect(ui->buttonTest, &QPushButton::clicked, this, &DlgSettingsDatabase::testConnection);
+    connect(ui->buttonInitialize, &QPushButton::clicked, this, &DlgSettingsDatabase::initialize);
+    connect(ui->buttonMigrate, &QPushButton::clicked, this, &DlgSettingsDatabase::migrate);
+}
+
+DlgSettingsDatabase::~DlgSettingsDatabase()
+{
+    if (QSqlDatabase::contains(QLatin1String("connectionTest"))) {
+        QSqlDatabase::removeDatabase(QLatin1String("connectionTest"));
+    }
 }
 
 void DlgSettingsDatabase::saveSettings()
 {
+    ParameterGrp::handle hGrp = App::GetApplication().GetParameterGroupByPath(
+        "User parameter:BaseApp/Preferences/Mod/Material/Database");
+
+    if (ui->comboConnectionType->currentText() == QLatin1String("ODBC")) {
+        hGrp->SetASCII("ConnectionType", "QODBC");
+    }
     ui->comboDBType->onSave();
     ui->inputHostname->onSave();
     ui->inputDatabase->onSave();
     ui->inputUsername->onSave();
     ui->inputPassword->onSave();
-
-    ParameterGrp::handle hGrp = App::GetApplication().GetParameterGroupByPath(
-        "User parameter:BaseApp/Preferences/Mod/Material/Database");
 
     bool useDatabase = ui->groupDatabase->isChecked();
     hGrp->SetBool("UseDatabase", useDatabase);
@@ -63,17 +77,27 @@ void DlgSettingsDatabase::loadSettings()
     ui->inputUsername->onRestore();
     ui->inputPassword->onRestore();
 
+    // Connection type - these are products so not translated
+    ui->comboConnectionType->clear();
+    ui->comboConnectionType->addItem(QLatin1String("ODBC"));
+    // for (auto driver : QSqlDatabase::drivers()) {
+    //     Base::Console().Log("Driver: %s\n", driver.toStdString().c_str());
+    // }
+
     // Database type - these are products so not translated
     ui->comboDBType->clear();
-    ui->comboDBType->addItem(QLatin1String("ODBC"));
-    ui->comboDBType->addItem(QLatin1String("MySQL/MariaDB"));
-    ui->comboDBType->addItem(QLatin1String("Postgress"));
-    ui->comboDBType->addItem(QLatin1String("SQL Server"));
-    ui->comboDBType->addItem(QLatin1String("SQLite"));
+    ui->comboDBType->addItem(Materials::Database::DB_MySQL);
+    ui->comboDBType->addItem(Materials::Database::DB_Postgress);
+    ui->comboDBType->addItem(Materials::Database::DB_SQLServer);
+    ui->comboDBType->addItem(Materials::Database::DB_SQLite);
 
     ParameterGrp::handle hGrp = App::GetApplication().GetParameterGroupByPath(
         "User parameter:BaseApp/Preferences/Mod/Material/Database");
-    auto dbType = hGrp->GetASCII("DBType", "QODBC");
+    auto connectionType = hGrp->GetASCII("DBType", "QODBC");
+    if (connectionType == "OODBC") {
+        ui->comboConnectionType->setCurrentText(QLatin1String("ODBC"));
+    }
+    auto dbType = hGrp->GetASCII("DBType", Materials::Database::DB_MySQL.toStdString().c_str());
     ui->comboDBType->setCurrentText(QString::fromStdString(dbType));
 
     bool useDatabase = hGrp->GetBool("UseDatabase", false);
@@ -95,23 +119,50 @@ void DlgSettingsDatabase::changeEvent(QEvent* e)
 
 void DlgSettingsDatabase::testConnection(bool)
 {
-    QSqlDatabase db =
-        QSqlDatabase::addDatabase(QLatin1String("QODBC"), QLatin1String("connectionTest"));
+    QSqlDatabase db;
+
+    // Always add a new database with the same name in case the connection type has changed
+    if (ui->comboConnectionType->currentText() == QLatin1String("ODBC")) {
+        db = QSqlDatabase::addDatabase(QLatin1String("QODBC"), QLatin1String("connectionTest"));
+    }
+
     db.setHostName(ui->inputHostname->text());
     db.setDatabaseName(ui->inputDatabase->text());
     db.setUserName(ui->inputUsername->text());
     db.setPassword(ui->inputPassword->text());
     bool ok = db.open();
     if (ok) {
-        ui->inputStatus->setText(QLatin1String("Pass"));
+        // ui->inputStatus->setText(QLatin1String("Pass"));
+        Base::Console().Log("Connection pass\n");
         db.close();
+        QMessageBox::information(this, tr("Database Connection Test"), tr("Success!"));
     }
     else {
-        ui->inputStatus->setText(QLatin1String("Fail"));
+        // ui->inputStatus->setText(QLatin1String("Fail"));
+        Base::Console().Log("Connection fail\n");
         auto error = db.lastError();
-        Base::Console().Log(error.text().toStdString().c_str());
+        Base::Console().Log("%s\n", error.text().toStdString().c_str());
+        QMessageBox::critical(this, tr("Database Connection Test"), error.text());
     }
-    QSqlDatabase::removeDatabase(QLatin1String("connectionTest"));
+}
+
+void DlgSettingsDatabase::initialize(bool)
+{
+    // Connection settings must be saved before connecting
+    saveSettings();
+
+    Materials::Database db;
+
+    if (!db.createTables()) {
+        Base::Console().Log("Fail\n");
+        auto error = db.lastError();
+        Base::Console().Log("%s\n", error.text().toStdString().c_str());
+        QMessageBox::critical(this, tr("Database Initialize"), error.text());
+    }
+}
+
+void DlgSettingsDatabase::migrate(bool)
+{
 }
 
 #include "moc_DlgSettingsDatabase.cpp"

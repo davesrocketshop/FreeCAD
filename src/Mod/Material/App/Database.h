@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (c) 2023 David Carter <dcarter@david.carter.ca>             *
+ *   Copyright (c) 2024 David Carter <dcarter@david.carter.ca>             *
  *                                                                         *
  *   This file is part of FreeCAD.                                         *
  *                                                                         *
@@ -19,39 +19,69 @@
  *                                                                         *
  **************************************************************************/
 
-#ifndef MATGUI_DLGSETTINGSDATABASE_H
-#define MATGUI_DLGSETTINGSDATABASE_H
+#ifndef MATERIAL_DATABASE_H
+#define MATERIAL_DATABASE_H
 
-#include <Gui/PropertyPage.h>
-#include <memory>
+#include <QSqlDatabase>
+#include <QSqlError>
 
+#include <Base/Parameter.h>
 
-namespace MatGui
+#include <Mod/Material/MaterialGlobal.h>
+
+namespace Materials
 {
-class Ui_DlgSettingsDatabase;
 
-class DlgSettingsDatabase: public Gui::Dialog::PreferencePage
+class MaterialsExport Database
 {
-    Q_OBJECT
 
 public:
-    explicit DlgSettingsDatabase(QWidget* parent = nullptr);
-    ~DlgSettingsDatabase() override;
+    Database();
+    virtual ~Database();
+
+    bool createTables();
+    static bool useDatabase();
+
+    QSqlError lastError() const
+    {
+        return _db.lastError();
+    }
+
+    // Types of databases
+    static const QString DB_MySQL;
+    static const QString DB_Postgress;
+    static const QString DB_SQLServer;
+    static const QString DB_SQLite;
 
 protected:
-    void saveSettings() override;
-    void loadSettings() override;
-    void changeEvent(QEvent* e) override;
+    void setup();
+    void getConnectionSettings();
+    static ParameterGrp::handle getParameterGroup();
 
-private Q_SLOTS:
-    void testConnection(bool);
-    void initialize(bool);
-    void migrate(bool);
+    QString getConnectionType(ParameterGrp::handle hGrp);
+    QString getDBType(ParameterGrp::handle hGrp);
+    QString getDBName(ParameterGrp::handle hGrp);
+    QString getHostname(ParameterGrp::handle hGrp);
+    QString getUsername(ParameterGrp::handle hGrp);
+    QString getPassword(ParameterGrp::handle hGrp);
+
+    void createTablesMySQL();
+    void createTablesPostgress();
+    void createTablesSQLServer();
+    void createTablesSQLite();
+
+    void dropTable(const QString& table);
 
 private:
-    std::unique_ptr<Ui_DlgSettingsDatabase> ui;
+    QSqlDatabase _db;
+    QString _connectionType;
+    QString _dbType;
+    QString _dbName;
+    QString _hostname;
+    QString _username;
+    QString _password;
 };
 
-}  // namespace MatGui
+}  // namespace Materials
 
-#endif  // MATGUI_DLGSETTINGSDATABASE_H
+#endif  // MATERIAL_DATABASE_H

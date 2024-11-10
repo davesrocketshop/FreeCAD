@@ -6,6 +6,10 @@ endif(MSVC)
 
 add_definitions(-DYAML_CPP_STATIC_DEFINE)
 
+if(BUILD_MATERIAL_DATABASE)
+    add_definitions(-DBUILD_MATERIAL_DATABASE)
+endif(BUILD_MATERIAL_DATABASE)
+
 include_directories(
     ${CMAKE_BINARY_DIR}
     ${CMAKE_BINARY_DIR}/src
@@ -24,6 +28,15 @@ set(Materials_LIBS
     ${Boost_LIBRARIES}
     FreeCADApp
 )
+
+if(BUILD_MATERIAL_DATABASE)
+    include_directories(
+        ${QtSql_INCLUDE_DIRS}
+    )
+    list(APPEND Materials_LIBS
+        ${QtSql_LIBRARIES}
+    )
+endif(BUILD_MATERIAL_DATABASE)
 
 include_directories(
     ${QtConcurrent_INCLUDE_DIRS}
@@ -109,6 +122,12 @@ SET(Materials_SRCS
     PropertyMaterial.h
     trim.h
 )
+if(BUILD_MATERIAL_DATABASE)
+    list(APPEND Materials_SRCS
+        Database.cpp
+        Database.h
+    )
+endif(BUILD_MATERIAL_DATABASE)
 
 if(FREECAD_USE_PCH)
     add_definitions(-D_PreComp_)
