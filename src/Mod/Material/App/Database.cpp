@@ -22,6 +22,7 @@
 #include "PreCompiled.h"
 #ifndef _PreComp_
 #include <QSqlQuery>
+#include <QVariant>
 #endif
 
 #include <App/Application.h>

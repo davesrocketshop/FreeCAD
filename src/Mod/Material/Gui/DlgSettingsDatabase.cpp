@@ -20,9 +20,12 @@
  **************************************************************************/
 
 #include "PreCompiled.h"
+#ifndef _PreComp_
+#include <QMessageBox>
+#endif
 
-#include <QSqlDatabase>
-#include <QSqlError>
+// #include <QSqlDatabase>
+// #include <QSqlError>
 
 #include <App/Application.h>
 
@@ -113,7 +116,7 @@ void DlgSettingsDatabase::loadSettings()
 
     ParameterGrp::handle hGrp = App::GetApplication().GetParameterGroupByPath(
         "User parameter:BaseApp/Preferences/Mod/Material/Database");
-    auto connectionType = hGrp->GetASCII("DBType", "QODBC");
+    auto connectionType = hGrp->GetASCII("ConnectionType", "QODBC");
     if (connectionType == "QODBC") {
         ui->comboConnectionType->setCurrentText(QLatin1String("ODBC"));
     }
@@ -153,6 +156,12 @@ void DlgSettingsDatabase::testConnection(bool)
     // Always add a new database with the same name in case the connection type has changed
     if (ui->comboConnectionType->currentText() == QLatin1String("ODBC")) {
         db = QSqlDatabase::addDatabase(QLatin1String("QODBC"), QLatin1String("connectionTest"));
+    }
+    else if (ui->comboConnectionType->currentText() == QLatin1String("MySQL")) {
+        db = QSqlDatabase::addDatabase(QLatin1String("QMYSQL"), QLatin1String("connectionTest"));
+    }
+    else if (ui->comboConnectionType->currentText() == QLatin1String("MariaDB")) {
+        db = QSqlDatabase::addDatabase(QLatin1String("QMARIADB"), QLatin1String("connectionTest"));
     }
 
     db.setHostName(ui->inputHostname->text());
