@@ -220,21 +220,129 @@ void Database::createLibrary(const QString& name, const QString& icon, bool read
     if (_db.open()) {
         if (_db.transaction()) {
             QSqlQuery query(_db);
-            query.prepare(QLatin1String("INSERT INTO library (library_name, library_icon, library_read_only) "
-                            "VALUES (?, ?, ?)"));
+
+            // First check if the library exists
+            query.prepare(QLatin1String("SELECT library_id FROM library WHERE library_name = ?"));
             query.addBindValue(name);
-            query.addBindValue(icon);
-            query.addBindValue(readOnly);
             query.exec();
+
+            if (!query.next()) {
+                if (!icon.isEmpty()) {
+                    query.prepare(
+                        QLatin1String("INSERT INTO library (library_name, library_icon, library_read_only) "
+                                    "VALUES (?, ?, ?)"));
+                    query.addBindValue(name);
+                    query.addBindValue(icon);
+                    query.addBindValue(readOnly);
+                    query.exec();
+                }
+                else {
+                    query.prepare(QLatin1String(
+                        "INSERT INTO library (library_name, library_read_only) "
+                        "VALUES (?, ?)"));
+                    query.addBindValue(name);
+                    query.addBindValue(readOnly);
+                    query.exec();
+                }
+            }
         }
         _db.commit();
         _db.close();
     }
 }
 
+int Database::createPath(int libraryIndex, int parentIndex, int pathIndex, const QStringList &pathList)
+{
+    int newId = 0;
+    if (parentIndex == 0) {
+        // No parent. Root folder
+        if (_db.transaction()) {
+            QSqlQuery query(_db);
+
+            // First check if the folder exists
+            query.prepare(
+                QLatin1String("SELECT folder_id FROM folder WHERE folder_name = ? AND library_id = ?"
+                    " AND parent_id IS NULL"));
+            query.addBindValue(pathList[pathIndex]);
+            query.addBindValue(libraryIndex);
+            query.exec();
+
+            if (query.next()) {
+                newId = query.value(0).toInt();
+                Base::Console().Log("Found folder '%s' id=%d\n", pathList[pathIndex].toStdString().c_str(), newId);
+            }
+            else {
+                query.prepare(
+                    QLatin1String("INSERT INTO folder (folder_name, library_id) "
+                                    "VALUES (?, ?)"));
+                query.addBindValue(pathList[pathIndex]);
+                query.addBindValue(libraryIndex);
+                // query.addBindValue(parentIndex);
+                if (query.exec()) {
+                    newId = query.lastInsertId().toInt();
+                }
+                else {
+                    Base::Console().Log("Error creating path?\n");
+                }
+            }
+        }
+        _db.commit();
+    }
+    else {
+        if (_db.transaction()) {
+            QSqlQuery query(_db);
+
+            // First check if the folder exists
+            query.prepare(QLatin1String(
+                "SELECT folder_id FROM folder WHERE folder_name = ? AND library_id = ?"
+                " AND parent_id = ?"));
+            query.addBindValue(pathList[pathIndex]);
+            query.addBindValue(libraryIndex);
+            query.addBindValue(parentIndex);
+            query.exec();
+
+            if (query.next()) {
+                newId = query.value(0).toInt();
+            }
+            else {
+                query.prepare(QLatin1String("INSERT INTO folder (folder_name, library_id, parent_id) "
+                                            "VALUES (?, ?, ?)"));
+                query.addBindValue(pathList[pathIndex]);
+                query.addBindValue(libraryIndex);
+                query.addBindValue(parentIndex);
+                if (query.exec()) {
+                    newId = query.lastInsertId().toInt();
+                }
+                else {
+                    Base::Console().Log("Error creating path?\n");
+                }
+            }
+        }
+        _db.commit();
+    }
+
+    // return newId;
+    auto index = parentIndex + 1;
+    if (index >= (pathList.size() - 1)) {
+        return newId;
+    }
+    return createPath(libraryIndex, index, newId, pathList);
+}
+
 int Database::createPath(int libraryIndex, const QString& path)
 {
-    // TODO
+    QStringList pathList = path.split(QLatin1Char('/'));
+    if (pathList.isEmpty() || pathList.size() < 2) {
+        return 0;
+    }
+    if (_db.open()) {
+        createPath(libraryIndex, 0, 0, pathList);
+        _db.close();
+    }
+    for (auto p : pathList) {
+        Base::Console().Log("\t'%s'\n", p.toStdString().c_str());
+    }
+
     return 0;
 }
 
@@ -243,5 +351,6 @@ void Database::createModel(int libraryIndex,
                            const std::shared_ptr<Model>& model)
 {
     // TODO
+    Base::Console().Log("Path = '%s'\n", path.toStdString().c_str());
     auto pathIndex = createPath(libraryIndex, path);
 }

@@ -80,6 +80,8 @@ protected:
 
     void dropTable(const QString& table);
 
+    int createPath(int libraryIndex, int parentIndex, int pathIndex, const QStringList &pathList);
+
 private:
     QSqlDatabase _db;
     QString _connectionType;

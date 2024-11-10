@@ -172,6 +172,8 @@ void ModelManager::migrateToDatabase()
         // QIcon icon = QIcon(library->getIconPath());
         db.createLibrary(library->getName(), QLatin1String(""));
 
+        library->migrateToDatabase();
+
         // Create the folders
 
         // Copy the models
