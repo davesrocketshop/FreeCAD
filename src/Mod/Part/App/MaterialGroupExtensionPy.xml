@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GenerateModel xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="generateMetaModel_Module.xsd">
+  <PythonExport
+      Father="GroupExtensionPy"
+      Name="MaterialGroupExtensionPy"
+      Twin="MaterialGroupExtension"
+      TwinPointer="MaterialGroupExtension"
+      Include="Mod/Part/App/MaterialGroupExtension.h"
+      Namespace="Part"
+      FatherInclude="App/GroupExtensionPy.h"
+      FatherNamespace="App">
+    <Documentation>
+      <Author Licence="LGPL" Name="David Carter" EMail="dcarter@davidcarter.ca" />
+      <UserDocu>This class handles placable group of document objects with a material</UserDocu>
+    </Documentation>
+
+  </PythonExport>
+</GenerateModel>
+

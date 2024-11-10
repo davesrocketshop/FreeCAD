@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (c) 2015 Alexander Golubev (Fat-Zer) <fatzer2@gmail.com>    *
+ *   Copyright (c) 2023-2024 David Carter <dcarter@david.carter.ca>        *
  *                                                                         *
  *   This file is part of the FreeCAD CAx development system.              *
  *                                                                         *
@@ -37,7 +37,7 @@ FC_LOG_LEVEL_INIT("App", true, true)
 
 using namespace Part;
 
-EXTENSION_PROPERTY_SOURCE(Part::MaterialGroupExtension, App::GeoFeatureGroupExtension)
+EXTENSION_PROPERTY_SOURCE(Part::MaterialGroupExtension, App::GroupExtension)
 
 MaterialGroupExtension::MaterialGroupExtension () {
 
@@ -76,22 +76,22 @@ bool MaterialGroupExtension::extensionGetSubObject(App::DocumentObject *&ret, co
 {
     App::DocumentObject *originObj = MaterialFeatures.getValue ();
     const char *dot;
-    if(originObj && originObj->isAttachedToDocument() &&
-       subname && (dot=strchr(subname,'.')))
-    {
-        bool found;
-        if(subname[0] == '$')
-            found = std::string(subname+1,dot)==originObj->Label.getValue();
-        else
-            found = std::string(subname,dot)==originObj->getNameInDocument();
-        if(found) {
-            if(mat && transform)
-                *mat *= const_cast<MaterialGroupExtension*>(this)->placement().getValue().toMatrix();
-            ret = originObj->getSubObject(dot+1,pyObj,mat,true,depth+1);
-            return true;
-        }
-    }
-    return GeoFeatureGroupExtension::extensionGetSubObject(ret,subname,pyObj,mat,transform,depth);
+    // if(originObj && originObj->isAttachedToDocument() &&
+    //    subname && (dot=strchr(subname,'.')))
+    // {
+    //     bool found;
+    //     if(subname[0] == '$')
+    //         found = std::string(subname+1,dot)==originObj->Label.getValue();
+    //     else
+    //         found = std::string(subname,dot)==originObj->getNameInDocument();
+    //     if(found) {
+    //         if(mat && transform)
+    //             *mat *= const_cast<MaterialGroupExtension*>(this)->placement().getValue().toMatrix();
+    //         ret = originObj->getSubObject(dot+1,pyObj,mat,true,depth+1);
+    //         return true;
+    //     }
+    // }
+    return GroupExtension::extensionGetSubObject(ret,subname,pyObj,mat,transform,depth);
 }
 
 App::DocumentObject *MaterialGroupExtension::getGroupOfObject (const App::DocumentObject* obj) {
@@ -119,7 +119,7 @@ short MaterialGroupExtension::extensionMustExecute() {
     if (MaterialFeatures.isTouched ()) {
         return 1;
     } else {
-        return GeoFeatureGroupExtension::extensionMustExecute();
+        return GroupExtension::extensionMustExecute();
     }
 }
 
@@ -131,7 +131,7 @@ App::DocumentObjectExecReturn *MaterialGroupExtension::extensionExecute() {
         return new App::DocumentObjectExecReturn ( ex.what () );
     }
 
-    return GeoFeatureGroupExtension::extensionExecute ();
+    return GroupExtension::extensionExecute();
 }
 
 App::DocumentObject *MaterialGroupExtension::getLocalizedOrigin(App::Document *doc) {
@@ -149,7 +149,7 @@ void MaterialGroupExtension::onExtendedSetupObject () {
     assert ( originObj && originObj->isDerivedFrom ( Part::FeatureMaterialRoot::getClassTypeId () ) );
     MaterialFeatures.setValue (originObj);
 
-    GeoFeatureGroupExtension::onExtendedSetupObject ();
+    GroupExtension::onExtendedSetupObject();
 }
 
 void MaterialGroupExtension::onExtendedUnsetupObject () {
@@ -158,7 +158,7 @@ void MaterialGroupExtension::onExtendedUnsetupObject () {
         origin->getDocument ()->removeObject (origin->getNameInDocument());
     }
 
-    GeoFeatureGroupExtension::onExtendedUnsetupObject ();
+    GroupExtension::onExtendedUnsetupObject();
 }
 
 void MaterialGroupExtension::extensionOnChanged(const App::Property* p)
@@ -186,7 +186,7 @@ void MaterialGroupExtension::extensionOnChanged(const App::Property* p)
             }
         }
     }
-    GeoFeatureGroupExtension::extensionOnChanged(p);
+    GroupExtension::extensionOnChanged(p);
 }
 
 void MaterialGroupExtension::relinkToMaterial(App::DocumentObject* obj)
@@ -252,7 +252,7 @@ MaterialGroupExtension::addObjects(std::vector<App::DocumentObject*> objs)
     for(auto obj : objs)
         relinkToMaterial(obj);
 
-    return App::GeoFeatureGroupExtension::addObjects(objs);
+    return App::GroupExtension::addObjects(objs);
 }
 
 bool MaterialGroupExtension::hasObject(const App::DocumentObject* obj, bool recursive) const

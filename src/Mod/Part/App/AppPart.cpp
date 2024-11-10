@@ -103,6 +103,7 @@
 #include "LinePy.h"
 #include "LineSegmentPy.h"
 #include "MaterialGroupExtension.h"
+#include "MaterialGroupExtensionPy.h"
 #include "OCCError.h"
 #include "OffsetCurvePy.h"
 #include "OffsetSurfacePy.h"
@@ -333,6 +334,7 @@ PyMOD_INIT_FUNC(Part)
     Base::Interpreter().addType(&Part::GeometryStringExtensionPy ::Type,partModule,"GeometryStringExtension");
     Base::Interpreter().addType(&Part::GeometryBoolExtensionPy ::Type,partModule,"GeometryBoolExtension");
     Base::Interpreter().addType(&Part::GeometryDoubleExtensionPy ::Type,partModule,"GeometryDoubleExtension");
+    Base::Interpreter().addType(&Part::MaterialGroupExtensionPy ::Type,partModule, "MaterialGroupExtension");
     Base::Interpreter().addType(&Base::PrecisionPy ::Type,partModule,"Precision");
 
     // BRepFeat package
@@ -494,7 +496,8 @@ PyMOD_INIT_FUNC(Part)
     Part::Refine                ::init();
     Part::Reverse               ::init();
 
-    Part::MaterialGroupExtension::init();
+    // Part::MaterialGroupExtension::init();
+    // Part::MaterialGroupExtensionPy::init();
 
     // Geometry types
     Part::GeometryExtension       	::init();

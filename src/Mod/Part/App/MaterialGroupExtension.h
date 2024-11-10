@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (c) 2015 Alexander Golubev (Fat-Zer) <fatzer2@gmail.com>    *
+ *   Copyright (c) 2023-2024 David Carter <dcarter@david.carter.ca>        *
  *                                                                         *
  *   This file is part of the FreeCAD CAx development system.              *
  *                                                                         *
@@ -23,7 +23,7 @@
 #ifndef PART_MATERIALGROUPEXTENSION_H
 #define PART_MATERIALGROUPEXTENSION_H
 
-#include <App/GeoFeatureGroupExtension.h>
+#include <App/GroupExtension.h>
 #include <QCoreApplication>
 
 namespace Part {
@@ -32,7 +32,7 @@ class FeatureMaterialRoot;
 /**
  * Represents an abstract placeable group of objects with an associated Origin
  */
-class PartExport MaterialGroupExtension : public App::GeoFeatureGroupExtension
+class PartExport MaterialGroupExtension: public App::GroupExtension
 {
     EXTENSION_PROPERTY_HEADER_WITH_OVERRIDE(App::MaterialGroupExtension);
     Q_DECLARE_TR_FUNCTIONS(App::MaterialGroupExtension)
