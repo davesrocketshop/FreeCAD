@@ -33,6 +33,7 @@ namespace Materials
 {
 
 class Model;
+class ModelProperty;
 
 class MaterialsExport Database
 {
@@ -82,6 +83,8 @@ protected:
 
     int createPath(int libraryIndex, int parentIndex, int pathIndex, const QStringList &pathList);
     void createInheritance(const QString& modelUUID, const QString& inheritUUID);
+    void createModelProperty(const QString& modelUUID, const ModelProperty& property);
+    void createModelPropertyColumn(int propertyId, const ModelProperty& property);
 
 private:
     QSqlDatabase _db;

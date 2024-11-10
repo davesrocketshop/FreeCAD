@@ -52,11 +52,15 @@ CREATE TABLE model_property (
     model_property_id INTEGER AUTO_INCREMENT NOT NULL PRIMARY KEY,
 	model_id CHAR(36) NOT NULL,
 	model_property_name VARCHAR(1024) NOT NULL,
+	model_property_display_name VARCHAR(1024) NOT NULL,
 	model_property_type VARCHAR(255) NOT NULL,
 	model_property_units VARCHAR(255) NOT NULL,
 	model_property_url VARCHAR(1024) NOT NULL,
 	model_property_description TEXT,
+	model_property_inheritance_id CHAR(36),
 	FOREIGN KEY (model_id)
+        REFERENCES model(model_id),
+	FOREIGN KEY (model_property_inheritance_id)
         REFERENCES model(model_id)
 );
 
@@ -65,6 +69,7 @@ CREATE TABLE model_property_column (
     model_property_column_id INTEGER AUTO_INCREMENT NOT NULL PRIMARY KEY,
     model_property_id INTEGER NOT NULL,
 	model_property_name VARCHAR(1024) NOT NULL,
+	model_property_display_name VARCHAR(1024) NOT NULL,
 	model_property_type VARCHAR(255) NOT NULL,
 	model_property_units VARCHAR(255) NOT NULL,
 	model_property_url VARCHAR(1024) NOT NULL,
