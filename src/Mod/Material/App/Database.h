@@ -81,6 +81,7 @@ protected:
     void dropTable(const QString& table);
 
     int createPath(int libraryIndex, int parentIndex, int pathIndex, const QStringList &pathList);
+    void createInheritance(const QString& modelUUID, const QString& inheritUUID);
 
 private:
     QSqlDatabase _db;

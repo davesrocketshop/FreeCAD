@@ -28,6 +28,7 @@
 #include <App/Application.h>
 
 #include "Database.h"
+#include "Model.h"
 
 using namespace Materials;
 
@@ -303,6 +304,9 @@ int Database::createPath(int libraryIndex, int parentIndex, int pathIndex, const
 
             if (query.next()) {
                 newId = query.value(0).toInt();
+                Base::Console().Log("Found folder '%s' id=%d\n",
+                                    pathList[pathIndex].toStdString().c_str(),
+                                    newId);
             }
             else {
                 query.prepare(QLatin1String("INSERT INTO folder (folder_name, library_id, parent_id) "
@@ -331,19 +335,43 @@ int Database::createPath(int libraryIndex, int parentIndex, int pathIndex, const
 
 int Database::createPath(int libraryIndex, const QString& path)
 {
+    int newId = 0;
     QStringList pathList = path.split(QLatin1Char('/'));
     if (pathList.isEmpty() || pathList.size() < 2) {
         return 0;
     }
     if (_db.open()) {
-        createPath(libraryIndex, 0, 0, pathList);
+        newId = createPath(libraryIndex, 0, 0, pathList);
         _db.close();
     }
     for (auto p : pathList) {
         Base::Console().Log("\t'%s'\n", p.toStdString().c_str());
     }
 
-    return 0;
+    return newId;
+}
+
+void Database::createInheritance(const QString& modelUUID, const QString& inheritUUID)
+{
+    QSqlQuery query(_db);
+
+    // First check if the folder exists
+    query.prepare(QLatin1String(
+        "SELECT model_inheritance_id FROM model_inheritance WHERE model_id = ? AND inherits_id = ?"));
+    query.addBindValue(modelUUID);
+    query.addBindValue(inheritUUID);
+    query.exec();
+
+    if (!query.next()) {
+        query.prepare(
+            QLatin1String("INSERT INTO model_inheritance (model_id, inherits_id) "
+                          "VALUES (?, ?)"));
+        query.addBindValue(modelUUID);
+        query.addBindValue(inheritUUID);
+        if (!query.exec()) {
+            Base::Console().Log("Error creating inheritance\n");
+        }
+    }
 }
 
 void Database::createModel(int libraryIndex,
@@ -353,4 +381,44 @@ void Database::createModel(int libraryIndex,
     // TODO
     Base::Console().Log("Path = '%s'\n", path.toStdString().c_str());
     auto pathIndex = createPath(libraryIndex, path);
+
+    if (_db.open()) {
+        if (_db.transaction()) {
+            QSqlQuery query(_db);
+
+            // First check if the folder exists
+            query.prepare(
+                QLatin1String("SELECT model_id FROM model WHERE model_id = ?"));
+            query.addBindValue(model->getUUID());
+            query.exec();
+
+            if (!query.next()) {
+                query.prepare(
+                    QLatin1String("INSERT INTO model (model_id, library_id, folder_id, "
+                                  "model_name, model_type, model_url, model_description, model_doi) "
+                                  "VALUES (?, ?, ?, ?, ?, ?, ?, ?)"));
+                query.addBindValue(model->getUUID());
+                query.addBindValue(libraryIndex);
+                query.addBindValue(pathIndex == 0 ? QVariant() : pathIndex);
+                query.addBindValue(model->getName());
+                query.addBindValue(model->getBase());
+                query.addBindValue(model->getURL());
+                query.addBindValue(model->getDescription());
+                query.addBindValue(model->getDOI());
+                if (!query.exec()) {
+                    //     newId = query.lastInsertId().toInt();
+                    // }
+                    // else {
+                    Base::Console().Log("Error creating model\n");
+                    Base::Console().Log("library %d, folder %d\n", libraryIndex, pathIndex);
+                }
+            }
+        }
+        auto inherits = model->getInheritance();
+        for (auto inherit : inherits) {
+            createInheritance(model->getUUID(), inherit);
+        }
+        _db.commit();
+        _db.close();
+    }
 }

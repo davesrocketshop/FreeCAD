@@ -24,17 +24,26 @@ DROP TABLE IF EXISTS model;
 CREATE TABLE model (
     model_id CHAR(36) NOT NULL PRIMARY KEY,
 	library_id INTEGER NOT NULL,
-	folder_id INTEGER NOT NULL,
+	folder_id INTEGER,
+	model_type ENUM('Model', 'AppearanceModel') NOT NULL,
 	model_name VARCHAR(1024) NOT NULL,
 	model_url VARCHAR(1024),
 	model_description TEXT,
 	model_doi VARCHAR(1024),
-	model_inheritance CHAR(36),
 	FOREIGN KEY (library_id)
         REFERENCES library(library_id),
 	FOREIGN KEY (folder_id)
-        REFERENCES folder(folder_id),
-	FOREIGN KEY (model_inheritance)
+        REFERENCES folder(folder_id)
+);
+
+DROP TABLE IF EXISTS model_inheritance;
+CREATE TABLE model_inheritance (
+	model_inheritance_id INTEGER AUTO_INCREMENT NOT NULL PRIMARY KEY,
+	model_id CHAR(36) NOT NULL,
+	inherits_id CHAR(36) NOT NULL,
+	FOREIGN KEY (model_id)
+        REFERENCES model(model_id),
+	FOREIGN KEY (inherits_id)
         REFERENCES model(model_id)
 );
 
