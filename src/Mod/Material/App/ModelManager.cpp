@@ -85,6 +85,12 @@ std::shared_ptr<std::list<std::shared_ptr<ModelLibrary>>> ModelManager::getModel
 {
     return _localManager->getModelLibraries();
 }
+
+std::shared_ptr<std::list<std::shared_ptr<ModelLibrary>>> ModelManager::getLocalModelLibraries()
+{
+    return _localManager->getModelLibraries();
+}
+
 std::shared_ptr<std::map<QString, std::shared_ptr<Model>>> ModelManager::getModels()
 {
     return _localManager->getModels();
@@ -134,6 +140,11 @@ bool ModelManager::passFilter(ModelFilter filter, Model::ModelType modelType)
 void ModelManager::migrateToDatabase()
 {
     return ModelManagerLocal::migrateToDatabase();
+}
+
+void ModelManager::migrateToDatabase(const std::shared_ptr<ModelLibrary>& library)
+{
+    return ModelManagerLocal::migrateToDatabase(library);
 }
 
 // Cache stats

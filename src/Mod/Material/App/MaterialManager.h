@@ -75,6 +75,7 @@ public:
 
     // Library management
     std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>> getMaterialLibraries() const;
+    std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>> getLocalMaterialLibraries() const;
     std::shared_ptr<std::map<QString, std::shared_ptr<MaterialTreeNode>>>
     getMaterialTree(const std::shared_ptr<MaterialLibrary>& library,
                     const std::shared_ptr<Materials::MaterialFilter>& filter) const
@@ -136,6 +137,7 @@ public:
     void dereference() const;
 
     static void migrateToDatabase();
+    static void migrateToDatabase(const std::shared_ptr<MaterialLibrary>& library);
 
 private:
     static std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>> _libraryList;

@@ -271,7 +271,7 @@ int Database::createPath(int libraryIndex, int parentIndex, int pathIndex, const
 
             if (query.next()) {
                 newId = query.value(0).toInt();
-                Base::Console().Log("Found folder '%s' id=%d\n", pathList[pathIndex].toStdString().c_str(), newId);
+                // Base::Console().Log("Found folder '%s' id=%d\n", pathList[pathIndex].toStdString().c_str(), newId);
             }
             else {
                 query.prepare(
@@ -305,9 +305,9 @@ int Database::createPath(int libraryIndex, int parentIndex, int pathIndex, const
 
             if (query.next()) {
                 newId = query.value(0).toInt();
-                Base::Console().Log("Found folder '%s' id=%d\n",
-                                    pathList[pathIndex].toStdString().c_str(),
-                                    newId);
+                // Base::Console().Log("Found folder '%s' id=%d\n",
+                //                     pathList[pathIndex].toStdString().c_str(),
+                //                     newId);
             }
             else {
                 query.prepare(QLatin1String("INSERT INTO folder (folder_name, library_id, parent_id) "
@@ -345,9 +345,9 @@ int Database::createPath(int libraryIndex, const QString& path)
         newId = createPath(libraryIndex, 0, 0, pathList);
         _db.close();
     }
-    for (auto p : pathList) {
-        Base::Console().Log("\t'%s'\n", p.toStdString().c_str());
-    }
+    // for (auto p : pathList) {
+    //     Base::Console().Log("\t'%s'\n", p.toStdString().c_str());
+    // }
 
     return newId;
 }
@@ -446,7 +446,7 @@ void Database::createModelProperty(const QString& modelUUID, const ModelProperty
     }
     auto columns = property.getColumns();
     for (auto column : columns) {
-        Base::Console().Log("Add column '%s'\n", column.getName().toStdString().c_str());
+        // Base::Console().Log("Add column '%s'\n", column.getName().toStdString().c_str());
         createModelPropertyColumn(propertyId, column);
     }
 }
@@ -456,7 +456,7 @@ void Database::createModel(int libraryIndex,
                            const std::shared_ptr<Model>& model)
 {
     // TODO
-    Base::Console().Log("Path = '%s'\n", path.toStdString().c_str());
+    // Base::Console().Log("Path = '%s'\n", path.toStdString().c_str());
     auto pathIndex = createPath(libraryIndex, path);
 
     QString modelId;
@@ -549,7 +549,6 @@ std::shared_ptr<Model> Database::getModel(const QString& uuid)
         query.exec();
 
         if (query.next()) {
-            Base::Console().Log("Model from database\n");
             int libraryId = query.value(0).toInt();
             int folderId = query.value(1).toInt();
             QString modelType = query.value(2).toString();

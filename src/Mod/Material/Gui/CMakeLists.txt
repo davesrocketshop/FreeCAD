@@ -76,6 +76,7 @@ set(MatGui_UIC_SRCS
 if(BUILD_MATERIAL_DATABASE)
     list(APPEND MatGui_UIC_SRCS
         DlgSettingsDatabase.ui
+        TaskMigrateDatabase.ui
     )
 endif(BUILD_MATERIAL_DATABASE)
 
@@ -155,6 +156,9 @@ if(BUILD_MATERIAL_DATABASE)
         DlgSettingsDatabase.cpp
         DlgSettingsDatabase.h
         DlgSettingsDatabase.ui
+        TaskMigrateDatabase.cpp
+        TaskMigrateDatabase.h
+        TaskMigrateDatabase.ui
     )
 endif(BUILD_MATERIAL_DATABASE)
 

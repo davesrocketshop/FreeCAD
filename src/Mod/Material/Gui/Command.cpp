@@ -44,6 +44,7 @@
 
 #if defined(BUILD_MATERIAL_DATABASE)
 #include <Mod/Material/App/Database.h>
+#include "TaskMigrateDatabase.h"
 #endif
 
 
@@ -259,14 +260,8 @@ CmdMigrateToDatabase::CmdMigrateToDatabase()
 void CmdMigrateToDatabase::activated(int iMsg)
 {
     Q_UNUSED(iMsg);
-    Materials::Database db;
-
-    // if (!db.migrate()) {
-    //     Base::Console().Log("Fail\n");
-    //     auto error = db.lastError();
-    //     Base::Console().Log("%s\n", error.text().toStdString().c_str());
-    //     // QMessageBox::critical(this, QLatin1String("Database Initialize"), error.text());
-    // }
+    MatGui::TaskMigrateDatabase* dlg = new MatGui::TaskMigrateDatabase();
+    Gui::Control().showDialog(dlg);
 }
 
 bool CmdMigrateToDatabase::isActive()

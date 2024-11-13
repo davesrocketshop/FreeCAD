@@ -50,6 +50,7 @@ public:
     void refresh();
 
     std::shared_ptr<std::list<std::shared_ptr<ModelLibrary>>> getModelLibraries();
+    std::shared_ptr<std::list<std::shared_ptr<ModelLibrary>>> getLocalModelLibraries();
     std::shared_ptr<std::map<QString, std::shared_ptr<Model>>> getModels();
     std::shared_ptr<std::map<QString, std::shared_ptr<ModelTreeNode>>>
     getModelTree(std::shared_ptr<ModelLibrary> library, ModelFilter filter = ModelFilter_None) const
@@ -65,6 +66,7 @@ public:
     static bool passFilter(ModelFilter filter, Model::ModelType modelType);
 
     static void migrateToDatabase();
+    static void migrateToDatabase(const std::shared_ptr<ModelLibrary>& library);
 
     // Cache stats
     static double modelHitRate();

@@ -32,6 +32,7 @@ using namespace MatGui;
 
 #if 0  // needed for Qt's lupdate utility
     qApp->translate("Workbench", "&Materials");
+    qApp->translate("Workbench", "&Database");
     qApp->translate("Workbench", "Materials");
 #endif
 
@@ -51,6 +52,11 @@ Gui::MenuItem* Workbench::setupMenuBar() const
     root->insertItem(item, material);
     material->setCommand("&Materials");
     *material << "Materials_Edit";
+
+    Gui::MenuItem* database = new Gui::MenuItem;
+    root->insertItem(item, database);
+    database->setCommand("&Database");
+    *database << "Materials_MigrateToDatabase";
 
     return root;
 }

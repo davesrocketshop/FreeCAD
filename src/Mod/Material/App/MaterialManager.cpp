@@ -351,6 +351,12 @@ MaterialManager::getMaterialLibraries() const
     return _libraryList;
 }
 
+std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>>
+MaterialManager::getLocalMaterialLibraries() const
+{
+    return getMaterialLibraries();
+}
+
 std::shared_ptr<std::list<QString>>
 MaterialManager::getMaterialFolders(const std::shared_ptr<MaterialLibrary>& library) const
 {
@@ -415,23 +421,19 @@ void MaterialManager::dereference(std::shared_ptr<Material> material) const
 
 void MaterialManager::migrateToDatabase()
 {
-    // #if defined(BUILD_MATERIAL_DATABASE)
-
     // Migrate the models first
     ModelManager::migrateToDatabase();
 
+    for (auto library : *_libraryList) {
+        migrateToDatabase(library);
+    }
+}
+
+void MaterialManager::migrateToDatabase(const std::shared_ptr<MaterialLibrary>& library)
+{
     Database db;
 
-    // auto libraries = getMaterialLibraries();
-    for (auto library : *_libraryList) {
-        // Create the library
-        // QIcon icon = QIcon(library->getIconPath());
-        db.createLibrary(library->getName(), QLatin1String(""));
-
-        // Create the folders
-
-        // Copy the models
-    }
-
-    // #endif  // BUILD_MATERIAL_DATABASE
+    // Create the library
+    // QIcon icon = QIcon(library->getIconPath());
+    db.createLibrary(library->getName(), QLatin1String(""));
 }

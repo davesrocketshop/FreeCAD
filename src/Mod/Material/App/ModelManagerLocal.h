@@ -68,6 +68,7 @@ public:
     static bool isModel(const QString& file);
 
     static void migrateToDatabase();
+    static void migrateToDatabase(const std::shared_ptr<ModelLibrary>& library);
 
 private:
     static void initLibraries();

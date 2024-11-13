@@ -147,22 +147,18 @@ std::shared_ptr<ModelLibrary> ModelManagerLocal::getLibrary(const QString& name)
 
 void ModelManagerLocal::migrateToDatabase()
 {
-// #if defined(BUILD_MATERIAL_DATABASE)
-    // ModelManagerLocal manager;
+    for (auto library : *_libraryList) {
+        migrateToDatabase(library);
+    }
+}
+
+void ModelManagerLocal::migrateToDatabase(const std::shared_ptr<ModelLibrary>& library)
+{
     Database db;
 
-    // auto libraries = manager.getModelLibraries();
-    for (auto library : *_libraryList) {
-        // Create the library
-        // QIcon icon = QIcon(library->getIconPath());
-        db.createLibrary(library->getName(), QLatin1String(""));
+    // Create the library
+    // QIcon icon = QIcon(library->getIconPath());
+    db.createLibrary(library->getName(), QLatin1String(""));
 
-        library->migrateToDatabase();
-
-        // Create the folders
-
-        // Copy the models
-    }
-
-// #endif  // BUILD_MATERIAL_DATABASE
+    library->migrateToDatabase();
 }
