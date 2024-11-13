@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (c) 2023 David Carter <dcarter@david.carter.ca>             *
+ *   Copyright (c) 2024 David Carter <dcarter@david.carter.ca>             *
  *                                                                         *
  *   This file is part of FreeCAD.                                         *
  *                                                                         *
@@ -19,10 +19,12 @@
  *                                                                         *
  **************************************************************************/
 
-#ifndef MATERIAL_MODELMANAGER_H
-#define MATERIAL_MODELMANAGER_H
+#ifndef MATERIAL_MODELMANAGERDB_H
+#define MATERIAL_MODELMANAGERDB_H
 
 #include <memory>
+#include <lru/lru.hpp>
+// #include <lru.hpp>
 
 #include <Mod/Material/MaterialGlobal.h>
 
@@ -35,48 +37,39 @@
 
 namespace Materials
 {
-class ModelManagerLocal;
-class ModelManagerDB;
 
-class MaterialsExport ModelManager: public Base::BaseClass
+class MaterialsExport ModelManagerDB: public Base::BaseClass
 {
     TYPESYSTEM_HEADER_WITH_OVERRIDE();
 
 public:
-    ModelManager();
-    ~ModelManager() override = default;
+    ModelManagerDB();
+    ~ModelManagerDB() override = default;
 
     static void cleanup();
     void refresh();
 
-    std::shared_ptr<std::list<std::shared_ptr<ModelLibrary>>> getModelLibraries();
-    std::shared_ptr<std::map<QString, std::shared_ptr<Model>>> getModels();
-    std::shared_ptr<std::map<QString, std::shared_ptr<ModelTreeNode>>>
-    getModelTree(std::shared_ptr<ModelLibrary> library, ModelFilter filter = ModelFilter_None) const
+    std::shared_ptr<std::list<std::shared_ptr<ModelLibrary>>> getModelLibraries()
     {
-        return library->getModelTree(filter);
+        return nullptr;
+    }
+    std::shared_ptr<std::map<QString, std::shared_ptr<Model>>> getModels()
+    {
+        return nullptr;
     }
     std::shared_ptr<Model> getModel(const QString& uuid) const;
-    std::shared_ptr<Model> getModelByPath(const QString& path) const;
-    std::shared_ptr<Model> getModelByPath(const QString& path, const QString& lib) const;
-    std::shared_ptr<ModelLibrary> getLibrary(const QString& name) const;
-
-    static bool isModel(const QString& file);
-    static bool passFilter(ModelFilter filter, Model::ModelType modelType);
-
-    static void migrateToDatabase();
 
     // Cache stats
     static double modelHitRate();
 
 private:
-    void initManagers();
+    static void initCache();
 
-    static std::unique_ptr<ModelManagerLocal> _localManager;
-    static std::unique_ptr<ModelManagerDB> _dbManager;
+    static std::shared_ptr<std::map<QString, std::shared_ptr<Model>>> _modelMap;
     static QMutex _mutex;
+    static LRU::Cache<QString, std::shared_ptr<Model>> _cache;
 };
 
 }  // namespace Materials
 
-#endif  // MATERIAL_MODELMANAGER_H
+#endif  // MATERIAL_MODELMANAGERDB_H

@@ -226,6 +226,15 @@ public:
     {
         _type = type;
     }
+    void setType(const QString& type)
+    {
+        if (type == QLatin1String("AppearanceModel")) {
+            _type = ModelType_Appearance;
+        }
+        else {
+            _type = ModelType_Physical;
+        }
+    }
     void setName(const QString& name)
     {
         _name = name;

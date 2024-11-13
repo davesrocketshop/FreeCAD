@@ -16,6 +16,7 @@ include_directories(
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_CURRENT_BINARY_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_SOURCE_DIR}/src/3rdParty/lru-cache/include
     ${Boost_INCLUDE_DIRS}
     ${PYTHON_INCLUDE_DIRS}
     ${XercesC_INCLUDE_DIRS}
@@ -114,6 +115,10 @@ SET(Materials_SRCS
     ModelLoader.h
     ModelManager.cpp
     ModelManager.h
+    ModelManagerDB.cpp
+    ModelManagerDB.h
+    ModelManagerLocal.cpp
+    ModelManagerLocal.h
     ModelUuids.cpp
     ModelUuids.h
     PreCompiled.cpp

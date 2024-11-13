@@ -29,6 +29,7 @@
 
 #include "Database.h"
 #include "Model.h"
+#include "ModelLibrary.h"
 
 using namespace Materials;
 
@@ -505,4 +506,71 @@ void Database::createModel(int libraryIndex,
         _db.commit();
         _db.close();
     }
+}
+
+std::shared_ptr<ModelLibrary> Database::getLibrary(int libraryId)
+{
+    if (_db.open()) {
+        QSqlQuery query(_db);
+
+        // First check if the library exists
+        query.prepare(QLatin1String("SELECT library_name, library_icon, library_read_only FROM "
+                                    "library WHERE library_id = ?"));
+        query.addBindValue(libraryId);
+        query.exec();
+
+        if (query.next()) {
+            QString libraryName = query.value(0).toString();
+            QString libraryIcon = query.value(1).toString();
+            bool libraryReadOnly = query.value(2).toBool();
+
+            auto library = std::make_shared<ModelLibrary>(libraryName, QString(), libraryIcon);
+            return library;
+        }
+    }
+    _db.close();
+    return nullptr;
+}
+
+QString Database::getPath(int folderId)
+{
+    return QString();
+}
+
+std::shared_ptr<Model> Database::getModel(const QString& uuid)
+{
+    if (_db.open()) {
+        QSqlQuery query(_db);
+
+        query.prepare(QLatin1String(
+            "SELECT library_id, folder_id, model_type, "
+            "model_name, model_url, model_description, model_doi FROM model WHERE model_id = ?"));
+        query.addBindValue(uuid);
+        query.exec();
+
+        if (query.next()) {
+            Base::Console().Log("Model from database\n");
+            int libraryId = query.value(0).toInt();
+            int folderId = query.value(1).toInt();
+            QString modelType = query.value(2).toString();
+            QString modelName = query.value(3).toString();
+            QString modelUrl = query.value(4).toString();
+            QString modelDescription = query.value(5).toString();
+            QString modelDoi = query.value(6).toString();
+
+            auto model = std::make_shared<Model>();
+            model->setUUID(uuid);
+            model->setType(modelType);
+            model->setName(modelName);
+            model->setURL(modelUrl);
+            model->setDescription(modelDescription);
+            model->setDOI(modelDoi);
+
+            model->setLibrary(getLibrary(libraryId));
+            model->setDirectory(getPath(folderId));
+        }
+        _db.close();
+    }
+
+    return nullptr;
 }

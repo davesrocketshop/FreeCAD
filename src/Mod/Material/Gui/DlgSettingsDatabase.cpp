@@ -31,6 +31,7 @@
 
 #include <Mod/Material/App/Database.h>
 #include <Mod/Material/App/MaterialManager.h>
+#include <Mod/Material/App/ModelManager.h>
 
 #include "DlgSettingsDatabase.h"
 #include "ui_DlgSettingsDatabase.h"
@@ -78,6 +79,8 @@ void DlgSettingsDatabase::saveSettings()
     ui->inputDatabase->onSave();
     ui->inputUsername->onSave();
     ui->inputPassword->onSave();
+    ui->spinModelCacheSize->onSave();
+    ui->spinMaterialCacheSize->onSave();
 
     bool useDatabase = ui->groupDatabase->isChecked();
     hGrp->SetBool("UseDatabase", useDatabase);
@@ -89,6 +92,8 @@ void DlgSettingsDatabase::loadSettings()
     ui->inputDatabase->onRestore();
     ui->inputUsername->onRestore();
     ui->inputPassword->onRestore();
+    ui->spinModelCacheSize->onRestore();
+    ui->spinMaterialCacheSize->onRestore();
 
     // Connection type - these are products so not translated
     ui->comboConnectionType->clear();
@@ -134,6 +139,13 @@ void DlgSettingsDatabase::loadSettings()
 
     bool useDatabase = hGrp->GetBool("UseDatabase", false);
     ui->groupDatabase->setChecked(useDatabase);
+
+    // Cache stats
+    QString hitRate;
+    hitRate.setNum(Materials::ModelManager::modelHitRate());
+    ui->inputModelCacheHitRate->setText(hitRate);
+    hitRate.setNum(0.0);
+    ui->inputMaterialCacheHitRate->setText(hitRate);
 }
 
 /**

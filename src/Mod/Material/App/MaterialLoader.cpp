@@ -40,7 +40,7 @@
 #include "MaterialLibrary.h"
 #include "MaterialLoader.h"
 #include "Model.h"
-#include "ModelManager.h"
+#include "ModelManagerLocal.h"
 
 
 using namespace Materials;

@@ -34,6 +34,7 @@ namespace Materials
 
 class Model;
 class ModelProperty;
+class ModelLibrary;
 
 class MaterialsExport Database
 {
@@ -46,6 +47,10 @@ public:
     void createLibrary(const QString &name, const QString& icon, bool readOnly=false);
     int createPath(int libraryIndex, const QString& path);
     void createModel(int libraryIndex, const QString& path, const std::shared_ptr<Model>& model);
+
+    std::shared_ptr<Model> getModel(const QString& uuid);
+    std::shared_ptr<ModelLibrary> getLibrary(int libraryId);
+    QString getPath(int folderId);
 
     bool createTables();
     static bool useDatabase();
