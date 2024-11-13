@@ -139,35 +139,6 @@
     </widget>
    </item>
    <item>
-    <widget class="QGroupBox" name="groupBox">
-     <property name="title">
-      <string>Maintenance</string>
-     </property>
-     <layout class="QGridLayout" name="gridLayout">
-      <item row="0" column="0">
-       <widget class="QPushButton" name="buttonInitialize">
-        <property name="toolTip">
-         <string>Initialize the database for first use</string>
-        </property>
-        <property name="text">
-         <string>Initialize Database</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="0">
-       <widget class="QPushButton" name="buttonMigrate">
-        <property name="toolTip">
-         <string>Copy materials from the local file system to the database</string>
-        </property>
-        <property name="text">
-         <string>Migrate Materials</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item>
     <widget class="QGroupBox" name="groupBox_2">
      <property name="title">
       <string>Cache</string>
@@ -219,6 +190,9 @@
       </item>
       <item row="2" column="1">
        <widget class="Gui::PrefSpinBox" name="spinMaterialCacheSize">
+        <property name="maximum">
+         <number>4096</number>
+        </property>
         <property name="prefEntry" stdset="0">
          <cstring>MaterialCacheSize</cstring>
         </property>

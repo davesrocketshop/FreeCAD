@@ -46,8 +46,6 @@ DlgSettingsDatabase::DlgSettingsDatabase(QWidget* parent)
     ui->setupUi(this);
 
     connect(ui->buttonTest, &QPushButton::clicked, this, &DlgSettingsDatabase::testConnection);
-    connect(ui->buttonInitialize, &QPushButton::clicked, this, &DlgSettingsDatabase::initialize);
-    connect(ui->buttonMigrate, &QPushButton::clicked, this, &DlgSettingsDatabase::migrate);
 }
 
 DlgSettingsDatabase::~DlgSettingsDatabase()
@@ -86,14 +84,22 @@ void DlgSettingsDatabase::saveSettings()
     hGrp->SetBool("UseDatabase", useDatabase);
 }
 
+QString DlgSettingsDatabase::toPerCent(double value) const
+{
+    int pc = value * 100.0;
+    QString pcString;
+    pcString.setNum(pc);
+    pcString += QLatin1String("%");
+
+    return pcString;
+}
+
 void DlgSettingsDatabase::loadSettings()
 {
     ui->inputHostname->onRestore();
     ui->inputDatabase->onRestore();
     ui->inputUsername->onRestore();
     ui->inputPassword->onRestore();
-    ui->spinModelCacheSize->onRestore();
-    ui->spinMaterialCacheSize->onRestore();
 
     // Connection type - these are products so not translated
     ui->comboConnectionType->clear();
@@ -140,12 +146,15 @@ void DlgSettingsDatabase::loadSettings()
     bool useDatabase = hGrp->GetBool("UseDatabase", false);
     ui->groupDatabase->setChecked(useDatabase);
 
+    auto cacheSize = hGrp->GetInt("ModelCacheSize", 100);
+    ui->spinModelCacheSize->setValue(cacheSize);
+    cacheSize = hGrp->GetInt("MaterialCacheSize", 100);
+    ui->spinMaterialCacheSize->setValue(cacheSize);
+
     // Cache stats
-    QString hitRate;
-    hitRate.setNum(Materials::ModelManager::modelHitRate());
-    ui->inputModelCacheHitRate->setText(hitRate);
-    hitRate.setNum(0.0);
-    ui->inputMaterialCacheHitRate->setText(hitRate);
+    auto hitRate = Materials::ModelManager::modelHitRate();
+    ui->inputModelCacheHitRate->setText(toPerCent(hitRate));
+    ui->inputMaterialCacheHitRate->setText(toPerCent(0.0));
 }
 
 /**
@@ -196,27 +205,19 @@ void DlgSettingsDatabase::testConnection(bool)
     }
 }
 
-void DlgSettingsDatabase::initialize(bool)
-{
-    // Connection settings must be saved before connecting
-    saveSettings();
+// void DlgSettingsDatabase::initialize(bool)
+// {
+//     // Connection settings must be saved before connecting
+//     saveSettings();
 
-    Materials::Database db;
+//     Materials::Database db;
 
-    if (!db.createTables()) {
-        Base::Console().Log("Fail\n");
-        auto error = db.lastError();
-        Base::Console().Log("%s\n", error.text().toStdString().c_str());
-        QMessageBox::critical(this, tr("Database Initialize"), error.text());
-    }
-}
-
-void DlgSettingsDatabase::migrate(bool)
-{
-    // Connection settings must be saved before connecting
-    saveSettings();
-
-    Materials::MaterialManager::migrateToDatabase();
-}
+//     if (!db.createTables()) {
+//         Base::Console().Log("Fail\n");
+//         auto error = db.lastError();
+//         Base::Console().Log("%s\n", error.text().toStdString().c_str());
+//         QMessageBox::critical(this, tr("Database Initialize"), error.text());
+//     }
+// }
 
 #include "moc_DlgSettingsDatabase.cpp"

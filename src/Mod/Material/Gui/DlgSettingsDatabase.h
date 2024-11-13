@@ -45,10 +45,10 @@ protected:
 
 private Q_SLOTS:
     void testConnection(bool);
-    void initialize(bool);
-    void migrate(bool);
 
 private:
+    QString toPerCent(double value) const;
+    
     std::unique_ptr<Ui_DlgSettingsDatabase> ui;
 };
 
