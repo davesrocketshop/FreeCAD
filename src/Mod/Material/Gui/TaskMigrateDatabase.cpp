@@ -73,20 +73,25 @@ void DlgMigrateDatabase::accept()
     Base::Console().Log("Migrating Models...\n");
     for (int row = 0; row < ui->listModelLibraries->count(); row++) {
         auto item = ui->listModelLibraries->item(row);
-        auto library = item->data(Qt::UserRole).value<std::shared_ptr<Materials::ModelLibrary>>();
-        Base::Console().Log("\tLibrary: %s...", library->getName().toStdString().c_str());
-        _modelManager.migrateToDatabase(library);
-        Base::Console().Log("done\n");
+        if (item->checkState() == Qt::Checked) {
+            auto library = item->data(Qt::UserRole).value<std::shared_ptr<Materials::ModelLibrary>>();
+            Base::Console().Log("\tLibrary: %s...", library->getName().toStdString().c_str());
+            _modelManager.migrateToDatabase(library);
+            Base::Console().Log("done\n");
+        }
     }
     Base::Console().Log("done\n");
 
     Base::Console().Log("Migrating Materials...\n");
     for (int row = 0; row < ui->listMaterialLibraries->count(); row++) {
         auto item = ui->listMaterialLibraries->item(row);
-        auto library = item->data(Qt::UserRole).value<std::shared_ptr<Materials::MaterialLibrary>>();
-        Base::Console().Log("\tLibrary: %s...", library->getName().toStdString().c_str());
-        _materialManager.migrateToDatabase(library);
-        Base::Console().Log("done\n");
+        if (item->checkState() == Qt::Checked) {
+            auto library =
+                item->data(Qt::UserRole).value<std::shared_ptr<Materials::MaterialLibrary>>();
+            Base::Console().Log("\tLibrary: %s...", library->getName().toStdString().c_str());
+            _materialManager.migrateToDatabase(library);
+            Base::Console().Log("done\n");
+        }
     }
     Base::Console().Log("done\n");
 }

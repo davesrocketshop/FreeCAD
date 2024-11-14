@@ -198,13 +198,14 @@ void ModelLibrary::migrateToDatabase()
     // #if defined(BUILD_MATERIAL_DATABASE)
     // ModelManager manager;
     Database db;
+    db.migrateModelLibrary(getName(), _modelPathMap);
 
-    auto libraryIndex = db.findLibrary(getName());
+    // auto libraryIndex = db.findLibrary(getName());
 
-    // auto libraries = manager.getModelLibraries();
-    for (const auto& [path, model] : *_modelPathMap) {
-        db.createModel(libraryIndex, path, model);
-    }
+    // // auto libraries = manager.getModelLibraries();
+    // for (const auto& [path, model] : *_modelPathMap) {
+    //     db.createModel(libraryIndex, path, model);
+    // }
 
     // #endif  // BUILD_MATERIAL_DATABASE
 }

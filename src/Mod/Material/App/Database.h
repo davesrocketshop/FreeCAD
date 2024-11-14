@@ -36,6 +36,23 @@ class Model;
 class ModelProperty;
 class ModelLibrary;
 
+class MaterialsExport DBError
+{
+public:
+    DBError() {}
+    DBError(const QSqlError &error)
+        : _error(error)
+    {}
+    virtual ~DBError() = default;
+
+    QSqlError getError() const
+    {
+        return _error;
+    }
+private:
+    QSqlError _error;
+};
+
 class MaterialsExport Database
 {
 
@@ -66,6 +83,18 @@ public:
     static const QString DB_Postgress;
     static const QString DB_SQLServer;
     static const QString DB_SQLite;
+
+    /*
+     * Temprorarily ignore foreign keys. Dont' forget to restore!
+     */
+    void foreignKeysIgnore();
+    void foreignKeysRestore();
+
+    /*
+     * Nigration routines
+     */
+    void migrateModelLibrary(const QString &name,
+    const std::unique_ptr<std::map<QString, std::shared_ptr<Model>>>& _modelPathMap);
 
 protected:
     void setup();
