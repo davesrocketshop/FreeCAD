@@ -524,7 +524,10 @@ std::shared_ptr<ModelLibrary> Database::getLibrary(int libraryId)
             QString libraryIcon = query.value(1).toString();
             bool libraryReadOnly = query.value(2).toBool();
 
-            auto library = std::make_shared<ModelLibrary>(libraryName, QString(), libraryIcon);
+            auto library = std::make_shared<ModelLibrary>(libraryName,
+                                                          QString(),
+                                                          libraryIcon,
+                                                          libraryReadOnly);
             return library;
         }
     }

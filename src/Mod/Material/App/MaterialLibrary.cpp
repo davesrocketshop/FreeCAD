@@ -47,8 +47,7 @@ MaterialLibrary::MaterialLibrary(const QString& libraryName,
                                  const QString& dir,
                                  const QString& icon,
                                  bool readOnly)
-    : LibraryBase(libraryName, dir, icon)
-    , _readOnly(readOnly)
+    : LibraryBase(libraryName, dir, icon, readOnly)
     , _materialPathMap(std::make_unique<std::map<QString, std::shared_ptr<Material>>>())
 {}
 

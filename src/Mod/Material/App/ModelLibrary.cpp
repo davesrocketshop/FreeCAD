@@ -40,10 +40,14 @@ using namespace Materials;
 
 TYPESYSTEM_SOURCE(Materials::LibraryBase, Base::BaseClass)
 
-LibraryBase::LibraryBase(const QString& libraryName, const QString& dir, const QString& icon)
+LibraryBase::LibraryBase(const QString& libraryName,
+                         const QString& dir,
+                         const QString& icon,
+                         bool readOnly)
     : _name(libraryName)
     , _directory(QDir::cleanPath(dir))
     , _iconPath(icon)
+    , _readOnly(readOnly)
 {}
 
 bool LibraryBase::operator==(const LibraryBase& library) const
@@ -109,8 +113,11 @@ QString LibraryBase::getRelativePath(const QString& path) const
 
 TYPESYSTEM_SOURCE(Materials::ModelLibrary, Materials::LibraryBase)
 
-ModelLibrary::ModelLibrary(const QString& libraryName, const QString& dir, const QString& icon)
-    : LibraryBase(libraryName, dir, icon)
+ModelLibrary::ModelLibrary(const QString& libraryName,
+                           const QString& dir,
+                           const QString& icon,
+                           bool readOnly)
+    : LibraryBase(libraryName, dir, icon, readOnly)
 {
     _modelPathMap = std::make_unique<std::map<QString, std::shared_ptr<Model>>>();
 }

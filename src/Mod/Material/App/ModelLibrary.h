@@ -45,7 +45,10 @@ class MaterialsExport LibraryBase: public Base::BaseClass
 
 public:
     LibraryBase() = default;
-    LibraryBase(const QString& libraryName, const QString& dir, const QString& icon);
+    LibraryBase(const QString& libraryName,
+                const QString& dir,
+                const QString& icon,
+                bool readOnly);
     ~LibraryBase() override = default;
 
     const QString getName() const
@@ -73,12 +76,19 @@ public:
     QString getRelativePath(const QString& path) const;
     bool isRoot(const QString& path) const;
 
+    bool isReadOnly() const
+    {
+        return _readOnly;
+    }
+
+
 private:
     LibraryBase(const LibraryBase&);
 
     QString _name;
     QString _directory;
     QString _iconPath;
+    bool _readOnly;
 };
 
 class MaterialsExport ModelLibrary: public LibraryBase,
@@ -88,7 +98,10 @@ class MaterialsExport ModelLibrary: public LibraryBase,
 
 public:
     ModelLibrary();
-    ModelLibrary(const QString& libraryName, const QString& dir, const QString& icon);
+    ModelLibrary(const QString& libraryName,
+                 const QString& dir,
+                 const QString& icon,
+                 bool readOnly = true);
     ~ModelLibrary() override = default;
 
     bool operator==(const ModelLibrary& library) const

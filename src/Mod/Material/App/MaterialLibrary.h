@@ -83,11 +83,6 @@ public:
     getMaterialTree(const std::shared_ptr<Materials::MaterialFilter>& filter,
                     const Materials::MaterialFilterOptions& options) const;
 
-    bool isReadOnly() const
-    {
-        return _readOnly;
-    }
-
     // Use this to get a shared_ptr for *this
     std::shared_ptr<MaterialLibrary> getptr()
     {
@@ -104,7 +99,6 @@ protected:
                         const std::shared_ptr<Materials::MaterialFilter>& filter,
                         const Materials::MaterialFilterOptions& options) const;
 
-    bool _readOnly;
     std::unique_ptr<std::map<QString, std::shared_ptr<Material>>> _materialPathMap;
 };
 
