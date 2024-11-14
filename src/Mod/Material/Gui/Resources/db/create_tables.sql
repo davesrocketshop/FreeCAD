@@ -15,7 +15,8 @@ CREATE TABLE folder (
 	library_id INTEGER NOT NULL,
 	parent_id INTEGER,
 	FOREIGN KEY (library_id)
-        REFERENCES library(library_id),
+        REFERENCES library(library_id)
+		ON DELETE CASCADE,
 	FOREIGN KEY (parent_id)
         REFERENCES folder(folder_id)
 );
@@ -31,9 +32,11 @@ CREATE TABLE model (
 	model_description TEXT,
 	model_doi VARCHAR(1024),
 	FOREIGN KEY (library_id)
-        REFERENCES library(library_id),
+        REFERENCES library(library_id)
+		ON DELETE CASCADE,
 	FOREIGN KEY (folder_id)
         REFERENCES folder(folder_id)
+		ON DELETE CASCADE
 );
 
 DROP TABLE IF EXISTS model_inheritance;
@@ -42,7 +45,8 @@ CREATE TABLE model_inheritance (
 	model_id CHAR(36) NOT NULL,
 	inherits_id CHAR(36) NOT NULL,
 	FOREIGN KEY (model_id)
-        REFERENCES model(model_id),
+        REFERENCES model(model_id)
+		ON DELETE CASCADE,
 	FOREIGN KEY (inherits_id)
         REFERENCES model(model_id)
 );
@@ -59,7 +63,8 @@ CREATE TABLE model_property (
 	model_property_description TEXT,
 	model_property_inheritance_id CHAR(36),
 	FOREIGN KEY (model_id)
-        REFERENCES model(model_id),
+        REFERENCES model(model_id)
+		ON DELETE CASCADE,
 	FOREIGN KEY (model_property_inheritance_id)
         REFERENCES model(model_id)
 );
@@ -76,4 +81,5 @@ CREATE TABLE model_property_column (
 	model_property_description TEXT,
 	FOREIGN KEY (model_property_id)
         REFERENCES model_property(model_property_id)
+		ON DELETE CASCADE
 );

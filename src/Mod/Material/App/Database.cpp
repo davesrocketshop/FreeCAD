@@ -446,7 +446,7 @@ void Database::createModelProperty(const QString& modelUUID, const ModelProperty
     }
     auto columns = property.getColumns();
     for (auto column : columns) {
-        // Base::Console().Log("Add column '%s'\n", column.getName().toStdString().c_str());
+        Base::Console().Log("Add column '%s', property %d\n", column.getName().toStdString().c_str(), propertyId);
         createModelPropertyColumn(propertyId, column);
     }
 }
