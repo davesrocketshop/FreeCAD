@@ -1,5 +1,8 @@
 USE material;
 
+-- Foreign keys require tables to be dropped in a specific sequence
+SET FOREIGN_KEY_CHECKS=0;
+
 DROP TABLE IF EXISTS library;
 CREATE TABLE library (
 	library_id INTEGER AUTO_INCREMENT NOT NULL PRIMARY KEY,
@@ -49,6 +52,7 @@ CREATE TABLE model_inheritance (
 		ON DELETE CASCADE,
 	FOREIGN KEY (inherits_id)
         REFERENCES model(model_id)
+		ON DELETE RESTRICT
 );
 
 DROP TABLE IF EXISTS model_property;
@@ -83,3 +87,6 @@ CREATE TABLE model_property_column (
         REFERENCES model_property(model_property_id)
 		ON DELETE CASCADE
 );
+
+-- Restore foreign key checks
+SET FOREIGN_KEY_CHECKS=1;
