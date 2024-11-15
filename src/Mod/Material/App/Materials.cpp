@@ -1669,7 +1669,7 @@ App::Material Material::getMaterialAppearance() const
     if (hasAppearanceProperty(QLatin1String("TextureImage"))) {
         auto property = getAppearanceProperty(QLatin1String("TextureImage"));
         if (!property->isNull()) {
-            Base::Console().Log("Has 'TextureImage'\n");
+            // Base::Console().Log("Has 'TextureImage'\n");
             material.image = property->getString().toStdString();
         }
 
@@ -1678,7 +1678,7 @@ App::Material Material::getMaterialAppearance() const
     else if (hasAppearanceProperty(QLatin1String("TexturePath"))) {
         auto property = getAppearanceProperty(QLatin1String("TexturePath"));
         if (!property->isNull()) {
-            Base::Console().Log("Has 'TexturePath'\n");
+            // Base::Console().Log("Has 'TexturePath'\n");
             material.imagePath = property->getString().toStdString();
         }
 

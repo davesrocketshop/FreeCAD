@@ -348,11 +348,7 @@ int Database::createPath(int libraryIndex, const QString& path)
     }
     if (_db.open()) {
         newId = createPath(libraryIndex, 0, 0, pathList);
-        // _db.close();
     }
-    // for (auto p : pathList) {
-    //     Base::Console().Log("\t'%s'\n", p.toStdString().c_str());
-    // }
 
     return newId;
 }
@@ -490,14 +486,14 @@ void Database::createModel(int libraryIndex,
                            const QString& path,
                            const std::shared_ptr<Model>& model)
 {
-    // TODO
-    // Base::Console().Log("Path = '%s'\n", path.toStdString().c_str());
-    auto pathIndex = createPath(libraryIndex, path);
-
-    QString modelId;
     if (_db.open()) {
         if (_db.transaction()) {
             try {
+                // Base::Console().Log("Path = '%s'\n", path.toStdString().c_str());
+                // Base::Console().Log("Directory = '%s'\n",
+                //                     model->getDirectory().toStdString().c_str());
+                auto pathIndex = createPath(libraryIndex, path);
+
                 QSqlQuery query(_db);
 
                 // First check if the folder exists
@@ -505,12 +501,7 @@ void Database::createModel(int libraryIndex,
                 query.addBindValue(model->getUUID());
                 query.exec();
 
-                if (query.next()) {
-                    auto id = query.value(0);
-                    // modelId = query.value(0).toString();
-                    modelId = id.toString();
-                }
-                else {
+                if (!query.next()) {
                     query.prepare(QLatin1String(
                         "INSERT INTO model (model_id, library_id, folder_id, "
                         "model_name, model_type, model_url, model_description, model_doi) "
@@ -593,7 +584,74 @@ void Database::migrateModelLibrary(
 
 QString Database::getPath(int folderId)
 {
-    return QString();
+    QString path;
+    if (_db.open()) {
+        QSqlQuery query(_db);
+
+        query.prepare(QLatin1String(
+            "SELECT folder_name, parent_id FROM folder WHERE folder_id = ?"));
+        query.addBindValue(folderId);
+        query.exec();
+
+        if (query.next()) {
+            QString folder_name = query.value(0).toString();
+            if (query.value(1).isNull()) {
+                // path = QLatin1String("/") + folder_name;
+                path = folder_name;
+            }
+            else {
+                int parentId = query.value(1).toInt();
+                path = getPath(parentId) + QLatin1String("/") + folder_name;
+            }
+        }
+        else {
+            Base::Console().Log("Error retrieving path %d\n", folderId);
+            throw DBError(query.lastError());
+        }
+    }
+    return path;
+}
+
+std::shared_ptr<std::vector<ModelProperty>> Database::getModelProperties(const QString& uuid)
+{
+    auto properties = std::make_shared<std::vector<ModelProperty>>();
+    if (_db.open()) {
+        QSqlQuery query(_db);
+
+        query.prepare(QLatin1String(
+            "SELECT model_property_name, "
+            "model_property_display_name, model_property_type, "
+            "model_property_units, model_property_url, "
+            "model_property_description, model_property_inheritance_id FROM model_property "
+            "WHERE model_id = ?"));
+        query.addBindValue(uuid);
+        query.exec();
+
+        if (query.next()) {
+            ModelProperty prop;
+            QString propName = query.value(0).toString();
+            QString propDisplayName = query.value(1).toString();
+            QString propType = query.value(2).toString();
+            QString propUnits = query.value(3).toString();
+            QString propUrl = query.value(4).toString();
+            QString propDescription = query.value(5).toString();
+            QString propInheritanceId = query.value(6).toString();
+            prop.setName(propName);
+            prop.setColumnHeader(propDisplayName);
+            prop.setPropertyType(propType);
+            prop.setUnits(propUnits);
+            prop.setURL(propUrl);
+            prop.setDescription(propDescription);
+            prop.setInheritance(propInheritanceId); // This is the UUID
+
+            properties->push_back(prop);
+        }
+        else {
+            Base::Console().Log("Error retrieving property for model '%s'\n", uuid.toStdString().c_str());
+            throw DBError(query.lastError());
+        }
+    }
+    return properties;
 }
 
 std::shared_ptr<Model> Database::getModel(const QString& uuid)
@@ -625,7 +683,12 @@ std::shared_ptr<Model> Database::getModel(const QString& uuid)
             model->setDOI(modelDoi);
 
             model->setLibrary(getLibrary(libraryId));
-            model->setDirectory(getPath(folderId));
+
+            auto path = getPath(folderId) + QLatin1String("/") + modelName;
+            Base::Console().Log("path '%s'\n", path.toStdString().c_str());
+            model->setDirectory(path);
+
+            auto properties = getModelProperties(uuid);
         }
         _db.close();
     }

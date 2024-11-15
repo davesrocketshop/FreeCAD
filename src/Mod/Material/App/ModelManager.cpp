@@ -101,7 +101,7 @@ std::shared_ptr<Model> ModelManager::getModel(const QString& uuid) const
     auto model = _dbManager->getModel(uuid);
     if (model) {
         Base::Console().Log("Found DB model\n");
-        // return model;
+        return model;
     }
     return _localManager->getModel(uuid);
 }
