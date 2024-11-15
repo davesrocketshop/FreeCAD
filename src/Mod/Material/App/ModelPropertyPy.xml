@@ -45,5 +45,11 @@
       </Documentation>
       <Parameter Name="Description" Type="String"/>
     </Attribute>
+    <Attribute Name="Columns" ReadOnly="true">
+      <Documentation>
+        <UserDocu>List of array columns.</UserDocu>
+      </Documentation>
+      <Parameter Name="Columns" Type="List"/>
+    </Attribute>
   </PythonExport>
 </GenerateModel>
