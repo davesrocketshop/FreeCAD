@@ -65,6 +65,11 @@ Py::String ModelPropertyPy::getName() const
     return Py::String(getModelPropertyPtr()->getName().toStdString());
 }
 
+Py::String ModelPropertyPy::getDisplayName() const
+{
+    return Py::String(getModelPropertyPtr()->getDisplayName().toStdString());
+}
+
 Py::String ModelPropertyPy::getType() const
 {
     return Py::String(getModelPropertyPtr()->getPropertyType().toStdString());

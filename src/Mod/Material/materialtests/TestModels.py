@@ -293,3 +293,45 @@ class ModelTestCases(unittest.TestCase):
         self.assertEqual(col.URL, "")
         self.assertEqual(col.Units, "MPa")
         self.assertEqual(col.Description, "Strain")
+
+    def testModelInheritance(self):
+        """ Test that the inherited models have been loaded correctly """
+        model = self.ModelManager.getModel(self.uuids.LinearElastic)
+        self.assertIsNotNone(model)
+        self.assertEqual(model.Name, "Linear Elastic")
+        self.assertEqual(model.UUID, "7b561d1d-fb9b-44f6-9da9-56a4f74d7536")
+        self.assertIn("Density", model.Properties)
+        prop = model.Properties["Density"]
+        self.assertEqual(prop.Name, "Density")
+        self.assertEqual(prop.Type, "Quantity")
+        self.assertEqual(prop.URL, "https://en.wikipedia.org/wiki/Density")
+        self.assertEqual(prop.Units, "kg/m^3")
+        self.assertEqual(prop.Description, "Density in [FreeCAD Density unit]")
+        prop = model.Properties["BulkModulus"]
+        self.assertEqual(prop.Name, "BulkModulus")
+        self.assertEqual(prop.DisplayName, "Bulk Modulus")
+        self.assertEqual(prop.Type, "Quantity")
+        self.assertEqual(prop.URL, "https://en.wikipedia.org/wiki/Bulk_modulus")
+        self.assertEqual(prop.Units, "kPa")
+        self.assertEqual(prop.Description, "Bulk modulus in [FreeCAD Pressure unit]")
+        prop = model.Properties["PoissonRatio"]
+        self.assertEqual(prop.Name, "PoissonRatio")
+        self.assertEqual(prop.DisplayName, "Poisson Ratio")
+        self.assertEqual(prop.Type, "Float")
+        self.assertEqual(prop.URL, "https://en.wikipedia.org/wiki/Poisson%27s_ratio")
+        self.assertEqual(prop.Units, "")
+        self.assertEqual(prop.Description, "Poisson's ratio [unitless]")
+        prop = model.Properties["ShearModulus"]
+        self.assertEqual(prop.Name, "ShearModulus")
+        self.assertEqual(prop.DisplayName, "Shear Modulus")
+        self.assertEqual(prop.Type, "Quantity")
+        self.assertEqual(prop.URL, "https://en.wikipedia.org/wiki/Shear_modulus")
+        self.assertEqual(prop.Units, "kPa")
+        self.assertEqual(prop.Description, "Shear modulus in [FreeCAD Pressure unit]")
+        prop = model.Properties["YoungsModulus"]
+        self.assertEqual(prop.Name, "YoungsModulus")
+        self.assertEqual(prop.DisplayName, "Young's Modulus")
+        self.assertEqual(prop.Type, "Quantity")
+        self.assertEqual(prop.URL, "https://en.wikipedia.org/wiki/Young%27s_modulus")
+        self.assertEqual(prop.Units, "kPa")
+        self.assertEqual(prop.Description, "Young's modulus (or E-Module) in [FreeCAD Pressure unit]")
