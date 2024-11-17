@@ -24,6 +24,7 @@
 
 #include <memory>
 
+#include <Base/Parameter.h>
 #include <Mod/Material/MaterialGlobal.h>
 
 #include <QMutex>
@@ -38,13 +39,13 @@ namespace Materials
 class ModelManagerLocal;
 class ModelManagerDB;
 
-class MaterialsExport ModelManager: public Base::BaseClass
+class MaterialsExport ModelManager: public Base::BaseClass, ParameterGrp::ObserverType
 {
     TYPESYSTEM_HEADER_WITH_OVERRIDE();
 
 public:
     ModelManager();
-    ~ModelManager() override = default;
+    ~ModelManager() override;
 
     static void cleanup();
     void refresh();
@@ -52,6 +53,7 @@ public:
     std::shared_ptr<std::list<std::shared_ptr<ModelLibrary>>> getModelLibraries();
     std::shared_ptr<std::list<std::shared_ptr<ModelLibrary>>> getLocalModelLibraries();
     std::shared_ptr<std::map<QString, std::shared_ptr<Model>>> getModels();
+    std::shared_ptr<std::map<QString, std::shared_ptr<Model>>> getLocalModels();
     std::shared_ptr<std::map<QString, std::shared_ptr<ModelTreeNode>>>
     getModelTree(std::shared_ptr<ModelLibrary> library, ModelFilter filter = ModelFilter_None) const
     {
@@ -71,12 +73,18 @@ public:
     // Cache stats
     static double modelHitRate();
 
+    /// Observer message from the ParameterGrp
+    void OnChange(ParameterGrp::SubjectType& rCaller, ParameterGrp::MessageType Reason) override;
+
 private:
     void initManagers();
 
     static std::unique_ptr<ModelManagerLocal> _localManager;
     static std::unique_ptr<ModelManagerDB> _dbManager;
     static QMutex _mutex;
+    static bool _useDatabase;
+
+    ParameterGrp::handle _hGrp;
 };
 
 }  // namespace Materials

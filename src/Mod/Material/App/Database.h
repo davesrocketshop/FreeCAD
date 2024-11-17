@@ -66,6 +66,9 @@ public:
     void createModel(int libraryIndex, const QString& path, const std::shared_ptr<Model>& model);
 
     std::shared_ptr<Model> getModel(const QString& uuid);
+    QStringList getInherits(const QString &uuid);
+    std::shared_ptr<std::vector<ModelProperty>> getModelColumns(const QString& uuid,
+                                                                const QString& propertyName);
     std::shared_ptr<std::vector<ModelProperty>> getModelProperties(const QString& uuid);
     std::shared_ptr<ModelLibrary> getLibrary(int libraryId);
     QString getPath(int folderId);

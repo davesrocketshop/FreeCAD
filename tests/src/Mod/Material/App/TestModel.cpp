@@ -80,7 +80,7 @@ TEST_F(TestModel, TestInstallation)
     ASSERT_GT(libraries->size(), 0);
 
     // We should have at least one model
-    auto models = _modelManager->getModels();
+    auto models = _modelManager->getLocalModels();
     ASSERT_GT(models->size(), 0);
 }
 

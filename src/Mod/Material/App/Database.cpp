@@ -436,6 +436,10 @@ void Database::createModelPropertyColumn(int propertyId, const ModelProperty& pr
 
 void Database::createModelProperty(const QString& modelUUID, const ModelProperty& property)
 {
+    if (property.isInherited()) {
+        // Property is inherited
+        return;
+    }
     QSqlQuery query(_db);
 
     int propertyId = 0;
@@ -454,8 +458,8 @@ void Database::createModelProperty(const QString& modelUUID, const ModelProperty
         query.prepare(QLatin1String("INSERT INTO model_property (model_id, model_property_name, "
                                     "model_property_display_name, model_property_type, "
                                     "model_property_units, model_property_url, "
-                                    "model_property_description, model_property_inheritance_id) "
-                                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?)"));
+                                    "model_property_description) "
+                                    "VALUES (?, ?, ?, ?, ?, ?, ?)"));
         query.addBindValue(modelUUID);
         query.addBindValue(property.getName());
         query.addBindValue(property.getDisplayName());
@@ -463,7 +467,6 @@ void Database::createModelProperty(const QString& modelUUID, const ModelProperty
         query.addBindValue(property.getUnits());
         query.addBindValue(property.getURL());
         query.addBindValue(property.getDescription());
-        query.addBindValue(property.getInheritance());
         if (query.exec()) {
             propertyId = query.lastInsertId().toInt();
 
@@ -588,8 +591,8 @@ QString Database::getPath(int folderId)
     if (_db.open()) {
         QSqlQuery query(_db);
 
-        query.prepare(QLatin1String(
-            "SELECT folder_name, parent_id FROM folder WHERE folder_id = ?"));
+        query.prepare(
+            QLatin1String("SELECT folder_name, parent_id FROM folder WHERE folder_id = ?"));
         query.addBindValue(folderId);
         query.exec();
 
@@ -612,22 +615,66 @@ QString Database::getPath(int folderId)
     return path;
 }
 
-std::shared_ptr<std::vector<ModelProperty>> Database::getModelProperties(const QString& uuid)
+QStringList Database::getInherits(const QString &uuid)
 {
-    auto properties = std::make_shared<std::vector<ModelProperty>>();
+    QStringList inherits;
     if (_db.open()) {
         QSqlQuery query(_db);
 
-        query.prepare(QLatin1String(
-            "SELECT model_property_name, "
-            "model_property_display_name, model_property_type, "
-            "model_property_units, model_property_url, "
-            "model_property_description, model_property_inheritance_id FROM model_property "
-            "WHERE model_id = ?"));
+        query.prepare(QLatin1String("SELECT inherits_id FROM model_inheritance "
+                                    "WHERE model_id = ?"));
         query.addBindValue(uuid);
         query.exec();
 
+        if (!query.isActive()) {
+            Base::Console().Log("Error retrieving inheritance for model '%s'\n",
+                                uuid.toStdString().c_str());
+            throw DBError(query.lastError());
+        }
+        while (query.next()) {
+            QString inheritsUuid = query.value(0).toString();
+            inherits.append(inheritsUuid);
+        }
+    }
+    return inherits;
+}
+
+std::shared_ptr<std::vector<ModelProperty>> Database::getModelColumns(const QString &uuid, const QString &propertyName)
+{
+    auto columns = std::make_shared<std::vector<ModelProperty>>();
+    if (_db.open()) {
+        QSqlQuery query(_db);
+
+        query.prepare(QLatin1String("SELECT model_property_id FROM model_property "
+                                    "WHERE model_id = ? AND model_property_name = ?"));
+        query.addBindValue(uuid);
+        query.addBindValue(propertyName);
+        query.exec();
+
+        int propertyId = 0;
         if (query.next()) {
+            propertyId = query.value(0).toInt();
+        }
+        else {
+            Base::Console().Log("Error retrieving property columns for model '%s'\n",
+                                uuid.toStdString().c_str());
+            throw DBError(query.lastError());
+        }
+
+        query.prepare(QLatin1String("SELECT model_property_name, "
+                                    "model_property_display_name, model_property_type, "
+                                    "model_property_units, model_property_url, "
+                                    "model_property_description FROM model_property_column "
+                                    "WHERE model_property_id = ?"));
+        query.addBindValue(propertyId);
+        query.exec();
+
+        if (!query.isActive()) {
+            Base::Console().Log("Error retrieving property columns for property '%d'\n",
+                                propertyId);
+            throw DBError(query.lastError());
+        }
+        while (query.next()) {
             ModelProperty prop;
             QString propName = query.value(0).toString();
             QString propDisplayName = query.value(1).toString();
@@ -635,20 +682,62 @@ std::shared_ptr<std::vector<ModelProperty>> Database::getModelProperties(const Q
             QString propUnits = query.value(3).toString();
             QString propUrl = query.value(4).toString();
             QString propDescription = query.value(5).toString();
-            QString propInheritanceId = query.value(6).toString();
             prop.setName(propName);
             prop.setColumnHeader(propDisplayName);
             prop.setPropertyType(propType);
             prop.setUnits(propUnits);
             prop.setURL(propUrl);
             prop.setDescription(propDescription);
-            prop.setInheritance(propInheritanceId); // This is the UUID
+
+            columns->push_back(prop);
+        }
+    }
+    return columns;
+}
+
+std::shared_ptr<std::vector<ModelProperty>> Database::getModelProperties(const QString& uuid)
+{
+    auto properties = std::make_shared<std::vector<ModelProperty>>();
+    if (_db.open()) {
+        QSqlQuery query(_db);
+
+        query.prepare(QLatin1String("SELECT model_property_name, "
+                                    "model_property_display_name, model_property_type, "
+                                    "model_property_units, model_property_url, "
+                                    "model_property_description FROM model_property "
+                                    "WHERE model_id = ?"));
+        query.addBindValue(uuid);
+        query.exec();
+
+        if (!query.isActive()) {
+            Base::Console().Log("Error retrieving properties for model '%s'\n",
+                                uuid.toStdString().c_str());
+            throw DBError(query.lastError());
+        }
+        while (query.next()) {
+            ModelProperty prop;
+            QString propName = query.value(0).toString();
+            QString propDisplayName = query.value(1).toString();
+            QString propType = query.value(2).toString();
+            QString propUnits = query.value(3).toString();
+            QString propUrl = query.value(4).toString();
+            QString propDescription = query.value(5).toString();
+            prop.setName(propName);
+            prop.setColumnHeader(propDisplayName);
+            prop.setPropertyType(propType);
+            prop.setUnits(propUnits);
+            prop.setURL(propUrl);
+            prop.setDescription(propDescription);
 
             properties->push_back(prop);
         }
-        else {
-            Base::Console().Log("Error retrieving property for model '%s'\n", uuid.toStdString().c_str());
-            throw DBError(query.lastError());
+
+        // This has to happen after the properties are retrieved as QSql doesn't support nested queries
+        for (auto& property : *properties) {
+            auto columns = getModelColumns(uuid, property.getName());
+            for (auto column : *columns) {
+                property.addColumn(column);
+            }
         }
     }
     return properties;
@@ -685,12 +774,21 @@ std::shared_ptr<Model> Database::getModel(const QString& uuid)
             model->setLibrary(getLibrary(libraryId));
 
             auto path = getPath(folderId) + QLatin1String("/") + modelName;
-            Base::Console().Log("path '%s'\n", path.toStdString().c_str());
+            // Base::Console().Log("path '%s'\n", path.toStdString().c_str());
             model->setDirectory(path);
 
+            auto inherits = getInherits(uuid);
+            for (auto& inherit : inherits) {
+                model->addInheritance(inherit);
+            }
+
             auto properties = getModelProperties(uuid);
+            for (auto property : *properties) {
+                model->addProperty(property);
+            }
+            return model;
         }
-        _db.close();
+        // _db.close();
     }
 
     return nullptr;

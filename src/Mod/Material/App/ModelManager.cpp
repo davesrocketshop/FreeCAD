@@ -26,6 +26,7 @@
 #include <QDirIterator>
 #include <QMutexLocker>
 
+#include <App/Application.h>
 #include <Base/Console.h>
 
 #include "Model.h"
@@ -45,12 +46,23 @@ using namespace Materials;
 std::unique_ptr<ModelManagerLocal> ModelManager::_localManager;
 std::unique_ptr<ModelManagerDB> ModelManager::_dbManager;
 QMutex ModelManager::_mutex;
+bool ModelManager::_useDatabase = false;
 
 TYPESYSTEM_SOURCE(Materials::ModelManager, Base::BaseClass)
 
 ModelManager::ModelManager()
 {
     initManagers();
+
+    _hGrp = App::GetApplication().GetParameterGroupByPath(
+        "User parameter:BaseApp/Preferences/Mod/Material/Database");
+    _useDatabase = _hGrp->GetBool("UseDatabase", false);
+    _hGrp->Attach(this);
+}
+
+ModelManager::~ModelManager()
+{
+    _hGrp->Detach(this);
 }
 
 void ModelManager::initManagers()
@@ -66,6 +78,17 @@ void ModelManager::initManagers()
     }
 }
 
+void ModelManager::OnChange(ParameterGrp::SubjectType& rCaller,
+                            ParameterGrp::MessageType Reason)
+{
+    const ParameterGrp& rGrp = static_cast<ParameterGrp&>(rCaller);
+    if (strcmp(Reason, "UseDatabase") == 0) {
+        Base::Console().Log("Use database changed\n");
+        _useDatabase = rGrp.GetBool("UseDatabase", false);
+        _dbManager->refresh();
+    }
+}
+
 bool ModelManager::isModel(const QString& file)
 {
     return ModelManagerLocal::isModel(file);
@@ -78,7 +101,8 @@ void ModelManager::cleanup()
 
 void ModelManager::refresh()
 {
-    return _localManager->refresh();
+    _localManager->refresh();
+    _dbManager->refresh();
 }
 
 std::shared_ptr<std::list<std::shared_ptr<ModelLibrary>>> ModelManager::getModelLibraries()
@@ -96,13 +120,24 @@ std::shared_ptr<std::map<QString, std::shared_ptr<Model>>> ModelManager::getMode
     return _localManager->getModels();
 }
 
+std::shared_ptr<std::map<QString, std::shared_ptr<Model>>> ModelManager::getLocalModels()
+{
+    return _localManager->getModels();
+}
+
 std::shared_ptr<Model> ModelManager::getModel(const QString& uuid) const
 {
-    auto model = _dbManager->getModel(uuid);
-    if (model) {
-        Base::Console().Log("Found DB model\n");
-        return model;
+    if (_useDatabase) {
+        auto model = _dbManager->getModel(uuid);
+        if (model) {
+            return model;
+        }
+        else {
+            Base::Console().Log("DB model not found\n");
+            // throw ModelNotFound();
+        }
     }
+    // We really want to return the local model if not found, such as for User models return
     return _localManager->getModel(uuid);
 }
 

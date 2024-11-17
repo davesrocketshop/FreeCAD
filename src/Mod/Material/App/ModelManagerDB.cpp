@@ -40,7 +40,6 @@
 
 using namespace Materials;
 
-std::shared_ptr<std::map<QString, std::shared_ptr<Model>>> ModelManagerDB::_modelMap = nullptr;
 QMutex ModelManagerDB::_mutex;
 LRU::Cache<QString, std::shared_ptr<Model>> ModelManagerDB::_cache(100);
 
@@ -56,10 +55,6 @@ void ModelManagerDB::initCache()
 {
     QMutexLocker locker(&_mutex);
 
-    if (_modelMap == nullptr) {
-        _modelMap = std::make_shared<std::map<QString, std::shared_ptr<Model>>>();
-    }
-
     ParameterGrp::handle hGrp = App::GetApplication().GetParameterGroupByPath(
         "User parameter:BaseApp/Preferences/Mod/Material/Database");
     auto cacheSize = hGrp->GetInt("ModelCacheSize", 100);
@@ -73,29 +68,19 @@ double ModelManagerDB::modelHitRate()
     return _cache.stats().hit_rate();
 }
 
-void ModelManagerDB::cleanup()
-{
-}
-
 void ModelManagerDB::refresh()
 {
+    _cache.clear();
 }
 
 std::shared_ptr<Model> ModelManagerDB::getModel(const QString& uuid) const
 {
-    // if (_modelMap->find(uuid) != _modelMap->end()) {
-    //     Base::Console().Log("Model cache hit\n");
-    //     return nullptr;
-    // }
     if (_cache.contains(uuid)) {
         return _cache.lookup(uuid);
     }
     Database db;
 
     auto model = db.getModel(uuid);
-    // if (model) {
-        // (*_modelMap)[uuid] = model;
-    // }
     _cache.emplace(uuid, model);
     return model;
 }

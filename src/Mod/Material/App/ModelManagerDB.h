@@ -46,17 +46,8 @@ public:
     ModelManagerDB();
     ~ModelManagerDB() override = default;
 
-    static void cleanup();
     void refresh();
 
-    std::shared_ptr<std::list<std::shared_ptr<ModelLibrary>>> getModelLibraries()
-    {
-        return nullptr;
-    }
-    std::shared_ptr<std::map<QString, std::shared_ptr<Model>>> getModels()
-    {
-        return nullptr;
-    }
     std::shared_ptr<Model> getModel(const QString& uuid) const;
 
     // Cache stats
@@ -65,7 +56,6 @@ public:
 private:
     static void initCache();
 
-    static std::shared_ptr<std::map<QString, std::shared_ptr<Model>>> _modelMap;
     static QMutex _mutex;
     static LRU::Cache<QString, std::shared_ptr<Model>> _cache;
 };

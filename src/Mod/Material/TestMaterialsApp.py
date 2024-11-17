@@ -21,7 +21,7 @@
 #**************************************************************************
 
 # import FreeCAD
-from os import walk
+# from os import walk
 import unittest
 import FreeCAD
 import Materials

@@ -148,7 +148,6 @@ Py::List ModelPy::getInherited() const
 
 Py::Dict ModelPy::getProperties() const
 {
-    // std::map<std::string, Model*> *models = getModelPtr()->getModels();
     Py::Dict dict;
 
     for (auto it = getModelPtr()->begin(); it != getModelPtr()->end(); it++) {
