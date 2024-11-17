@@ -29,6 +29,7 @@
 
 #include <App/Application.h>
 
+#include "Database.h"
 #include "MaterialFilter.h"
 #include "MaterialLibrary.h"
 #include "MaterialLoader.h"
@@ -351,6 +352,12 @@ MaterialLibrary::getMaterialTree(const std::shared_ptr<Materials::MaterialFilter
     }
 
     return materialTree;
+}
+
+void MaterialLibrary::migrateToDatabase()
+{
+    Database db;
+    db.migrateMaterialLibrary(getName(), _materialPathMap);
 }
 
 TYPESYSTEM_SOURCE(Materials::MaterialExternalLibrary, Materials::MaterialLibrary)

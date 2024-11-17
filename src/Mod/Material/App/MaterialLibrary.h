@@ -89,6 +89,8 @@ public:
         return shared_from_this();
     }
 
+    void migrateToDatabase();
+
 protected:
     void deleteDir(MaterialManager& manager, const QString& path);
     void deleteFile(MaterialManager& manager, const QString& path);

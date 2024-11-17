@@ -28,6 +28,7 @@
 #include <App/Application.h>
 
 #include "Database.h"
+#include "Materials.h"
 #include "Model.h"
 #include "ModelLibrary.h"
 
@@ -39,8 +40,12 @@ const QString Database::DB_Postgress = QLatin1String("Postgress");
 const QString Database::DB_SQLServer = QLatin1String("SQL Server");
 const QString Database::DB_SQLite = QLatin1String("SQLite");
 
+// QMutex Database::_mutex;
+// LRU::Cache<std::pair<int, const QString&>, int> Database::_folderCache(100);
+
 Database::Database()
 {
+    // initCache();
     setup();
 }
 
@@ -49,6 +54,15 @@ Database::~Database()
     // QSqlDatabase::removeDatabase(QLatin1String("material"));
     _db.close();
 }
+
+// void Database::initCache()
+// {
+//     QMutexLocker locker(&_mutex);
+
+//     _cache.capacity(100);
+
+//     // _cache.monitor();
+// }
 
 void Database::setup()
 {
@@ -257,6 +271,11 @@ int Database::createPath(int libraryIndex,
                          int pathIndex,
                          const QStringList& pathList)
 {
+    // auto cacheIndex = std::pair<int, const QString &>(parentIndex, pathList[pathIndex]);
+    // if (_folderCache.contains(cacheIndex)) {
+    //     return _folderCache.lookup(uuid);
+    // }
+
     int newId = 0;
     if (parentIndex == 0) {
         // No parent. Root folder
@@ -330,13 +349,14 @@ int Database::createPath(int libraryIndex,
         }
         _db.commit();
     }
+    // _folderCache.emplace(cacheIndex, newId);
 
     // return newId;
     auto index = parentIndex + 1;
     if (index >= (pathList.size() - 1)) {
         return newId;
     }
-    return createPath(libraryIndex, index, newId, pathList);
+    return createPath(libraryIndex, newId, index, pathList);
 }
 
 int Database::createPath(int libraryIndex, const QString& path)
@@ -547,6 +567,75 @@ void Database::createModel(int libraryIndex,
     }
 }
 
+void Database::createMaterial(int libraryIndex,
+                           const QString& path,
+                           const std::shared_ptr<Material>& material)
+{
+    if (_db.open()) {
+        if (_db.transaction()) {
+            try {
+                auto pathIndex = createPath(libraryIndex, path);
+
+                QSqlQuery query(_db);
+
+                // First check if the folder exists
+                query.prepare(
+                    QLatin1String("SELECT material_id FROM material WHERE material_id = ?"));
+                query.addBindValue(material->getUUID());
+                query.exec();
+
+                if (!query.next()) {
+                    // Mass updates may insert models out of sequence creating a foreign key
+                    // violation
+                    foreignKeysIgnore();
+
+                    query.prepare(
+                        QLatin1String("INSERT INTO material (material_id, library_id, folder_id, "
+                                      "material_name, material_author, material_license, "
+                                      "material_parent_uuid, material_description, material_url, "
+                                      "material_reference) "
+                                      "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"));
+                    query.addBindValue(material->getUUID());
+                    query.addBindValue(libraryIndex);
+                    query.addBindValue(pathIndex == 0 ? QVariant() : pathIndex);
+                    query.addBindValue(material->getName());
+                    query.addBindValue(material->getAuthor());
+                    query.addBindValue(material->getLicense());
+                    query.addBindValue(material->getParentUUID());
+                    query.addBindValue(material->getDescription());
+                    query.addBindValue(material->getURL());
+                    query.addBindValue(material->getReference());
+                    if (query.exec()) {
+                        auto id = query.lastInsertId();
+
+                        // auto inherits = model->getInheritance();
+                        // for (auto inherit : inherits) {
+                        //     createInheritance(model->getUUID(), inherit);
+                        // }
+
+                        // for (auto property : *model) {
+                        //     createModelProperty(model->getUUID(), property.second);
+                        // }
+                    }
+                    else {
+                        auto error = query.lastError();
+                        Base::Console().Log("Error creating material\n");
+                        Base::Console().Log("library %d, folder %d\n", libraryIndex, pathIndex);
+                        foreignKeysRestore();
+                        throw DBError(error);
+                    }
+                }
+                foreignKeysRestore();
+                _db.commit();
+            }
+            catch (const DBError& error) {
+                Base::Console().Log("Exception caught\n");
+                _db.rollback();
+            }
+        }
+    }
+}
+
 std::shared_ptr<ModelLibrary> Database::getLibrary(int libraryId)
 {
     if (_db.open()) {
@@ -572,6 +661,18 @@ std::shared_ptr<ModelLibrary> Database::getLibrary(int libraryId)
     }
     _db.close();
     return nullptr;
+}
+
+void Database::migrateMaterialLibrary(
+    const QString& name,
+    const std::unique_ptr<std::map<QString, std::shared_ptr<Material>>>& _materialPathMap)
+{
+    // _folderCache.clear();
+    auto libraryIndex = findLibrary(name);
+
+    for (const auto& [path, material] : *_materialPathMap) {
+        createMaterial(libraryIndex, path, material);
+    }
 }
 
 void Database::migrateModelLibrary(

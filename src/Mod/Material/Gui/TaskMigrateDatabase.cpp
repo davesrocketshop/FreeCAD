@@ -24,6 +24,8 @@
 #ifndef _PreComp_
 #endif
 
+#include <QPushButton>
+
 #include <Base/Console.h>
 
 #include "TaskMigrateDatabase.h"

@@ -88,5 +88,72 @@ CREATE TABLE model_property_column (
 		ON DELETE CASCADE
 );
 
+DROP TABLE IF EXISTS material;
+CREATE TABLE material (
+    material_id CHAR(36) NOT NULL PRIMARY KEY,
+	library_id INTEGER NOT NULL,
+	folder_id INTEGER,
+	material_name VARCHAR(1024) NOT NULL,
+	material_author VARCHAR(1024),
+	material_license VARCHAR(1024),
+	material_parent_uuid CHAR(36),
+	material_description TEXT,
+	material_url VARCHAR(1024),
+	material_reference VARCHAR(1024),
+	FOREIGN KEY (library_id)
+        REFERENCES library(library_id)
+		ON DELETE CASCADE,
+	FOREIGN KEY (folder_id)
+        REFERENCES folder(folder_id)
+		ON DELETE CASCADE,
+	FOREIGN KEY (material_parent_uuid)
+        REFERENCES material(material_id)
+		ON DELETE RESTRICT
+);
+
+DROP TABLE IF EXISTS material_tag;
+CREATE TABLE material_tag (
+    material_tag_id INTEGER AUTO_INCREMENT NOT NULL PRIMARY KEY,
+	material_tag_name VARCHAR(1024) NOT NULL
+);
+
+DROP TABLE IF EXISTS material_tag_mapping;
+CREATE TABLE material_tag_mapping (
+    material_id CHAR(36) NOT NULL,
+	material_tag_id INTEGER NOT NULL,
+	FOREIGN KEY (material_id)
+        REFERENCES material(material_id)
+		ON DELETE CASCADE,
+	FOREIGN KEY (material_tag_id)
+        REFERENCES material_tag(material_tag_id)
+		ON DELETE CASCADE
+);
+CREATE INDEX material_tag_mapping_material_id ON material_tag_mapping (material_id);
+CREATE INDEX material_tag_mapping_material_tag_id ON material_tag_mapping (material_tag_id);
+
+DROP TABLE IF EXISTS material_physical_models;
+CREATE TABLE material_physical_models (
+    material_id CHAR(36) NOT NULL,
+    model_id CHAR(36) NOT NULL,
+	FOREIGN KEY (material_id)
+        REFERENCES material(material_id)
+		ON DELETE CASCADE,
+	FOREIGN KEY (model_id)
+        REFERENCES model(model_id)
+		ON DELETE CASCADE
+);
+
+DROP TABLE IF EXISTS material_appearance_models;
+CREATE TABLE material_appearance_models (
+    material_id CHAR(36) NOT NULL,
+    model_id CHAR(36) NOT NULL,
+	FOREIGN KEY (material_id)
+        REFERENCES material(material_id)
+		ON DELETE CASCADE,
+	FOREIGN KEY (model_id)
+        REFERENCES model(model_id)
+		ON DELETE CASCADE
+);
+
 -- Restore foreign key checks
 SET FOREIGN_KEY_CHECKS=1;

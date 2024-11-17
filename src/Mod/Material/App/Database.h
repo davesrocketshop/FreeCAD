@@ -25,6 +25,8 @@
 #include <QSqlDatabase>
 #include <QSqlError>
 
+// #include <lru/lru.hpp>
+
 #include <Base/Parameter.h>
 
 #include <Mod/Material/MaterialGlobal.h>
@@ -35,12 +37,14 @@ namespace Materials
 class Model;
 class ModelProperty;
 class ModelLibrary;
+class Material;
 
 class MaterialsExport DBError
 {
 public:
-    DBError() {}
-    DBError(const QSqlError &error)
+    DBError()
+    {}
+    DBError(const QSqlError& error)
         : _error(error)
     {}
     virtual ~DBError() = default;
@@ -49,6 +53,7 @@ public:
     {
         return _error;
     }
+
 private:
     QSqlError _error;
 };
@@ -60,13 +65,16 @@ public:
     Database();
     virtual ~Database();
 
-    int findLibrary(const QString &name);
-    void createLibrary(const QString &name, const QString& icon, bool readOnly=false);
+    int findLibrary(const QString& name);
+    void createLibrary(const QString& name, const QString& icon, bool readOnly = false);
     int createPath(int libraryIndex, const QString& path);
     void createModel(int libraryIndex, const QString& path, const std::shared_ptr<Model>& model);
+    void createMaterial(int libraryIndex,
+                        const QString& path,
+                        const std::shared_ptr<Material>& material);
 
     std::shared_ptr<Model> getModel(const QString& uuid);
-    QStringList getInherits(const QString &uuid);
+    QStringList getInherits(const QString& uuid);
     std::shared_ptr<std::vector<ModelProperty>> getModelColumns(const QString& uuid,
                                                                 const QString& propertyName);
     std::shared_ptr<std::vector<ModelProperty>> getModelProperties(const QString& uuid);
@@ -97,8 +105,12 @@ public:
     /*
      * Nigration routines
      */
-    void migrateModelLibrary(const QString &name,
-    const std::unique_ptr<std::map<QString, std::shared_ptr<Model>>>& _modelPathMap);
+    void migrateMaterialLibrary(
+        const QString& name,
+        const std::unique_ptr<std::map<QString, std::shared_ptr<Material>>>& _modelPathMap);
+    void migrateModelLibrary(
+        const QString& name,
+        const std::unique_ptr<std::map<QString, std::shared_ptr<Model>>>& _modelPathMap);
 
 protected:
     void setup();
@@ -119,7 +131,7 @@ protected:
 
     void dropTable(const QString& table);
 
-    int createPath(int libraryIndex, int parentIndex, int pathIndex, const QStringList &pathList);
+    int createPath(int libraryIndex, int parentIndex, int pathIndex, const QStringList& pathList);
     void createInheritance(const QString& modelUUID, const QString& inheritUUID);
     void createModelProperty(const QString& modelUUID, const ModelProperty& property);
     void createModelPropertyColumn(int propertyId, const ModelProperty& property);
@@ -132,6 +144,9 @@ private:
     QString _hostname;
     QString _username;
     QString _password;
+
+    // static QMutex _mutex;
+    // static LRU::Cache<std::pair<int, const QString&>, int> _folderCache;
 };
 
 }  // namespace Materials

@@ -331,4 +331,6 @@ void MaterialManagerLocal::migrateToDatabase(const std::shared_ptr<MaterialLibra
     // Create the library
     // QIcon icon = QIcon(library->getIconPath());
     db.createLibrary(library->getName(), QLatin1String(""));
+
+    library->migrateToDatabase();
 }

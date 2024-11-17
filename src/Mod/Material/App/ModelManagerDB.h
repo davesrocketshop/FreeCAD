@@ -24,7 +24,6 @@
 
 #include <memory>
 #include <lru/lru.hpp>
-// #include <lru.hpp>
 
 #include <Mod/Material/MaterialGlobal.h>
 
