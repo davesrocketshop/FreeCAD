@@ -614,61 +614,53 @@ void Database::createTag(const QString& materialUUID, const QString& tag)
     }
 }
 
-void Database::createPhysicalModel(const QString& materialUUID, const QString& modelUUID)
+void Database::createMaterialModel(const QString& materialUUID, const QString& modelUUID)
 {
-    int tagId = 0;
-
     QSqlQuery query(_db);
 
     // First check if the tag exists
     query.prepare(QLatin1String(
-        "SELECT material_id FROM material_physical_models WHERE material_id = ? AND model_id = ?"));
+        "SELECT material_id FROM material_models WHERE material_id = ? AND model_id = ?"));
     query.addBindValue(materialUUID);
     query.addBindValue(modelUUID);
     query.exec();
 
     if (!query.next()) {
-        query.prepare(QLatin1String("INSERT INTO material_physical_models (material_id, model_id) "
+        query.prepare(QLatin1String("INSERT INTO material_models (material_id, model_id) "
                                     "VALUES (?, ?)"));
         query.addBindValue(materialUUID);
         query.addBindValue(modelUUID);
         if (!query.exec()) {
-            Base::Console().Log("Error creating material physical model\n");
+            Base::Console().Log("Error creating material model\n");
             throw DBError(query.lastError());
         }
     }
 }
 
-void Database::createAppearanceModel(const QString& materialUUID, const QString& modelUUID)
+void Database::createStringValue(int propertyId, const QString& value)
 {
-    int tagId = 0;
-
+    if (value.isEmpty()) {
+        return;
+    }
+    
     QSqlQuery query(_db);
 
-    // First check if the tag exists
-    query.prepare(QLatin1String("SELECT material_id FROM material_appearance_models WHERE "
-                                "material_id = ? AND model_id = ?"));
-    query.addBindValue(materialUUID);
-    query.addBindValue(modelUUID);
-    query.exec();
-
-    if (!query.next()) {
-        query.prepare(
-            QLatin1String("INSERT INTO material_appearance_models (material_id, model_id) "
-                          "VALUES (?, ?)"));
-        query.addBindValue(materialUUID);
-        query.addBindValue(modelUUID);
-        if (!query.exec()) {
-            Base::Console().Log("Error creating material appearance model\n");
-            throw DBError(query.lastError());
-        }
+    query.prepare(QLatin1String(
+        "INSERT INTO material_property_value (material_property_id, material_property_value) "
+        "VALUES (?, ?) ON DUPLICATE KEY UPDATE material_property_value = ?"));
+    query.addBindValue(propertyId);
+    query.addBindValue(value);
+    query.addBindValue(value);
+    if (!query.exec()) {
+        Base::Console().Log("Error creating material property value\n");
+        throw DBError(query.lastError());
     }
 }
 
 void Database::createMaterialProperty(const QString& materialUUID,
-                                      const std::shared_ptr<MaterialProperty>& property)
+                                      const std::shared_ptr<MaterialProperty>& property, bool isPhysical)
 {
-    int tagId = 0;
+    int propertyId = 0;
 
     QSqlQuery query(_db);
 
@@ -679,15 +671,35 @@ void Database::createMaterialProperty(const QString& materialUUID,
     query.addBindValue(property->getModelUUID());
     query.exec();
 
-    if (!query.next()) {
-        query.prepare(QLatin1String("INSERT INTO material_property (material_id, model_id) "
-                                    "VALUES (?, ?)"));
+    if (query.next()) {
+        propertyId = query.value(0).toInt();
+    }
+    else {
+        query.prepare(QLatin1String("INSERT INTO material_property (material_id, model_id, material_property_type) "
+                                    "VALUES (?, ?, ?)"));
         query.addBindValue(materialUUID);
         query.addBindValue(property->getModelUUID());
-        if (!query.exec()) {
+        query.addBindValue(isPhysical ? QLatin1String("Physical") : QLatin1String("Appearance"));
+        if (query.exec()) {
+            propertyId = query.lastInsertId().toInt();
+        }
+        else {
             Base::Console().Log("Error creating material property\n");
             throw DBError(query.lastError());
         }
+    }
+    switch (property->getType()) {
+        case MaterialValue::List:
+        case MaterialValue::Array2D:
+        case MaterialValue::Array3D:
+        case MaterialValue::Image:
+        case MaterialValue::File:
+        case MaterialValue::FileList:
+        case MaterialValue::ImageList:
+        case MaterialValue::SVG:
+            break;
+        default:
+            createStringValue(propertyId, property->getString());
     }
 }
 
@@ -739,17 +751,22 @@ void Database::createMaterial(int libraryIndex,
 
                         auto models = material->getPhysicalModels();
                         for (auto model : *models) {
-                            createPhysicalModel(material->getUUID(), model);
+                            createMaterialModel(material->getUUID(), model);
                         }
 
                         models = material->getAppearanceModels();
                         for (auto model : *models) {
-                            createAppearanceModel(material->getUUID(), model);
+                            createMaterialModel(material->getUUID(), model);
                         }
 
                         auto properties = material->getPhysicalProperties();
                         for (const auto& [key, property] : properties) {
-                            createMaterialProperty(material->getUUID(), property);
+                            createMaterialProperty(material->getUUID(), property, true);
+                        }
+
+                        properties = material->getAppearanceProperties();
+                        for (const auto& [key, property] : properties) {
+                            createMaterialProperty(material->getUUID(), property, false);
                         }
                     }
                     else {

@@ -71,10 +71,11 @@ public:
     int createPath(int libraryIndex, const QString& path);
     void createModel(int libraryIndex, const QString& path, const std::shared_ptr<Model>& model);
     void createTag(const QString& materialUUID, const QString& tag);
-    void createPhysicalModel(const QString& materialUUID, const QString& modelUUID);
-    void createAppearanceModel(const QString& materialUUID, const QString& modelUUID);
+    void createMaterialModel(const QString& materialUUID, const QString& modelUUID);
+    void createStringValue(int propertyId, const QString& value);
     void createMaterialProperty(const QString& materialUUID,
-                                      const std::shared_ptr<MaterialProperty>& property);
+                                const std::shared_ptr<MaterialProperty>& property,
+                                bool isPhysical);
     void createMaterial(int libraryIndex,
                         const QString& path,
                         const std::shared_ptr<Material>& material);
