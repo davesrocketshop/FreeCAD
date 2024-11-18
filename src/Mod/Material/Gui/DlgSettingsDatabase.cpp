@@ -154,7 +154,8 @@ void DlgSettingsDatabase::loadSettings()
     // Cache stats
     auto hitRate = Materials::ModelManager::modelHitRate();
     ui->inputModelCacheHitRate->setText(toPerCent(hitRate));
-    ui->inputMaterialCacheHitRate->setText(toPerCent(0.0));
+    hitRate = Materials::MaterialManager::materialHitRate();
+    ui->inputMaterialCacheHitRate->setText(toPerCent(hitRate));
 }
 
 /**
@@ -204,20 +205,5 @@ void DlgSettingsDatabase::testConnection(bool)
         QMessageBox::critical(this, tr("Database Connection Test"), error.text());
     }
 }
-
-// void DlgSettingsDatabase::initialize(bool)
-// {
-//     // Connection settings must be saved before connecting
-//     saveSettings();
-
-//     Materials::Database db;
-
-//     if (!db.createTables()) {
-//         Base::Console().Log("Fail\n");
-//         auto error = db.lastError();
-//         Base::Console().Log("%s\n", error.text().toStdString().c_str());
-//         QMessageBox::critical(this, tr("Database Initialize"), error.text());
-//     }
-// }
 
 #include "moc_DlgSettingsDatabase.cpp"

@@ -103,6 +103,8 @@ SET(Materials_SRCS
     MaterialLoader.h
     MaterialManager.cpp
     MaterialManager.h
+    MaterialManagerDB.cpp
+    MaterialManagerDB.h
     MaterialManagerLocal.cpp
     MaterialManagerLocal.h
     Materials.cpp

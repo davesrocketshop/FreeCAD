@@ -29,6 +29,7 @@
 
 #include "Database.h"
 #include "Materials.h"
+#include "MaterialLibrary.h"
 #include "Model.h"
 #include "ModelLibrary.h"
 
@@ -642,7 +643,7 @@ void Database::createStringValue(int propertyId, const QString& value)
     if (value.isEmpty()) {
         return;
     }
-    
+
     QSqlQuery query(_db);
 
     query.prepare(QLatin1String(
@@ -811,7 +812,32 @@ std::shared_ptr<ModelLibrary> Database::getLibrary(int libraryId)
             return library;
         }
     }
-    _db.close();
+    return nullptr;
+}
+
+std::shared_ptr<MaterialLibrary> Database::getMaterialLibrary(int libraryId)
+{
+    if (_db.open()) {
+        QSqlQuery query(_db);
+
+        // First check if the library exists
+        query.prepare(QLatin1String("SELECT library_name, library_icon, library_read_only FROM "
+                                    "library WHERE library_id = ?"));
+        query.addBindValue(libraryId);
+        query.exec();
+
+        if (query.next()) {
+            QString libraryName = query.value(0).toString();
+            QString libraryIcon = query.value(1).toString();
+            bool libraryReadOnly = query.value(2).toBool();
+
+            auto library = std::make_shared<MaterialLibrary>(libraryName,
+                                                             QString(),
+                                                             libraryIcon,
+                                                             libraryReadOnly);
+            return library;
+        }
+    }
     return nullptr;
 }
 
@@ -1040,6 +1066,62 @@ std::shared_ptr<Model> Database::getModel(const QString& uuid)
                 model->addProperty(property);
             }
             return model;
+        }
+        // _db.close();
+    }
+
+    return nullptr;
+}
+
+std::shared_ptr<Material> Database::getMaterial(const QString& uuid)
+{
+    if (_db.open()) {
+        QSqlQuery query(_db);
+
+        query.prepare(QLatin1String("SELECT library_id, folder_id, material_name, "
+                                    "material_author, material_license, material_parent_uuid, "
+                                    "material_description, material_url, material_reference FROM "
+                                    "material WHERE material_id = ?"));
+        query.addBindValue(uuid);
+        query.exec();
+
+        if (query.next()) {
+            int libraryId = query.value(0).toInt();
+            int folderId = query.value(1).toInt();
+            QString materialName = query.value(2).toString();
+            QString materialAuthor = query.value(3).toString();
+            QString materialLicense = query.value(4).toString();
+            QString materialParentUUID = query.value(5).toString();
+            QString materialDescription = query.value(6).toString();
+            QString materialURL = query.value(7).toString();
+            QString materialReference = query.value(8).toString();
+
+            auto material = std::make_shared<Material>();
+            material->setUUID(uuid);
+            material->setName(materialName);
+            material->setAuthor(materialAuthor);
+            material->setLicense(materialLicense);
+            material->setParentUUID(materialParentUUID);
+            material->setDescription(materialDescription);
+            material->setURL(materialURL);
+            material->setReference(materialReference);
+
+            material->setLibrary(getMaterialLibrary(libraryId));
+
+            auto path = getPath(folderId) + QLatin1String("/") + materialName;
+            // Base::Console().Log("path '%s'\n", path.toStdString().c_str());
+            material->setDirectory(path);
+
+            // auto inherits = getInherits(uuid);
+            // for (auto& inherit : inherits) {
+            //     material->addInheritance(inherit);
+            // }
+
+            // auto properties = getmaterialProperties(uuid);
+            // for (auto property : *properties) {
+            //     material->addProperty(property);
+            // }
+            return material;
         }
         // _db.close();
     }

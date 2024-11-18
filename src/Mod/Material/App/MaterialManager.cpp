@@ -35,6 +35,7 @@
 #include "MaterialConfigLoader.h"
 #include "MaterialLoader.h"
 #include "MaterialManager.h"
+#include "MaterialManagerDB.h"
 #include "MaterialManagerLocal.h"
 #include "ModelManager.h"
 #include "ModelUuids.h"
@@ -49,14 +50,25 @@ using namespace Materials;
 /* TRANSLATOR Material::Materials */
 
 std::unique_ptr<MaterialManagerLocal> MaterialManager::_localManager;
-// std::unique_ptr<MaterialManagerDB> MaterialManager::_dbManager;
+std::unique_ptr<MaterialManagerDB> MaterialManager::_dbManager;
 QMutex MaterialManager::_mutex;
+bool MaterialManager::_useDatabase = false;
 
 TYPESYSTEM_SOURCE(Materials::MaterialManager, Base::BaseClass)
 
 MaterialManager::MaterialManager()
 {
     initManagers();
+
+    _hGrp = App::GetApplication().GetParameterGroupByPath(
+        "User parameter:BaseApp/Preferences/Mod/Material/Database");
+    _useDatabase = _hGrp->GetBool("UseDatabase", false);
+    _hGrp->Attach(this);
+}
+
+MaterialManager::~MaterialManager()
+{
+    _hGrp->Detach(this);
 }
 
 void MaterialManager::initManagers()
@@ -67,14 +79,25 @@ void MaterialManager::initManagers()
         _localManager = std::make_unique<MaterialManagerLocal>();
     }
 
-    // if (!_dbManager) {
-    //     _dbManager = std::make_unique<MaterialManagerDB>();
-    // }
+    if (!_dbManager) {
+        _dbManager = std::make_unique<MaterialManagerDB>();
+    }
+}
+
+void MaterialManager::OnChange(ParameterGrp::SubjectType& rCaller, ParameterGrp::MessageType Reason)
+{
+    const ParameterGrp& rGrp = static_cast<ParameterGrp&>(rCaller);
+    if (strcmp(Reason, "UseDatabase") == 0) {
+        Base::Console().Log("Use database changed\n");
+        _useDatabase = rGrp.GetBool("UseDatabase", false);
+        _dbManager->refresh();
+    }
 }
 
 void MaterialManager::refresh()
 {
-    MaterialManagerLocal::refresh();
+    _localManager->refresh();
+    _dbManager->refresh();
 }
 
 void MaterialManager::remove(const QString& uuid) const
@@ -188,6 +211,13 @@ MaterialManager::getLocalMaterials() const
 
 std::shared_ptr<Material> MaterialManager::getMaterial(const QString& uuid) const
 {
+    if (_useDatabase) {
+        auto model = _dbManager->getMaterial(uuid);
+        // if (model) {
+        //     return model;
+        // }
+    }
+    // We really want to return the local model if not found, such as for User folder models
     return _localManager->getMaterial(uuid);
 }
 
@@ -278,4 +308,10 @@ void MaterialManager::dereference(std::shared_ptr<Material> material) const
 void MaterialManager::migrateToDatabase(const std::shared_ptr<MaterialLibrary>& library)
 {
     _localManager->migrateToDatabase(library);
+}
+
+// Cache stats
+double MaterialManager::materialHitRate()
+{
+    return MaterialManagerDB::materialHitRate();
 }

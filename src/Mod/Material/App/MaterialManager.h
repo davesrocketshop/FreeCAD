@@ -26,6 +26,7 @@
 
 #include <boost/filesystem.hpp>
 
+#include <Base/Parameter.h>
 #include <Mod/Material/MaterialGlobal.h>
 
 #include "FolderTree.h"
@@ -48,13 +49,13 @@ namespace Materials
 class MaterialManagerLocal;
 class MaterialManagerDB;
 
-class MaterialsExport MaterialManager: public Base::BaseClass
+class MaterialsExport MaterialManager: public Base::BaseClass, ParameterGrp::ObserverType
 {
     TYPESYSTEM_HEADER_WITH_OVERRIDE();
 
 public:
     MaterialManager();
-    ~MaterialManager() override = default;
+    ~MaterialManager() override;
 
     static void refresh();
     static std::shared_ptr<App::Material> defaultAppearance();
@@ -133,12 +134,21 @@ public:
 
     static void migrateToDatabase(const std::shared_ptr<MaterialLibrary>& library);
 
+    // Cache stats
+    static double materialHitRate();
+
+    /// Observer message from the ParameterGrp
+    void OnChange(ParameterGrp::SubjectType& rCaller, ParameterGrp::MessageType Reason) override;
+
 private:
     void initManagers();
 
     static std::unique_ptr<MaterialManagerLocal> _localManager;
-    // static std::unique_ptr<MateriallManagerDB> _dbManager;
+    static std::unique_ptr<MaterialManagerDB> _dbManager;
     static QMutex _mutex;
+    static bool _useDatabase;
+
+    ParameterGrp::handle _hGrp;
 };
 
 }  // namespace Materials

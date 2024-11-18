@@ -34,11 +34,13 @@
 namespace Materials
 {
 
+// Forward declarations
 class Model;
 class ModelProperty;
 class ModelLibrary;
 class Material;
 class MaterialProperty;
+class MaterialLibrary;
 
 class MaterialsExport DBError
 {
@@ -81,11 +83,13 @@ public:
                         const std::shared_ptr<Material>& material);
 
     std::shared_ptr<Model> getModel(const QString& uuid);
+    std::shared_ptr<Material> getMaterial(const QString& uuid);
     QStringList getInherits(const QString& uuid);
     std::shared_ptr<std::vector<ModelProperty>> getModelColumns(const QString& uuid,
                                                                 const QString& propertyName);
     std::shared_ptr<std::vector<ModelProperty>> getModelProperties(const QString& uuid);
     std::shared_ptr<ModelLibrary> getLibrary(int libraryId);
+    std::shared_ptr<MaterialLibrary> getMaterialLibrary(int libraryId);
     QString getPath(int folderId);
 
     bool createTables();
