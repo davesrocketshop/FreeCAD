@@ -30,10 +30,10 @@ CREATE TABLE model (
 	library_id INTEGER NOT NULL,
 	folder_id INTEGER,
 	model_type ENUM('Model', 'AppearanceModel') NOT NULL,
-	model_name VARCHAR(1024) NOT NULL,
-	model_url VARCHAR(1024),
+	model_name VARCHAR(255) NOT NULL,
+	model_url VARCHAR(255),
 	model_description TEXT,
-	model_doi VARCHAR(1024),
+	model_doi VARCHAR(255),
 	FOREIGN KEY (library_id)
         REFERENCES library(library_id)
 		ON DELETE CASCADE,
@@ -59,11 +59,11 @@ DROP TABLE IF EXISTS model_property;
 CREATE TABLE model_property (
     model_property_id INTEGER AUTO_INCREMENT NOT NULL PRIMARY KEY,
 	model_id CHAR(36) NOT NULL,
-	model_property_name VARCHAR(1024) NOT NULL,
-	model_property_display_name VARCHAR(1024) NOT NULL,
+	model_property_name VARCHAR(255) NOT NULL,
+	model_property_display_name VARCHAR(255) NOT NULL,
 	model_property_type VARCHAR(255) NOT NULL,
 	model_property_units VARCHAR(255) NOT NULL,
-	model_property_url VARCHAR(1024) NOT NULL,
+	model_property_url VARCHAR(255) NOT NULL,
 	model_property_description TEXT,
 	FOREIGN KEY (model_id)
         REFERENCES model(model_id)
@@ -74,11 +74,11 @@ DROP TABLE IF EXISTS model_property_column;
 CREATE TABLE model_property_column (
     model_property_column_id INTEGER AUTO_INCREMENT NOT NULL PRIMARY KEY,
     model_property_id INTEGER NOT NULL,
-	model_property_name VARCHAR(1024) NOT NULL,
-	model_property_display_name VARCHAR(1024) NOT NULL,
+	model_property_name VARCHAR(255) NOT NULL,
+	model_property_display_name VARCHAR(255) NOT NULL,
 	model_property_type VARCHAR(255) NOT NULL,
 	model_property_units VARCHAR(255) NOT NULL,
-	model_property_url VARCHAR(1024) NOT NULL,
+	model_property_url VARCHAR(255) NOT NULL,
 	model_property_description TEXT,
 	FOREIGN KEY (model_property_id)
         REFERENCES model_property(model_property_id)
@@ -90,13 +90,13 @@ CREATE TABLE material (
     material_id CHAR(36) NOT NULL PRIMARY KEY,
 	library_id INTEGER NOT NULL,
 	folder_id INTEGER,
-	material_name VARCHAR(1024) NOT NULL,
-	material_author VARCHAR(1024),
-	material_license VARCHAR(1024),
+	material_name VARCHAR(255) NOT NULL,
+	material_author VARCHAR(255),
+	material_license VARCHAR(255),
 	material_parent_uuid CHAR(36),
 	material_description TEXT,
-	material_url VARCHAR(1024),
-	material_reference VARCHAR(1024),
+	material_url VARCHAR(255),
+	material_reference VARCHAR(255),
 	FOREIGN KEY (library_id)
         REFERENCES library(library_id)
 		ON DELETE CASCADE,
@@ -111,7 +111,7 @@ CREATE TABLE material (
 DROP TABLE IF EXISTS material_tag;
 CREATE TABLE material_tag (
     material_tag_id INTEGER AUTO_INCREMENT NOT NULL PRIMARY KEY,
-	material_tag_name VARCHAR(256) NOT NULL UNIQUE
+	material_tag_name VARCHAR(255) NOT NULL UNIQUE KEY
 );
 
 DROP TABLE IF EXISTS material_tag_mapping;
@@ -128,8 +128,8 @@ CREATE TABLE material_tag_mapping (
 CREATE INDEX material_tag_mapping_material_id ON material_tag_mapping (material_id);
 CREATE INDEX material_tag_mapping_material_tag_id ON material_tag_mapping (material_tag_id);
 
-DROP TABLE IF EXISTS material_physical_models;
-CREATE TABLE material_physical_models (
+DROP TABLE IF EXISTS material_models;
+CREATE TABLE material_models (
     material_id CHAR(36) NOT NULL,
     model_id CHAR(36) NOT NULL,
 	FOREIGN KEY (material_id)
@@ -139,26 +139,14 @@ CREATE TABLE material_physical_models (
         REFERENCES model(model_id)
 		ON DELETE CASCADE
 );
-CREATE INDEX material_physical_models_material_id ON material_physical_models (material_id);
-
-DROP TABLE IF EXISTS material_appearance_models;
-CREATE TABLE material_appearance_models (
-    material_id CHAR(36) NOT NULL,
-    model_id CHAR(36) NOT NULL,
-	FOREIGN KEY (material_id)
-        REFERENCES material(material_id)
-		ON DELETE CASCADE,
-	FOREIGN KEY (model_id)
-        REFERENCES model(model_id)
-		ON DELETE CASCADE
-);
-CREATE INDEX material_appearance_models_material_id ON material_appearance_models (material_id);
+CREATE INDEX material_models_material_id ON material_models (material_id);
 
 DROP TABLE IF EXISTS material_property;
 CREATE TABLE material_property (
     material_property_id INTEGER AUTO_INCREMENT NOT NULL PRIMARY KEY,
 	material_id CHAR(36) NOT NULL,
 	model_id CHAR(36) NOT NULL,
+	material_property_type ENUM('Physical', 'Appearance') NOT NULL,
 	FOREIGN KEY (material_id)
         REFERENCES material(material_id)
 		ON DELETE CASCADE,
@@ -170,7 +158,7 @@ CREATE TABLE material_property (
 DROP TABLE IF EXISTS material_property_value;
 CREATE TABLE material_property_value (
     material_property_value_id INTEGER AUTO_INCREMENT NOT NULL PRIMARY KEY,
-	material_property_id INTEGER NOT NULL,
+	material_property_id INTEGER NOT NULL UNIQUE,
 	material_property_value TEXT NOT NULL,
 	FOREIGN KEY (material_property_id)
         REFERENCES material_property(material_property_id)
