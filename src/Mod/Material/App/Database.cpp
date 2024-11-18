@@ -567,6 +567,130 @@ void Database::createModel(int libraryIndex,
     }
 }
 
+void Database::createTag(const QString& materialUUID, const QString& tag)
+{
+    int tagId = 0;
+
+    QSqlQuery query(_db);
+
+    // First check if the tag exists
+    query.prepare(
+        QLatin1String("SELECT material_tag_id FROM material_tag WHERE material_tag_name = ?"));
+    query.addBindValue(tag);
+    query.exec();
+
+    if (query.next()) {
+        tagId = query.value(0).toInt();
+    }
+    else {
+        query.prepare(QLatin1String("INSERT INTO material_tag (material_tag_name) "
+                                    "VALUES (?)"));
+        query.addBindValue(tag);
+        if (query.exec()) {
+            tagId = query.lastInsertId().toInt();
+        }
+        else {
+            Base::Console().Log("Error creating material tag\n");
+            throw DBError(query.lastError());
+        }
+    }
+
+    query.prepare(QLatin1String("SELECT material_id, material_tag_id FROM material_tag_mapping "
+                                "WHERE material_id = ? AND material_tag_id = ?"));
+    query.addBindValue(materialUUID);
+    query.addBindValue(tagId);
+    query.exec();
+
+    if (!query.next()) {
+        query.prepare(
+            QLatin1String("INSERT INTO material_tag_mapping (material_id, material_tag_id) "
+                          "VALUES (?, ?)"));
+        query.addBindValue(materialUUID);
+        query.addBindValue(tagId);
+        if (!query.exec()) {
+            Base::Console().Log("Error creating material tag\n");
+            throw DBError(query.lastError());
+        }
+    }
+}
+
+void Database::createPhysicalModel(const QString& materialUUID, const QString& modelUUID)
+{
+    int tagId = 0;
+
+    QSqlQuery query(_db);
+
+    // First check if the tag exists
+    query.prepare(QLatin1String(
+        "SELECT material_id FROM material_physical_models WHERE material_id = ? AND model_id = ?"));
+    query.addBindValue(materialUUID);
+    query.addBindValue(modelUUID);
+    query.exec();
+
+    if (!query.next()) {
+        query.prepare(QLatin1String("INSERT INTO material_physical_models (material_id, model_id) "
+                                    "VALUES (?, ?)"));
+        query.addBindValue(materialUUID);
+        query.addBindValue(modelUUID);
+        if (!query.exec()) {
+            Base::Console().Log("Error creating material physical model\n");
+            throw DBError(query.lastError());
+        }
+    }
+}
+
+void Database::createAppearanceModel(const QString& materialUUID, const QString& modelUUID)
+{
+    int tagId = 0;
+
+    QSqlQuery query(_db);
+
+    // First check if the tag exists
+    query.prepare(QLatin1String("SELECT material_id FROM material_appearance_models WHERE "
+                                "material_id = ? AND model_id = ?"));
+    query.addBindValue(materialUUID);
+    query.addBindValue(modelUUID);
+    query.exec();
+
+    if (!query.next()) {
+        query.prepare(
+            QLatin1String("INSERT INTO material_appearance_models (material_id, model_id) "
+                          "VALUES (?, ?)"));
+        query.addBindValue(materialUUID);
+        query.addBindValue(modelUUID);
+        if (!query.exec()) {
+            Base::Console().Log("Error creating material appearance model\n");
+            throw DBError(query.lastError());
+        }
+    }
+}
+
+void Database::createMaterialProperty(const QString& materialUUID,
+                                      const std::shared_ptr<MaterialProperty>& property)
+{
+    int tagId = 0;
+
+    QSqlQuery query(_db);
+
+    // First check if the tag exists
+    query.prepare(QLatin1String("SELECT material_property_id FROM material_property WHERE "
+                                "material_id = ? AND model_id = ?"));
+    query.addBindValue(materialUUID);
+    query.addBindValue(property->getModelUUID());
+    query.exec();
+
+    if (!query.next()) {
+        query.prepare(QLatin1String("INSERT INTO material_property (material_id, model_id) "
+                                    "VALUES (?, ?)"));
+        query.addBindValue(materialUUID);
+        query.addBindValue(property->getModelUUID());
+        if (!query.exec()) {
+            Base::Console().Log("Error creating material property\n");
+            throw DBError(query.lastError());
+        }
+    }
+}
+
 void Database::createMaterial(int libraryIndex,
                            const QString& path,
                            const std::shared_ptr<Material>& material)
@@ -608,14 +732,25 @@ void Database::createMaterial(int libraryIndex,
                     if (query.exec()) {
                         auto id = query.lastInsertId();
 
-                        // auto inherits = model->getInheritance();
-                        // for (auto inherit : inherits) {
-                        //     createInheritance(model->getUUID(), inherit);
-                        // }
+                        auto tags = material->getTags();
+                        for (auto tag : tags) {
+                            createTag(material->getUUID(), tag);
+                        }
 
-                        // for (auto property : *model) {
-                        //     createModelProperty(model->getUUID(), property.second);
-                        // }
+                        auto models = material->getPhysicalModels();
+                        for (auto model : *models) {
+                            createPhysicalModel(material->getUUID(), model);
+                        }
+
+                        models = material->getAppearanceModels();
+                        for (auto model : *models) {
+                            createAppearanceModel(material->getUUID(), model);
+                        }
+
+                        auto properties = material->getPhysicalProperties();
+                        for (const auto& [key, property] : properties) {
+                            createMaterialProperty(material->getUUID(), property);
+                        }
                     }
                     else {
                         auto error = query.lastError();
@@ -624,8 +759,8 @@ void Database::createMaterial(int libraryIndex,
                         foreignKeysRestore();
                         throw DBError(error);
                     }
+                    foreignKeysRestore();
                 }
-                foreignKeysRestore();
                 _db.commit();
             }
             catch (const DBError& error) {

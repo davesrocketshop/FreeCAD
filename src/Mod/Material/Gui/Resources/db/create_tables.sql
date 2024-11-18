@@ -14,7 +14,7 @@ CREATE TABLE library (
 DROP TABLE IF EXISTS folder;
 CREATE TABLE folder (
 	folder_id INTEGER AUTO_INCREMENT NOT NULL PRIMARY KEY,
-	folder_name VARCHAR(512) NOT NULL UNIQUE,
+	folder_name VARCHAR(512) NOT NULL,
 	library_id INTEGER NOT NULL,
 	parent_id INTEGER,
 	FOREIGN KEY (library_id)
@@ -65,12 +65,9 @@ CREATE TABLE model_property (
 	model_property_units VARCHAR(255) NOT NULL,
 	model_property_url VARCHAR(1024) NOT NULL,
 	model_property_description TEXT,
-	model_property_inheritance_id CHAR(36),
 	FOREIGN KEY (model_id)
         REFERENCES model(model_id)
-		ON DELETE CASCADE,
-	FOREIGN KEY (model_property_inheritance_id)
-        REFERENCES model(model_id)
+		ON DELETE CASCADE
 );
 
 DROP TABLE IF EXISTS model_property_column;
@@ -114,7 +111,7 @@ CREATE TABLE material (
 DROP TABLE IF EXISTS material_tag;
 CREATE TABLE material_tag (
     material_tag_id INTEGER AUTO_INCREMENT NOT NULL PRIMARY KEY,
-	material_tag_name VARCHAR(1024) NOT NULL
+	material_tag_name VARCHAR(256) NOT NULL UNIQUE
 );
 
 DROP TABLE IF EXISTS material_tag_mapping;
@@ -142,6 +139,7 @@ CREATE TABLE material_physical_models (
         REFERENCES model(model_id)
 		ON DELETE CASCADE
 );
+CREATE INDEX material_physical_models_material_id ON material_physical_models (material_id);
 
 DROP TABLE IF EXISTS material_appearance_models;
 CREATE TABLE material_appearance_models (
@@ -152,6 +150,30 @@ CREATE TABLE material_appearance_models (
 		ON DELETE CASCADE,
 	FOREIGN KEY (model_id)
         REFERENCES model(model_id)
+		ON DELETE CASCADE
+);
+CREATE INDEX material_appearance_models_material_id ON material_appearance_models (material_id);
+
+DROP TABLE IF EXISTS material_property;
+CREATE TABLE material_property (
+    material_property_id INTEGER AUTO_INCREMENT NOT NULL PRIMARY KEY,
+	material_id CHAR(36) NOT NULL,
+	model_id CHAR(36) NOT NULL,
+	FOREIGN KEY (material_id)
+        REFERENCES material(material_id)
+		ON DELETE CASCADE,
+	FOREIGN KEY (model_id)
+        REFERENCES model(model_id)
+		ON DELETE RESTRICT
+);
+
+DROP TABLE IF EXISTS material_property_value;
+CREATE TABLE material_property_value (
+    material_property_value_id INTEGER AUTO_INCREMENT NOT NULL PRIMARY KEY,
+	material_property_id INTEGER NOT NULL,
+	material_property_value TEXT NOT NULL,
+	FOREIGN KEY (material_property_id)
+        REFERENCES material_property(material_property_id)
 		ON DELETE CASCADE
 );
 

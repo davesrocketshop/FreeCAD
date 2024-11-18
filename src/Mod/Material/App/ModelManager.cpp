@@ -132,12 +132,8 @@ std::shared_ptr<Model> ModelManager::getModel(const QString& uuid) const
         if (model) {
             return model;
         }
-        else {
-            Base::Console().Log("DB model not found\n");
-            // throw ModelNotFound();
-        }
     }
-    // We really want to return the local model if not found, such as for User models return
+    // We really want to return the local model if not found, such as for User folder models
     return _localManager->getModel(uuid);
 }
 
@@ -174,12 +170,14 @@ bool ModelManager::passFilter(ModelFilter filter, Model::ModelType modelType)
 
 void ModelManager::migrateToDatabase()
 {
-    return ModelManagerLocal::migrateToDatabase();
+    ModelManagerLocal::migrateToDatabase();
+    _dbManager->refresh();  // Reset the cache
 }
 
 void ModelManager::migrateToDatabase(const std::shared_ptr<ModelLibrary>& library)
 {
-    return ModelManagerLocal::migrateToDatabase(library);
+    ModelManagerLocal::migrateToDatabase(library);
+    _dbManager->refresh();  // Reset the cache
 }
 
 // Cache stats
