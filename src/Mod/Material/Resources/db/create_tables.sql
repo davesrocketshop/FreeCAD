@@ -141,27 +141,14 @@ CREATE TABLE material_models (
 );
 CREATE INDEX material_models_material_id ON material_models (material_id);
 
-DROP TABLE IF EXISTS material_property;
-CREATE TABLE material_property (
-    material_property_id INTEGER AUTO_INCREMENT NOT NULL PRIMARY KEY,
-	material_id CHAR(36) NOT NULL,
-	model_id CHAR(36) NOT NULL,
-	material_property_type ENUM('Physical', 'Appearance') NOT NULL,
-	FOREIGN KEY (material_id)
-        REFERENCES material(material_id)
-		ON DELETE CASCADE,
-	FOREIGN KEY (model_id)
-        REFERENCES model(model_id)
-		ON DELETE RESTRICT
-);
-
 DROP TABLE IF EXISTS material_property_value;
 CREATE TABLE material_property_value (
     material_property_value_id INTEGER AUTO_INCREMENT NOT NULL PRIMARY KEY,
-	material_property_id INTEGER NOT NULL UNIQUE,
+	material_id CHAR(36) NOT NULL,
+	material_property_name VARCHAR(255) NOT NULL,
 	material_property_value TEXT NOT NULL,
-	FOREIGN KEY (material_property_id)
-        REFERENCES material_property(material_property_id)
+	FOREIGN KEY (material_id)
+        REFERENCES material(material_id)
 		ON DELETE CASCADE
 );
 
