@@ -28,8 +28,8 @@
 #include <App/Application.h>
 
 #include "Database.h"
-#include "Materials.h"
 #include "MaterialLibrary.h"
+#include "Materials.h"
 #include "Model.h"
 #include "ModelLibrary.h"
 
@@ -37,9 +37,9 @@ using namespace Materials;
 
 const QString Database::DB_MySQL = QLatin1String("MySQL");
 const QString Database::DB_Maria = QLatin1String("MariaDB");
-const QString Database::DB_Postgress = QLatin1String("Postgress");
-const QString Database::DB_SQLServer = QLatin1String("SQL Server");
-const QString Database::DB_SQLite = QLatin1String("SQLite");
+// const QString Database::DB_Postgress = QLatin1String("Postgress");
+// const QString Database::DB_SQLServer = QLatin1String("SQL Server");
+// const QString Database::DB_SQLite = QLatin1String("SQLite");
 
 // QMutex Database::_mutex;
 // LRU::Cache<std::pair<int, const QString&>, int> Database::_folderCache(100);
@@ -151,15 +151,6 @@ bool Database::createTables()
         if (_dbType == DB_MySQL || _dbType == DB_Maria) {
             createTablesMySQL();
         }
-        else if (_dbType == DB_Postgress) {
-            createTablesPostgress();
-        }
-        else if (_dbType == DB_SQLServer) {
-            createTablesSQLServer();
-        }
-        else if (_dbType == DB_SQLite) {
-            createTablesSQLite();
-        }
     }
     catch (QSqlError error) {
         Base::Console().Log("%s\n", error.text().toStdString().c_str());
@@ -196,21 +187,6 @@ void Database::createTablesMySQL()
             throw error;
         }
     }
-}
-
-void Database::createTablesPostgress()
-{
-    createTablesMySQL();
-}
-
-void Database::createTablesSQLServer()
-{
-    createTablesMySQL();
-}
-
-void Database::createTablesSQLite()
-{
-    createTablesMySQL();
 }
 
 int Database::findLibrary(const QString& name)
@@ -638,7 +614,9 @@ void Database::createMaterialModel(const QString& materialUUID, const QString& m
     }
 }
 
-void Database::createStringValue(int propertyId, const QString& value)
+void Database::createStringValue(const QString& materialUUID,
+                                 const QString& name,
+                                 const QString& value)
 {
     if (value.isEmpty()) {
         return;
@@ -646,10 +624,12 @@ void Database::createStringValue(int propertyId, const QString& value)
 
     QSqlQuery query(_db);
 
-    query.prepare(QLatin1String(
-        "INSERT INTO material_property_value (material_property_id, material_property_value) "
-        "VALUES (?, ?) ON DUPLICATE KEY UPDATE material_property_value = ?"));
-    query.addBindValue(propertyId);
+    query.prepare(
+        QLatin1String("INSERT INTO material_property_value (material_id, material_property_name, "
+                      "material_property_value) "
+                      "VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE material_property_value = ?"));
+    query.addBindValue(materialUUID);
+    query.addBindValue(name);
     query.addBindValue(value);
     query.addBindValue(value);
     if (!query.exec()) {
@@ -659,36 +639,9 @@ void Database::createStringValue(int propertyId, const QString& value)
 }
 
 void Database::createMaterialProperty(const QString& materialUUID,
-                                      const std::shared_ptr<MaterialProperty>& property, bool isPhysical)
+                                      const std::shared_ptr<MaterialProperty>& property,
+                                      bool isPhysical)
 {
-    int propertyId = 0;
-
-    QSqlQuery query(_db);
-
-    // First check if the tag exists
-    query.prepare(QLatin1String("SELECT material_property_id FROM material_property WHERE "
-                                "material_id = ? AND model_id = ?"));
-    query.addBindValue(materialUUID);
-    query.addBindValue(property->getModelUUID());
-    query.exec();
-
-    if (query.next()) {
-        propertyId = query.value(0).toInt();
-    }
-    else {
-        query.prepare(QLatin1String("INSERT INTO material_property (material_id, model_id, material_property_type) "
-                                    "VALUES (?, ?, ?)"));
-        query.addBindValue(materialUUID);
-        query.addBindValue(property->getModelUUID());
-        query.addBindValue(isPhysical ? QLatin1String("Physical") : QLatin1String("Appearance"));
-        if (query.exec()) {
-            propertyId = query.lastInsertId().toInt();
-        }
-        else {
-            Base::Console().Log("Error creating material property\n");
-            throw DBError(query.lastError());
-        }
-    }
     switch (property->getType()) {
         case MaterialValue::List:
         case MaterialValue::Array2D:
@@ -700,13 +653,13 @@ void Database::createMaterialProperty(const QString& materialUUID,
         case MaterialValue::SVG:
             break;
         default:
-            createStringValue(propertyId, property->getString());
+            createStringValue(materialUUID, property->getName(), property->getString());
     }
 }
 
 void Database::createMaterial(int libraryIndex,
-                           const QString& path,
-                           const std::shared_ptr<Material>& material)
+                              const QString& path,
+                              const std::shared_ptr<Material>& material)
 {
     if (_db.open()) {
         if (_db.transaction()) {
@@ -894,7 +847,7 @@ QString Database::getPath(int folderId)
     return path;
 }
 
-QStringList Database::getInherits(const QString &uuid)
+QStringList Database::getInherits(const QString& uuid)
 {
     QStringList inherits;
     if (_db.open()) {
@@ -918,7 +871,8 @@ QStringList Database::getInherits(const QString &uuid)
     return inherits;
 }
 
-std::shared_ptr<std::vector<ModelProperty>> Database::getModelColumns(const QString &uuid, const QString &propertyName)
+std::shared_ptr<std::vector<ModelProperty>> Database::getModelColumns(const QString& uuid,
+                                                                      const QString& propertyName)
 {
     auto columns = std::make_shared<std::vector<ModelProperty>>();
     if (_db.open()) {
@@ -1011,7 +965,8 @@ std::shared_ptr<std::vector<ModelProperty>> Database::getModelProperties(const Q
             properties->push_back(prop);
         }
 
-        // This has to happen after the properties are retrieved as QSql doesn't support nested queries
+        // This has to happen after the properties are retrieved as QSql doesn't support nested
+        // queries
         for (auto& property : *properties) {
             auto columns = getModelColumns(uuid, property.getName());
             for (auto column : *columns) {
@@ -1067,10 +1022,87 @@ std::shared_ptr<Model> Database::getModel(const QString& uuid)
             }
             return model;
         }
-        // _db.close();
     }
 
     return nullptr;
+}
+
+QStringList Database::getTags(const QString& uuid)
+{
+    QStringList tags;
+    if (_db.open()) {
+        QSqlQuery query(_db);
+
+        query.prepare(
+            QLatin1String("SELECT t.material_tag_name FROM material_tag t, material_tag_mapping m "
+                          "WHERE m.material_id = ? AND m.material_tag_id = t.material_tag_id"));
+        query.addBindValue(uuid);
+        query.exec();
+
+        if (!query.isActive()) {
+            Base::Console().Log("Error retrieving tags for material '%s'\n",
+                                uuid.toStdString().c_str());
+            throw DBError(query.lastError());
+        }
+        while (query.next()) {
+            QString tag = query.value(0).toString();
+            tags.append(tag);
+        }
+    }
+    return tags;
+}
+
+QStringList Database::getMaterialModels(const QString& uuid, bool isPhysical)
+{
+    QStringList models;
+    if (_db.open()) {
+        QSqlQuery query(_db);
+
+        query.prepare(QLatin1String(
+            "SELECT m1.model_id FROM material_models m1, model m2 "
+            "WHERE m1.material_id = ? AND m1.model_id = m2.model_id AND m2.model_type = ?"));
+        query.addBindValue(uuid);
+        query.addBindValue(isPhysical ? QLatin1String("Model") : QLatin1String("AppearanceModel"));
+        query.exec();
+
+        if (!query.isActive()) {
+            Base::Console().Log("Error retrieving models for material '%s'\n",
+                                uuid.toStdString().c_str());
+            throw DBError(query.lastError());
+        }
+        while (query.next()) {
+            QString model = query.value(0).toString();
+            models.append(model);
+        }
+    }
+    return models;
+}
+
+std::shared_ptr<std::map<QString, QString>> Database::getMaterialProperties(const QString& uuid)
+{
+    auto properties = std::make_shared<std::map<QString, QString>>();
+    if (_db.open()) {
+        QSqlQuery query(_db);
+
+        query.prepare(QLatin1String("SELECT material_property_name, "
+                                    "material_property_value FROM material_property_value "
+                                    "WHERE material_id = ?"));
+        query.addBindValue(uuid);
+        query.exec();
+
+        if (!query.isActive()) {
+            Base::Console().Log("Error retrieving properties for model '%s'\n",
+                                uuid.toStdString().c_str());
+            throw DBError(query.lastError());
+        }
+        while (query.next()) {
+            QString propName = query.value(0).toString();
+            QString propValue = query.value(1).toString();
+
+            (*properties)[propName] = propValue;
+        }
+    }
+    return properties;
 }
 
 std::shared_ptr<Material> Database::getMaterial(const QString& uuid)
@@ -1112,15 +1144,27 @@ std::shared_ptr<Material> Database::getMaterial(const QString& uuid)
             // Base::Console().Log("path '%s'\n", path.toStdString().c_str());
             material->setDirectory(path);
 
-            // auto inherits = getInherits(uuid);
-            // for (auto& inherit : inherits) {
-            //     material->addInheritance(inherit);
-            // }
+            auto tags = getTags(uuid);
+            for (auto& tag : tags) {
+                material->addTag(tag);
+            }
 
-            // auto properties = getmaterialProperties(uuid);
-            // for (auto property : *properties) {
-            //     material->addProperty(property);
-            // }
+            auto models = getMaterialModels(uuid, true);
+            for (auto& model : models) {
+                material->addPhysical(model);
+            }
+
+            models = getMaterialModels(uuid, false);
+            for (auto& model : models) {
+                material->addAppearance(model);
+            }
+
+            // The actual properties are set by the model. We just need to load the values
+            auto properties = getMaterialProperties(uuid);
+            for (const auto& [name, value] : *properties) {
+                material->setValue(name, value);
+            }
+
             return material;
         }
         // _db.close();

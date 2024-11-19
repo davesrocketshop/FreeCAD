@@ -68,29 +68,8 @@ public:
     Database();
     virtual ~Database();
 
-    int findLibrary(const QString& name);
-    void createLibrary(const QString& name, const QString& icon, bool readOnly = false);
-    int createPath(int libraryIndex, const QString& path);
-    void createModel(int libraryIndex, const QString& path, const std::shared_ptr<Model>& model);
-    void createTag(const QString& materialUUID, const QString& tag);
-    void createMaterialModel(const QString& materialUUID, const QString& modelUUID);
-    void createStringValue(int propertyId, const QString& value);
-    void createMaterialProperty(const QString& materialUUID,
-                                const std::shared_ptr<MaterialProperty>& property,
-                                bool isPhysical);
-    void createMaterial(int libraryIndex,
-                        const QString& path,
-                        const std::shared_ptr<Material>& material);
-
     std::shared_ptr<Model> getModel(const QString& uuid);
     std::shared_ptr<Material> getMaterial(const QString& uuid);
-    QStringList getInherits(const QString& uuid);
-    std::shared_ptr<std::vector<ModelProperty>> getModelColumns(const QString& uuid,
-                                                                const QString& propertyName);
-    std::shared_ptr<std::vector<ModelProperty>> getModelProperties(const QString& uuid);
-    std::shared_ptr<ModelLibrary> getLibrary(int libraryId);
-    std::shared_ptr<MaterialLibrary> getMaterialLibrary(int libraryId);
-    QString getPath(int folderId);
 
     bool createTables();
     static bool useDatabase();
@@ -100,28 +79,20 @@ public:
         return _db.lastError();
     }
 
-    // Types of databases
-    static const QString DB_MySQL;
-    static const QString DB_Maria;
-    static const QString DB_Postgress;
-    static const QString DB_SQLServer;
-    static const QString DB_SQLite;
-
-    /*
-     * Temprorarily ignore foreign keys. Dont' forget to restore!
-     */
-    void foreignKeysIgnore();
-    void foreignKeysRestore();
-
     /*
      * Nigration routines
      */
+    void createLibrary(const QString& name, const QString& icon, bool readOnly = false);
     void migrateMaterialLibrary(
         const QString& name,
         const std::unique_ptr<std::map<QString, std::shared_ptr<Material>>>& _modelPathMap);
     void migrateModelLibrary(
         const QString& name,
         const std::unique_ptr<std::map<QString, std::shared_ptr<Model>>>& _modelPathMap);
+
+    // Types of databases
+    static const QString DB_MySQL;
+    static const QString DB_Maria;
 
 protected:
     void setup();
@@ -135,10 +106,9 @@ protected:
     QString getUsername(ParameterGrp::handle hGrp);
     QString getPassword(ParameterGrp::handle hGrp);
 
+    int findLibrary(const QString& name);
+
     void createTablesMySQL();
-    void createTablesPostgress();
-    void createTablesSQLServer();
-    void createTablesSQLite();
 
     void dropTable(const QString& table);
 
@@ -146,6 +116,35 @@ protected:
     void createInheritance(const QString& modelUUID, const QString& inheritUUID);
     void createModelProperty(const QString& modelUUID, const ModelProperty& property);
     void createModelPropertyColumn(int propertyId, const ModelProperty& property);
+    int createPath(int libraryIndex, const QString& path);
+    void createModel(int libraryIndex, const QString& path, const std::shared_ptr<Model>& model);
+    void createTag(const QString& materialUUID, const QString& tag);
+    void createMaterialModel(const QString& materialUUID, const QString& modelUUID);
+    void createStringValue(const QString& materialUUID, const QString& name, const QString& value);
+    void createMaterialProperty(const QString& materialUUID,
+                                const std::shared_ptr<MaterialProperty>& property,
+                                bool isPhysical);
+    void createMaterial(int libraryIndex,
+                        const QString& path,
+                        const std::shared_ptr<Material>& material);
+
+    QStringList getInherits(const QString& uuid);
+    std::shared_ptr<std::vector<ModelProperty>> getModelColumns(const QString& uuid,
+                                                                const QString& propertyName);
+    std::shared_ptr<std::vector<ModelProperty>> getModelProperties(const QString& uuid);
+    std::shared_ptr<ModelLibrary> getLibrary(int libraryId);
+    std::shared_ptr<MaterialLibrary> getMaterialLibrary(int libraryId);
+    QString getPath(int folderId);
+
+    QStringList getTags(const QString& uuid);
+    QStringList getMaterialModels(const QString& uuid, bool isPhysical);
+    std::shared_ptr<std::map<QString, QString>> getMaterialProperties(const QString& uuid);
+
+    /*
+     * Temprorarily ignore foreign keys. Dont' forget to restore!
+     */
+    void foreignKeysIgnore();
+    void foreignKeysRestore();
 
 private:
     QSqlDatabase _db;

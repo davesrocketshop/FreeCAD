@@ -212,9 +212,12 @@ MaterialManager::getLocalMaterials() const
 std::shared_ptr<Material> MaterialManager::getMaterial(const QString& uuid) const
 {
     if (_useDatabase) {
-        auto model = _dbManager->getMaterial(uuid);
-        // if (model) {
-        //     return model;
+        auto material = _dbManager->getMaterial(uuid);
+        if (material) {
+            return material;
+        }
+        // else {
+        //     throw MaterialNotFound();
         // }
     }
     // We really want to return the local model if not found, such as for User folder models
