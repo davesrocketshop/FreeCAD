@@ -44,6 +44,7 @@
 #include <Gui/View3DInventorViewer.h>
 #include <Gui/ViewProviderOrigin.h>
 #include <Gui/ViewProviderOriginFeature.h>
+#include <Mod/Part/Gui/ViewProviderFeatureMaterialRoot.h>
 #include <Mod/PartDesign/App/Body.h>
 #include <Mod/PartDesign/App/DatumCS.h>
 #include <Mod/PartDesign/App/FeatureSketchBased.h>
@@ -71,7 +72,7 @@ ViewProviderBody::ViewProviderBody()
 
     Gui::ViewProviderOriginGroupExtension::initExtension(this);
     Gui::ViewProviderOriginGroupExtension::initExtension(this);
-    PartGui::ViewProviderFeatureMaterialRoot::initExtension(this);
+    PartGui::ViewProviderMaterialGroupExtension::initExtension(this);
 }
 
 ViewProviderBody::~ViewProviderBody()
@@ -284,7 +285,8 @@ void ViewProviderBody::slotChangedObjectGui (
     }
 
     if ( !vp.isDerivedFrom ( Gui::ViewProviderOrigin::getClassTypeId () ) &&
-         !vp.isDerivedFrom ( Gui::ViewProviderOriginFeature::getClassTypeId () ) ) {
+         !vp.isDerivedFrom ( Gui::ViewProviderOriginFeature::getClassTypeId () ) &&
+         !vp.isDerivedFrom ( PartGui::ViewProviderFeatureMaterialRoot::getClassTypeId () ) ) {
         // Ignore origins to avoid infinite recursion (not likely in a well-formed document,
         //          but may happen in documents designed in old versions of assembly branch )
         return;
@@ -352,8 +354,12 @@ void ViewProviderBody::updateOriginDatumSize () {
         assert ( vp->isDerivedFrom ( Gui::ViewProviderOrigin::getClassTypeId () ) );
         vpOrigin = static_cast <Gui::ViewProviderOrigin *> ( vp );
     } catch (const Base::Exception &ex) {
-        if(!getExtendedViewProvider()->getDocument()->getDocument()->testStatus(App::Document::Restoring))
-            Base::Console().Error ("%s\n", ex.what() );
+        if (!Gui::ViewProviderOriginGroupExtension::getExtendedViewProvider()
+                 ->getDocument()
+                 ->getDocument()
+                 ->testStatus(App::Document::Restoring)) {
+            Base::Console().Error("%s\n", ex.what());
+        }
         return;
     }
 

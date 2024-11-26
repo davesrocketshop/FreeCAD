@@ -27,6 +27,8 @@
 #include <App/PropertyGeo.h>
 #include <Gui/ViewProviderDocumentObject.h>
 
+#include <Mod/Part/PartGlobal.h>
+
 namespace App
 {
 class Document;
