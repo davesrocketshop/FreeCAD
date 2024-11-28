@@ -496,7 +496,7 @@ PyMOD_INIT_FUNC(Part)
     Part::Refine                ::init();
     Part::Reverse               ::init();
 
-    // Part::MaterialGroupExtension::init();
+    Part::MaterialGroupExtension::init();
     // Part::MaterialGroupExtensionPy::init();
 
     // Geometry types
