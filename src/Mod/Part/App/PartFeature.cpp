@@ -1539,7 +1539,6 @@ void Feature::updatePhysicalProperties()
         Mass.setValue(Volume.getValue() * Density.getValue());
     } else {
         // No shape
-        // Base::Console().Log("No shape defined\n");
         Volume.setValue(0.0);
         Mass.setValue(0.0);
     }
