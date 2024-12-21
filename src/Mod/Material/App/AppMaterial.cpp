@@ -33,6 +33,7 @@
 #include "MaterialLoader.h"
 #include "MaterialManagerPy.h"
 #include "MaterialPy.h"
+#include "MaterialTreeObject.h"
 #include "ModelManagerPy.h"
 #include "ModelPropertyPy.h"
 #include "ModelPy.h"
@@ -106,6 +107,8 @@ PyMOD_INIT_FUNC(Materials)
     Materials::Material3DArray          ::init();
 
     Materials::PropertyMaterial         ::init();
+
+    Materials::MaterialTreeObject       ::init();
     // clang-format on
 
     PyMOD_Return(module);

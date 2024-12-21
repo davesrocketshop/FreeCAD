@@ -28,6 +28,8 @@
 #include <App/Origin.h>
 #include <Base/Placement.h>
 
+#include <Mod/Material/App/MaterialTreeObject.h>
+
 #include "Body.h"
 #include "BodyPy.h"
 #include "FeatureBase.h"
@@ -53,6 +55,8 @@ Body::Body() {
     auto allowCompoundDefaultValue = hGrp->GetBool("AllowCompoundDefault", false);
 
     ADD_PROPERTY(AllowCompound, (allowCompoundDefaultValue));
+
+    BodyMaterialExtension::initExtension(this);
 }
 
 /*
@@ -218,6 +222,8 @@ bool Body::isAllowed(const App::DocumentObject *obj)
             // TODO Why this lines was here? why should we allow anything of those? (2015-08-13, Fat-Zer)
             //obj->isDerivedFrom<Part::FeaturePython>() // trouble with this line on Windows!? Linker fails to find getClassTypeId() of the Part::FeaturePython...
             //obj->isDerivedFrom<Part::Feature>()
+            // Allow materials visualization
+            obj->isDerivedFrom<Materials::MaterialTreeObject>() ||
             // allow VarSets for parameterization
             obj->isDerivedFrom<App::VarSet>() ||
             obj->isDerivedFrom<App::DatumElement>() ||
@@ -244,7 +250,7 @@ std::vector<App::DocumentObject*> Body::addObject(App::DocumentObject *feature)
 
     //only one group per object. If it is in a body the single feature will be removed
     auto *group = App::GroupExtension::getGroupOfObject(feature);
-    if(group && group != getExtendedObject())
+    if(group && group != BodyBase::getExtendedObject())
         group->getExtensionByType<GroupExtension>()->removeObject(feature);
 
 

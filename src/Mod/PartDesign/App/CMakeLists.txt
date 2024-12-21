@@ -32,6 +32,8 @@ SET(Features_SRCS
     FeatureSolid.h
     Body.cpp
     Body.h
+    BodyMaterialExtension.cpp
+    BodyMaterialExtension.h
     FeatureBase.h
     FeatureBase.cpp
 )

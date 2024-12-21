@@ -127,6 +127,8 @@ SET(MatGui_SRCS
     TextEdit.cpp
     TextEdit.h
     TextEdit.ui
+    ViewProviderMaterialTreeObject.cpp
+    ViewProviderMaterialTreeObject.h
     Workbench.cpp
     Workbench.h
     WorkbenchManipulator.cpp
@@ -141,6 +143,9 @@ endif(FREECAD_USE_PCH)
 
 SET(MatGuiIcon_SVG
     Resources/icons/list.svg
+    Resources/icons/material_green.svg
+    Resources/icons/material_red.svg
+    Resources/icons/material_yellow.svg
     Resources/icons/Materials_Edit.svg
     Resources/icons/MaterialWorkbench.svg
     Resources/icons/multiline.svg

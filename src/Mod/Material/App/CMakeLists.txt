@@ -91,6 +91,8 @@ SET(Materials_SRCS
     MaterialManager.h
     Materials.cpp
     Materials.h
+    MaterialTreeObject.cpp
+    MaterialTreeObject.h
     MaterialValue.cpp
     MaterialValue.h
     Model.cpp

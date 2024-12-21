@@ -27,6 +27,7 @@
 #include <Base/PyObjectBase.h>
 
 #include "Body.h"
+#include "BodyMaterialExtension.h"
 #include "DatumCS.h"
 #include "DatumLine.h"
 #include "DatumPlane.h"
@@ -103,6 +104,7 @@ PyMOD_INIT_FUNC(_PartDesign)
     PartDesign::MultiTransform              ::init();
     PartDesign::Hole                        ::init();
     PartDesign::Body                        ::init();
+    PartDesign::BodyMaterialExtension       ::init();
     PartDesign::FeatureExtrude              ::init();
     PartDesign::Pad                         ::init();
     PartDesign::Pocket                      ::init();

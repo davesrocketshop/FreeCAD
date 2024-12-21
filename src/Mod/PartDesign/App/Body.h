@@ -27,6 +27,8 @@
 #include <Mod/Part/App/BodyBase.h>
 #include <Mod/PartDesign/PartDesignGlobal.h>
 
+#include "BodyMaterialExtension.h"
+
 namespace App {
     class Origin;
 }
@@ -36,7 +38,7 @@ namespace PartDesign
 
 class Feature;
 
-class PartDesignExport Body : public Part::BodyBase
+class PartDesignExport Body : public Part::BodyBase, public BodyMaterialExtension
 {
     PROPERTY_HEADER_WITH_OVERRIDE(PartDesign::Body);
 
