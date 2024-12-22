@@ -20,55 +20,55 @@
  *                                                                          *
  ****************************************************************************/
 
-#include "PreCompiled.h"
-#ifndef _PreComp_
-# include <memory>
-#endif
+#ifndef MATERIAL_MATERIALTREEOBJECTGROUP_H
+#define MATERIAL_MATERIALTREEOBJECTGROUP_H
 
-#include <Mod/Material/App/MaterialTreeObject.h>
+#include <App/DocumentObject.h>
+#include <App/GroupExtension.h>
 
-// #include "MainWindow.h"
-#include "ViewProviderMaterialTreeObject.h"
+#include <Mod/Material/MaterialGlobal.h>
 
-using namespace MatGui;
-
-PROPERTY_SOURCE(MatGui::ViewProviderMaterialTreeObject, Gui::ViewProviderDocumentObject)
-
-ViewProviderMaterialTreeObject::ViewProviderMaterialTreeObject()
+namespace Materials
 {
-    // No icon
-    sPixmap = "";
-}
 
-bool ViewProviderMaterialTreeObject::doubleClicked()
+/** A GroupExtension class to support material tree views
+ */
+class MaterialsExport MaterialTreeObjectGroup: public App::DocumentObject, public App::GroupExtension
 {
-    // if (!dialog) {
-    //     dialog = std::make_unique<DlgAddPropertyVarSet>(getMainWindow(), this);
-    // }
+    // using inherited = App::GroupExtension;
+    // EXTENSION_PROPERTY_HEADER_WITH_OVERRIDE(Materials::MaterialTreeObjectGroup);
+    PROPERTY_HEADER_WITH_OVERRIDE(Materials::MaterialTreeObjectGroup);
 
-    // // Do not use exec() here because it blocks and prevents command Std_VarSet
-    // // to commit the autotransaction.  This in turn prevents the dialog to
-    // // handle transactions well.
-    // dialog->setWindowModality(Qt::ApplicationModal);
-    // dialog->show();
-    // dialog->raise();
-    // dialog->activateWindow();
+public:
+    MaterialTreeObjectGroup();
+    ~MaterialTreeObjectGroup() override = default;
 
-    return true;
-}
+    const char* getViewProviderName() const override;
 
-void ViewProviderMaterialTreeObject::onFinished(int /*result*/)
-{
-    // dialog = nullptr;
-}
+    /**
+     * Add the feature into the group
+     */
+    std::vector<App::DocumentObject*> addObject(App::DocumentObject*) override;
+    std::vector<DocumentObject*> addObjects(std::vector<DocumentObject*> obj) override;
 
-namespace Gui
-{
-/// @cond DOXERR
-PROPERTY_SOURCE_TEMPLATE(MatGui::ViewProviderMaterialTreeObjectPython,
-                         MatGui::ViewProviderMaterialTreeObject)
-/// @endcond
+    void
+    insertObject(App::DocumentObject* feature, App::DocumentObject* target, bool after = false);
 
-// explicit template instantiation
-template class MatGuiExport ViewProviderFeaturePythonT<MatGui::ViewProviderMaterialTreeObject>;
-}  // namespace Gui
+    /// Remove the feature from the group
+    std::vector<DocumentObject*> removeObject(DocumentObject* obj) override;
+
+    /**
+     * Return true if the given feature is allowed in the group
+     */
+    static bool isAllowed(const App::DocumentObject* obj);
+    bool allowObject(DocumentObject* obj) override
+    {
+        return isAllowed(obj);
+    }
+
+    // PyObject* getPyObject() override;
+};
+
+}  // namespace Materials
+
+#endif  // MATERIAL_MATERIALTREEOBJECTGROUP_H

@@ -129,6 +129,8 @@ SET(MatGui_SRCS
     TextEdit.ui
     ViewProviderMaterialTreeObject.cpp
     ViewProviderMaterialTreeObject.h
+    ViewProviderMaterialTreeObjectGroup.cpp
+    ViewProviderMaterialTreeObjectGroup.h
     Workbench.cpp
     Workbench.h
     WorkbenchManipulator.cpp

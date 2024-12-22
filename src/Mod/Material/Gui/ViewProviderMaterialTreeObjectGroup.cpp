@@ -28,19 +28,18 @@
 #include <Mod/Material/App/MaterialTreeObject.h>
 
 // #include "MainWindow.h"
-#include "ViewProviderMaterialTreeObject.h"
+#include "ViewProviderMaterialTreeObjectGroup.h"
 
 using namespace MatGui;
 
-PROPERTY_SOURCE(MatGui::ViewProviderMaterialTreeObject, Gui::ViewProviderDocumentObject)
+PROPERTY_SOURCE(MatGui::ViewProviderMaterialTreeObjectGroup, Gui::ViewProviderDocumentObjectGroup)
 
-ViewProviderMaterialTreeObject::ViewProviderMaterialTreeObject()
+ViewProviderMaterialTreeObjectGroup::ViewProviderMaterialTreeObjectGroup()
 {
-    // No icon
-    sPixmap = "";
+    sPixmap = "material_green";
 }
 
-bool ViewProviderMaterialTreeObject::doubleClicked()
+bool ViewProviderMaterialTreeObjectGroup::doubleClicked()
 {
     // if (!dialog) {
     //     dialog = std::make_unique<DlgAddPropertyVarSet>(getMainWindow(), this);
@@ -57,7 +56,7 @@ bool ViewProviderMaterialTreeObject::doubleClicked()
     return true;
 }
 
-void ViewProviderMaterialTreeObject::onFinished(int /*result*/)
+void ViewProviderMaterialTreeObjectGroup::onFinished(int /*result*/)
 {
     // dialog = nullptr;
 }
@@ -65,10 +64,10 @@ void ViewProviderMaterialTreeObject::onFinished(int /*result*/)
 namespace Gui
 {
 /// @cond DOXERR
-PROPERTY_SOURCE_TEMPLATE(MatGui::ViewProviderMaterialTreeObjectPython,
-                         MatGui::ViewProviderMaterialTreeObject)
+PROPERTY_SOURCE_TEMPLATE(MatGui::ViewProviderMaterialTreeObjectGroupPython,
+                         MatGui::ViewProviderMaterialTreeObjectGroup)
 /// @endcond
 
 // explicit template instantiation
-template class MatGuiExport ViewProviderFeaturePythonT<MatGui::ViewProviderMaterialTreeObject>;
+template class MatGuiExport ViewProviderFeaturePythonT<MatGui::ViewProviderMaterialTreeObjectGroup>;
 }  // namespace Gui

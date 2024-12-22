@@ -28,6 +28,8 @@
 #include <Base/Exception.h>
 #include <Base/Tools.h>
 
+#include <Mod/Material/App/MaterialTreeObjectGroup.h>
+
 #include "Body.h"
 #include "BodyMaterialExtension.h"
 
@@ -95,8 +97,13 @@ App::DocumentObjectExecReturn* BodyMaterialExtension::extensionExecute()
 
 App::DocumentObject* BodyMaterialExtension::getMaterialTreeObject(App::Document* doc)
 {
-    App::DocumentObject* originObject = doc->addObject("Materials::MaterialTreeObject", "Material");
-    return originObject;
+    App::DocumentObject* groupObject =
+        doc->addObject("Materials::MaterialTreeObjectGroup", "Material");
+    App::DocumentObject* entryObject =
+        doc->addObject("Materials::MaterialTreeObject", "Material");
+    entryObject->Label.setValue("UUID: The world is a vampire");
+    static_cast<Materials::MaterialTreeObjectGroup*>(groupObject)->addObject(entryObject);
+    return groupObject;
 }
 
 App::DocumentObject* BodyMaterialExtension::getMaterialTreeObject()
@@ -112,13 +119,13 @@ void BodyMaterialExtension::onExtendedSetupObject()
     App::DocumentObject* materialObj = getMaterialTreeObject(doc);
 
     assert(materialObj
-        && materialObj->isDerivedFrom(Materials::MaterialTreeObject::getClassTypeId()));
-    _materialTreeObject = materialObj;
+           && materialObj->isDerivedFrom(Materials::MaterialTreeObjectGroup::getClassTypeId()));
+    _materialTreeObjectGroup = materialObj;
 
     auto obj = getExtendedObject();
     auto bodyObj = dynamic_cast<Body *>(obj);
     if (bodyObj) {
-        bodyObj->addObject(_materialTreeObject);
+        bodyObj->addObject(_materialTreeObjectGroup);
     }
 
     DocumentObjectExtension::onExtendedSetupObject();

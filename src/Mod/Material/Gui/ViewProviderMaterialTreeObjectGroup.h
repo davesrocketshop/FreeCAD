@@ -20,55 +20,37 @@
  *                                                                          *
  ****************************************************************************/
 
-#include "PreCompiled.h"
-#ifndef _PreComp_
-# include <memory>
-#endif
+#ifndef MATGUI_VIEWPROVIDERMATERIALTREEOBJECTGROUP_H
+#define MATGUI_VIEWPROVIDERMATERIALTREEOBJECTGROUP_H
 
-#include <Mod/Material/App/MaterialTreeObject.h>
+#include <Gui/ViewProviderDocumentObjectGroup.h>
+#include <Gui/ViewProviderFeaturePython.h>
 
-// #include "MainWindow.h"
-#include "ViewProviderMaterialTreeObject.h"
+#include <Mod/Material/MaterialGlobal.h>
 
-using namespace MatGui;
-
-PROPERTY_SOURCE(MatGui::ViewProviderMaterialTreeObject, Gui::ViewProviderDocumentObject)
-
-ViewProviderMaterialTreeObject::ViewProviderMaterialTreeObject()
+namespace MatGui
 {
-    // No icon
-    sPixmap = "";
-}
 
-bool ViewProviderMaterialTreeObject::doubleClicked()
+/** View provider associated with a MaterialTreeObjectGroup
+ */
+class MatGuiExport ViewProviderMaterialTreeObjectGroup: public Gui::ViewProviderDocumentObjectGroup
 {
-    // if (!dialog) {
-    //     dialog = std::make_unique<DlgAddPropertyVarSet>(getMainWindow(), this);
-    // }
+    PROPERTY_HEADER_WITH_OVERRIDE(MatGui::ViewProviderMaterialTreeObjectGroup);
 
-    // // Do not use exec() here because it blocks and prevents command Std_VarSet
-    // // to commit the autotransaction.  This in turn prevents the dialog to
-    // // handle transactions well.
-    // dialog->setWindowModality(Qt::ApplicationModal);
-    // dialog->show();
-    // dialog->raise();
-    // dialog->activateWindow();
+public:
+    ViewProviderMaterialTreeObjectGroup();
+    ~ViewProviderMaterialTreeObjectGroup() override = default;
 
-    return true;
-}
+    bool isShow() const override { return true; }
 
-void ViewProviderMaterialTreeObject::onFinished(int /*result*/)
-{
-    // dialog = nullptr;
-}
+    bool doubleClicked() override;
 
-namespace Gui
-{
-/// @cond DOXERR
-PROPERTY_SOURCE_TEMPLATE(MatGui::ViewProviderMaterialTreeObjectPython,
-                         MatGui::ViewProviderMaterialTreeObject)
-/// @endcond
+    void onFinished(int);
+};
 
-// explicit template instantiation
-template class MatGuiExport ViewProviderFeaturePythonT<MatGui::ViewProviderMaterialTreeObject>;
-}  // namespace Gui
+using ViewProviderMaterialTreeObjectGroupPython =
+    Gui::ViewProviderFeaturePythonT<MatGui::ViewProviderMaterialTreeObjectGroup>;
+
+}  // namespace MatGui
+
+#endif  // MATGUI_VIEWPROVIDERMATERIALTREEOBJECTGROUP_H

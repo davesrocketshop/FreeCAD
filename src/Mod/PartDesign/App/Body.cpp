@@ -29,6 +29,7 @@
 #include <Base/Placement.h>
 
 #include <Mod/Material/App/MaterialTreeObject.h>
+#include <Mod/Material/App/MaterialTreeObjectGroup.h>
 
 #include "Body.h"
 #include "BodyPy.h"
@@ -213,6 +214,7 @@ bool Body::isAllowed(const App::DocumentObject *obj)
         return false;
 
     // TODO: Should we introduce a PartDesign::FeaturePython class? This should then also return true for isSolidFeature()
+    // clang-format off
     return (obj->isDerivedFrom<PartDesign::Feature>() ||
             obj->isDerivedFrom<Part::Datum>()   ||
             // TODO Shouldn't we replace it with Sketcher::SketchObject? (2015-08-13, Fat-Zer)
@@ -224,11 +226,13 @@ bool Body::isAllowed(const App::DocumentObject *obj)
             //obj->isDerivedFrom<Part::Feature>()
             // Allow materials visualization
             obj->isDerivedFrom<Materials::MaterialTreeObject>() ||
+            obj->isDerivedFrom<Materials::MaterialTreeObjectGroup>() ||
             // allow VarSets for parameterization
             obj->isDerivedFrom<App::VarSet>() ||
             obj->isDerivedFrom<App::DatumElement>() ||
             obj->isDerivedFrom<App::LocalCoordinateSystem>()
             );
+    // clang-format on
 }
 
 

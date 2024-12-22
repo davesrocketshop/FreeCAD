@@ -34,6 +34,7 @@
 #include "MaterialManagerPy.h"
 #include "MaterialPy.h"
 #include "MaterialTreeObject.h"
+#include "MaterialTreeObjectGroup.h"
 #include "ModelManagerPy.h"
 #include "ModelPropertyPy.h"
 #include "ModelPy.h"
@@ -109,6 +110,7 @@ PyMOD_INIT_FUNC(Materials)
     Materials::PropertyMaterial         ::init();
 
     Materials::MaterialTreeObject       ::init();
+    Materials::MaterialTreeObjectGroup  ::init();
     // clang-format on
 
     PyMOD_Return(module);

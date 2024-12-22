@@ -38,6 +38,7 @@
 #include "MaterialTreeWidget.h"
 #include "MaterialTreeWidgetPy.h"
 #include "ViewProviderMaterialTreeObject.h"
+#include "ViewProviderMaterialTreeObjectGroup.h"
 
 // use a different name to CreateCommand()
 void CreateMaterialCommands();
@@ -123,6 +124,8 @@ PyMOD_INIT_FUNC(MatGui)
     MatGui::MaterialTreeWidget::init();
     MatGui::ViewProviderMaterialTreeObject::init();
     MatGui::ViewProviderMaterialTreeObjectPython::init();
+    MatGui::ViewProviderMaterialTreeObjectGroup::init();
+    MatGui::ViewProviderMaterialTreeObjectGroupPython::init();
 
     // Add custom widgets
     new Gui::WidgetProducer<MatGui::MaterialTreeWidget>;

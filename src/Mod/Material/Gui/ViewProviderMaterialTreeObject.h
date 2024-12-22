@@ -25,14 +25,13 @@
 
 #include <Gui/ViewProviderDocumentObject.h>
 #include <Gui/ViewProviderFeaturePython.h>
-// #include "DlgAddPropertyVarSet.h"
 
 #include <Mod/Material/MaterialGlobal.h>
 
 namespace MatGui
 {
 
-/** View provider associated with an App::VarSet
+/** View provider associated with a MaterialTreeObject
  */
 class MatGuiExport ViewProviderMaterialTreeObject: public Gui::ViewProviderDocumentObject
 {

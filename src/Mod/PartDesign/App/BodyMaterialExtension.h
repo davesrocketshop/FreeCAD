@@ -61,7 +61,7 @@ protected:
 private:
     App::DocumentObject* getMaterialTreeObject(App::Document* doc);
 
-    App::DocumentObject* _materialTreeObject;
+    App::DocumentObject* _materialTreeObjectGroup;
 };
 
 using BodyMaterialExtensionPython = App::ExtensionPythonT<BodyMaterialExtension>;
