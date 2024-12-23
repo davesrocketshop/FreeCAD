@@ -28,6 +28,8 @@
 
 #include <Mod/Material/MaterialGlobal.h>
 
+#include "PropertyMaterial.h"
+
 namespace Materials
 {
 
@@ -43,12 +45,14 @@ public:
     MaterialTreeObjectGroup();
     ~MaterialTreeObjectGroup() override = default;
 
+    PropertyMaterial MaterialFeature;
+
     const char* getViewProviderName() const override;
 
     /**
      * Add the feature into the group
      */
-    std::vector<App::DocumentObject*> addObject(App::DocumentObject*) override;
+    std::vector<App::DocumentObject*> addObject(App::DocumentObject* feature) override;
     std::vector<DocumentObject*> addObjects(std::vector<DocumentObject*> obj) override;
 
     void
@@ -67,6 +71,8 @@ public:
     }
 
     // PyObject* getPyObject() override;
+
+    void setMaterial(const PropertyMaterial* property);
 };
 
 }  // namespace Materials

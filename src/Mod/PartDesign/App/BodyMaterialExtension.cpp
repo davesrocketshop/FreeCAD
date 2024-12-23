@@ -28,6 +28,7 @@
 #include <Base/Exception.h>
 #include <Base/Tools.h>
 
+#include <Mod/Material/App/MaterialTreeObject.h>
 #include <Mod/Material/App/MaterialTreeObjectGroup.h>
 
 #include "Body.h"
@@ -99,9 +100,17 @@ App::DocumentObject* BodyMaterialExtension::getMaterialTreeObject(App::Document*
 {
     App::DocumentObject* groupObject =
         doc->addObject("Materials::MaterialTreeObjectGroup", "Material");
-    App::DocumentObject* entryObject =
-        doc->addObject("Materials::MaterialTreeObject", "Material");
-    entryObject->Label.setValue("UUID: The world is a vampire");
+
+    App::DocumentObject* entryObject = doc->addObject("Materials::MaterialTreeObject", "Material");
+    static_cast<Materials::MaterialTreeObject*>(entryObject)->Role.setValue("Path");
+    static_cast<Materials::MaterialTreeObjectGroup*>(groupObject)->addObject(entryObject);
+
+    entryObject = doc->addObject("Materials::MaterialTreeObject", "Material");
+    static_cast<Materials::MaterialTreeObject*>(entryObject)->Role.setValue("UUID");
+    static_cast<Materials::MaterialTreeObjectGroup*>(groupObject)->addObject(entryObject);
+
+    entryObject = doc->addObject("Materials::MaterialTreeObject", "Material");
+    static_cast<Materials::MaterialTreeObject*>(entryObject)->Role.setValue("Inherits");
     static_cast<Materials::MaterialTreeObjectGroup*>(groupObject)->addObject(entryObject);
     return groupObject;
 }
@@ -143,6 +152,18 @@ void BodyMaterialExtension::onExtendedUnsetupObject()
 
 void BodyMaterialExtension::extensionOnChanged(const App::Property* property)
 {
+    // Base::Console().Log("BodyMaterialExtension::extensionOnChanged('%s')\n", property->getName());
+    if (std::string(property->getName()) == "ShapeMaterial") {
+        Materials::PropertyMaterial ShapeMaterial;
+        auto shapeMaterial = dynamic_cast<const Materials::PropertyMaterial *>(property);
+        auto materialGroup =
+            dynamic_cast<Materials::MaterialTreeObjectGroup*>(_materialTreeObjectGroup);
+        if (shapeMaterial && materialGroup) {
+            // materialGroup->setMaterial(shapeMaterial);
+            Base::Console().Log("\tMaterial changed\n");
+            materialGroup->MaterialFeature.setValue(shapeMaterial->getValue());
+        }
+    }
     // if (p == &Origin) {
     //     App::DocumentObject* owner = getExtendedObject();
     //     App::DocumentObject* origin = Origin.getValue();

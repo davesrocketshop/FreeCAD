@@ -46,6 +46,9 @@ public:
     bool doubleClicked() override;
 
     void onFinished(int);
+
+protected:
+    void onChanged(const App::Property* property) override;
 };
 
 using ViewProviderMaterialTreeObjectGroupPython =

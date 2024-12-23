@@ -29,6 +29,7 @@
 
 namespace Materials
 {
+class Material;
 
 /** A DocumentObject class to support material tree views
  */
@@ -37,10 +38,21 @@ class MaterialsExport MaterialTreeObject: public App::DocumentObject
     PROPERTY_HEADER_WITH_OVERRIDE(Materials::MaterialTreeObject);
 
 public:
-    MaterialTreeObject() = default;
+    MaterialTreeObject();
     ~MaterialTreeObject() override = default;
 
+    // Determines what information to display
+    App::PropertyEnumeration Role;
+
     const char* getViewProviderName() const override;
+
+    void setMaterial(const Material& material);
+
+protected:
+    void onChanged(const App::Property* prop) override;
+
+private:
+    static const char* RoleEnums[];
 };
 
 }  // namespace Materials

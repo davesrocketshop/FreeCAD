@@ -61,6 +61,12 @@ void ViewProviderMaterialTreeObjectGroup::onFinished(int /*result*/)
     // dialog = nullptr;
 }
 
+void ViewProviderMaterialTreeObjectGroup::onChanged(const App::Property* property)
+{
+    Base::Console().Log("ViewProviderMaterialTreeObjectGroup::onChanged('%s')\n",
+                        property->getName());
+}
+
 namespace Gui
 {
 /// @cond DOXERR

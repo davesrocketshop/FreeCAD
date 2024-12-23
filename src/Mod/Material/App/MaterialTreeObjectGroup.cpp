@@ -26,6 +26,9 @@
 #include <iostream>
 #endif
 
+#include <App/Document.h>
+
+#include "MaterialManager.h"
 #include "MaterialTreeObject.h"
 #include "MaterialTreeObjectGroup.h"
 
@@ -36,6 +39,9 @@ PROPERTY_SOURCE(Materials::MaterialTreeObjectGroup, App::DocumentObject)
 
 MaterialTreeObjectGroup::MaterialTreeObjectGroup()
 {
+    auto mat = MaterialManager::defaultMaterial();
+    ADD_PROPERTY(MaterialFeature, (*mat));
+
     App::GroupExtension::initExtension(this);
 }
 
@@ -147,3 +153,17 @@ MaterialTreeObjectGroup::removeObject(App::DocumentObject* feature)
 //     }
 //     return Py::new_reference_to(PythonObject);
 // }
+
+void MaterialTreeObjectGroup::setMaterial(const PropertyMaterial* property)
+{
+    const auto& material = property->getValue();
+    Base::Console().Log("MaterialTreeObjectGroup::setMaterial('%s')\n", material.getName().toStdString().c_str());
+
+    QString label = QLatin1String("Material: ") + material.getName();
+    Label.setValue(label.toStdString());
+
+    std::vector<App::DocumentObject*> treeObjects = Group.getValues();
+    for (auto entry : treeObjects) {
+        static_cast<MaterialTreeObject *>(entry)->setMaterial(material);
+    }
+}
