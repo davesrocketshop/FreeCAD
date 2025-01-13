@@ -139,8 +139,8 @@ Py::List MaterialManagerPy::getMaterialLibraries() const
     auto libraries = getMaterialManagerPtr()->getLibraries();
     Py::List list;
 
-    for (auto it = libraries->begin(); it != libraries->end(); it++) {
-        auto lib = *it;
+    for (const auto& it : *libraries) {
+        auto lib = it;
         Py::Tuple libTuple(3);
         if (lib->isLocal()) {
             auto materialLibrary =
@@ -168,9 +168,9 @@ Py::Dict MaterialManagerPy::getMaterials() const
 
     auto materials = getMaterialManagerPtr()->getLocalMaterials();
 
-    for (auto it = materials->begin(); it != materials->end(); it++) {
-        QString key = it->first;
-        auto material = it->second;
+    for (const auto& it : *materials) {
+        QString key = it.first;
+        auto material = it.second;
 
         PyObject* materialPy = new MaterialPy(new Material(*material));
         dict.setItem(Py::String(key.toStdString()), Py::Object(materialPy, true));
@@ -200,9 +200,9 @@ PyObject* MaterialManagerPy::materialsWithModel(PyObject* args)
     auto materials = getMaterialManagerPtr()->materialsWithModel(QString::fromStdString(uuid));
     Py::Dict dict;
 
-    for (auto it = materials->begin(); it != materials->end(); it++) {
-        QString key = it->first;
-        auto material = it->second;
+    for (const auto& it : *materials) {
+        QString key = it.first;
+        auto material = it.second;
 
         PyObject* materialPy = new MaterialPy(new Material(*material));
         dict.setItem(key.toStdString(), Py::asObject(materialPy));
@@ -222,9 +222,9 @@ PyObject* MaterialManagerPy::materialsWithModelComplete(PyObject* args)
         getMaterialManagerPtr()->materialsWithModelComplete(QString::fromStdString(uuid));
     Py::Dict dict;
 
-    for (auto it = materials->begin(); it != materials->end(); it++) {
-        QString key = it->first;
-        auto material = it->second;
+    for (const auto& it : *materials) {
+        QString key = it.first;
+        auto material = it.second;
 
         PyObject* materialPy = new MaterialPy(new Material(*material));
         dict.setItem(key.toStdString(), Py::asObject(materialPy));
@@ -342,9 +342,9 @@ PyObject* MaterialManagerPy::filterMaterials(PyObject* args, PyObject* kwds)
     auto libraries = getMaterialManagerPtr()->getLibraries();
     Py::List list;
 
-    for (auto lib : *libraries) {
+    for (const auto& lib : *libraries) {
         auto tree = getMaterialManagerPtr()->getMaterialTree(lib, filter, options);
-        if (tree->size() > 0) {
+        if (!tree->empty()) {
             addMaterials(getMaterialManagerPtr(), list, tree);
         }
     }

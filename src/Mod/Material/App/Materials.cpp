@@ -50,7 +50,7 @@ MaterialProperty::MaterialProperty()
     _valuePtr = std::make_shared<MaterialValue>(MaterialValue::None);
 }
 
-MaterialProperty::MaterialProperty(const ModelProperty& other, QString modelUUID)
+MaterialProperty::MaterialProperty(const ModelProperty& other, const QString& modelUUID)
     : ModelProperty(other)
     , _modelUUID(modelUUID)
     , _valuePtr(nullptr)

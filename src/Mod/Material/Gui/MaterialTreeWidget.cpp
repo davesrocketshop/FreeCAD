@@ -456,14 +456,14 @@ void MaterialTreeWidget::saveRecents()
         "User parameter:BaseApp/Preferences/Mod/Material/Recent");
 
     // Clear out the existing favorites
-    int count = param->GetInt("Recent", 0);
+    auto count = param->GetInt("Recent", 0);
     for (int i = 0; static_cast<long>(i) < count; i++) {
         QString key = QString::fromLatin1("MRU%1").arg(i);
         param->RemoveASCII(key.toStdString().c_str());
     }
 
     // Add the current values
-    int size = _recents.size();
+    auto size = _recents.size();
     if (size > _recentMax) {
         size = _recentMax;
     }
@@ -474,7 +474,7 @@ void MaterialTreeWidget::saveRecents()
         param->SetASCII(key.toStdString().c_str(), recent.toStdString());
 
         j++;
-        if (j >= size) {
+        if (static_cast<long>(j) >= size) {
             break;
         }
     }
@@ -766,7 +766,6 @@ void MaterialTreeWidget::saveMaterialTreeChildren(const Base::Reference<Paramete
 
 PrefMaterialTreeWidget::PrefMaterialTreeWidget(QWidget* parent)
     : MaterialTreeWidget(parent)
-    , PrefWidget()
 {}
 
 PrefMaterialTreeWidget::~PrefMaterialTreeWidget() = default;

@@ -64,7 +64,7 @@ public:
     bool accept() override;
     bool reject() override;
     QDialogButtonBox::StandardButtons getStandardButtons() const override;
-    void modifyStandardButtons(QDialogButtonBox*) override;
+    void modifyStandardButtons(QDialogButtonBox* box) override;
     void onMigrate(bool checked);
 
 private:

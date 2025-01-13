@@ -130,6 +130,10 @@ void ModelManager::createLibrary(const QString& libraryName, const QString& icon
 {
 #if defined(BUILD_MATERIAL_EXTERNAL)
     _externalManager->createLibrary(libraryName, icon, readOnly);
+#else
+    Q_UNUSED(libraryName)
+    Q_UNUSED(icon)
+    Q_UNUSED(readOnly)
 #endif
 }
 
@@ -164,6 +168,7 @@ ModelManager::libraryModels(const QString& libraryName)
 
 bool ModelManager::isLocalLibrary(const QString& libraryName)
 {
+    Q_UNUSED(libraryName)
     return true;
 }
 

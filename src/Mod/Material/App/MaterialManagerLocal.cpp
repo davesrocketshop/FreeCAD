@@ -437,13 +437,13 @@ void MaterialManagerLocal::saveMaterial(const std::shared_ptr<MaterialLibraryLoc
     }
 }
 
-bool MaterialManagerLocal::isMaterial(const fs::path& p) const
+bool MaterialManagerLocal::isMaterial(const fs::path& path) const
 {
-    if (!fs::is_regular_file(p)) {
+    if (!fs::is_regular_file(path)) {
         return false;
     }
     // check file extension
-    if (p.extension() == ".FCMat") {
+    if (path.extension() == ".FCMat") {
         return true;
     }
     return false;
@@ -512,7 +512,7 @@ void MaterialManagerLocal::dereference() const
     }
 }
 
-void MaterialManagerLocal::dereference(std::shared_ptr<Material> material) const
+void MaterialManagerLocal::dereference(const std::shared_ptr<Material>& material) const
 {
     MaterialLoader::dereference(_materialMap, material);
 }

@@ -48,6 +48,7 @@ using namespace MatGui;
 
 DlgInspectMaterial::DlgInspectMaterial(QWidget* parent)
     : QWidget(parent)
+    , clipboardIndent(0)
     , ui(new Ui_DlgInspectMaterial)
 {
     ui->setupUi(this);
@@ -59,7 +60,7 @@ DlgInspectMaterial::DlgInspectMaterial(QWidget* parent)
     tree->setHeaderHidden(true);
 
 
-    std::vector<Gui::ViewProvider*> views = getSelection();
+    std::shared_ptr<std::vector<Gui::ViewProvider*>> views = getSelection();
     update(views);
 
     connect(ui->buttonClipboard, &QPushButton::clicked, this, &DlgInspectMaterial::onClipboard);
@@ -84,17 +85,18 @@ void DlgInspectMaterial::onClipboard(bool checked)
     QApplication::clipboard()->setText(clipboardText);
 }
 
-std::vector<Gui::ViewProvider*> DlgInspectMaterial::getSelection() const
+std::shared_ptr<std::vector<Gui::ViewProvider*>> DlgInspectMaterial::getSelection() const
 {
-    std::vector<Gui::ViewProvider*> views;
+    std::shared_ptr<std::vector<Gui::ViewProvider*>> views =
+        std::make_shared<std::vector<Gui::ViewProvider*>>();
 
     // get a single selection
-    std::vector<Gui::SelectionSingleton::SelObj> sel =
+    auto sel =
         Gui::Selection().getSelection(nullptr, Gui::ResolveMode::OldStyleElement, true);
     for (const auto& it : sel) {
         Gui::ViewProvider* view =
             Gui::Application::Instance->getDocument(it.pDoc)->getViewProvider(it.pObject);
-        views.push_back(view);
+        views->push_back(view);
     }
 
     return views;
@@ -110,20 +112,20 @@ void DlgInspectMaterial::OnChange(Gui::SelectionSingleton::SubjectType& rCaller,
         || Reason.Type == Gui::SelectionChanges::RmvSelection
         || Reason.Type == Gui::SelectionChanges::SetSelection
         || Reason.Type == Gui::SelectionChanges::ClrSelection) {
-        std::vector<Gui::ViewProvider*> views = getSelection();
+        auto views = getSelection();
         update(views);
     }
 }
 /// @endcond
 
-void DlgInspectMaterial::appendClip(QString text)
+void DlgInspectMaterial::appendClip(const QString& text)
 {
     // Need to add indent
     QString indent(clipboardIndent * 4, QLatin1Char(' '));
     clipboardText += indent + text + QLatin1String("\n");
 }
 
-QStandardItem* DlgInspectMaterial::clipItem(QString text)
+QStandardItem* DlgInspectMaterial::clipItem(const QString& text)
 {
     appendClip(text);
     auto item = new QStandardItem(text);
@@ -142,7 +144,7 @@ void DlgInspectMaterial::unindent()
     }
 }
 
-void DlgInspectMaterial::update(std::vector<Gui::ViewProvider*>& views)
+void DlgInspectMaterial::update(const std::shared_ptr<std::vector<Gui::ViewProvider*>>& views)
 {
     clipboardText = QLatin1String("");
     clipboardIndent = 0;
@@ -151,8 +153,8 @@ void DlgInspectMaterial::update(std::vector<Gui::ViewProvider*>& views)
         appendClip(tr("Document: ") + QString::fromUtf8(doc->Label.getValue()));
         ui->editDocument->setText(QString::fromUtf8(doc->Label.getValue()));
 
-        if (views.size() == 1) {
-            auto view = dynamic_cast<Gui::ViewProviderDocumentObject*>(views[0]);
+        if (views->size() == 1) {
+            auto view = dynamic_cast<Gui::ViewProviderDocumentObject*>((*views)[0]);
             if (!view) {
                 return;
             }
@@ -404,18 +406,10 @@ void DlgInspectMaterial::addExpanded(QTreeView* tree, QStandardItem* parent, QSt
 /* TRANSLATOR MatGui::TaskInspectMaterial */
 
 TaskInspectMaterial::TaskInspectMaterial()
+    : widget(new DlgInspectMaterial())
 {
-    widget = new DlgInspectMaterial();
     addTaskBox(Gui::BitmapFactory().pixmap("Part_Loft"), widget);
 }
-
-TaskInspectMaterial::~TaskInspectMaterial() = default;
-
-void TaskInspectMaterial::open()
-{}
-
-void TaskInspectMaterial::clicked(int)
-{}
 
 bool TaskInspectMaterial::accept()
 {

@@ -48,8 +48,6 @@
 
 namespace MatGui
 {
-class CommandManager;
-class WidgetFactoryInst;
 class MaterialTreeWidgetPy;
 
 /** The Material Tree widget class
@@ -99,7 +97,7 @@ public:
     void setActiveFilter(const QString& name);
 
     void setExpanded(bool open);
-    bool getExpanded()
+    bool getExpanded() const
     {
         return m_expanded;
     }

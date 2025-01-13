@@ -96,7 +96,7 @@ TEST_F(TestMaterial, TestMaterialsWithModel)
 
     // All LinearElastic models should be in IsotropicLinearElastic since it is inherited
     EXPECT_LE(materialsLinearElastic->size(), materials->size());
-    for (auto itp : *materialsLinearElastic) {
+    for (const auto& itp : *materialsLinearElastic) {
         auto mat = itp.first;
         EXPECT_NO_THROW(materials->at(mat));
     }

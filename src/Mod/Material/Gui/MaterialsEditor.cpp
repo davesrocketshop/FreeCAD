@@ -61,7 +61,7 @@ using namespace MatGui;
 
 /* TRANSLATOR MatGui::MaterialsEditor */
 
-MaterialsEditor::MaterialsEditor(std::shared_ptr<Materials::MaterialFilter> filter, QWidget* parent)
+MaterialsEditor::MaterialsEditor(const std::shared_ptr<Materials::MaterialFilter>& filter, QWidget* parent)
     : QDialog(parent)
     , ui(new Ui_MaterialsEditor)
     , _material(std::make_shared<Materials::Material>())
@@ -104,8 +104,8 @@ void MaterialsEditor::setup()
     // Reset to previous size
     auto param = App::GetApplication().GetParameterGroupByPath(
         "User parameter:BaseApp/Preferences/Mod/Material/Editor");
-    auto width = param->GetInt("EditorWidth", 835);
-    auto height = param->GetInt("EditorHeight", 542);
+    auto width = static_cast<int>(param->GetInt("EditorWidth", 835));
+    auto height = static_cast<int>(param->GetInt("EditorHeight", 542));
 
     resize(width, height);
 
@@ -178,7 +178,7 @@ void MaterialsEditor::getFavorites()
 
     auto param = App::GetApplication().GetParameterGroupByPath(
         "User parameter:BaseApp/Preferences/Mod/Material/Favorites");
-    int count = param->GetInt("Favorites", 0);
+    auto count = param->GetInt("Favorites", 0);
     for (int i = 0; static_cast<long>(i) < count; i++) {
         QString key = QString::fromLatin1("FAV%1").arg(i);
         QString uuid = QString::fromStdString(param->GetASCII(key.toStdString().c_str(), ""));
@@ -194,14 +194,14 @@ void MaterialsEditor::saveFavorites()
         "User parameter:BaseApp/Preferences/Mod/Material/Favorites");
 
     // Clear out the existing favorites
-    int count = param->GetInt("Favorites", 0);
+    auto count = param->GetInt("Favorites", 0);
     for (int i = 0; static_cast<long>(i) < count; i++) {
         QString key = QString::fromLatin1("FAV%1").arg(i);
         param->RemoveASCII(key.toStdString().c_str());
     }
 
     // Add the current values
-    param->SetInt("Favorites", _favorites.size());
+    param->SetInt("Favorites", static_cast<long>(_favorites.size()));
     int j = 0;
     for (auto& favorite : _favorites) {
         QString key = QString::fromLatin1("FAV%1").arg(j);
@@ -255,8 +255,8 @@ void MaterialsEditor::getRecents()
 
     auto param = App::GetApplication().GetParameterGroupByPath(
         "User parameter:BaseApp/Preferences/Mod/Material/Recent");
-    _recentMax = param->GetInt("RecentMax", 5);
-    int count = param->GetInt("Recent", 0);
+    _recentMax = static_cast<int>(param->GetInt("RecentMax", 5));
+    auto count = param->GetInt("Recent", 0);
     for (int i = 0; static_cast<long>(i) < count; i++) {
         QString key = QString::fromLatin1("MRU%1").arg(i);
         QString uuid = QString::fromStdString(param->GetASCII(key.toStdString().c_str(), ""));
@@ -272,14 +272,14 @@ void MaterialsEditor::saveRecents()
         "User parameter:BaseApp/Preferences/Mod/Material/Recent");
 
     // Clear out the existing favorites
-    int count = param->GetInt("Recent", 0);
+    auto count = param->GetInt("Recent", 0);
     for (int i = 0; static_cast<long>(i) < count; i++) {
         QString key = QString::fromLatin1("MRU%1").arg(i);
         param->RemoveASCII(key.toStdString().c_str());
     }
 
     // Add the current values
-    int size = _recents.size();
+    auto size = _recents.size();
     if (size > _recentMax) {
         size = _recentMax;
     }
@@ -665,7 +665,7 @@ void MaterialsEditor::saveMaterialTree(const Base::Reference<ParameterGrp>& para
 
 void MaterialsEditor::addMaterials(
     QStandardItem& parent,
-    const std::shared_ptr<std::map<QString, std::shared_ptr<Materials::MaterialTreeNode>>>
+    const std::shared_ptr<std::map<QString, std::shared_ptr<Materials::MaterialTreeNode>>>&
         materialTree,
     const QIcon& folderIcon,
     const QIcon& icon,

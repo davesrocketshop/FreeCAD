@@ -68,7 +68,7 @@ public:
     std::shared_ptr<std::map<QString, std::shared_ptr<Model>>> getModels();
     std::shared_ptr<std::map<QString, std::shared_ptr<Model>>> getLocalModels();
     std::shared_ptr<std::map<QString, std::shared_ptr<ModelTreeNode>>>
-    getModelTree(std::shared_ptr<ModelLibrary> library, ModelFilter filter = ModelFilter_None) const
+    getModelTree(const std::shared_ptr<ModelLibrary>& library, ModelFilter filter = ModelFilter_None) const
     {
         return library->getModelTree(filter);
     }

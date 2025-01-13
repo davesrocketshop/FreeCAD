@@ -67,9 +67,9 @@ PyObject* ModelManagerPy::getModel(PyObject* args)
         QString error = QString::fromStdString("Model not found:\n");
         auto _modelMap = getModelManagerPtr()->getModels();
         error += QString::fromStdString("ModelMap:\n");
-        for (auto itp = _modelMap->begin(); itp != _modelMap->end(); itp++) {
-            error += QString::fromStdString("\t_modelMap[") + itp->first
-                + QString::fromStdString("] = '") + itp->second->getName()
+        for (const auto& itp : *_modelMap) {
+            error += QString::fromStdString("\t_modelMap[") + itp.first
+                + QString::fromStdString("] = '") + itp.second->getName()
                 + QString::fromStdString("'\n");
         }
         error += QString::fromStdString("\tuuid = '") + QString::fromStdString(uuid)
@@ -119,8 +119,7 @@ Py::List ModelManagerPy::getModelLibraries() const
     auto libraries = getModelManagerPtr()->getLibraries();
     Py::List list;
 
-    for (auto it = libraries->begin(); it != libraries->end(); it++) {
-        auto lib = *it;
+    for (const auto& lib : *libraries) {
         Py::Tuple libTuple(3);
         libTuple.setItem(0, Py::String(lib->getName().toStdString()));
         libTuple.setItem(1, Py::String(lib->getDirectoryPath().toStdString()));
@@ -138,8 +137,7 @@ Py::List ModelManagerPy::getLocalModelLibraries() const
     auto libraries = getModelManagerPtr()->getLocalLibraries();
     Py::List list;
 
-    for (auto it = libraries->begin(); it != libraries->end(); it++) {
-        auto lib = *it;
+    for (const auto& lib : *libraries) {
         Py::Tuple libTuple(3);
         libTuple.setItem(0, Py::String(lib->getName().toStdString()));
         libTuple.setItem(1, Py::String(lib->getDirectoryPath().toStdString()));
@@ -157,9 +155,9 @@ Py::Dict ModelManagerPy::getModels() const
     auto models = getModelManagerPtr()->getModels();
     Py::Dict dict;
 
-    for (auto it = models->begin(); it != models->end(); it++) {
-        QString key = it->first;
-        auto model = it->second;
+    for (const auto& it : *models) {
+        QString key = it.first;
+        auto model = it.second;
 
         PyObject* modelPy = new ModelPy(new Model(*model));
         dict.setItem(Py::String(key.toStdString()), Py::Object(modelPy, true));

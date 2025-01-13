@@ -46,7 +46,6 @@ MaterialSave::MaterialSave(const std::shared_ptr<Materials::Material>& material,
     , _saveInherited(true)
     , _selectedPath(QString::fromStdString("/"))
     , _selectedFull(QString::fromStdString("/"))
-    , _selectedUUID()
     , _deleteAction(this)
 {
     ui->setupUi(this);
@@ -324,7 +323,7 @@ void MaterialSave::addExpanded(QTreeView* tree, QStandardItemModel* parent, QSta
 
 void MaterialSave::addMaterials(
     QStandardItem& parent,
-    const std::shared_ptr<std::map<QString, std::shared_ptr<Materials::MaterialTreeNode>>>
+    const std::shared_ptr<std::map<QString, std::shared_ptr<Materials::MaterialTreeNode>>>&
         modelTree,
     const QIcon& folderIcon,
     const QIcon& icon)

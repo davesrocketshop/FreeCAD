@@ -232,7 +232,7 @@ std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>> MaterialManager::ge
 
     // Consolidate into a single list
     auto libraries = std::make_shared<std::list<std::shared_ptr<MaterialLibrary>>>();
-    for (auto libEntry : libMap) {
+    for (const auto& libEntry : libMap) {
         libraries->push_back(libEntry.second);
     }
 
@@ -266,6 +266,10 @@ std::shared_ptr<MaterialLibrary> MaterialManager::getLibrary(const QString& name
 
 void MaterialManager::createLibrary(const QString& libraryName, const QString& icon, bool readOnly)
 {
+    Q_UNUSED(libraryName)
+    Q_UNUSED(icon)
+    Q_UNUSED(readOnly)
+
     throw CreationError("Local library requires a path");
 }
 
@@ -344,7 +348,10 @@ bool MaterialManager::isLocalLibrary(const QString& libraryName)
         catch (const LibraryNotFound& e) {
         }
     }
+#else
+    Q_UNUSED(libraryName)
 #endif
+
     return true;
 }
 
@@ -520,9 +527,9 @@ void MaterialManager::saveMaterial(const std::shared_ptr<MaterialLibrary>& libra
         ->saveMaterial(materialLibrary, material, path, overwrite, saveAsCopy, saveInherited);
 }
 
-bool MaterialManager::isMaterial(const fs::path& p) const
+bool MaterialManager::isMaterial(const fs::path& path) const
 {
-    return _localManager->isMaterial(p);
+    return _localManager->isMaterial(path);
 }
 
 bool MaterialManager::isMaterial(const QFileInfo& file) const

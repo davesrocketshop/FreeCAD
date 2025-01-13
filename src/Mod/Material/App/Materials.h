@@ -52,7 +52,7 @@ class MaterialsExport MaterialProperty: public ModelProperty
 public:
     MaterialProperty();
     MaterialProperty(const MaterialProperty& other);
-    explicit MaterialProperty(const ModelProperty& other, QString modelUUID);
+    explicit MaterialProperty(const ModelProperty& other, const QString& modelUUID);
     explicit MaterialProperty(const std::shared_ptr<MaterialProperty>& other);
     ~MaterialProperty() override = default;
 

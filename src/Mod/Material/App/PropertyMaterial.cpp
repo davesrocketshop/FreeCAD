@@ -106,9 +106,9 @@ const char* PropertyMaterial::getEditorName() const
 
 App::Property* PropertyMaterial::Copy() const
 {
-    PropertyMaterial* p = new PropertyMaterial();
-    p->_material = _material;
-    return p;
+    auto property = new PropertyMaterial();
+    property->_material = _material;
+    return property;
 }
 
 void PropertyMaterial::Paste(const App::Property& from)

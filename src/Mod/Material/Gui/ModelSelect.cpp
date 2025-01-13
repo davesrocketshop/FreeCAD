@@ -81,7 +81,7 @@ void ModelSelect::getFavorites()
 
     auto param = App::GetApplication().GetParameterGroupByPath(
         "User parameter:BaseApp/Preferences/Mod/Material/Models/Favorites");
-    int count = param->GetInt("Favorites", 0);
+    auto count = param->GetInt("Favorites", 0);
     for (int i = 0; static_cast<long>(i) < count; i++) {
         QString key = QString::fromLatin1("FAV%1").arg(i);
         QString uuid = QString::fromStdString(param->GetASCII(key.toStdString().c_str(), ""));
@@ -95,14 +95,14 @@ void ModelSelect::saveFavorites()
         "User parameter:BaseApp/Preferences/Mod/Material/Models/Favorites");
 
     // Clear out the existing favorites
-    int count = param->GetInt("Favorites", 0);
+    auto count = param->GetInt("Favorites", 0);
     for (int i = 0; static_cast<long>(i) < count; i++) {
         QString key = QString::fromLatin1("FAV%1").arg(i);
         param->RemoveASCII(key.toStdString().c_str());
     }
 
     // Add the current values
-    param->SetInt("Favorites", _favorites.size());
+    param->SetInt("Favorites", static_cast<long>(_favorites.size()));
     int j = 0;
     for (auto& favorite : _favorites) {
         QString key = QString::fromLatin1("FAV%1").arg(j);
@@ -147,8 +147,8 @@ void ModelSelect::getRecents()
 
     auto param = App::GetApplication().GetParameterGroupByPath(
         "User parameter:BaseApp/Preferences/Mod/Material/Models/Recent");
-    _recentMax = param->GetInt("RecentMax", 5);
-    int count = param->GetInt("Recent", 0);
+    _recentMax = static_cast<int>(param->GetInt("RecentMax", 5));
+    auto count = param->GetInt("Recent", 0);
     for (int i = 0; static_cast<long>(i) < count; i++) {
         QString key = QString::fromLatin1("MRU%1").arg(i);
         QString uuid = QString::fromStdString(param->GetASCII(key.toStdString().c_str(), ""));
@@ -162,14 +162,14 @@ void ModelSelect::saveRecents()
         "User parameter:BaseApp/Preferences/Mod/Material/Models/Recent");
 
     // Clear out the existing favorites
-    int count = param->GetInt("Recent", 0);
+    auto count = param->GetInt("Recent", 0);
     for (int i = 0; static_cast<long>(i) < count; i++) {
         QString key = QString::fromLatin1("MRU%1").arg(i);
         param->RemoveASCII(key.toStdString().c_str());
     }
 
     // Add the current values
-    int size = _recents.size();
+    auto size = _recents.size();
     if (size > _recentMax) {
         size = _recentMax;
     }
@@ -233,7 +233,7 @@ void ModelSelect::addExpanded(QTreeView* tree, QStandardItemModel* parent, QStan
 
 void ModelSelect::addModels(
     QStandardItem& parent,
-    const std::shared_ptr<std::map<QString, std::shared_ptr<Materials::ModelTreeNode>>> modelTree,
+    const std::shared_ptr<std::map<QString, std::shared_ptr<Materials::ModelTreeNode>>>& modelTree,
     const QIcon& icon)
 {
     auto tree = ui->treeModels;

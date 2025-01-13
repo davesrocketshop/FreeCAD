@@ -63,13 +63,13 @@ private:
     QString clipboardText;
     int clipboardIndent;
 
-    void appendClip(QString text);
-    QStandardItem* clipItem(QString text);
+    void appendClip(const QString& text);
+    QStandardItem* clipItem(const QString& text);
     void indent();
     void unindent();
 
-    std::vector<Gui::ViewProvider*> getSelection() const;
-    void update(std::vector<Gui::ViewProvider*>& views);
+    std::shared_ptr<std::vector<Gui::ViewProvider*>> getSelection() const;
+    void update(const std::shared_ptr<std::vector<Gui::ViewProvider*>>& views);
     void updateMaterialTree(const Materials::Material& material);
     void
     addMaterial(QTreeView* tree, QStandardItemModel* parent, const Materials::Material& material);
@@ -99,13 +99,10 @@ class TaskInspectMaterial: public Gui::TaskView::TaskDialog
 
 public:
     TaskInspectMaterial();
-    ~TaskInspectMaterial() override;
+    ~TaskInspectMaterial() = default;
 
 public:
-    void open() override;
     bool accept() override;
-    // bool reject() override;
-    void clicked(int) override;
 
     QDialogButtonBox::StandardButtons getStandardButtons() const override
     {

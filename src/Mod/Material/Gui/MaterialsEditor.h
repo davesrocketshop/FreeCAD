@@ -53,7 +53,7 @@ class MaterialsEditor: public QDialog
     Q_OBJECT
 
 public:
-    explicit MaterialsEditor(std::shared_ptr<Materials::MaterialFilter> filter,
+    explicit MaterialsEditor(const std::shared_ptr<Materials::MaterialFilter>& filter,
                              QWidget* parent = nullptr);
     explicit MaterialsEditor(QWidget* parent = nullptr);
     ~MaterialsEditor() override = default;
@@ -171,7 +171,7 @@ private:
     void refreshMaterialTree();
     void addMaterials(
         QStandardItem& parent,
-        const std::shared_ptr<std::map<QString, std::shared_ptr<Materials::MaterialTreeNode>>>
+        const std::shared_ptr<std::map<QString, std::shared_ptr<Materials::MaterialTreeNode>>>&
             modelTree,
         const QIcon& folderIcon,
         const QIcon& icon,

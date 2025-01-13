@@ -109,7 +109,7 @@ public:
     materialsWithModel(const QString& uuid) const;
     std::shared_ptr<std::map<QString, std::shared_ptr<Material>>>
     materialsWithModelComplete(const QString& uuid) const;
-    void dereference(std::shared_ptr<Material> material) const;
+    void dereference(const std::shared_ptr<Material>& material) const;
     void dereference() const;
 
 protected:

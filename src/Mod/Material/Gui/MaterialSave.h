@@ -32,10 +32,12 @@
 
 #include <Mod/Material/App/MaterialManager.h>
 
+namespace Materials
+{
+class MaterialLibrary;
+}
 namespace MatGui
 {
-
-class MaterialLibrary;
 
 class Ui_MaterialSave;
 
@@ -54,7 +56,7 @@ public:
     void addExpanded(QTreeView* tree, QStandardItemModel* parent, QStandardItem* child);
     void addMaterials(
         QStandardItem& parent,
-        const std::shared_ptr<std::map<QString, std::shared_ptr<Materials::MaterialTreeNode>>>
+        const std::shared_ptr<std::map<QString, std::shared_ptr<Materials::MaterialTreeNode>>>&
             modelTree,
         const QIcon& folderIcon,
         const QIcon& icon);
