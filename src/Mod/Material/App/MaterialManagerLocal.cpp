@@ -297,7 +297,7 @@ void MaterialManagerLocal::renameFolder(const std::shared_ptr<MaterialLibraryLoc
 }
 
 void MaterialManagerLocal::deleteRecursive(const std::shared_ptr<MaterialLibraryLocal>& library,
-                                           const QString& path)
+                                           const QString& path) const
 {
     library->deleteRecursive(path);
     dereference();

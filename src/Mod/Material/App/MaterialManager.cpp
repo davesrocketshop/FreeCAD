@@ -182,17 +182,14 @@ std::shared_ptr<Material> MaterialManager::defaultMaterial()
         material = getManager().getMaterial(QLatin1String("7f9fd73b-50c9-41d8-b7b2-575a030c1eeb"));
     }
     if (material->hasAppearanceModel(ModelUUIDs::ModelUUID_Rendering_Basic)) {
-        material->getAppearanceProperty(QString::fromLatin1("DiffuseColor"))
-            ->setColor(mat->diffuseColor);
-        material->getAppearanceProperty(QString::fromLatin1("AmbientColor"))
-            ->setColor(mat->ambientColor);
-        material->getAppearanceProperty(QString::fromLatin1("EmissiveColor"))
+        material->getAppearanceProperty(QLatin1String("DiffuseColor"))->setColor(mat->diffuseColor);
+        material->getAppearanceProperty(QLatin1String("AmbientColor"))->setColor(mat->ambientColor);
+        material->getAppearanceProperty(QLatin1String("EmissiveColor"))
             ->setColor(mat->emissiveColor);
-        material->getAppearanceProperty(QString::fromLatin1("SpecularColor"))
+        material->getAppearanceProperty(QLatin1String("SpecularColor"))
             ->setColor(mat->specularColor);
-        material->getAppearanceProperty(QString::fromLatin1("Transparency"))
-            ->setFloat(mat->transparency);
-        material->getAppearanceProperty(QString::fromLatin1("Shininess"))->setFloat(mat->shininess);
+        material->getAppearanceProperty(QLatin1String("Transparency"))->setFloat(mat->transparency);
+        material->getAppearanceProperty(QLatin1String("Shininess"))->setFloat(mat->shininess);
     }
 
     return material;
@@ -554,7 +551,7 @@ void MaterialManager::dereference() const
     _localManager->dereference();
 }
 
-void MaterialManager::dereference(std::shared_ptr<Material> material) const
+void MaterialManager::dereference(const std::shared_ptr<Material>& material) const
 {
     _localManager->dereference(material);
 }

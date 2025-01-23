@@ -220,7 +220,7 @@ protected:
     void saveRecents();
     void addRecent(const QString& uuid);
     bool isRecent(const QString& uuid) const;
-    void saveWidgetSettings();
+    void saveWidgetSettings() const;
     void saveMaterialTreeChildren(const Base::Reference<ParameterGrp>& param,
                                   QTreeView* tree,
                                   QStandardItemModel* model,

@@ -467,7 +467,7 @@ void MaterialTreeWidget::saveRecents()
     if (size > _recentMax) {
         size = _recentMax;
     }
-    param->SetInt("Recent", size);
+    param->SetInt("Recent", static_cast<long>(size));
     int j = 0;
     for (auto& recent : _recents) {
         QString key = QString::fromLatin1("MRU%1").arg(j);
@@ -722,7 +722,7 @@ void MaterialTreeWidget::onFilter(const QString& text)
     setActiveFilter(text);
 }
 
-void MaterialTreeWidget::saveWidgetSettings()
+void MaterialTreeWidget::saveWidgetSettings() const
 {
     auto param = App::GetApplication().GetParameterGroupByPath(
         "User parameter:BaseApp/Preferences/Mod/Material/TreeWidget");

@@ -283,7 +283,7 @@ void MaterialsEditor::saveRecents()
     if (size > _recentMax) {
         size = _recentMax;
     }
-    param->SetInt("Recent", size);
+    param->SetInt("Recent", static_cast<long>(size));
     int j = 0;
     for (auto& recent : _recents) {
         QString key = QString::fromLatin1("MRU%1").arg(j);
@@ -434,7 +434,7 @@ void MaterialsEditor::onAppearanceAdd(bool checked)
         if (selected == Materials::ModelUUIDs::ModelUUID_Rendering_Basic
             || model->inherits(Materials::ModelUUIDs::ModelUUID_Rendering_Basic)) {
             // Add default appearance properties
-            *_material = *(getMaterialManager().defaultAppearance());
+            *_material = *(Materials::MaterialManager::defaultAppearance());
         }
 
         updateMaterial();

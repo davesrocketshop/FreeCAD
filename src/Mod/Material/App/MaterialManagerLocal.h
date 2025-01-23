@@ -84,7 +84,7 @@ public:
     void renameFolder(const std::shared_ptr<MaterialLibraryLocal>& library,
                       const QString& oldPath,
                       const QString& newPath);
-    void deleteRecursive(const std::shared_ptr<MaterialLibraryLocal>& library, const QString& path);
+    void deleteRecursive(const std::shared_ptr<MaterialLibraryLocal>& library, const QString& path) const;
 
     // Material management
     std::shared_ptr<std::map<QString, std::shared_ptr<Material>>> getLocalMaterials() const;
@@ -102,7 +102,7 @@ public:
                       bool saveAsCopy,
                       bool saveInherited) const;
 
-    bool isMaterial(const fs::path& p) const;
+    bool isMaterial(const fs::path& path) const;
     bool isMaterial(const QFileInfo& file) const;
 
     std::shared_ptr<std::map<QString, std::shared_ptr<Material>>>

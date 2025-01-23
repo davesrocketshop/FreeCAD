@@ -99,7 +99,7 @@ class TaskInspectMaterial: public Gui::TaskView::TaskDialog
 
 public:
     TaskInspectMaterial();
-    ~TaskInspectMaterial() = default;
+    ~TaskInspectMaterial() override = default;
 
 public:
     bool accept() override;

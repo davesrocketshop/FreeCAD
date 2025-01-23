@@ -61,7 +61,7 @@ public:
         return _valuePtr->getType();
     }
 
-    const QString getModelUUID() const
+    QString getModelUUID() const
     {
         return _modelUUID;
     }
