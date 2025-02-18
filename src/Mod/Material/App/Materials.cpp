@@ -950,6 +950,20 @@ void Material::setLegacyValue(const QString& name, const QString& value)
     _legacy[name] = value;
 }
 
+/*
+ * Interpolation methods for working with non-linear properties
+ */
+QVariant interpolate2D(const QString& name, const QVariant& samplePoint)
+{
+    return 0;
+}
+
+QVariant
+interpolate3D(const QString& name, const QVariant& samplePoint1, const QVariant& samplePoint2)
+{
+    return 0;
+}
+
 std::shared_ptr<MaterialProperty> Material::getPhysicalProperty(const QString& name)
 {
     try {

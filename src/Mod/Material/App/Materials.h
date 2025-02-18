@@ -313,6 +313,13 @@ public:
      */
     void setLegacyValue(const QString& name, const QString& value);
 
+    /*
+     * Interpolation methods for working with non-linear properties
+     */
+    QVariant interpolate2D(const QString& name, const QVariant& samplePoint);
+    QVariant
+    interpolate3D(const QString& name, const QVariant& samplePoint1, const QVariant& samplePoint2);
+
     std::shared_ptr<MaterialProperty> getPhysicalProperty(const QString& name);
     std::shared_ptr<MaterialProperty> getPhysicalProperty(const QString& name) const;
     std::shared_ptr<MaterialProperty> getAppearanceProperty(const QString& name);
