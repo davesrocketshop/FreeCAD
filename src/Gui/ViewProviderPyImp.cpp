@@ -50,6 +50,7 @@
 #include <App/Document.h>
 #include <App/DocumentObject.h>
 #include <App/DocumentObjectPy.h>
+#include <App/Material.h>
 
 
 using namespace Gui;
@@ -468,7 +469,7 @@ PyObject* ViewProviderPy::getElementColors(PyObject* args)
 
     Py::Dict dict;
     for(auto &v : getViewProviderPtr()->getElementColors(element)) {
-        auto &c = v.second;
+        auto &c = v.second.diffuseColor;
         dict.setItem(Py::String(v.first),
                 Py::TupleN(Py::Float(c.r),Py::Float(c.g),Py::Float(c.b),Py::Float(c.a)));
     }
@@ -484,14 +485,14 @@ PyObject* ViewProviderPy::setElementColors(PyObject* args)
     if(!PyDict_Check(pyObj))
         throw Py::TypeError("Expect a dict");
 
-    std::map<std::string,App::Color> colors;
+    std::map<std::string,App::Material> colors;
     Py::Dict dict(pyObj);
     for(auto it=dict.begin();it!=dict.end();++it) {
         const auto &value = *it;
         if(!value.first.isString() || !value.second.isSequence())
             throw Py::TypeError("Expect the dictionary to contain items of type elementName:(r,g,b,a)");
 
-        App::PropertyColor prop;
+        App::PropertyMaterial prop;
         prop.setPyObject(value.second.ptr());
         colors[value.first.as_string()] = prop.getValue();
     }

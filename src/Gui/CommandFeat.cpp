@@ -99,10 +99,10 @@ void StdCmdRandomColor::activated(int iMsg)
 
         auto vpLink = dynamic_cast<ViewProviderLink*>(view);
         if (vpLink) {
-            if (!vpLink->OverrideMaterial.getValue()) {
-                vpLink->OverrideMaterial.setValue(true);
+            if (!vpLink->OverrideAppearance.getValue()) {
+                vpLink->OverrideAppearance.setValue(true);
             }
-            vpLink->ShapeMaterial.setDiffuseColor(objColor);
+            vpLink->ShapeAppearance.setDiffuseColor(objColor);
         }
         else if (view) {
             // clang-format off
@@ -145,7 +145,20 @@ void StdCmdRandomColor::activated(int iMsg)
 
 bool StdCmdRandomColor::isActive()
 {
-    return (Gui::Selection().size() != 0);
+    // get the complete selection
+    std::vector<SelectionSingleton::SelObj> sel = Selection().getCompleteSelection();
+
+    for (const auto & it : sel) {
+        ViewProvider* view = Application::Instance->getViewProvider(it.pObject);
+
+        auto vpLink = dynamic_cast<ViewProviderLink*>(view);
+        if (vpLink) {
+            if (!vpLink->OverrideAppearance.getValue()) {
+                return false;
+            }
+        }
+    }
+    return (sel.size() != 0);
 }
 
 //===========================================================================

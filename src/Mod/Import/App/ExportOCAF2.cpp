@@ -232,7 +232,7 @@ void ExportOCAF2::setupObject(TDF_Label label,
         return;
     }
 
-    std::map<std::string, std::map<std::string, App::Color>> colors;
+    std::map<std::string, std::map<std::string, App::Material>> colors;
     static std::string marker(App::DocumentObject::hiddenMarker() + "*");
     static std::array<const char*, 3> keys = {"Face*", "Edge*", marker.c_str()};
     std::string childName;
@@ -280,8 +280,8 @@ void ExportOCAF2::setupObject(TDF_Label label,
                 aColorTool->SetVisibility(nodeLabel, Standard_False);
                 continue;
             }
-            const App::Color& c = vv.second;
-            Quantity_ColorRGBA color = Tools::convertColor(c);
+            const App::Material& c = vv.second;
+            Quantity_ColorRGBA color = Tools::convertColor(c.diffuseColor);
             auto colorType = vv.first[0] == 'F' ? XCAFDoc_ColorSurf : XCAFDoc_ColorCurv;
             if (vv.first == "Face" || vv.first == "Edge") {
                 aColorTool->SetColor(nodeLabel, color, colorType);

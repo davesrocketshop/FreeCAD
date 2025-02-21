@@ -78,6 +78,8 @@ public:
     /** Does basically the same as the constructor above unless that it accepts a MaterialType as
      * argument. */
     explicit Material(MaterialType MatType);
+    /** Create a material with the specified diffuse color */
+    explicit Material(const Color& color);
     //@}
 
     /** Set a material by name

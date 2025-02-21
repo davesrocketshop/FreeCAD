@@ -81,20 +81,20 @@ void ImportOCAFGui::applyLinkColor(App::DocumentObject* obj, int index, App::Col
         return;
     }
     if (index < 0) {
-        vp->OverrideMaterial.setValue(true);
-        vp->ShapeMaterial.setDiffuseColor(color);
+        vp->OverrideAppearance.setValue(true);
+        vp->ShapeAppearance.setDiffuseColor(color);
         return;
     }
-    if (vp->OverrideMaterialList.getSize() <= index) {
-        vp->OverrideMaterialList.setSize(index + 1);
+    if (vp->OverrideAppearanceList.getSize() <= index) {
+        vp->OverrideAppearanceList.setSize(index + 1);
     }
-    vp->OverrideMaterialList.set1Value(index, true);
+    vp->OverrideAppearanceList.set1Value(index, true);
     App::Material mat(App::Material::DEFAULT);
-    if (vp->MaterialList.getSize() <= index) {
-        vp->MaterialList.setSize(index + 1, mat);
+    if (vp->ShapeAppearance.getSize() <= index) {
+        vp->ShapeAppearance.setSize(index + 1, mat);
     }
     mat.diffuseColor = color;
-    vp->MaterialList.set1Value(index, mat);
+    vp->ShapeAppearance.set1Value(index, mat);
 }
 
 void ImportOCAFGui::applyElementColors(App::DocumentObject* obj,

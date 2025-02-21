@@ -28,6 +28,7 @@
 #include <Gui/Control.h>
 #include <Gui/MainWindow.h>
 #include <Gui/Selection.h>
+#include <Gui/ViewProviderLink.h>
 
 #include "DlgDisplayPropertiesImp.h"
 #include "DlgInspectAppearance.h"
@@ -103,7 +104,20 @@ void StdCmdSetAppearance::activated(int iMsg)
 
 bool StdCmdSetAppearance::isActive()
 {
-    return (Gui::Control().activeDialog() == nullptr) && (Gui::Selection().size() != 0);
+    // get the complete selection
+    std::vector<Gui::SelectionSingleton::SelObj> sel = Gui::Selection().getCompleteSelection();
+
+    for (const auto& it : sel) {
+        Gui::ViewProvider* view = Gui::Application::Instance->getViewProvider(it.pObject);
+
+        auto vpLink = dynamic_cast<Gui::ViewProviderLink*>(view);
+        if (vpLink) {
+            if (!vpLink->OverrideAppearance.getValue()) {
+                return false;
+            }
+        }
+    }
+    return (Gui::Control().activeDialog() == nullptr) && (sel.size() != 0);
 }
 
 //===========================================================================

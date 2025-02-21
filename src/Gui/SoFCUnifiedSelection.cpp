@@ -1340,7 +1340,7 @@ bool SoFCSelectionRoot::_renderPrivate(SoGLRenderAction * action, bool inPath) {
     // honour the secondary color override.
 
     bool colorPushed = false;
-    if(!ShapeColorNode && overrideColor &&
+    if(!ShapeColorNode && overrideAppearance &&
         !SoOverrideElement::getDiffuseColorOverride(state) &&
         (style==SoFCSelectionRoot::Box || !ctx || (!ctx->selAll && !ctx->hideAll)))
     {
@@ -1349,12 +1349,18 @@ bool SoFCSelectionRoot::_renderPrivate(SoGLRenderAction * action, bool inPath) {
         state->push();
         auto &packer = ShapeColorNode->shapeColorPacker;
         auto &trans = ShapeColorNode->transOverride;
-        auto &color = ShapeColorNode->colorOverride;
-        if(!SoOverrideElement::getTransparencyOverride(state) && trans) {
+        auto& diffuse = ShapeColorNode->diffuseOverride;
+        if (!SoOverrideElement::getTransparencyOverride(state) && trans) {
             SoLazyElement::setTransparency(state, ShapeColorNode, 1, &trans, &packer);
             SoOverrideElement::setTransparencyOverride(state,ShapeColorNode,true);
         }
-        SoLazyElement::setDiffuse(state, ShapeColorNode, 1, &color, &packer);
+        // Color ambientColor;  /**< Defines the ambient color. */
+        // Color diffuseColor;  /**< Defines the diffuse color. */
+        // Color specularColor; /**< Defines the specular color. */
+        // Color emissiveColor; /**< Defines the emissive color. */
+
+        // auto diffuse = SbColor()
+        SoLazyElement::setDiffuse(state, ShapeColorNode, 1, &diffuse, &packer);
         SoOverrideElement::setDiffuseColorOverride(state,ShapeColorNode,true);
         SoMaterialBindingElement::set(state, ShapeColorNode, SoMaterialBindingElement::OVERALL);
         SoOverrideElement::setMaterialBindingOverride(state,ShapeColorNode,true);
@@ -1430,13 +1436,24 @@ bool SoFCSelectionRoot::checkColorOverride(SoState *state) {
             state->push();
             auto &packer = ShapeColorNode->shapeColorPacker;
             auto &trans = ShapeColorNode->transOverride;
-            auto &color = ShapeColorNode->colorOverride;
+            auto &color = ShapeColorNode->diffuseOverride;
             if(!SoOverrideElement::getTransparencyOverride(state) && trans) {
                 SoLazyElement::setTransparency(state, ShapeColorNode, 1, &trans, &packer);
                 SoOverrideElement::setTransparencyOverride(state,ShapeColorNode,true);
             }
             SoLazyElement::setDiffuse(state, ShapeColorNode, 1, &color, &packer);
             SoOverrideElement::setDiffuseColorOverride(state,ShapeColorNode,true);
+
+            SoLazyElement::setAmbient(state, &ShapeColorNode->ambientOverride);
+            SoLazyElement::setEmissive(state, &ShapeColorNode->emissiveOverride);
+            SoLazyElement::setSpecular(state, &ShapeColorNode->specularOverride);
+            SoLazyElement::setShininess(state, ShapeColorNode->shininessOverride);
+
+            SoOverrideElement::setAmbientColorOverride(state, ShapeColorNode, true);
+            SoOverrideElement::setEmissiveColorOverride(state, ShapeColorNode, true);
+            SoOverrideElement::setSpecularColorOverride(state, ShapeColorNode, true);
+            SoOverrideElement::setShininessOverride(state, ShapeColorNode, true);
+
             SoMaterialBindingElement::set(state, ShapeColorNode, SoMaterialBindingElement::OVERALL);
             SoOverrideElement::setMaterialBindingOverride(state,ShapeColorNode,true);
 
