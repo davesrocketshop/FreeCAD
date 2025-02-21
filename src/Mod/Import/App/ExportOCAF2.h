@@ -60,7 +60,7 @@ class ImportExport ExportOCAF2
 {
 public:
     using GetShapeColorsFunc =
-        std::function<std::map<std::string, App::Color>(App::DocumentObject*, const char*)>;
+        std::function<std::map<std::string, App::Material>(App::DocumentObject*, const char*)>;
     explicit ExportOCAF2(Handle(TDocStd_Document) hDoc,
                          GetShapeColorsFunc func = GetShapeColorsFunc());
 

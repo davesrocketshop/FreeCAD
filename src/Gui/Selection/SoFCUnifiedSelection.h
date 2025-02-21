@@ -293,18 +293,32 @@ public:
 
     static bool checkColorOverride(SoState *state);
 
-    bool hasColorOverride() const {
-        return overrideColor;
+    bool hasAppearanceOverride() const
+    {
+        return overrideAppearance;
     }
 
-    void setColorOverride(App::Color c) {
-        overrideColor = true;
-        colorOverride = SbColor(c.r,c.g,c.b);
-        transOverride = c.a;
+    // void setColorOverride(App::Color c)
+    // {
+    //     overrideAppearance = true;
+    //     colorOverride = SbColor(c.r, c.g, c.b);
+    //     transOverride = c.a;
+    // }
+
+    void setAppearanceOverride(const App::Material* material)
+    {
+        overrideAppearance = true;
+        ambientOverride = toSbColor(material->ambientColor);
+        diffuseOverride = toSbColor(material->diffuseColor);
+        specularOverride = toSbColor(material->specularColor);
+        emissiveOverride = toSbColor(material->emissiveColor);
+        shininessOverride = material->shininess;
+        transOverride = material->transparency;
     }
 
-    void removeColorOverride() {
-        overrideColor = false;
+    void removeAppearanceOverride()
+    {
+        overrideAppearance = false;
     }
 
     enum SelectStyles {
@@ -319,6 +333,10 @@ protected:
 
     void renderPrivate(SoGLRenderAction *, bool inPath);
     bool _renderPrivate(SoGLRenderAction *, bool inPath);
+    SbColor toSbColor(const App::Color &color)
+    {
+        return SbColor(color.r, color.g, color.b/*, color.a*/);
+    }
 
     class Stack : public std::vector<SoNode*> {
     public:
@@ -357,8 +375,14 @@ protected:
     static ColorStack SelColorStack;
     static ColorStack HlColorStack;
     static SoFCSelectionRoot *ShapeColorNode;
-    bool overrideColor = false;
-    SbColor colorOverride;
+    bool overrideAppearance = false;
+    // SbColor colorOverride;
+    SbColor ambientOverride;
+    SbColor diffuseOverride;
+    SbColor specularOverride;
+    SbColor emissiveOverride;
+    // App::Material appearanceOverride;
+    float shininessOverride = 0.0f;
     float transOverride = 0.0f;
     SoColorPacker shapeColorPacker;
 

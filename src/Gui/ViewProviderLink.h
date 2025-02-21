@@ -190,15 +190,14 @@ class GuiExport ViewProviderLink : public ViewProviderDragger
     using inherited = ViewProviderDragger;
 
 public:
-    App::PropertyBool OverrideMaterial;
-    App::PropertyMaterial ShapeMaterial;
+    App::PropertyBool OverrideAppearance;
     App::PropertyEnumeration DrawStyle;
     App::PropertyFloatConstraint LineWidth;
     App::PropertyFloatConstraint PointSize;
-    App::PropertyMaterialList MaterialList;
-    App::PropertyBoolList OverrideMaterialList;
+    App::PropertyMaterialList ShapeAppearance;
+    App::PropertyBoolList OverrideAppearanceList;
     App::PropertyBool Selectable;
-    App::PropertyColorList OverrideColorList;
+    App::PropertyMaterialList OverrideColorList;
     App::PropertyPersistentObject ChildViewProvider;
 
     ViewProviderLink();
@@ -248,8 +247,8 @@ public:
 
     static void updateLinks(ViewProvider *vp);
 
-    std::map<std::string, App::Color> getElementColors(const char *subname=nullptr) const override;
-    void setElementColors(const std::map<std::string, App::Color> &colors) override;
+    std::map<std::string, App::Material> getElementColors(const char *subname=nullptr) const override;
+    void setElementColors(const std::map<std::string, App::Material>& colors) override;
 
     void setOverrideMode(const std::string &mode) override;
 
@@ -307,6 +306,10 @@ protected:
 
     bool initDraggingPlacement();
     bool callDraggerProxy(const char* fname);
+
+    void handleChangedPropertyName(Base::XMLReader& reader,
+                                   const char* TypeName,
+                                   const char* PropName) override;
 
 private:
     static void dragStartCallback(void * data, SoDragger * d);

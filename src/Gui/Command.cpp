@@ -798,7 +798,7 @@ void Command::_copyVisual(const char *file, int line, const App::DocumentObject 
         for(int depth=0;;++depth) {
             auto vp = dynamic_cast<Gui::ViewProviderLink*>(
                     Gui::Application::Instance->getViewProvider(obj));
-            if(vp && vp->OverrideMaterial.getValue()) {
+            if(vp && vp->OverrideAppearance.getValue()) {
                 _doCommand(file,line,Gui,"%s.ViewObject.%s=%s.ViewObject.%s",
                         objCmd.c_str(),attr_to,getObjectCmd(obj).c_str(),it->second.c_str());
                 return;

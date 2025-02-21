@@ -184,7 +184,7 @@ int SoFCSelectionContextEx::merge(int status, SoFCSelectionContextBasePtr &outpu
     SoFCSelectionRoot* selectionNode = dynamic_cast<SoFCSelectionRoot*>(node);
 
     if(!ctx) {
-        if(selectionNode && selectionNode->hasColorOverride()) {
+        if (selectionNode && selectionNode->hasAppearanceOverride()) {
             if(!status)
                 status = 2;
             else if(status == 1)
@@ -227,7 +227,7 @@ int SoFCSelectionContextEx::merge(int status, SoFCSelectionContextBasePtr &outpu
         ret->colors.insert(v);
     }
 
-    if(selectionNode && selectionNode->hasColorOverride()) {
+    if (selectionNode && selectionNode->hasAppearanceOverride()) {
         if(!status)
             status = 2;
         else if(status == 1)

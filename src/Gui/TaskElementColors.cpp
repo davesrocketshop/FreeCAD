@@ -171,7 +171,7 @@ public:
                 }
                 continue;
             }
-            auto color = v.second;
+            auto color = v.second.diffuseColor;
             QColor c;
             c.setRgbF(color.r, color.g, color.b, 1.0 - color.a);
             px.fill(c);
@@ -190,13 +190,15 @@ public:
 
     void apply()
     {
-        std::map<std::string, App::Color> info;
+        std::map<std::string, App::Material> info;
         int count = ui->elementList->count();
         for (int i = 0; i < count; ++i) {
             auto item = ui->elementList->item(i);
             auto col = item->data(Qt::UserRole).value<QColor>();
             std::string sub = qPrintable(item->data(Qt::UserRole + 1).value<QString>());
-            info.emplace(sub, App::Color::fromValue<QColor>(col));
+            App::Material material = App::Material::getDefaultAppearance();
+            material.diffuseColor = App::Color::fromValue<QColor>(col);
+            info.emplace(sub, material);
         }
         if (!App::GetApplication().getActiveTransaction()) {
             App::GetApplication().setActiveTransaction("Set colors");

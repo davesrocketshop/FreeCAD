@@ -671,46 +671,42 @@ void ViewProviderPartExt::setHighlightedFaces(const App::PropertyMaterialList& a
     setHighlightedFaces(appearance.getValues());
 }
 
-std::map<std::string,App::Color> ViewProviderPartExt::getElementColors(const char *element) const {
-    std::map<std::string,App::Color> ret;
+std::map<std::string, App::Material>
+ViewProviderPartExt::getElementColors(const char* element) const
+{
+    std::map<std::string, App::Material> ret;
 
     if(!element || !element[0]) {
-        auto color = ShapeAppearance.getDiffuseColor();
-        color.setTransparency(Transparency.getValue()/100.0F);
-        ret["Face"] = color;
-        ret["Edge"] = LineColor.getValue();
-        ret["Vertex"] = PointColor.getValue();
+        ret["Face"] = ShapeAppearance[0];
+        ret["Edge"] = LineMaterial.getValue();
+        ret["Vertex"] = PointMaterial.getValue();
         return ret;
     }
 
     if(boost::starts_with(element,"Face")) {
         auto size = ShapeAppearance.getSize();
         if(element[4]=='*') {
-            auto color = ShapeAppearance.getDiffuseColor();
-            color.setTransparency(Transparency.getValue()/100.0F);
+            auto color = ShapeAppearance[0];
             bool singleColor = true;
             for(int i=0;i<size;++i) {
-                if (ShapeAppearance.getDiffuseColor(i) != color) {
+                if (ShapeAppearance[i] != color) {
                     ret[std::string(element, 4) + std::to_string(i + 1)] =
-                        ShapeAppearance.getDiffuseColor(i);
+                        ShapeAppearance[i];
                 }
                 singleColor = singleColor
-                    && ShapeAppearance.getDiffuseColor(0) == ShapeAppearance.getDiffuseColor(i);
+                    && ShapeAppearance[0] == ShapeAppearance[i];
             }
             if(size && singleColor) {
-                color = ShapeAppearance.getDiffuseColor(0);
-                color.setTransparency(Transparency.getValue()/100.0F);
+                color = ShapeAppearance[0];
                 ret.clear();
             }
             ret["Face"] = color;
         }else{
             int idx = atoi(element+4);
             if(idx>0 && idx<=size)
-                ret[element] = ShapeAppearance.getDiffuseColor(idx - 1);
+                ret[element] = ShapeAppearance[idx - 1];
             else
-                ret[element] = ShapeAppearance.getDiffuseColor();
-            if(size==1)
-                ret[element].setTransparency(Transparency.getValue()/100.0F);
+                ret[element] = ShapeAppearance[0];
         }
     } else if (boost::starts_with(element,"Edge")) {
         auto size = LineColorArray.getSize();
@@ -719,20 +715,20 @@ std::map<std::string,App::Color> ViewProviderPartExt::getElementColors(const cha
             bool singleColor = true;
             for(int i=0;i<size;++i) {
                 if(LineColorArray[i]!=color)
-                    ret[std::string(element,4)+std::to_string(i+1)] = LineColorArray[i];
+                    ret[std::string(element,4)+std::to_string(i+1)] = App::Material(LineColorArray[i]);
                 singleColor = singleColor && LineColorArray[0]==LineColorArray[i];
             }
             if(singleColor && size) {
                 color = LineColorArray[0];
                 ret.clear();
             }
-            ret["Edge"] = color;
+            ret["Edge"] = App::Material(color);
         }else{
             int idx = atoi(element+4);
             if(idx>0 && idx<=size)
-                ret[element] = LineColorArray[idx-1];
+                ret[element] = App::Material(LineColorArray[idx - 1]);
             else
-                ret[element] = LineColor.getValue();
+                ret[element] = App::Material(LineColor.getValue());
         }
     } else if (boost::starts_with(element,"Vertex")) {
         auto size = PointColorArray.getSize();
@@ -741,20 +737,21 @@ std::map<std::string,App::Color> ViewProviderPartExt::getElementColors(const cha
             bool singleColor = true;
             for(int i=0;i<size;++i) {
                 if(PointColorArray[i]!=color)
-                    ret[std::string(element,5)+std::to_string(i+1)] = PointColorArray[i];
+                    ret[std::string(element, 5) + std::to_string(i + 1)] =
+                        App::Material(PointColorArray[i]);
                 singleColor = singleColor && PointColorArray[0]==PointColorArray[i];
             }
             if(singleColor && size) {
                 color = PointColorArray[0];
                 ret.clear();
             }
-            ret["Vertex"] = color;
+            ret["Vertex"] = App::Material(color);
         }else{
             int idx = atoi(element+5);
             if(idx>0 && idx<=size)
-                ret[element] = PointColorArray[idx-1];
+                ret[element] = App::Material(PointColorArray[idx - 1]);
             else
-                ret[element] = PointColor.getValue();
+                ret[element] = App::Material(PointColor.getValue());
         }
     }
     return ret;

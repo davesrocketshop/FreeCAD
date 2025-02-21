@@ -310,13 +310,13 @@ private:
             hApp->NewDocument(TCollection_ExtendedString("MDTV-CAF"), hDoc);
 
             auto getShapeColors = [partColor](App::DocumentObject* obj, const char* subname) {
-                std::map<std::string, App::Color> cols;
+                std::map<std::string, App::Material> cols;
                 auto it = partColor.find(dynamic_cast<Part::Feature*>(obj));
                 if (it != partColor.end() && boost::starts_with(subname, "Face")) {
                     const auto& colors = it->second;
                     std::string face("Face");
                     for (const auto& element : colors | boost::adaptors::indexed(1)) {
-                        cols[face + std::to_string(element.index())] = element.value();
+                        cols[face + std::to_string(element.index())] = App::Material(element.value());
                     }
                 }
                 return cols;

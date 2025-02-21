@@ -76,6 +76,16 @@ Material::Material(MaterialType MatType)
     setType(MatType);
 }
 
+Material::Material(const Color& color)
+    : shininess {0.9000F}
+    , transparency {}
+    , _matType {}
+{
+    setType(DEFAULT);
+
+    diffuseColor = color;
+}
+
 void Material::set(const char* MatName)
 {
     if (strcmp("Brass", MatName) == 0) {
