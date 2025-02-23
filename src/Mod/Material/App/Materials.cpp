@@ -953,15 +953,55 @@ void Material::setLegacyValue(const QString& name, const QString& value)
 /*
  * Interpolation methods for working with non-linear properties
  */
-QVariant interpolate2D(const QString& name, const QVariant& samplePoint)
+QVariant Material::interpolate2D(const QString& name, const QVariant& samplePoint)
 {
-    return 0;
+    auto property = getPhysicalProperty(name);
+    if (property) {
+        if (property->getType() == MaterialValue::Array2D) {
+            auto value =
+                std::static_pointer_cast<Materials::Material2DArray>(property->getMaterialValue());
+            auto list = value->interpolate(samplePoint);
+            if (list.size() > 0) {
+                return list[0];
+            }
+        }
+    }
+    else {
+        throw PropertyNotFound();
+    }
+
+    throw InterpolationError();
 }
 
-QVariant
-interpolate3D(const QString& name, const QVariant& samplePoint1, const QVariant& samplePoint2)
+QList<QVariant> Material::interpolate2DMulti(const QString& name, const QVariant& samplePoint)
 {
-    return 0;
+    auto property = getPhysicalProperty(name);
+    if (property) {
+        if (property->getType() == MaterialValue::Array2D) {
+            auto value =
+                std::static_pointer_cast<Materials::Material2DArray>(property->getMaterialValue());
+            return value->interpolate(samplePoint);
+        }
+    }
+    else {
+        throw PropertyNotFound();
+    }
+
+    throw InterpolationError();
+}
+
+QVariant Material::interpolate3D(const QString& name,
+                                 const QVariant& samplePoint1,
+                                 const QVariant& samplePoint2)
+{
+    throw InterpolationError();
+}
+
+QList<QVariant> Material::interpolate3DMulti(const QString& name,
+                                             const QVariant& samplePoint1,
+                                             const QVariant& samplePoint2)
+{
+    throw InterpolationError();
 }
 
 std::shared_ptr<MaterialProperty> Material::getPhysicalProperty(const QString& name)

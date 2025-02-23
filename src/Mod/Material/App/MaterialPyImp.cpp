@@ -554,6 +554,53 @@ PyObject* MaterialPy::setAppearanceValue(PyObject* args)
     return Py_None;
 }
 
+PyObject* MaterialPy::interpolate2D(PyObject* args)
+{
+    double sample = 0;
+    bool sampled = false;
+
+    char* name;
+    if (PyArg_ParseTuple(args, "sf", &name, &sample)) {
+        sampled = true;
+    }
+
+    PyErr_Clear();
+    PyObject* samplePoint;
+    if (!sampled && PyArg_ParseTuple(args, "sO", &name, samplePoint)) {
+        // return nullptr;
+        sampled = true;
+    }
+
+    if (!sampled) {
+        PyErr_SetString(
+            PyExc_TypeError,
+            "interplate2D requires the name of a 2D array property and a point at which to sample");
+        return nullptr;
+    }
+
+    if (!getMaterialPtr()->hasPhysicalProperty(QString::fromStdString(name))) {
+        PyErr_SetString(PyExc_ValueError, "Property not found");
+        return nullptr;
+    }
+
+    auto property = getMaterialPtr()->getPhysicalProperty(QString::fromStdString(name));
+    if (!property) {
+        PyErr_SetString(PyExc_ValueError, "Property not found");
+        return nullptr;
+    }
+
+    if (property->getType() != MaterialValue::Array2D) {
+        PyErr_SetString(
+            PyExc_TypeError,
+            "interplate2D can only operate on a 2D array");
+        return nullptr;
+    }
+    auto array = std::static_pointer_cast<Materials::Material2DArray>(property->getMaterialValue());
+
+    QVariant value = array->interpolate(sample);
+    return _pyObjectFromVariant(value);
+}
+
 PyObject* MaterialPy::keys()
 {
     return Py::new_reference_to(this->getProperties().keys());
