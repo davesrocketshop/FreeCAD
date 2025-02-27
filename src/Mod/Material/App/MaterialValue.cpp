@@ -349,13 +349,13 @@ Material2DArray& Material2DArray::operator=(const Material2DArray& other)
     return *this;
 }
 
-QList<QVariant> Material2DArray::interpolate(const QVariant& samplePoint)
+QList<QVariant> Material2DArray::interpolate(const QVariant& samplePoint, bool extrapolate)
 {
     if (!_interpolator) {
         _interpolator = std::make_shared<InterpolatorSpline>(*this);
     }
 
-    return _interpolator->interpolate(samplePoint);
+    return _interpolator->interpolate(samplePoint, extrapolate);
 }
 
 void Material2DArray::deepCopy(const Material2DArray& other)

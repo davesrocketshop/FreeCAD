@@ -101,11 +101,17 @@ Eigen::RowVectorXd InterpolatorSpline::scaledValues(Eigen::VectorXd const& x_vec
         .transpose();
 }
 
-QList<QVariant> InterpolatorSpline::interpolate(const QVariant& samplePoint)
+QList<QVariant> InterpolatorSpline::interpolate(const QVariant& samplePoint, bool extrapolate)
 {
     // May be a quantity, int, float, etc
     auto pointValue = scale(valueOf(samplePoint));
     // Base::Console().Log("sample point(%f)->%f\n", valueOf(samplePoint), pointValue);
+
+    if (!extrapolate) {
+        if ((pointValue < 0.0) || (pointValue > 1.0)) {
+            throw InterpolationOutOfRangeError();
+        }
+    }
 
     QList<QVariant> ret;
 
@@ -185,7 +191,7 @@ InterpolatorPchip::InterpolatorPchip(const Material2DArray& array)
     create(array);
 }
 
-QList<QVariant> InterpolatorPchip::interpolate(const QVariant& samplePoint)
+QList<QVariant> InterpolatorPchip::interpolate(const QVariant& samplePoint, bool extrapolate)
 {
     // May be a quantity, int, float, etc
     auto pointValue = valueOf(samplePoint);

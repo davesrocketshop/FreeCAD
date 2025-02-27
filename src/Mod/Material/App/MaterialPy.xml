@@ -210,7 +210,7 @@
         <UserDocu>Set the value associated with the property</UserDocu>
       </Documentation>
     </Methode>
-    <Methode Name="interpolate2D" ReadOnly="true">
+    <Methode Name="interpolate2D" ReadOnly="true" Const="true" Keyword="true">
       <Documentation>
         <UserDocu>Get an interpolated value from a 2D array at the specified sample point</UserDocu>
       </Documentation>

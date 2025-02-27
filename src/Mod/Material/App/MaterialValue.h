@@ -152,7 +152,7 @@ public:
     {
         return _rows;
     }
-    QList<QVariant> interpolate(const QVariant& samplePoint);
+    QList<QVariant> interpolate(const QVariant& samplePoint, bool extrapolate);
 
     void validateRow(int row) const;
     void validateColumn(int column) const;
@@ -209,8 +209,8 @@ public:
     {
         return _rowMap;
     }
-    const QList<std::shared_ptr<QList<QVariant>>>& interpolate(const QVariant& samplePoint1,
-                                                               const QVariant& samplePoint2);
+    const QList<std::shared_ptr<QList<QVariant>>>&
+    interpolate(const QVariant& samplePoint1, const QVariant& samplePoint2, bool extrapolate);
 
     void validateDepth(int level) const;
     void validateColumn(int column) const;

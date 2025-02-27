@@ -252,6 +252,24 @@ public:
     ~InterpolationError() noexcept override = default;
 };
 
+class InterpolationOutOfRangeError: public Base::Exception
+{
+public:
+    InterpolationOutOfRangeError()
+    {
+        this->setMessage("Interpolation point is out of range");
+    }
+    explicit InterpolationOutOfRangeError(char* msg)
+    {
+        this->setMessage(msg);
+    }
+    explicit InterpolationOutOfRangeError(const QString& msg)
+    {
+        this->setMessage(msg.toStdString().c_str());
+    }
+    ~InterpolationOutOfRangeError() noexcept override = default;
+};
+
 }  // namespace Materials
 
 #endif  // MATERIAL_EXCEPTIONS_H

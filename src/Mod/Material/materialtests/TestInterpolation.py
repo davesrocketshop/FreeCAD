@@ -79,6 +79,28 @@ class InterpolationTestCases(unittest.TestCase):
                                self.getQuantity("25.00 kg/m^3").Value,
                                delta=maxError)
 
+        # Test extraploation limits
+        with self.assertRaises(ValueError):
+            self.assertAlmostEqual(mat.interpolate2D("TestArray2D", 9.99),
+                                self.getQuantity("9.99 kg/m^3").Value,
+                                delta=maxError)
+        self.assertAlmostEqual(mat.interpolate2D("TestArray2D", 9.99, extrapolate=True),
+                               self.getQuantity("9.99 kg/m^3").Value,
+                               delta=maxError)
+        self.assertAlmostEqual(mat.interpolate2D("TestArray2D", 0.0, extrapolate=True),
+                               self.getQuantity("0.00 kg/m^3").Value,
+                               delta=maxError)
+        with self.assertRaises(ValueError):
+            self.assertAlmostEqual(mat.interpolate2D("TestArray2D", 31.0),
+                                self.getQuantity("31.00 kg/m^3").Value,
+                                delta=maxError)
+        self.assertAlmostEqual(mat.interpolate2D("TestArray2D", 31.0, extrapolate=True),
+                               self.getQuantity("31.00 kg/m^3").Value,
+                               delta=maxError)
+        self.assertAlmostEqual(mat.interpolate2D("TestArray2D", 40.0, extrapolate=True),
+                               self.getQuantity("40.00 kg/m^3").Value,
+                               delta=maxError)
+
         array = mat.getPhysicalValue("TestArray2D")
         self.assertIsNotNone(array)
         self.assertEqual(array.Rows, 3)
