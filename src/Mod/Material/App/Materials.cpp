@@ -192,6 +192,43 @@ QString MaterialProperty::getDictionaryString() const
     return getValue().toString();
 }
 
+/*
+ * Interpolation methods for working with non-linear properties
+ */
+QVariant MaterialProperty::interpolate2D(const QVariant& samplePoint)
+{
+    if (getType() == MaterialValue::Array2D) {
+        auto value = std::static_pointer_cast<Materials::Material2DArray>(getMaterialValue());
+        auto list = value->interpolate(samplePoint);
+        if (list.size() > 0) {
+            return list[0];
+        }
+    }
+
+    throw InterpolationError();
+}
+
+QList<QVariant> MaterialProperty::interpolate2DMulti(const QVariant& samplePoint)
+{
+    if (getType() == MaterialValue::Array2D) {
+        auto value = std::static_pointer_cast<Materials::Material2DArray>(getMaterialValue());
+        return value->interpolate(samplePoint);
+    }
+
+    throw InterpolationError();
+}
+
+QVariant MaterialProperty::interpolate3D(const QVariant& samplePoint1, const QVariant& samplePoint2)
+{
+    throw InterpolationError();
+}
+
+QList<QVariant> MaterialProperty::interpolate3DMulti(const QVariant& samplePoint1,
+                                                     const QVariant& samplePoint2)
+{
+    throw InterpolationError();
+}
+
 void MaterialProperty::setPropertyType(const QString& type)
 {
     ModelProperty::setPropertyType(type);
@@ -957,37 +994,20 @@ QVariant Material::interpolate2D(const QString& name, const QVariant& samplePoin
 {
     auto property = getPhysicalProperty(name);
     if (property) {
-        if (property->getType() == MaterialValue::Array2D) {
-            auto value =
-                std::static_pointer_cast<Materials::Material2DArray>(property->getMaterialValue());
-            auto list = value->interpolate(samplePoint);
-            if (list.size() > 0) {
-                return list[0];
-            }
-        }
-    }
-    else {
-        throw PropertyNotFound();
+        return property->interpolate2D(samplePoint);
     }
 
-    throw InterpolationError();
+    throw PropertyNotFound();
 }
 
 QList<QVariant> Material::interpolate2DMulti(const QString& name, const QVariant& samplePoint)
 {
     auto property = getPhysicalProperty(name);
     if (property) {
-        if (property->getType() == MaterialValue::Array2D) {
-            auto value =
-                std::static_pointer_cast<Materials::Material2DArray>(property->getMaterialValue());
-            return value->interpolate(samplePoint);
-        }
-    }
-    else {
-        throw PropertyNotFound();
+        return property->interpolate2DMulti(samplePoint);
     }
 
-    throw InterpolationError();
+    throw PropertyNotFound();
 }
 
 QVariant Material::interpolate3D(const QString& name,

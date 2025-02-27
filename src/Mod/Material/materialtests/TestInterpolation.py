@@ -64,7 +64,20 @@ class InterpolationTestCases(unittest.TestCase):
             mat.interpolate2D("Henry", 1.0)
 
         self.assertTrue(mat.hasPhysicalProperty("TestArray2D"))
-        self.assertEqual(mat.interpolate2D("TestArray2D", 10.0), 10.0)
+        maxError = self.getQuantity(".00001 kg/m^3").Value
+
+        # This passes, which is why using delta is necessary
+        #self.assertAlmostEqual(mat.interpolate2D("TestArray2D", "25.0 C"), self.getQuantity("10.00 kg/m^3").Value)
+
+        self.assertAlmostEqual(mat.interpolate2D("TestArray2D", 25.0),
+                               self.getQuantity("25.00 kg/m^3").Value,
+                               delta=maxError)
+        self.assertAlmostEqual(mat.interpolate2D("TestArray2D", "25.0 C"),
+                               self.getQuantity("25.00 kg/m^3").Value,
+                               delta=maxError)
+        self.assertAlmostEqual(mat.interpolate2D("TestArray2D", self.getQuantity("25.0 C")),
+                               self.getQuantity("25.00 kg/m^3").Value,
+                               delta=maxError)
 
         array = mat.getPhysicalValue("TestArray2D")
         self.assertIsNotNone(array)

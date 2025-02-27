@@ -556,18 +556,37 @@ PyObject* MaterialPy::setAppearanceValue(PyObject* args)
 
 PyObject* MaterialPy::interpolate2D(PyObject* args)
 {
-    double sample = 0;
+    QVariant sample = 0.0;
     bool sampled = false;
 
     char* name;
-    if (PyArg_ParseTuple(args, "sf", &name, &sample)) {
-        sampled = true;
-    }
-
-    PyErr_Clear();
     PyObject* samplePoint;
-    if (!sampled && PyArg_ParseTuple(args, "sO", &name, samplePoint)) {
-        // return nullptr;
+    if (!sampled && PyArg_ParseTuple(args, "sO", &name, &samplePoint)) {
+        if (PyObject_TypeCheck(samplePoint, &Base::QuantityPy::Type)) {
+            Base::QuantityPy* qp = static_cast<Base::QuantityPy*>(samplePoint);
+            Base::Quantity* q = qp->getQuantityPtr();
+            sample = QVariant::fromValue(*q);
+        }
+        else if (PyFloat_Check(samplePoint)) {
+            sample = PyFloat_AsDouble(samplePoint);
+        }
+        else if (PyLong_Check(samplePoint)) {
+            sample = PyLong_AsDouble(samplePoint);
+        }
+        else if (PyUnicode_Check(samplePoint)) {
+            const char* utf8value = PyUnicode_AsUTF8(samplePoint);
+            if (!utf8value) {
+                FC_THROWM(Base::ValueError, "Invalid unicode string");
+            }
+            Base::Quantity q = Base::Quantity::parse(utf8value);
+            sample = QVariant::fromValue(q);
+        }
+        else {
+            PyErr_SetString(PyExc_TypeError,
+                            "interplate2D requires the name of a 2D array property and a point at "
+                            "which to sample");
+            return nullptr;
+        }
         sampled = true;
     }
 
@@ -595,9 +614,8 @@ PyObject* MaterialPy::interpolate2D(PyObject* args)
             "interplate2D can only operate on a 2D array");
         return nullptr;
     }
-    auto array = std::static_pointer_cast<Materials::Material2DArray>(property->getMaterialValue());
 
-    QVariant value = array->interpolate(sample);
+    QVariant value = property->interpolate2D(sample);
     return _pyObjectFromVariant(value);
 }
 

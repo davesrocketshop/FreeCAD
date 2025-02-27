@@ -13,6 +13,7 @@ include_directories(
     ${CMAKE_CURRENT_BINARY_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${Boost_INCLUDE_DIRS}
+    ${EIGEN3_INCLUDE_DIR}
     ${Python3_INCLUDE_DIRS}
     ${XercesC_INCLUDE_DIRS}
     ${ZIPIOS_INCLUDES}
@@ -80,6 +81,8 @@ SET(Materials_SRCS
     ${Python_SRCS}
     AppMaterial.cpp
     FolderTree.h
+    Interpolator.cpp
+    Interpolator.h
     MaterialConfigLoader.cpp
     MaterialConfigLoader.h
     MaterialFilter.cpp

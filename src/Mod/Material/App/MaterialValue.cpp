@@ -32,6 +32,7 @@
 
 #include "Exceptions.h"
 #include "MaterialValue.h"
+#include "Interpolator.h"
 
 
 using namespace Materials;
@@ -238,8 +239,7 @@ QString MaterialValue::getYAMLStringList() const
 {
     QString yaml;
     for (auto& it : getList()) {
-        yaml += QStringLiteral("\n      - \"") + escapeString(it.toString())
-            + QStringLiteral("\"");
+        yaml += QStringLiteral("\n      - \"") + escapeString(it.toString()) + QStringLiteral("\"");
     }
     return yaml;
 }
@@ -262,8 +262,8 @@ QString MaterialValue::getYAMLStringMultiLine() const
 {
     QString yaml;
     yaml = QStringLiteral(" |2");
-    auto list =
-        getValue().toString().split(QRegularExpression(QStringLiteral("[\r\n]")), Qt::SkipEmptyParts);
+    auto list = getValue().toString().split(QRegularExpression(QStringLiteral("[\r\n]")),
+                                            Qt::SkipEmptyParts);
     for (auto& it : list) {
         yaml += QStringLiteral("\n      ") + it;
     }
@@ -349,79 +349,13 @@ Material2DArray& Material2DArray::operator=(const Material2DArray& other)
     return *this;
 }
 
-std::pchip<std::vector<double>> Material2DArray::createInterpolator(std::vector<double>& abscissas,
-                                                                    std::vector<double>& ordinates)
-{
-    // using boost::math::interpolators::pchip;
-    // auto spline = std::pchip<std::vector<double>>(std::move(abscissas), std::move(ordinates));
-    return std::pchip<std::vector<double>>(std::move(abscissas), std::move(ordinates));
-}
-
-void Material2DArray::createInterpolators()
-{
-    if (_columns < 2 || _rows.size() < 4) { // 4 rows for pchip
-        throw InterpolationError(QLatin1String("No data to interpolate"));
-    }
-
-    std::vector<double> abscissas;
-    std::vector<std::vector<double>> ordinates;
-    for (int i = 1; i < _columns; i++) {
-        ordinates.push_back(std::vector<double>());
-    }
-    for (auto row : _rows) {
-        abscissas.push_back(valueOf(row->at(0)));
-        for (int i = 1; i < _columns; i++) {
-            ordinates[i-1].push_back(valueOf(row->at(i)));
-        }
-    }
-
-    _interpolators.clear();
-    for (auto ordinate : ordinates) {
-        _interpolators.append(createInterpolator(abscissas, ordinate));
-    }
-}
-
-double Material2DArray::valueOf(const QVariant& value)
-{
-    if (value.isNull()) {
-        throw InterpolationError(QLatin1String("Array has undefined entries"));
-    }
-
-    if (value.canConvert<Base::Quantity>()) {
-        auto quantity = value.value<Base::Quantity>();
-        return quantity.getValue();
-    }
-
-    return value.toFloat();
-}
-
 QList<QVariant> Material2DArray::interpolate(const QVariant& samplePoint)
 {
-    // May be a quantity, int, float, etc
-    auto pointValue = valueOf(samplePoint);
-
-    // Check if our sample point is one of the defined values
-
-
-    if (_rows.size() < 4) {
-        // Linear interpolation is the only possibility
-        return interpolateLinear(sample);
+    if (!_interpolator) {
+        _interpolator = std::make_shared<InterpolatorSpline>(*this);
     }
 
-    QList<QVariant> ret;
-    createInterpolators();
-    for (auto interp : _interpolators) {
-        ret.append(interp(pointValue));
-    }
-
-    return ret;
-}
-
-QList<QVariant> Material2DArray::interpolateLinear(double sample)
-{
-    QList<QVariant> ret;
-
-    return ret;
+    return _interpolator->interpolate(samplePoint);
 }
 
 void Material2DArray::deepCopy(const Material2DArray& other)

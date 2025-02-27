@@ -104,6 +104,14 @@ public:
     }
     App::Color getColor() const;
 
+    /*
+     * Interpolation methods for working with non-linear properties
+     */
+    QVariant interpolate2D(const QVariant& samplePoint);
+    QList<QVariant> interpolate2DMulti(const QVariant& samplePoint);
+    QVariant interpolate3D(const QVariant& samplePoint1, const QVariant& samplePoint2);
+    QList<QVariant> interpolate3DMulti(const QVariant& samplePoint1, const QVariant& samplePoint2);
+
     MaterialProperty& getColumn(int column);
     const MaterialProperty& getColumn(int column) const;
     MaterialValue::ValueType getColumnType(int column) const;

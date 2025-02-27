@@ -28,19 +28,14 @@
 #include <QMetaType>
 #include <QVariant>
 
-#include <boost/math/interpolators/pchip.hpp>
-
 #include <Gui/MetaTypes.h>
 
 #include <Mod/Material/MaterialGlobal.h>
 
-namespace std
-{
-using boost::math::interpolators::pchip;
-}
-
 namespace Materials
 {
+
+class Interpolator;
 
 class MaterialsExport MaterialValue: public Base::BaseClass
 {
@@ -187,10 +182,6 @@ public:
 
 protected:
     void deepCopy(const Material2DArray& other);
-    std::pchip<std::vector<double>> createInterpolator(std::vector<double>& abscissas,
-                                                       std::vector<double>& ordinates);
-    void createInterpolators();
-    static double valueOf(const QVariant& value);
 
     QList<std::shared_ptr<QList<QVariant>>> _rows;
     int _columns;
@@ -199,7 +190,7 @@ private:
     static void dumpRow(const std::shared_ptr<QList<QVariant>>& row);
     void dump() const;
 
-    QList<std::pchip<std::vector<double>>> _interpolators;
+    std::shared_ptr<Interpolator> _interpolator;
 };
 
 class MaterialsExport Material3DArray: public MaterialValue
