@@ -79,6 +79,14 @@ class InterpolationTestCases(unittest.TestCase):
                                self.getQuantity("25.00 kg/m^3").Value,
                                delta=maxError)
 
+    def testInterp2DExtrapolate(self):
+
+        mat = self.MaterialManager.getMaterial("c6c64159-19c1-40b5-859c-10561f20f979")
+        self.assertIsNotNone(mat)
+
+        self.assertTrue(mat.hasPhysicalProperty("TestArray2D"))
+        maxError = self.getQuantity(".00001 kg/m^3").Value
+
         # Test extraploation limits
         with self.assertRaises(ValueError):
             self.assertAlmostEqual(mat.interpolate2D("TestArray2D", 9.99),
@@ -101,89 +109,9 @@ class InterpolationTestCases(unittest.TestCase):
                                self.getQuantity("40.00 kg/m^3").Value,
                                delta=maxError)
 
-        array = mat.getPhysicalValue("TestArray2D")
-        self.assertIsNotNone(array)
-        self.assertEqual(array.Rows, 3)
-        self.assertEqual(array.Columns, 2)
-
-        arrayData = array.Array
-        self.assertIsNotNone(arrayData)
-        self.assertEqual(len(arrayData), 3)
-        self.assertEqual(len(arrayData[0]), 2)
-        self.assertEqual(len(arrayData[1]), 2)
-        self.assertEqual(len(arrayData[2]), 2)
-
-        self.assertEqual(arrayData[0][0].Format["NumberFormat"], "g")
-        self.assertEqual(arrayData[0][1].Format["NumberFormat"], "g")
-        self.assertEqual(arrayData[1][0].Format["NumberFormat"], "g")
-        self.assertEqual(arrayData[1][1].Format["NumberFormat"], "g")
-        self.assertEqual(arrayData[2][0].Format["NumberFormat"], "g")
-        self.assertEqual(arrayData[2][1].Format["NumberFormat"], "g")
-
-        self.assertEqual(arrayData[0][0].UserString, self.getQuantity("10.00 C").UserString)
-        self.assertEqual(arrayData[0][1].UserString, self.getQuantity("10.00 kg/m^3").UserString)
-        self.assertEqual(arrayData[1][0].UserString, self.getQuantity("20.00 C").UserString)
-        self.assertEqual(arrayData[1][1].UserString, self.getQuantity("20.00 kg/m^3").UserString)
-        self.assertEqual(arrayData[2][0].UserString, self.getQuantity("30.00 C").UserString)
-        self.assertEqual(arrayData[2][1].UserString, self.getQuantity("30.00 kg/m^3").UserString)
-
-        self.assertAlmostEqual(arrayData[0][0].Value, 10.0)
-        self.assertAlmostEqual(arrayData[0][1].Value, 1e-8)
-        self.assertAlmostEqual(arrayData[1][0].Value, 20.0)
-        self.assertAlmostEqual(arrayData[1][1].Value, 2e-8)
-        self.assertAlmostEqual(arrayData[2][0].Value, 30.0)
-        self.assertAlmostEqual(arrayData[2][1].Value, 3e-8)
-
-        self.assertAlmostEqual(arrayData[-1][0].Value, 30.0) # Last in list
-        with self.assertRaises(IndexError):
-            self.assertAlmostEqual(arrayData[3][0].Value, 10.0)
-        self.assertAlmostEqual(arrayData[0][-1].Value, 1e-8)
-        with self.assertRaises(IndexError):
-            self.assertAlmostEqual(arrayData[0][2].Value, 10.0)
-
-        self.assertEqual(array.getValue(0,0).Format["NumberFormat"], "g")
-        self.assertEqual(array.getValue(0,1).Format["NumberFormat"], "g")
-        self.assertEqual(array.getValue(1,0).Format["NumberFormat"], "g")
-        self.assertEqual(array.getValue(1,1).Format["NumberFormat"], "g")
-        self.assertEqual(array.getValue(2,0).Format["NumberFormat"], "g")
-        self.assertEqual(array.getValue(2,1).Format["NumberFormat"], "g")
-
-        self.assertEqual(array.getValue(0,0).UserString, self.getQuantity("10.00 C").UserString)
-        self.assertEqual(array.getValue(0,1).UserString, self.getQuantity("10.00 kg/m^3").UserString)
-        self.assertEqual(array.getValue(1,0).UserString, self.getQuantity("20.00 C").UserString)
-        self.assertEqual(array.getValue(1,1).UserString, self.getQuantity("20.00 kg/m^3").UserString)
-        self.assertEqual(array.getValue(2,0).UserString, self.getQuantity("30.00 C").UserString)
-        self.assertEqual(array.getValue(2,1).UserString, self.getQuantity("30.00 kg/m^3").UserString)
-
-        self.assertAlmostEqual(array.getValue(0,0).Value, 10.0)
-        self.assertAlmostEqual(array.getValue(0,1).Value, 1e-8)
-        self.assertAlmostEqual(array.getValue(1,0).Value, 20.0)
-        self.assertAlmostEqual(array.getValue(1,1).Value, 2e-8)
-        self.assertAlmostEqual(array.getValue(2,0).Value, 30.0)
-        self.assertAlmostEqual(array.getValue(2,1).Value, 3e-8)
-
-        with self.assertRaises(IndexError):
-            self.assertAlmostEqual(array.getValue(-1,0).Value, 10.0)
-        with self.assertRaises(IndexError):
-            self.assertAlmostEqual(array.getValue(3,0).Value, 10.0)
-        with self.assertRaises(IndexError):
-            self.assertAlmostEqual(array.getValue(0,-1).Value, 10.0)
-        with self.assertRaises(IndexError):
-            self.assertAlmostEqual(array.getValue(0,2).Value, 10.0)
-
-        for rowIndex in range(0, array.Rows):
-            row = array.getRow(rowIndex)
-            self.assertIsNotNone(row)
-            self.assertEqual(len(row), 2)
-
-        with self.assertRaises(IndexError):
-            row = array.getRow(-1)
-        with self.assertRaises(IndexError):
-            row = array.getRow(3)
-
-    def test2DArray(self):
+    def interpolate2DMulti(self):
         """
-        Test API access to 2D arrays
+        Test interpolation for a 2D multi column array
         """
 
         mat = self.MaterialManager.getMaterial("c6c64159-19c1-40b5-859c-10561f20f979")
@@ -192,206 +120,32 @@ class InterpolationTestCases(unittest.TestCase):
         self.assertEqual(mat.UUID, "c6c64159-19c1-40b5-859c-10561f20f979")
 
         self.assertTrue(mat.hasPhysicalModel(self.uuids.TestModel))
-        self.assertFalse(mat.isPhysicalModelComplete(self.uuids.TestModel))
 
-        self.assertTrue(mat.hasPhysicalProperty("TestArray2D"))
+        self.assertFalse(mat.hasPhysicalProperty("Henry"))
+        with self.assertRaises(ValueError):
+            mat.interpolate2DMulti("Henry", 1.0)
 
-        array = mat.getPhysicalValue("TestArray2D")
-        self.assertIsNotNone(array)
-        self.assertEqual(array.Rows, 3)
-        self.assertEqual(array.Columns, 2)
+        self.assertTrue(mat.hasPhysicalProperty("TestArray2D3Column"))
 
-        arrayData = array.Array
-        self.assertIsNotNone(arrayData)
-        self.assertEqual(len(arrayData), 3)
-        self.assertEqual(len(arrayData[0]), 2)
-        self.assertEqual(len(arrayData[1]), 2)
-        self.assertEqual(len(arrayData[2]), 2)
+        maxErrorKg = self.getQuantity(".00001 kg/m^3").Value
+        maxErrorPa = self.getQuantity(".00001 Pa").Value
 
-        self.assertEqual(arrayData[0][0].Format["NumberFormat"], "g")
-        self.assertEqual(arrayData[0][1].Format["NumberFormat"], "g")
-        self.assertEqual(arrayData[1][0].Format["NumberFormat"], "g")
-        self.assertEqual(arrayData[1][1].Format["NumberFormat"], "g")
-        self.assertEqual(arrayData[2][0].Format["NumberFormat"], "g")
-        self.assertEqual(arrayData[2][1].Format["NumberFormat"], "g")
+        values = mat.interpolate2DMulti("TestArray2D3Column", 25.0)
+        self.assertEqual(len(values), 2)
+        self.assertAlmostEqual(values[0],
+                               self.getQuantity("26.00 kg/m^3").Value,
+                               delta=maxErrorKg)
+        self.assertAlmostEqual(values[1],
+                               self.getQuantity("27.00 Pa").Value,
+                               delta=maxErrorPa)
 
-        self.assertEqual(arrayData[0][0].UserString, self.getQuantity("10.00 C").UserString)
-        self.assertEqual(arrayData[0][1].UserString, self.getQuantity("10.00 kg/m^3").UserString)
-        self.assertEqual(arrayData[1][0].UserString, self.getQuantity("20.00 C").UserString)
-        self.assertEqual(arrayData[1][1].UserString, self.getQuantity("20.00 kg/m^3").UserString)
-        self.assertEqual(arrayData[2][0].UserString, self.getQuantity("30.00 C").UserString)
-        self.assertEqual(arrayData[2][1].UserString, self.getQuantity("30.00 kg/m^3").UserString)
-
-        self.assertAlmostEqual(arrayData[0][0].Value, 10.0)
-        self.assertAlmostEqual(arrayData[0][1].Value, 1e-8)
-        self.assertAlmostEqual(arrayData[1][0].Value, 20.0)
-        self.assertAlmostEqual(arrayData[1][1].Value, 2e-8)
-        self.assertAlmostEqual(arrayData[2][0].Value, 30.0)
-        self.assertAlmostEqual(arrayData[2][1].Value, 3e-8)
-
-        self.assertAlmostEqual(arrayData[-1][0].Value, 30.0) # Last in list
-        with self.assertRaises(IndexError):
-            self.assertAlmostEqual(arrayData[3][0].Value, 10.0)
-        self.assertAlmostEqual(arrayData[0][-1].Value, 1e-8)
-        with self.assertRaises(IndexError):
-            self.assertAlmostEqual(arrayData[0][2].Value, 10.0)
-
-        self.assertEqual(array.getValue(0,0).Format["NumberFormat"], "g")
-        self.assertEqual(array.getValue(0,1).Format["NumberFormat"], "g")
-        self.assertEqual(array.getValue(1,0).Format["NumberFormat"], "g")
-        self.assertEqual(array.getValue(1,1).Format["NumberFormat"], "g")
-        self.assertEqual(array.getValue(2,0).Format["NumberFormat"], "g")
-        self.assertEqual(array.getValue(2,1).Format["NumberFormat"], "g")
-
-        self.assertEqual(array.getValue(0,0).UserString, self.getQuantity("10.00 C").UserString)
-        self.assertEqual(array.getValue(0,1).UserString, self.getQuantity("10.00 kg/m^3").UserString)
-        self.assertEqual(array.getValue(1,0).UserString, self.getQuantity("20.00 C").UserString)
-        self.assertEqual(array.getValue(1,1).UserString, self.getQuantity("20.00 kg/m^3").UserString)
-        self.assertEqual(array.getValue(2,0).UserString, self.getQuantity("30.00 C").UserString)
-        self.assertEqual(array.getValue(2,1).UserString, self.getQuantity("30.00 kg/m^3").UserString)
-
-        self.assertAlmostEqual(array.getValue(0,0).Value, 10.0)
-        self.assertAlmostEqual(array.getValue(0,1).Value, 1e-8)
-        self.assertAlmostEqual(array.getValue(1,0).Value, 20.0)
-        self.assertAlmostEqual(array.getValue(1,1).Value, 2e-8)
-        self.assertAlmostEqual(array.getValue(2,0).Value, 30.0)
-        self.assertAlmostEqual(array.getValue(2,1).Value, 3e-8)
-
-        with self.assertRaises(IndexError):
-            self.assertAlmostEqual(array.getValue(-1,0).Value, 10.0)
-        with self.assertRaises(IndexError):
-            self.assertAlmostEqual(array.getValue(3,0).Value, 10.0)
-        with self.assertRaises(IndexError):
-            self.assertAlmostEqual(array.getValue(0,-1).Value, 10.0)
-        with self.assertRaises(IndexError):
-            self.assertAlmostEqual(array.getValue(0,2).Value, 10.0)
-
-        for rowIndex in range(0, array.Rows):
-            row = array.getRow(rowIndex)
-            self.assertIsNotNone(row)
-            self.assertEqual(len(row), 2)
-
-        with self.assertRaises(IndexError):
-            row = array.getRow(-1)
-        with self.assertRaises(IndexError):
-            row = array.getRow(3)
-
-    def test3DArray(self):
-        """
-        Test API access to 3D arrays
-        """
-
-        mat = self.MaterialManager.getMaterial("c6c64159-19c1-40b5-859c-10561f20f979")
-        self.assertIsNotNone(mat)
-        self.assertEqual(mat.Name, "Test Material")
-        self.assertEqual(mat.UUID, "c6c64159-19c1-40b5-859c-10561f20f979")
-
-        self.assertTrue(mat.hasPhysicalModel(self.uuids.TestModel))
-        self.assertFalse(mat.isPhysicalModelComplete(self.uuids.TestModel))
-
-        self.assertTrue(mat.hasPhysicalProperty("TestArray3D"))
-
-        array = mat.getPhysicalValue("TestArray3D")
-        self.assertIsNotNone(array)
-        self.assertEqual(array.Depth, 3)
-        self.assertEqual(array.Columns, 2)
-        self.assertEqual(array.getRows(), 2)
-        self.assertEqual(array.getRows(0), 2)
-        self.assertEqual(array.getRows(1), 0)
-        self.assertEqual(array.getRows(2), 3)
-
-        arrayData = array.Array
-        self.assertIsNotNone(arrayData)
-        self.assertEqual(len(arrayData), 3)
-        self.assertEqual(len(arrayData[0]), 2)
-        self.assertEqual(len(arrayData[1]), 0)
-        self.assertEqual(len(arrayData[2]), 3)
-
-        self.assertEqual(arrayData[0][0][0].Format["NumberFormat"], "g")
-        self.assertEqual(arrayData[0][0][1].Format["NumberFormat"], "g")
-        self.assertEqual(arrayData[0][1][0].Format["NumberFormat"], "g")
-        self.assertEqual(arrayData[0][1][1].Format["NumberFormat"], "g")
-        self.assertEqual(arrayData[2][0][0].Format["NumberFormat"], "g")
-        self.assertEqual(arrayData[2][0][1].Format["NumberFormat"], "g")
-        self.assertEqual(arrayData[2][1][0].Format["NumberFormat"], "g")
-        self.assertEqual(arrayData[2][1][1].Format["NumberFormat"], "g")
-        self.assertEqual(arrayData[2][2][0].Format["NumberFormat"], "g")
-        self.assertEqual(arrayData[2][2][1].Format["NumberFormat"], "g")
-
-        self.assertEqual(arrayData[0][0][0].UserString, self.getQuantity("11.00 Pa").UserString)
-        self.assertEqual(arrayData[0][0][1].UserString, self.getQuantity("12.00 Pa").UserString)
-        self.assertEqual(arrayData[0][1][0].UserString, self.getQuantity("21.00 Pa").UserString)
-        self.assertEqual(arrayData[0][1][1].UserString, self.getQuantity("22.00 Pa").UserString)
-        self.assertEqual(arrayData[2][0][0].UserString, self.getQuantity("10.00 Pa").UserString)
-        self.assertEqual(arrayData[2][0][1].UserString, self.getQuantity("11.00 Pa").UserString)
-        self.assertEqual(arrayData[2][1][0].UserString, self.getQuantity("20.00 Pa").UserString)
-        self.assertEqual(arrayData[2][1][1].UserString, self.getQuantity("21.00 Pa").UserString)
-        self.assertEqual(arrayData[2][2][0].UserString, self.getQuantity("30.00 Pa").UserString)
-        self.assertEqual(arrayData[2][2][1].UserString, self.getQuantity("31.00 Pa").UserString)
-
-        self.assertEqual(array.getDepthValue(0).UserString, self.getQuantity("10.00 C").UserString)
-        self.assertEqual(array.getDepthValue(1).UserString, self.getQuantity("20.00 C").UserString)
-        self.assertEqual(array.getDepthValue(2).UserString, self.getQuantity("30.00 C").UserString)
-
-        self.assertEqual(arrayData[0][0][-1].UserString, self.getQuantity("12.00 Pa").UserString)
-        with self.assertRaises(IndexError):
-            self.assertEqual(arrayData[0][0][2].UserString, self.getQuantity("11.00 Pa").UserString)
-        self.assertEqual(arrayData[0][-1][0].UserString, self.getQuantity("21.00 Pa").UserString)
-        with self.assertRaises(IndexError):
-            self.assertEqual(arrayData[0][2][0].UserString, self.getQuantity("11.00 Pa").UserString)
-        with self.assertRaises(IndexError):
-            self.assertEqual(arrayData[1][0][0].UserString, self.getQuantity("11.00 Pa").UserString)
-        self.assertEqual(arrayData[-1][0][0].UserString, self.getQuantity("10.00 Pa").UserString)
-        with self.assertRaises(IndexError):
-            self.assertEqual(arrayData[3][0][0].UserString, self.getQuantity("11.00 Pa").UserString)
-
-        with self.assertRaises(IndexError):
-            self.assertEqual(array.getDepthValue(-1).UserString,
-                             self.getQuantity("10.00 C").UserString)
-        with self.assertRaises(IndexError):
-            self.assertEqual(array.getDepthValue(3).UserString,
-                             self.getQuantity("10.00 C").UserString)
-
-        self.assertEqual(array.getValue(0,0,0).Format["NumberFormat"], "g")
-        self.assertEqual(array.getValue(0,0,1).Format["NumberFormat"], "g")
-        self.assertEqual(array.getValue(0,1,0).Format["NumberFormat"], "g")
-        self.assertEqual(array.getValue(0,1,1).Format["NumberFormat"], "g")
-        self.assertEqual(array.getValue(2,0,0).Format["NumberFormat"], "g")
-        self.assertEqual(array.getValue(2,0,1).Format["NumberFormat"], "g")
-        self.assertEqual(array.getValue(2,1,0).Format["NumberFormat"], "g")
-        self.assertEqual(array.getValue(2,1,1).Format["NumberFormat"], "g")
-        self.assertEqual(array.getValue(2,2,0).Format["NumberFormat"], "g")
-        self.assertEqual(array.getValue(2,2,1).Format["NumberFormat"], "g")
-
-        self.assertEqual(array.getValue(0,0,0).UserString, self.getQuantity("11.00 Pa").UserString)
-        self.assertEqual(array.getValue(0,0,1).UserString, self.getQuantity("12.00 Pa").UserString)
-        self.assertEqual(array.getValue(0,1,0).UserString, self.getQuantity("21.00 Pa").UserString)
-        self.assertEqual(array.getValue(0,1,1).UserString, self.getQuantity("22.00 Pa").UserString)
-        self.assertEqual(array.getValue(2,0,0).UserString, self.getQuantity("10.00 Pa").UserString)
-        self.assertEqual(array.getValue(2,0,1).UserString, self.getQuantity("11.00 Pa").UserString)
-        self.assertEqual(array.getValue(2,1,0).UserString, self.getQuantity("20.00 Pa").UserString)
-        self.assertEqual(array.getValue(2,1,1).UserString, self.getQuantity("21.00 Pa").UserString)
-        self.assertEqual(array.getValue(2,2,0).UserString, self.getQuantity("30.00 Pa").UserString)
-        self.assertEqual(array.getValue(2,2,1).UserString, self.getQuantity("31.00 Pa").UserString)
-
-        with self.assertRaises(IndexError):
-            self.assertEqual(array.getValue(0,0,-1).UserString,
-                             self.getQuantity("11.00 Pa").UserString)
-        with self.assertRaises(IndexError):
-            self.assertEqual(array.getValue(0,0,2).UserString,
-                             self.getQuantity("11.00 Pa").UserString)
-        with self.assertRaises(IndexError):
-            self.assertEqual(array.getValue(0,-1,0).UserString,
-                             self.getQuantity("11.00 Pa").UserString)
-        with self.assertRaises(IndexError):
-            self.assertEqual(array.getValue(0,2,0).UserString,
-                             self.getQuantity("11.00 Pa").UserString)
-        with self.assertRaises(IndexError):
-            self.assertEqual(array.getValue(1,0,0).UserString,
-                             self.getQuantity("11.00 Pa").UserString)
-        with self.assertRaises(IndexError):
-            self.assertEqual(array.getValue(-1,0,0).UserString,
-                             self.getQuantity("11.00 Pa").UserString)
-        with self.assertRaises(IndexError):
-            self.assertEqual(array.getValue(3,0,0).UserString,
-                             self.getQuantity("11.00 Pa").UserString)
+        with self.assertRaises(ValueError):
+            values = mat.interpolate2DMulti("TestArray2D3Column", 40.0)
+        values = mat.interpolate2DMulti("TestArray2D3Column", 40.0, extrapolate=True)
+        self.assertEqual(len(values), 2)
+        self.assertAlmostEqual(values[0],
+                               self.getQuantity("41.00 kg/m^3").Value,
+                               delta=maxErrorKg)
+        self.assertAlmostEqual(values[1],
+                               self.getQuantity("42.00 Pa").Value,
+                               delta=maxErrorPa)
