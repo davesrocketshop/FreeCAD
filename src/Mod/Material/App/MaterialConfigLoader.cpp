@@ -1022,7 +1022,7 @@ void MaterialConfigLoader::addLegacy(const QMap<QString, QString>& fcmat,
 {
     for (auto const& legacy : fcmat.keys()) {
         auto name = legacy;
-        int last = name.lastIndexOf(QLatin1String("/"));
+        int last = name.lastIndexOf(QStringLiteral("/"));
         if (last > 0) {
             name = name.mid(last + 1);
         }

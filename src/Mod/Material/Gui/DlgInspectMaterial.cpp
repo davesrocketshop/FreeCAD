@@ -120,7 +120,7 @@ void DlgInspectMaterial::appendClip(QString text)
 {
     // Need to add indent
     QString indent(clipboardIndent * 4, QLatin1Char(' '));
-    clipboardText += indent + text + QLatin1String("\n");
+    clipboardText += indent + text + QStringLiteral("\n");
 }
 
 QStandardItem* DlgInspectMaterial::clipItem(QString text)
@@ -144,7 +144,7 @@ void DlgInspectMaterial::unindent()
 
 void DlgInspectMaterial::update(std::vector<Gui::ViewProvider*>& views)
 {
-    clipboardText = QLatin1String("");
+    clipboardText = QStringLiteral("");
     clipboardIndent = 0;
     App::Document* doc = App::GetApplication().getActiveDocument();
     if (doc) {
@@ -166,7 +166,7 @@ void DlgInspectMaterial::update(std::vector<Gui::ViewProvider*>& views)
                 appendClip(tr("Label: ") + QString::fromUtf8(labelProp->getValue()));
             }
             else {
-                ui->editObjectLabel->setText(QLatin1String(""));
+                ui->editObjectLabel->setText(QStringLiteral(""));
             }
             ui->editObjectName->setText(QLatin1String(obj->getNameInDocument()));
             appendClip(tr("Internal Name: ") + QString::fromUtf8(obj->getNameInDocument()));
@@ -178,15 +178,15 @@ void DlgInspectMaterial::update(std::vector<Gui::ViewProvider*>& views)
                     ui->editSubShape->setText(QString::fromStdString(subObject.getSubNames()[0]));
                 }
                 else {
-                    ui->editSubShape->setText(QLatin1String(""));
+                    ui->editSubShape->setText(QStringLiteral(""));
                 }
             }
             else {
-                ui->editSubShape->setText(QLatin1String(""));
+                ui->editSubShape->setText(QStringLiteral(""));
             }
 
             auto subShapeType = QString::fromUtf8(obj->getTypeId().getName());
-            subShapeType.remove(subShapeType.indexOf(QLatin1String("::")), subShapeType.size());
+            subShapeType.remove(subShapeType.indexOf(QStringLiteral("::")), subShapeType.size());
             appendClip(tr("Type: ") + subShapeType);
             ui->editSubShapeType->setText(subShapeType);
             appendClip(tr("TypeID: ") + QString::fromUtf8(obj->getTypeId().getName()));

@@ -132,7 +132,8 @@ QString MaterialProperty::getString() const
         if (value.isNull()) {
             return {};
         }
-        return QString(QLatin1String("%L1")).arg(value.toFloat(), 0, 'g', MaterialValue::PRECISION);
+        return QString(QStringLiteral("%L1"))
+            .arg(value.toFloat(), 0, 'g', MaterialValue::PRECISION);
     }
     return getValue().toString();
 }
@@ -177,7 +178,7 @@ QString MaterialProperty::getDictionaryString() const
     }
     if (getType() == MaterialValue::Quantity) {
         auto quantity = getValue().value<Base::Quantity>();
-        auto string = QString(QLatin1String("%1 %2"))
+        auto string = QString(QStringLiteral("%1 %2"))
                           .arg(quantity.getValue(), 0, 'g', MaterialValue::PRECISION)
                           .arg(QString::fromStdString(quantity.getUnit().getString()));
         return string;
@@ -187,7 +188,7 @@ QString MaterialProperty::getDictionaryString() const
         if (value.isNull()) {
             return {};
         }
-        return QString(QLatin1String("%1")).arg(value.toFloat(), 0, 'g', MaterialValue::PRECISION);
+        return QStringLiteral("%1").arg(value.toFloat(), 0, 'g', MaterialValue::PRECISION);
     }
     return getValue().toString();
 }
@@ -561,7 +562,7 @@ QString Material::getAuthorAndLicense() const
     if (!_author.isNull()) {
         authorAndLicense = _author;
         if (!_license.isNull()) {
-            authorAndLicense += QLatin1String(" ") + _license;
+            authorAndLicense += QStringLiteral(" ") + _license;
         }
     }
     else if (!_license.isNull()) {
@@ -1125,8 +1126,7 @@ Material::getValueString(const std::map<QString, std::shared_ptr<MaterialPropert
             if (value.isNull()) {
                 return {};
             }
-            return QString(QLatin1String("%L1"))
-                .arg(value.toFloat(), 0, 'g', MaterialValue::PRECISION);
+            return QStringLiteral("%L1").arg(value.toFloat(), 0, 'g', MaterialValue::PRECISION);
         }
         return property->getValue().toString();
     }
@@ -1628,20 +1628,20 @@ Material& Material::operator=(const App::Material& other)
         addAppearance(ModelUUIDs::ModelUUID_Rendering_Basic);
     }
 
-    getAppearanceProperty(QLatin1String("AmbientColor"))->setColor(other.ambientColor);
-    getAppearanceProperty(QLatin1String("DiffuseColor"))->setColor(other.diffuseColor);
-    getAppearanceProperty(QLatin1String("SpecularColor"))->setColor(other.specularColor);
-    getAppearanceProperty(QLatin1String("EmissiveColor"))->setColor(other.emissiveColor);
-    getAppearanceProperty(QLatin1String("Shininess"))->setFloat(other.shininess);
-    getAppearanceProperty(QLatin1String("Transparency"))->setFloat(other.transparency);
+    getAppearanceProperty(QStringLiteral("AmbientColor"))->setColor(other.ambientColor);
+    getAppearanceProperty(QStringLiteral("DiffuseColor"))->setColor(other.diffuseColor);
+    getAppearanceProperty(QStringLiteral("SpecularColor"))->setColor(other.specularColor);
+    getAppearanceProperty(QStringLiteral("EmissiveColor"))->setColor(other.emissiveColor);
+    getAppearanceProperty(QStringLiteral("Shininess"))->setFloat(other.shininess);
+    getAppearanceProperty(QStringLiteral("Transparency"))->setFloat(other.transparency);
 
     if (!other.image.empty() || !other.imagePath.empty()) {
         if (!hasAppearanceModel(ModelUUIDs::ModelUUID_Rendering_Texture)) {
             addAppearance(ModelUUIDs::ModelUUID_Rendering_Texture);
         }
 
-        getAppearanceProperty(QLatin1String("TextureImage"))->setString(other.image);
-        getAppearanceProperty(QLatin1String("TexturePath"))->setString(other.imagePath);
+        getAppearanceProperty(QStringLiteral("TextureImage"))->setString(other.image);
+        getAppearanceProperty(QStringLiteral("TexturePath"))->setString(other.imagePath);
     }
 
     return *this;
@@ -1732,32 +1732,32 @@ App::Material Material::getMaterialAppearance() const
     App::Material material(App::Material::DEFAULT);
 
     bool custom = false;
-    if (hasAppearanceProperty(QLatin1String("AmbientColor"))) {
-        material.ambientColor = getAppearanceProperty(QLatin1String("AmbientColor"))->getColor();
+    if (hasAppearanceProperty(QStringLiteral("AmbientColor"))) {
+        material.ambientColor = getAppearanceProperty(QStringLiteral("AmbientColor"))->getColor();
         custom = true;
     }
-    if (hasAppearanceProperty(QLatin1String("DiffuseColor"))) {
-        material.diffuseColor = getAppearanceProperty(QLatin1String("DiffuseColor"))->getColor();
+    if (hasAppearanceProperty(QStringLiteral("DiffuseColor"))) {
+        material.diffuseColor = getAppearanceProperty(QStringLiteral("DiffuseColor"))->getColor();
         custom = true;
     }
-    if (hasAppearanceProperty(QLatin1String("SpecularColor"))) {
-        material.specularColor = getAppearanceProperty(QLatin1String("SpecularColor"))->getColor();
+    if (hasAppearanceProperty(QStringLiteral("SpecularColor"))) {
+        material.specularColor = getAppearanceProperty(QStringLiteral("SpecularColor"))->getColor();
         custom = true;
     }
-    if (hasAppearanceProperty(QLatin1String("EmissiveColor"))) {
-        material.emissiveColor = getAppearanceProperty(QLatin1String("EmissiveColor"))->getColor();
+    if (hasAppearanceProperty(QStringLiteral("EmissiveColor"))) {
+        material.emissiveColor = getAppearanceProperty(QStringLiteral("EmissiveColor"))->getColor();
         custom = true;
     }
-    if (hasAppearanceProperty(QLatin1String("Shininess"))) {
-        material.shininess = getAppearanceProperty(QLatin1String("Shininess"))->getFloat();
+    if (hasAppearanceProperty(QStringLiteral("Shininess"))) {
+        material.shininess = getAppearanceProperty(QStringLiteral("Shininess"))->getFloat();
         custom = true;
     }
-    if (hasAppearanceProperty(QLatin1String("Transparency"))) {
-        material.transparency = getAppearanceProperty(QLatin1String("Transparency"))->getFloat();
+    if (hasAppearanceProperty(QStringLiteral("Transparency"))) {
+        material.transparency = getAppearanceProperty(QStringLiteral("Transparency"))->getFloat();
         custom = true;
     }
-    if (hasAppearanceProperty(QLatin1String("TextureImage"))) {
-        auto property = getAppearanceProperty(QLatin1String("TextureImage"));
+    if (hasAppearanceProperty(QStringLiteral("TextureImage"))) {
+        auto property = getAppearanceProperty(QStringLiteral("TextureImage"));
         if (!property->isNull()) {
             Base::Console().Log("Has 'TextureImage'\n");
             material.image = property->getString().toStdString();
@@ -1765,8 +1765,8 @@ App::Material Material::getMaterialAppearance() const
 
         custom = true;
     }
-    else if (hasAppearanceProperty(QLatin1String("TexturePath"))) {
-        auto property = getAppearanceProperty(QLatin1String("TexturePath"));
+    else if (hasAppearanceProperty(QStringLiteral("TexturePath"))) {
+        auto property = getAppearanceProperty(QStringLiteral("TexturePath"));
         if (!property->isNull()) {
             Base::Console().Log("Has 'TexturePath'\n");
             material.imagePath = property->getString().toStdString();

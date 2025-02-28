@@ -89,7 +89,7 @@ void MaterialsEditor::setup()
     Gui::WaitCursor wc;
     ui->setupUi(this);
 
-    _warningIcon = QIcon(QLatin1String(":/icons/Warning.svg"));
+    _warningIcon = QIcon(QStringLiteral(":/icons/Warning.svg"));
 
     getFavorites();
     getRecents();
@@ -108,7 +108,7 @@ void MaterialsEditor::setup()
 
     resize(width, height);
 
-    ui->buttonURL->setIcon(QIcon(QLatin1String(":/icons/internet-web-browser.svg")));
+    ui->buttonURL->setIcon(QIcon(QStringLiteral(":/icons/internet-web-browser.svg")));
 
     connect(ui->standardButtons->button(QDialogButtonBox::Ok),
             &QPushButton::clicked,
@@ -905,7 +905,7 @@ bool MaterialsEditor::updateTexturePreview() const
     if (_material->hasModel(Materials::ModelUUIDs::ModelUUID_Rendering_Texture)) {
         // First try loading an embedded image
         try {
-            auto property = _material->getAppearanceProperty(QLatin1String("TextureImage"));
+            auto property = _material->getAppearanceProperty(QStringLiteral("TextureImage"));
             if (!property->isNull()) {
                 // Base::Console().Log("Has 'TextureImage'\n");
                 auto propertyValue = property->getString();
@@ -922,7 +922,7 @@ bool MaterialsEditor::updateTexturePreview() const
         // If no embedded image, load from a path
         if (!hasImage) {
             try {
-                auto property = _material->getAppearanceProperty(QLatin1String("TexturePath"));
+                auto property = _material->getAppearanceProperty(QStringLiteral("TexturePath"));
                 if (!property->isNull()) {
                     // Base::Console().Log("Has 'TexturePath'\n");
                     auto filePath = property->getString();
@@ -940,7 +940,7 @@ bool MaterialsEditor::updateTexturePreview() const
 
         // Apply any scaling
         try {
-            auto property = _material->getAppearanceProperty(QLatin1String("TextureScaling"));
+            auto property = _material->getAppearanceProperty(QStringLiteral("TextureScaling"));
             if (!property->isNull()) {
                 //scaling = property->getFloat();
                 // Base::Console().Log("Has 'TextureScaling' = %g\n", scaling);
@@ -959,43 +959,43 @@ bool MaterialsEditor::updateTexturePreview() const
 
 bool MaterialsEditor::updateMaterialPreview() const
 {
-    if (_material->hasAppearanceProperty(QLatin1String("AmbientColor"))) {
-        QString color = _material->getAppearanceValueString(QLatin1String("AmbientColor"));
+    if (_material->hasAppearanceProperty(QStringLiteral("AmbientColor"))) {
+        QString color = _material->getAppearanceValueString(QStringLiteral("AmbientColor"));
         _rendered->setAmbientColor(getColorHash(color, 255));
     }
     else {
         _rendered->resetAmbientColor();
     }
-    if (_material->hasAppearanceProperty(QLatin1String("DiffuseColor"))) {
-        QString color = _material->getAppearanceValueString(QLatin1String("DiffuseColor"));
+    if (_material->hasAppearanceProperty(QStringLiteral("DiffuseColor"))) {
+        QString color = _material->getAppearanceValueString(QStringLiteral("DiffuseColor"));
         _rendered->setDiffuseColor(getColorHash(color, 255));
     }
     else {
         _rendered->resetDiffuseColor();
     }
-    if (_material->hasAppearanceProperty(QLatin1String("SpecularColor"))) {
-        QString color = _material->getAppearanceValueString(QLatin1String("SpecularColor"));
+    if (_material->hasAppearanceProperty(QStringLiteral("SpecularColor"))) {
+        QString color = _material->getAppearanceValueString(QStringLiteral("SpecularColor"));
         _rendered->setSpecularColor(getColorHash(color, 255));
     }
     else {
         _rendered->resetSpecularColor();
     }
-    if (_material->hasAppearanceProperty(QLatin1String("EmissiveColor"))) {
-        QString color = _material->getAppearanceValueString(QLatin1String("EmissiveColor"));
+    if (_material->hasAppearanceProperty(QStringLiteral("EmissiveColor"))) {
+        QString color = _material->getAppearanceValueString(QStringLiteral("EmissiveColor"));
         _rendered->setEmissiveColor(getColorHash(color, 255));
     }
     else {
         _rendered->resetEmissiveColor();
     }
-    if (_material->hasAppearanceProperty(QLatin1String("Shininess"))) {
-        double value = _material->getAppearanceValue(QLatin1String("Shininess")).toDouble();
+    if (_material->hasAppearanceProperty(QStringLiteral("Shininess"))) {
+        double value = _material->getAppearanceValue(QStringLiteral("Shininess")).toDouble();
         _rendered->setShininess(value);
     }
     else {
         _rendered->resetShininess();
     }
-    if (_material->hasAppearanceProperty(QLatin1String("Transparency"))) {
-        double value = _material->getAppearanceValue(QLatin1String("Transparency")).toDouble();
+    if (_material->hasAppearanceProperty(QStringLiteral("Transparency"))) {
+        double value = _material->getAppearanceValue(QStringLiteral("Transparency")).toDouble();
         _rendered->setTransparency(value);
     }
     else {
