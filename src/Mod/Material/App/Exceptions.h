@@ -234,6 +234,42 @@ public:
     ~DeleteError() noexcept override = default;
 };
 
+class InterpolationError: public Base::Exception
+{
+public:
+    InterpolationError()
+    {
+        this->setMessage("Unable to interpolate");
+    }
+    explicit InterpolationError(char* msg)
+    {
+        this->setMessage(msg);
+    }
+    explicit InterpolationError(const QString& msg)
+    {
+        this->setMessage(msg.toStdString().c_str());
+    }
+    ~InterpolationError() noexcept override = default;
+};
+
+class InterpolationOutOfRangeError: public Base::Exception
+{
+public:
+    InterpolationOutOfRangeError()
+    {
+        this->setMessage("Interpolation point is out of range");
+    }
+    explicit InterpolationOutOfRangeError(char* msg)
+    {
+        this->setMessage(msg);
+    }
+    explicit InterpolationOutOfRangeError(const QString& msg)
+    {
+        this->setMessage(msg.toStdString().c_str());
+    }
+    ~InterpolationOutOfRangeError() noexcept override = default;
+};
+
 }  // namespace Materials
 
 #endif  // MATERIAL_EXCEPTIONS_H

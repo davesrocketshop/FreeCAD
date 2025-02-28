@@ -32,6 +32,7 @@
 
 #include "Exceptions.h"
 #include "MaterialValue.h"
+#include "Interpolator.h"
 
 
 using namespace Materials;
@@ -238,8 +239,7 @@ QString MaterialValue::getYAMLStringList() const
 {
     QString yaml;
     for (auto& it : getList()) {
-        yaml += QStringLiteral("\n      - \"") + escapeString(it.toString())
-            + QStringLiteral("\"");
+        yaml += QStringLiteral("\n      - \"") + escapeString(it.toString()) + QStringLiteral("\"");
     }
     return yaml;
 }
@@ -262,8 +262,8 @@ QString MaterialValue::getYAMLStringMultiLine() const
 {
     QString yaml;
     yaml = QStringLiteral(" |2");
-    auto list =
-        getValue().toString().split(QRegularExpression(QStringLiteral("[\r\n]")), Qt::SkipEmptyParts);
+    auto list = getValue().toString().split(QRegularExpression(QStringLiteral("[\r\n]")),
+                                            Qt::SkipEmptyParts);
     for (auto& it : list) {
         yaml += QStringLiteral("\n      ") + it;
     }
@@ -347,6 +347,15 @@ Material2DArray& Material2DArray::operator=(const Material2DArray& other)
     deepCopy(other);
 
     return *this;
+}
+
+QList<QVariant> Material2DArray::interpolate(const QVariant& samplePoint, bool extrapolate)
+{
+    if (!_interpolator) {
+        _interpolator = std::make_shared<InterpolatorSpline>(*this);
+    }
+
+    return _interpolator->interpolate(samplePoint, extrapolate);
 }
 
 void Material2DArray::deepCopy(const Material2DArray& other)

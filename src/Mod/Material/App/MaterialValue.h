@@ -35,6 +35,8 @@
 namespace Materials
 {
 
+class Interpolator;
+
 class MaterialsExport MaterialValue: public Base::BaseClass
 {
     TYPESYSTEM_HEADER();
@@ -150,6 +152,7 @@ public:
     {
         return _rows;
     }
+    QList<QVariant> interpolate(const QVariant& samplePoint, bool extrapolate);
 
     void validateRow(int row) const;
     void validateColumn(int column) const;
@@ -186,6 +189,8 @@ protected:
 private:
     static void dumpRow(const std::shared_ptr<QList<QVariant>>& row);
     void dump() const;
+
+    std::shared_ptr<Interpolator> _interpolator;
 };
 
 class MaterialsExport Material3DArray: public MaterialValue
@@ -204,6 +209,8 @@ public:
     {
         return _rowMap;
     }
+    const QList<std::shared_ptr<QList<QVariant>>>&
+    interpolate(const QVariant& samplePoint1, const QVariant& samplePoint2, bool extrapolate);
 
     void validateDepth(int level) const;
     void validateColumn(int column) const;
