@@ -209,7 +209,7 @@ public:
     {
         return _rowMap;
     }
-    const QList<std::shared_ptr<QList<QVariant>>>&
+    QList<QVariant>
     interpolate(const QVariant& samplePoint1, const QVariant& samplePoint2, bool extrapolate);
 
     void validateDepth(int level) const;
@@ -271,6 +271,9 @@ protected:
         _rowMap;
     int _currentDepth;
     int _columns;
+
+    std::shared_ptr<Interpolator> _interpolator;
+    QVariant _interpolationPoint;
 };
 
 }  // namespace Materials

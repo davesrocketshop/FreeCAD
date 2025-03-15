@@ -864,3 +864,14 @@ QString Material3DArray::getYAMLString() const
     yaml += QStringLiteral("]");
     return yaml;
 }
+
+QList<QVariant> Material3DArray::interpolate(const QVariant& samplePoint1,
+                                             const QVariant& samplePoint2,
+                                             bool extrapolate)
+{
+    if (!_interpolator || (_interpolationPoint != samplePoint2)) {
+        _interpolator = std::make_shared<InterpolatorSpline>(*this, samplePoint2);
+    }
+
+    return _interpolator->interpolate3D(samplePoint1);
+}

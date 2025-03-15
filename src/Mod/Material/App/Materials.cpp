@@ -223,6 +223,14 @@ QVariant MaterialProperty::interpolate3D(const QVariant& samplePoint1,
                                          const QVariant& samplePoint2,
                                          bool extrapolate)
 {
+    if (getType() == MaterialValue::Array3D) {
+        auto value = std::static_pointer_cast<Materials::Material3DArray>(getMaterialValue());
+        auto list = value->interpolate(samplePoint1, samplePoint2, extrapolate);
+        if (list.size() > 0) {
+            return list[0];
+        }
+    }
+
     throw InterpolationError();
 }
 
@@ -230,6 +238,11 @@ QList<QVariant> MaterialProperty::interpolate3DMulti(const QVariant& samplePoint
                                                      const QVariant& samplePoint2,
                                                      bool extrapolate)
 {
+    if (getType() == MaterialValue::Array3D) {
+        auto value = std::static_pointer_cast<Materials::Material3DArray>(getMaterialValue());
+        return value->interpolate(samplePoint1, samplePoint2, extrapolate);
+    }
+
     throw InterpolationError();
 }
 
@@ -1020,7 +1033,12 @@ QVariant Material::interpolate3D(const QString& name,
                                  const QVariant& samplePoint2,
                                  bool extrapolate)
 {
-    throw InterpolationError();
+    auto property = getPhysicalProperty(name);
+    if (property) {
+        return property->interpolate3D(samplePoint1, samplePoint2, extrapolate);
+    }
+
+    throw PropertyNotFound();
 }
 
 QList<QVariant> Material::interpolate3DMulti(const QString& name,
@@ -1028,7 +1046,12 @@ QList<QVariant> Material::interpolate3DMulti(const QString& name,
                                              const QVariant& samplePoint2,
                                              bool extrapolate)
 {
-    throw InterpolationError();
+    auto property = getPhysicalProperty(name);
+    if (property) {
+        return property->interpolate3DMulti(samplePoint1, samplePoint2, extrapolate);
+    }
+
+    throw PropertyNotFound();
 }
 
 std::shared_ptr<MaterialProperty> Material::getPhysicalProperty(const QString& name)

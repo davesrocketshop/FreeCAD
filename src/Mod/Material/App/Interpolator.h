@@ -52,14 +52,18 @@ public:
     Interpolator();
     explicit Interpolator(const Interpolator& other);
     explicit Interpolator(const Material2DArray& array);
+    explicit Interpolator(const Material3DArray& array, const QVariant& samplePoint);
     virtual ~Interpolator() = default;
 
     virtual QList<QVariant> interpolate(const QVariant& samplePoint, bool extrapolate) = 0;
-    virtual void create(const Material2DArray& array) = 0;
+    virtual QList<QVariant> interpolate3D(const QVariant& samplePoint) = 0;
 
 protected:
     static double valueOf(const QVariant& value);
     static bool compare(const std::vector<double>& a, const std::vector<double>& b);
+
+    virtual void create(const Material2DArray& array) = 0;
+    virtual void create(const Material3DArray& array, const QVariant& samplePoint) = 0;
 };
 
 typedef Eigen::Spline<double, 1> Spline2d;
@@ -70,15 +74,21 @@ public:
     InterpolatorSpline();
     explicit InterpolatorSpline(const InterpolatorSpline& other);
     explicit InterpolatorSpline(const Material2DArray& array);
+    explicit InterpolatorSpline(const Material3DArray& array, const QVariant& samplePoint);
     ~InterpolatorSpline() override = default;
 
     QList<QVariant> interpolate(const QVariant& samplePoint, bool extrapolate) override;
-    void create(const Material2DArray& array) override;
+    QList<QVariant> interpolate3D(const QVariant& samplePoint) override;
 
 private:
     double scale(double x) const;
     Eigen::RowVectorXd scaledValues(Eigen::VectorXd const& x_vec) const;
     Spline2d createInterpolator(std::vector<double>& abscissas, std::vector<double>& ordinates);
+
+    void create(const Material2DArray& array) override;
+    void create(const Material3DArray& array, const QVariant& samplePoint) override;
+    QList<Spline2d>
+    createSplines(const Material3DArray& array, int depth, const QVariant& samplePoint);
 
     QList<Spline2d> _interpolators;
     double _xmin;
