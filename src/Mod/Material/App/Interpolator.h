@@ -24,24 +24,11 @@
 
 #include <memory>
 
-// #include <QList>
-// #include <QMetaType>
-// #include <QVariant>
-
-#include <boost/math/interpolators/pchip.hpp>
-
-// #include <Gui/MetaTypes.h>
-
 #include <Eigen/Core>
 #include <unsupported/Eigen/Splines>
 
 #include <Mod/Material/MaterialGlobal.h>
 #include <Mod/Material/App/MaterialValue.h>
-
-namespace std
-{
-using boost::math::interpolators::pchip;
-}
 
 namespace Materials
 {
@@ -58,14 +45,10 @@ public:
     virtual QList<QVariant> interpolate(const QVariant& samplePoint, bool extrapolate) = 0;
     virtual QList<QVariant> interpolate(const QVariant& samplePoint1,
                                         const QVariant& samplePoint2) = 0;
-    // virtual QList<QVariant> interpolate3D(const QVariant& samplePoint) = 0;
 
 protected:
     static double valueOf(const QVariant& value);
     static bool compare(const std::vector<double>& a, const std::vector<double>& b);
-
-    // virtual void create(const Material2DArray& array) = 0;
-    // virtual void create(const Material3DArray& array, const QVariant& samplePoint) = 0;
 };
 
 typedef Eigen::Spline<double, 1> Spline2d;
