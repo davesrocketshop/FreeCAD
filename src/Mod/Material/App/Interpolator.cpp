@@ -131,10 +131,11 @@ QList<QVariant> InterpolatorSpline::interpolate(const QVariant& samplePoint, boo
     return ret;
 }
 
-QList<QVariant> InterpolatorSpline::interpolate3D(const QVariant& samplePoint)
+QList<QVariant> InterpolatorSpline::interpolate(const QVariant& samplePoint1,
+                                                const QVariant& samplePoint2)
 {
     // May be a quantity, int, float, etc
-    auto pointValue = scale(valueOf(samplePoint));
+    auto pointValue = scale(valueOf(samplePoint1));
 
     // if (!extrapolate) {
     //     if ((pointValue < 0.0) || (pointValue > 1.0)) {
@@ -303,61 +304,194 @@ QList<Spline2d> InterpolatorSpline::createSplines(const Material3DArray& array,
     return interpolators;
 }
 
-/* TRANSLATOR Material::InterpolatorPchip */
+/* TRANSLATOR Material::InterpolatorSpline3D */
 
-InterpolatorPchip::InterpolatorPchip()
+InterpolatorSpline3D::InterpolatorSpline3D()
 {}
 
-InterpolatorPchip::InterpolatorPchip(const InterpolatorPchip& other)
-{}
+InterpolatorSpline3D::InterpolatorSpline3D(const InterpolatorSpline3D& other)
+    : _xmin(other._xmin)
+    , _xmax(other._xmax)
+{
+    for (auto interp : other._interpolators) {
+        _interpolators.append(Spline3d(interp));
+    }
+}
 
-InterpolatorPchip::InterpolatorPchip(const Material2DArray& array)
+InterpolatorSpline3D::InterpolatorSpline3D(const Material3DArray& array)
 {
     create(array);
 }
 
-QList<QVariant> InterpolatorPchip::interpolate(const QVariant& samplePoint, bool extrapolate)
+double InterpolatorSpline3D::scale(double x) const
+{
+    // Helpers to scale X values down to [0, 1]
+    return (x - _xmin) / (_xmax - _xmin);
+}
+
+Eigen::RowVectorXd InterpolatorSpline3D::scaledValues(Eigen::VectorXd const& x_vec) const
+{
+    return x_vec
+        .unaryExpr([this](double x) {
+            return scale(x);
+        })
+        .transpose();
+}
+
+QList<QVariant> InterpolatorSpline3D::interpolate(const QVariant& samplePoint, bool extrapolate)
 {
     // May be a quantity, int, float, etc
-    auto pointValue = valueOf(samplePoint);
+    auto pointValue = scale(valueOf(samplePoint));
+    // Base::Console().Log("sample point(%f)->%f\n", valueOf(samplePoint), pointValue);
+
+    if (!extrapolate) {
+        if ((pointValue < 0.0) || (pointValue > 1.0)) {
+            throw InterpolationOutOfRangeError();
+        }
+    }
 
     QList<QVariant> ret;
-    // createInterpolators();
 
     for (auto interp : _interpolators) {
-        ret.append(interp(pointValue));
+        auto values = interp(pointValue);
+        ret.append(values(0));
     }
 
     return ret;
 }
 
-std::pchip<std::vector<double>>
-InterpolatorPchip::createInterpolator(std::vector<double>& abscissas,
-                                      std::vector<double>& ordinates)
+QList<QVariant> InterpolatorSpline3D::interpolate(const QVariant& samplePoint1,
+                                                const QVariant& samplePoint2)
 {
-    return std::pchip<std::vector<double>>(std::move(abscissas), std::move(ordinates));
+    // May be a quantity, int, float, etc
+    auto pointValue1 = scale(valueOf(samplePoint1));
+    auto pointValue2 = scale(valueOf(samplePoint2));
+
+    // if (!extrapolate) {
+    //     if ((pointValue < 0.0) || (pointValue > 1.0)) {
+    //         throw InterpolationOutOfRangeError();
+    //     }
+    // }
+
+    QList<QVariant> ret;
+
+    for (auto interp : _interpolators) {
+        // auto values = interp(pointValue1, pointValue2);
+        auto values = interp(pointValue1);
+        ret.append(values(0));
+    }
+
+    return ret;
 }
 
-void InterpolatorPchip::create(const Material2DArray& array)
+Spline3d InterpolatorSpline3D::createInterpolator(std::vector<double>& abscissas,
+                                                std::vector<double>& ordinates)
 {
-    if (array.columns() < 2 || array.rows() < 4) {  // 4 rows for pchip
-        throw InterpolationError(QLatin1String("No data to interpolate"));
+    Eigen::VectorXd x_vec(abscissas.size());
+    Eigen::VectorXd y_vec(abscissas.size());
+    for (int index = 0; index < abscissas.size(); index++) {
+        x_vec(index) = abscissas[index];
+        y_vec(index) = ordinates[index];
     }
+
+    // No more than cubic spline, but accept short vectors.
+    return Eigen::SplineFitting<Spline3d>::Interpolate(y_vec.transpose(),
+                                                       std::min<int>(x_vec.rows() - 1, 3),
+                                                       scaledValues(x_vec));
+}
+
+void InterpolatorSpline3D::create(const Material3DArray& array)
+{
+    // auto depth = array.depth();
+    // if (depth < 2 || array.columns() < 2) {
+    //     throw InterpolationError(QLatin1String("No data to interpolate"));
+    // }
+
+    // std::vector<std::vector<double>> depthArray;
+    // for (int i = 0; i < depth; i++) {
+    //     if (array.rows(i) < 2) {
+    //         throw InterpolationError(QLatin1String("No data to interpolate"));
+    //     }
+
+    //     QList<Spline2d> splines = createSplines(array, depth, samplePoint);
+    //     std::vector<double> rowCopy;
+    //     rowCopy.push_back(array.getDepthValue(i).getValue());
+    //     for (auto column : splines) {
+    //         auto value = column(valueOf(samplePoint));
+    //         rowCopy.push_back(value(0));
+    //     }
+    //     depthArray.push_back(rowCopy);
+    // }
+
+    // // Sort the array so that the abscissas are in order
+    // std::vector<std::vector<double>> sortArray;
+    // for (auto row : depthArray) {
+    //     std::vector<double> rowCopy;
+    //     for (auto column : row) {
+    //         rowCopy.push_back(valueOf(column));
+    //     }
+    //     sortArray.push_back(rowCopy);
+    // }
+    // std::sort(sortArray.begin(), sortArray.end(), compare);
+
+
+    // std::vector<double> abscissas;
+    // std::vector<std::vector<double>> ordinates;
+    // for (int i = 1; i < array.columns(); i++) {
+    //     ordinates.push_back(std::vector<double>());
+    // }
+    // for (auto row : sortArray) {
+    //     abscissas.push_back(valueOf(row[0]));
+    //     for (int i = 1; i < array.columns(); i++) {
+    //         ordinates[i - 1].push_back(valueOf(row[i]));
+    //     }
+    // }
+
+    // // _xmin = abscissas[0];
+    // // _xmax = abscissas[array.rows() - 1];
+
+    // _interpolators.clear();
+    // for (auto ordinate : ordinates) {
+    //     _interpolators.append(createInterpolator(abscissas, ordinate));
+    // }
+}
+
+QList<Spline3d> InterpolatorSpline3D::createSplines(const Material3DArray& array,
+                                                  int depth,
+                                                  const QVariant& samplePoint)
+{
+    auto& table = array.getTable(depth);
+
+    // Sort the array so that the abscissas are in order
+    std::vector<std::vector<double>> sortArray;
+    for (auto row : *table) {
+        std::vector<double> rowCopy;
+        for (auto column : *row) {
+            rowCopy.push_back(column.getValue());
+        }
+        sortArray.push_back(rowCopy);
+    }
+    std::sort(sortArray.begin(), sortArray.end(), compare);
+
 
     std::vector<double> abscissas;
     std::vector<std::vector<double>> ordinates;
     for (int i = 1; i < array.columns(); i++) {
         ordinates.push_back(std::vector<double>());
     }
-    for (auto row : array.getArray()) {
-        abscissas.push_back(valueOf(row->at(0)));
+    for (auto row : sortArray) {
+        abscissas.push_back(row[0]);
         for (int i = 1; i < array.columns(); i++) {
-            ordinates[i - 1].push_back(valueOf(row->at(i)));
+            ordinates[i - 1].push_back(row[i]);
         }
     }
 
-    _interpolators.clear();
-    for (auto ordinate : ordinates) {
-        _interpolators.append(createInterpolator(abscissas, ordinate));
-    }
+    // _xmin = abscissas[0];
+    // _xmax = abscissas[array.rows() - 1];
+
+    QList<Spline3d> interpolators;
+    // for (auto ordinate : ordinates) {
+    //     interpolators.append(createInterpolator(abscissas, ordinate));
+    // }
+    return interpolators;
 }
