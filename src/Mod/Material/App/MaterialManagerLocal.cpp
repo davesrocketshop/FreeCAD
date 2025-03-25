@@ -45,8 +45,8 @@ using namespace Materials;
 
 /* TRANSLATOR Material::Materials */
 
-std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>>
-    MaterialManagerLocal::_libraryList = nullptr;
+std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>> MaterialManagerLocal::_libraryList =
+    nullptr;
 std::shared_ptr<std::map<QString, std::shared_ptr<Material>>> MaterialManagerLocal::_materialMap =
     nullptr;
 QMutex MaterialManagerLocal::_mutex;
@@ -199,18 +199,17 @@ void MaterialManagerLocal::removeLibrary(const QString& libraryName)
     throw LibraryNotFound();
 }
 
-std::shared_ptr<std::vector<std::tuple<QString, QString, QString>>>
+std::shared_ptr<std::vector<LibraryObject>>
 MaterialManagerLocal::libraryMaterials(const QString& libraryName)
 {
-    auto materials = std::make_shared<std::vector<std::tuple<QString, QString, QString>>>();
+    auto materials = std::make_shared<std::vector<LibraryObject>>();
 
     for (auto& it : *_materialMap) {
         // This is needed to resolve cyclic dependencies
         auto library = it.second->getLibrary();
         if (library->sameName(libraryName)) {
-            materials->push_back(std::tuple<QString, QString, QString>(it.first,
-                                                                       it.second->getDirectory(),
-                                                                       it.second->getName()));
+            materials->push_back(
+                LibraryObject(it.first, it.second->getDirectory(), it.second->getName()));
         }
     }
 
@@ -218,8 +217,8 @@ MaterialManagerLocal::libraryMaterials(const QString& libraryName)
 }
 
 bool MaterialManagerLocal::passFilter(const std::shared_ptr<Material>& material,
-                                          const std::shared_ptr<Materials::MaterialFilter>& filter,
-                                          const Materials::MaterialFilterOptions& options) const
+                                      const std::shared_ptr<Materials::MaterialFilter>& filter,
+                                      const Materials::MaterialFilterOptions& options) const
 {
     if (!filter) {
         // If there's no filter we always include
@@ -235,21 +234,20 @@ bool MaterialManagerLocal::passFilter(const std::shared_ptr<Material>& material,
     return filter->modelIncluded(material);
 }
 
-std::shared_ptr<std::vector<std::tuple<QString, QString, QString>>>
+std::shared_ptr<std::vector<LibraryObject>>
 MaterialManagerLocal::libraryMaterials(const QString& libraryName,
                                        const std::shared_ptr<MaterialFilter>& filter,
                                        const MaterialFilterOptions& options)
 {
-    auto materials = std::make_shared<std::vector<std::tuple<QString, QString, QString>>>();
+    auto materials = std::make_shared<std::vector<LibraryObject>>();
 
     for (auto& it : *_materialMap) {
         // This is needed to resolve cyclic dependencies
         auto library = it.second->getLibrary();
         if (library->sameName(libraryName)) {
             if (passFilter(it.second, filter, options)) {
-                materials->push_back(std::tuple<QString, QString, QString>(it.first,
-                                                                        it.second->getDirectory(),
-                                                                        it.second->getName()));
+                materials->push_back(
+                    LibraryObject(it.first, it.second->getDirectory(), it.second->getName()));
             }
         }
     }
@@ -520,11 +518,10 @@ MaterialManagerLocal::getConfiguredLibraries()
     if (useBuiltInMaterials) {
         QString resourceDir = QString::fromStdString(App::Application::getResourceDir()
                                                      + "/Mod/Material/Resources/Materials");
-        auto libData =
-            std::make_shared<MaterialLibraryLocal>(QStringLiteral("System"),
-                                                   resourceDir,
-                                                   QStringLiteral(":/icons/freecad.svg"),
-                                                   true);
+        auto libData = std::make_shared<MaterialLibraryLocal>(QStringLiteral("System"),
+                                                              resourceDir,
+                                                              QStringLiteral(":/icons/freecad.svg"),
+                                                              true);
         libraryList->push_back(libData);
     }
 
@@ -579,11 +576,11 @@ MaterialManagerLocal::getConfiguredLibraries()
         if (!resourceDir.isEmpty()) {
             QDir materialDir(resourceDir);
             if (materialDir.exists()) {
-                auto libData = std::make_shared<MaterialLibraryLocal>(
-                    QStringLiteral("Custom"),
-                    resourceDir,
-                    QStringLiteral(":/icons/user.svg"),
-                    false);
+                auto libData =
+                    std::make_shared<MaterialLibraryLocal>(QStringLiteral("Custom"),
+                                                           resourceDir,
+                                                           QStringLiteral(":/icons/user.svg"),
+                                                           false);
                 libraryList->push_back(libData);
             }
         }

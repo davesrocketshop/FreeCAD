@@ -32,6 +32,41 @@
 namespace Materials
 {
 
+class MaterialsExport LibraryObject
+{
+public:
+    LibraryObject() = default;
+    LibraryObject(const QString& uuid, const QString& directory, const QString& name)
+        : _uuid(uuid)
+        , _directory(directory)
+        , _name(name)
+    {}
+    LibraryObject(const LibraryObject& other)
+        : _uuid(other._uuid)
+        , _directory(other._directory)
+        , _name(other._name)
+    {}
+    ~LibraryObject() = default;
+
+    QString getUuid() const
+    {
+        return _uuid;
+    }
+    QString getDirectory() const
+    {
+        return _directory;
+    }
+    QString getName() const
+    {
+        return _name;
+    }
+
+private:
+    QString _uuid;
+    QString _directory;
+    QString _name;
+};
+
 class MaterialsExport Library: public Base::BaseClass
 {
     TYPESYSTEM_HEADER_WITH_OVERRIDE();

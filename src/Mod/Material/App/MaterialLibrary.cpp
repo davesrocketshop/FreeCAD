@@ -75,9 +75,9 @@ MaterialLibrary::getMaterialTree(const std::shared_ptr<Materials::MaterialFilter
 
     auto materials = MaterialManager::getManager().libraryMaterials(getName(), filter, options);
     for (auto& it : *materials) {
-        auto uuid = std::get<0>(it);
-        auto path = std::get<1>(it);
-        auto filename = std::get<2>(it);
+        auto uuid = it.getUuid();
+        auto path = it.getDirectory();
+        auto filename = it.getName();
 
         QStringList list = path.split(QStringLiteral("/"));
 

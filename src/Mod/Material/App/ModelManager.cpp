@@ -122,7 +122,7 @@ void ModelManager::removeLibrary(const QString& libraryName)
     _localManager->removeLibrary(libraryName);
 }
 
-std::shared_ptr<std::vector<std::tuple<QString, QString, QString>>>
+std::shared_ptr<std::vector<LibraryObject>>
 ModelManager::libraryModels(const QString& libraryName)
 {
     return _localManager->libraryModels(libraryName);
