@@ -555,13 +555,13 @@ QString Material::getAuthorAndLicense() const
     QString authorAndLicense;
 
     // Combine the author and license field for backwards compatibility
-    if (!_author.isNull()) {
+    if (!_author.isEmpty()) {
         authorAndLicense = _author;
-        if (!_license.isNull()) {
+        if (!_license.isEmpty()) {
             authorAndLicense += QStringLiteral(" ") + _license;
         }
     }
-    else if (!_license.isNull()) {
+    else if (!_license.isEmpty()) {
         authorAndLicense = _license;
     }
 
