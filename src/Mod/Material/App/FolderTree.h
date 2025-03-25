@@ -58,22 +58,22 @@ public:
 
     std::shared_ptr<std::map<QString, std::shared_ptr<FolderTreeNode<T>>>> getFolder() const
     {
-        assert(_type == NodeType::FolderNode);
+        // assert(_type == NodeType::FolderNode);
         return _folder;
     }
     std::shared_ptr<std::map<QString, std::shared_ptr<FolderTreeNode<T>>>> getFolder()
     {
-        assert(_type == NodeType::FolderNode);
+        // assert(_type == NodeType::FolderNode);
         return _folder;
     }
     std::shared_ptr<T> getData() const
     {
-        assert(_type == NodeType::DataNode);
+        // assert(_type == NodeType::DataNode);
         return _data;
     }
     QString getUUID() const
     {
-        assert(_type == NodeType::DataNode);
+        // assert(_type == NodeType::DataNode);
         return _uuid;
     }
 
