@@ -31,6 +31,7 @@
 
 #include "Exceptions.h"
 #include "MaterialValue.h"
+#include "Interpolator.h"
 
 
 using namespace Materials;
@@ -280,8 +281,7 @@ QString MaterialValue::getYAMLStringList() const
 {
     QString yaml;
     for (auto& it : getList()) {
-        yaml += QStringLiteral("\n      - \"") + escapeString(it.toString())
-            + QStringLiteral("\"");
+        yaml += QStringLiteral("\n      - \"") + escapeString(it.toString()) + QStringLiteral("\"");
     }
     return yaml;
 }
@@ -304,8 +304,8 @@ QString MaterialValue::getYAMLStringMultiLine() const
 {
     QString yaml;
     yaml = QStringLiteral(" |2");
-    auto list =
-        getValue().toString().split(QRegularExpression(QStringLiteral("[\r\n]")), Qt::SkipEmptyParts);
+    auto list = getValue().toString().split(QRegularExpression(QStringLiteral("[\r\n]")),
+                                            Qt::SkipEmptyParts);
     for (auto& it : list) {
         yaml += QStringLiteral("\n      ") + it;
     }
@@ -389,6 +389,15 @@ Array2D& Array2D::operator=(const Array2D& other)
     deepCopy(other);
 
     return *this;
+}
+
+QList<QVariant> Array2D::interpolate(const QVariant& samplePoint, bool extrapolate)
+{
+    if (!_interpolator) {
+        _interpolator = std::make_shared<InterpolatorSpline>(*this);
+    }
+
+    return _interpolator->interpolate(samplePoint, extrapolate);
 }
 
 void Array2D::deepCopy(const Array2D& other)
@@ -1014,4 +1023,15 @@ QString Array3D::getYAMLString() const
     }
     yaml += QStringLiteral("]");
     return yaml;
+}
+
+QList<QVariant> Array3D::interpolate(const QVariant& samplePoint1,
+                                             const QVariant& samplePoint2,
+                                             bool extrapolate)
+{
+    if (!_interpolator) {
+        _interpolator = std::make_shared<InterpolatorSpline3D>(*this);
+    }
+
+    return _interpolator->interpolate(samplePoint1, samplePoint2);
 }

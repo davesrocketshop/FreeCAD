@@ -108,6 +108,18 @@ public:
     }
     Base::Color getColor() const;
 
+    /*
+     * Interpolation methods for working with non-linear properties
+     */
+    QVariant interpolate2D(const QVariant& samplePoint, bool extrapolate = false);
+    QList<QVariant> interpolate2DMulti(const QVariant& samplePoint, bool extrapolate = false);
+    QVariant interpolate3D(const QVariant& samplePoint1,
+                           const QVariant& samplePoint2,
+                           bool extrapolate = false);
+    QList<QVariant> interpolate3DMulti(const QVariant& samplePoint1,
+                                       const QVariant& samplePoint2,
+                                       bool extrapolate = false);
+
     MaterialProperty& getColumn(int column);
     const MaterialProperty& getColumn(int column) const;
     MaterialValue::ValueType getColumnType(int column) const;
@@ -323,6 +335,22 @@ public:
      * These values are transient and will not be saved.
      */
     void setLegacyValue(const QString& name, const QString& value);
+
+    /*
+     * Interpolation methods for working with non-linear properties
+     */
+    QVariant
+    interpolate2D(const QString& name, const QVariant& samplePoint, bool extrapolate = false);
+    QList<QVariant>
+    interpolate2DMulti(const QString& name, const QVariant& samplePoint, bool extrapolate = false);
+    QVariant interpolate3D(const QString& name,
+                           const QVariant& samplePoint1,
+                           const QVariant& samplePoint2,
+                           bool extrapolate = false);
+    QList<QVariant> interpolate3DMulti(const QString& name,
+                                       const QVariant& samplePoint1,
+                                       const QVariant& samplePoint2,
+                                       bool extrapolate = false);
 
     std::shared_ptr<MaterialProperty> getPhysicalProperty(const QString& name);
     std::shared_ptr<MaterialProperty> getPhysicalProperty(const QString& name) const;

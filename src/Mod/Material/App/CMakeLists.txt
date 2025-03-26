@@ -88,6 +88,8 @@ SET(Materials_SRCS
     ${Python_SRCS}
     AppMaterial.cpp
     FolderTree.h
+    Interpolator.cpp
+    Interpolator.h
     Library.cpp
     Library.h
     MaterialConfigLoader.cpp
