@@ -46,15 +46,15 @@ class Array3D(BaseClass):
         ...
 
     @constmethod
-    def getDepthValue(self) -> Any:
+    def getDepthValue(self, depth: int) -> Any:
         """
-        Get the column value at the given depth
+        Get the value for the given depth
         """
         ...
 
-    def setDepthValue(self, value: Any):
+    def setDepthValue(self, depth: int, value: Any):
         """
-        Set the column value at the given depth
+        Set the value for the given depth
         """
         ...
 
