@@ -220,7 +220,7 @@ public:
         return _rowMap;
     }
     QList<QVariant>
-    interpolate(const QVariant& samplePoint1, const QVariant& samplePoint2, bool extrapolate);
+    interpolate(const QVariant& samplePoint1, const QVariant& samplePoint2);
 
     void validateDepth(int level) const;
     void validateColumn(int column) const;

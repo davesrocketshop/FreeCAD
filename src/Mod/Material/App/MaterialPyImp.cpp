@@ -751,9 +751,9 @@ PyObject* MaterialPy::interpolate2DMulti(PyObject* args, PyObject* kwds)
     }
 
     if (!sampled) {
-        PyErr_SetString(
-            PyExc_TypeError,
-            "interplate2D requires the name of a 2D array property and a point at which to sample");
+        PyErr_SetString(PyExc_TypeError,
+                        "interpolate2DMulti requires the name of a 2D array property and a point "
+                        "at which to sample");
         return nullptr;
     }
 
@@ -769,7 +769,7 @@ PyObject* MaterialPy::interpolate2DMulti(PyObject* args, PyObject* kwds)
     }
 
     if (property->getType() != MaterialValue::Array2D) {
-        PyErr_SetString(PyExc_TypeError, "interplate2D can only operate on a 2D array");
+        PyErr_SetString(PyExc_TypeError, "interpolate2DMulti can only operate on a 3D array");
         return nullptr;
     }
 
@@ -788,7 +788,7 @@ PyObject* MaterialPy::interpolate2DMulti(PyObject* args, PyObject* kwds)
     }
 }
 
-PyObject* MaterialPy::interpolate3D(PyObject* args, PyObject* kwds)
+PyObject* MaterialPy::interpolate3D(PyObject* args)
 {
     QVariant depth = 0.0;
     QVariant sample = 0.0;
@@ -797,21 +797,7 @@ PyObject* MaterialPy::interpolate3D(PyObject* args, PyObject* kwds)
     char* name;
     PyObject* depthPoint;
     PyObject* samplePoint;
-    PyObject* extrapolate = Py_False;
-    static const std::array<const char*, 5> kwlist {"name",
-                                                    "depth",
-                                                    "sample",
-                                                    "extrapolate",
-                                                    nullptr};
-    if (Base::Wrapped_ParseTupleAndKeywords(args,
-                                            kwds,
-                                            "sOO|O!",
-                                            kwlist,
-                                            &name,
-                                            &depthPoint,
-                                            &samplePoint,
-                                            &PyBool_Type,
-                                            &extrapolate)) {
+    if (PyArg_ParseTuple(args, "sOO", &name, &depthPoint, &samplePoint)) {
         try {
             depth = getValue(depthPoint);
             sample = getValue(samplePoint);
@@ -824,7 +810,7 @@ PyObject* MaterialPy::interpolate3D(PyObject* args, PyObject* kwds)
     if (!sampled) {
         PyErr_SetString(
             PyExc_TypeError,
-            "interplate2D requires the name of a 2D array property and a point at which to sample");
+            "interplate3D requires the name of a 3D array property and a point and depth at which to sample");
         return nullptr;
     }
 
@@ -845,7 +831,7 @@ PyObject* MaterialPy::interpolate3D(PyObject* args, PyObject* kwds)
     }
 
     try {
-        QVariant value = property->interpolate3D(depth, sample, Base::asBoolean(extrapolate));
+        QVariant value = property->interpolate3D(depth, sample);
         return _pyObjectFromVariant(value);
     }
     catch (InterpolationOutOfRangeError) {
@@ -854,30 +840,17 @@ PyObject* MaterialPy::interpolate3D(PyObject* args, PyObject* kwds)
     }
 }
 
-PyObject* MaterialPy::interpolate3DMulti(PyObject* args, PyObject* kwds)
+PyObject* MaterialPy::interpolate3DMulti(PyObject* args)
 {
-    QVariant sample = 0.0;
     QVariant depth = 0.0;
+    QVariant sample = 0.0;
     bool sampled = false;
 
     char* name;
     PyObject* depthPoint;
     PyObject* samplePoint;
-    PyObject* extrapolate = Py_False;
-    static const std::array<const char*, 5> kwlist {"name",
-                                                    "depth",
-                                                    "sample",
-                                                    "extrapolate",
-                                                    nullptr};
-    if (Base::Wrapped_ParseTupleAndKeywords(args,
-                                            kwds,
-                                            "sOO|O!",
-                                            kwlist,
-                                            &name,
-                                            &depthPoint,
-                                            &samplePoint,
-                                            &PyBool_Type,
-                                            &extrapolate)) {
+
+    if (PyArg_ParseTuple(args, "sOO", &name, &depthPoint, &samplePoint)) {
         try {
             depth = getValue(depthPoint);
             sample = getValue(samplePoint);
@@ -888,9 +861,9 @@ PyObject* MaterialPy::interpolate3DMulti(PyObject* args, PyObject* kwds)
     }
 
     if (!sampled) {
-        PyErr_SetString(
-            PyExc_TypeError,
-            "interplate2D requires the name of a 2D array property and a point at which to sample");
+        PyErr_SetString(PyExc_TypeError,
+                        "interplate3DMulti requires the name of a 3D array property and a point and "
+                        "depth at which to sample");
         return nullptr;
     }
 
@@ -911,7 +884,7 @@ PyObject* MaterialPy::interpolate3DMulti(PyObject* args, PyObject* kwds)
     }
 
     try {
-        QList<QVariant> value = property->interpolate3DMulti(depth, sample, Base::asBoolean(extrapolate));
+        QList<QVariant> value = property->interpolate3DMulti(depth, sample);
         Py::List list;
 
         for (auto it : value) {

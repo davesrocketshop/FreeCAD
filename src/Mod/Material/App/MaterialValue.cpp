@@ -30,8 +30,8 @@
 #include <Gui/MetaTypes.h>
 
 #include "Exceptions.h"
-#include "MaterialValue.h"
 #include "Interpolator.h"
+#include "MaterialValue.h"
 
 
 using namespace Materials;
@@ -505,6 +505,9 @@ void Array2D::deleteRow(int row)
 
 void Array2D::setRows(int rowCount)
 {
+    while (rows() > rowCount) {
+        deleteRow(rowCount);
+    }
     while (rows() < rowCount) {
         auto row = std::make_shared<QList<QVariant>>();
         for (int i = 0; i < columns(); i++) {
@@ -805,14 +808,16 @@ void Array3D::setDepth(int depthCount)
 {
     Base::Quantity dummy;
     dummy.setInvalid();
+
+    while (depth() > depthCount) {
+        deleteDepth(depthCount);
+    }
     while (depth() < depthCount) {
         addDepth(dummy);
     }
 }
 
-void Array3D::insertRow(int depth,
-                                int row,
-                                const std::shared_ptr<QList<Base::Quantity>>& rowData)
+void Array3D::insertRow(int depth, int row, const std::shared_ptr<QList<Base::Quantity>>& rowData)
 {
     try {
         auto table = getTable(depth);
@@ -865,9 +870,14 @@ int Array3D::rows(int depth) const
 
 void Array3D::setRows(int depth, int rowCount)
 {
+    validateDepth(depth);
+
     Base::Quantity dummy;
     dummy.setInvalid();
 
+    while (rows(depth) > rowCount) {
+        deleteRow(depth, rowCount);
+    }
     while (rows(depth) < rowCount) {
         auto row = std::make_shared<QList<Base::Quantity>>();
         for (int i = 0; i < columns(); i++) {
@@ -1025,9 +1035,7 @@ QString Array3D::getYAMLString() const
     return yaml;
 }
 
-QList<QVariant> Array3D::interpolate(const QVariant& samplePoint1,
-                                             const QVariant& samplePoint2,
-                                             bool extrapolate)
+QList<QVariant> Array3D::interpolate(const QVariant& samplePoint1, const QVariant& samplePoint2)
 {
     if (!_interpolator) {
         _interpolator = std::make_shared<InterpolatorSpline3D>(*this);

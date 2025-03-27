@@ -220,12 +220,11 @@ QList<QVariant> MaterialProperty::interpolate2DMulti(const QVariant& samplePoint
 }
 
 QVariant MaterialProperty::interpolate3D(const QVariant& samplePoint1,
-                                         const QVariant& samplePoint2,
-                                         bool extrapolate)
+                                         const QVariant& samplePoint2)
 {
     if (getType() == MaterialValue::Array3D) {
         auto value = std::static_pointer_cast<Materials::Array3D>(getMaterialValue());
-        auto list = value->interpolate(samplePoint1, samplePoint2, extrapolate);
+        auto list = value->interpolate(samplePoint1, samplePoint2);
         if (list.size() > 0) {
             return list[0];
         }
@@ -235,12 +234,11 @@ QVariant MaterialProperty::interpolate3D(const QVariant& samplePoint1,
 }
 
 QList<QVariant> MaterialProperty::interpolate3DMulti(const QVariant& samplePoint1,
-                                                     const QVariant& samplePoint2,
-                                                     bool extrapolate)
+                                                     const QVariant& samplePoint2)
 {
     if (getType() == MaterialValue::Array3D) {
         auto value = std::static_pointer_cast<Materials::Array3D>(getMaterialValue());
-        return value->interpolate(samplePoint1, samplePoint2, extrapolate);
+        return value->interpolate(samplePoint1, samplePoint2);
     }
 
     throw InterpolationError();
@@ -1083,12 +1081,11 @@ Material::interpolate2DMulti(const QString& name, const QVariant& samplePoint, b
 
 QVariant Material::interpolate3D(const QString& name,
                                  const QVariant& samplePoint1,
-                                 const QVariant& samplePoint2,
-                                 bool extrapolate)
+                                 const QVariant& samplePoint2)
 {
     auto property = getPhysicalProperty(name);
     if (property) {
-        return property->interpolate3D(samplePoint1, samplePoint2, extrapolate);
+        return property->interpolate3D(samplePoint1, samplePoint2);
     }
 
     throw PropertyNotFound();
@@ -1096,12 +1093,11 @@ QVariant Material::interpolate3D(const QString& name,
 
 QList<QVariant> Material::interpolate3DMulti(const QString& name,
                                              const QVariant& samplePoint1,
-                                             const QVariant& samplePoint2,
-                                             bool extrapolate)
+                                             const QVariant& samplePoint2)
 {
     auto property = getPhysicalProperty(name);
     if (property) {
-        return property->interpolate3DMulti(samplePoint1, samplePoint2, extrapolate);
+        return property->interpolate3DMulti(samplePoint1, samplePoint2);
     }
 
     throw PropertyNotFound();

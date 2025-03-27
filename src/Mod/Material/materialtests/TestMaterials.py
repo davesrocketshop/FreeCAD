@@ -27,6 +27,7 @@ Test module for FreeCAD material cards and APIs
 import unittest
 import FreeCAD
 import Materials
+import math
 
 parseQuantity = FreeCAD.Units.parseQuantity
 
@@ -405,6 +406,27 @@ class MaterialTestCases(unittest.TestCase):
         with self.assertRaises(IndexError):
             row = array.getRow(3)
 
+        array.Rows = 0
+        self.assertEqual(array.Rows, 0)
+
+        array.Rows = 5
+        self.assertEqual(array.Rows, 5)
+
+        for rowIndex in range(0, array.Rows):
+            row = array.getRow(rowIndex)
+            self.assertIsNotNone(row)
+            self.assertEqual(len(row), 2)
+            # Values were reset when rows were deleted
+            self.assertAlmostEqual(row[0].Value, 0.0)
+            self.assertAlmostEqual(row[1].Value, 0.0)
+            self.assertAlmostEqual(array.getValue(rowIndex,0).Value, 0.0)
+            self.assertAlmostEqual(array.getValue(rowIndex,1).Value, 0.0)
+
+        with self.assertRaises(IndexError):
+            row = array.getRow(-1)
+        with self.assertRaises(IndexError):
+            row = array.getRow(5)
+
     def test3DArray(self):
         """
         Test API access to 3D arrays
@@ -524,3 +546,49 @@ class MaterialTestCases(unittest.TestCase):
         with self.assertRaises(IndexError):
             self.assertEqual(array.getValue(3,0,0).UserString,
                              self.getQuantity("11.00 Pa").UserString)
+
+        for depthIndex in range(0, array.Depth):
+            for rowIndex in range(0, array.getRows(depthIndex)):
+                row = array.getRow(depthIndex, rowIndex)
+                self.assertIsNotNone(row)
+                self.assertEqual(len(row), 2)
+
+            with self.assertRaises(IndexError):
+                row = array.getRow(depthIndex, -1)
+            with self.assertRaises(IndexError):
+                row = array.getRow(depthIndex, array.getRows(depthIndex))
+
+        self.assertEqual(array.getRows(0), 2)
+        self.assertEqual(array.getRows(1), 0)
+        self.assertEqual(array.getRows(2), 3)
+
+        array.setRows(2, 0)
+        self.assertEqual(array.getRows(0), 2)
+        self.assertEqual(array.getRows(1), 0)
+        self.assertEqual(array.getRows(2), 0)
+
+        array.setRows(2, 5)
+        self.assertEqual(array.getRows(0), 2)
+        self.assertEqual(array.getRows(1), 0)
+        self.assertEqual(array.getRows(2), 5)
+
+        array.Depth = 0
+        self.assertEqual(array.Depth, 0)
+
+        array.Depth = 2
+        self.assertEqual(array.Depth, 2)
+
+        for depthIndex in range(0, array.Depth):
+            self.assertEqual(array.getRows(depthIndex), 0)
+
+            array.setRows(depthIndex, depthIndex)
+            self.assertEqual(array.getRows(depthIndex), depthIndex)
+            for rowIndex in range(0, array.getRows(depthIndex)):
+                row = array.getRow(depthIndex, rowIndex)
+                self.assertIsNotNone(row)
+                self.assertEqual(len(row), 2)
+                # Values were reset when rows were deleted
+                self.assertTrue(math.isnan(row[0].Value))
+                self.assertTrue(math.isnan(row[1].Value))
+                self.assertTrue(math.isnan(array.getValue(depthIndex, rowIndex, 0).Value))
+                self.assertTrue(math.isnan(array.getValue(depthIndex, rowIndex, 1).Value))

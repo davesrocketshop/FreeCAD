@@ -34,14 +34,22 @@ class Array3D(BaseClass):
     @constmethod
     def getRows(self) -> int:
         """
-        Get the number of rows in the array at the specified depth.
+        Get the number of rows in the array at the specified depth. If no depth is
+        specified it will use the last used depth
         """
         ...
 
     @constmethod
-    def getValue(self) -> Any:
+    def getRow(self, depth: int, row: int) -> List:
         """
-        Get the value at the given row and column
+        Get the row given the depth and row indices
+        """
+        ...
+
+    @constmethod
+    def getValue(self, depth: int, row: int, column: int) -> Any:
+        """
+        Get the value at the given depth, row, and column
         """
         ...
 

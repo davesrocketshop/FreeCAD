@@ -118,6 +118,33 @@ PyObject* Array3DPy::getRows(PyObject* args)
     return PyLong_FromLong(getArray3DPtr()->rows(depth));
 }
 
+PyObject* Array3DPy::getRow(PyObject* args)
+{
+    int depth;
+    int row;
+    if (!PyArg_ParseTuple(args, "ii", &depth, &row)) {
+        return nullptr;
+    }
+
+    try {
+        Py::List list;
+
+        auto arrayRow = getArray3DPtr()->getRow(depth, row);
+        for (auto& column : *arrayRow) {
+            auto quantity =
+                new Base::QuantityPy(new Base::Quantity(column));
+            list.append(Py::asObject(quantity));
+        }
+
+        return Py::new_reference_to(list);
+    }
+    catch (const InvalidIndex&) {
+    }
+
+    PyErr_SetString(PyExc_IndexError, "Invalid array index");
+    return nullptr;
+}
+
 PyObject* Array3DPy::getValue(PyObject* args)
 {
     int depth;
@@ -206,7 +233,13 @@ PyObject* Array3DPy::setRows(PyObject* args)
         return nullptr;
     }
 
-    getArray3DPtr()->setRows(depth, rows);
+    try {
+        getArray3DPtr()->setRows(depth, rows);
+    }
+    catch (const InvalidIndex&) {
+        PyErr_SetString(PyExc_IndexError, "Invalid array index");
+        return nullptr;
+    }
     Py_Return;
 }
 

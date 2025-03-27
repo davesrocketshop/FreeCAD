@@ -153,11 +153,11 @@ class Material(BaseClass):
         """Get interpolated values from a multi-column 2D array at the specified sample point"""
         ...
 
-    def interpolate3D(self, name: str, depth: Any, sample: Any, **kwargs) -> Any:
+    def interpolate3D(self, name: str, depth: Any, sample: Any) -> Any:
         """Get an interpolated value from a 3D array at the specified depth and sample point"""
         ...
 
-    def interpolate3DMulti(self, name: str, depth: Any, sample: Any, **kwargs) -> Any:
+    def interpolate3DMulti(self, name: str, depth: Any, sample: Any) -> Any:
         """Get interpolated values from a multi-column 3D array at the specified depth and sample point"""
         ...
 

@@ -114,11 +114,9 @@ public:
     QVariant interpolate2D(const QVariant& samplePoint, bool extrapolate = false);
     QList<QVariant> interpolate2DMulti(const QVariant& samplePoint, bool extrapolate = false);
     QVariant interpolate3D(const QVariant& samplePoint1,
-                           const QVariant& samplePoint2,
-                           bool extrapolate = false);
+                           const QVariant& samplePoint2);
     QList<QVariant> interpolate3DMulti(const QVariant& samplePoint1,
-                                       const QVariant& samplePoint2,
-                                       bool extrapolate = false);
+                                       const QVariant& samplePoint2);
 
     MaterialProperty& getColumn(int column);
     const MaterialProperty& getColumn(int column) const;
@@ -345,12 +343,10 @@ public:
     interpolate2DMulti(const QString& name, const QVariant& samplePoint, bool extrapolate = false);
     QVariant interpolate3D(const QString& name,
                            const QVariant& samplePoint1,
-                           const QVariant& samplePoint2,
-                           bool extrapolate = false);
+                           const QVariant& samplePoint2);
     QList<QVariant> interpolate3DMulti(const QString& name,
                                        const QVariant& samplePoint1,
-                                       const QVariant& samplePoint2,
-                                       bool extrapolate = false);
+                                       const QVariant& samplePoint2);
 
     std::shared_ptr<MaterialProperty> getPhysicalProperty(const QString& name);
     std::shared_ptr<MaterialProperty> getPhysicalProperty(const QString& name) const;
