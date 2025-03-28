@@ -685,7 +685,7 @@ PyObject* MaterialPy::interpolate2D(PyObject* args, PyObject* kwds)
                                             &PyBool_Type,
                                             &extrapolate)) {
         try {
-            sample = getValue(samplePoint);
+            sample = MaterialValue::getValue(samplePoint);
             sampled = true;
         }
         catch (const Base::TypeError& error) {
@@ -743,7 +743,7 @@ PyObject* MaterialPy::interpolate2DMulti(PyObject* args, PyObject* kwds)
                                             &PyBool_Type,
                                             &extrapolate)) {
         try {
-            sample = getValue(samplePoint);
+            sample = MaterialValue::getValue(samplePoint);
             sampled = true;
         }
         catch (const Base::TypeError& error) {
@@ -799,8 +799,8 @@ PyObject* MaterialPy::interpolate3D(PyObject* args)
     PyObject* samplePoint;
     if (PyArg_ParseTuple(args, "sOO", &name, &depthPoint, &samplePoint)) {
         try {
-            depth = getValue(depthPoint);
-            sample = getValue(samplePoint);
+            depth = MaterialValue::getValue(depthPoint);
+            sample = MaterialValue::getValue(samplePoint);
             sampled = true;
         }
         catch (const Base::TypeError&) {
@@ -852,8 +852,8 @@ PyObject* MaterialPy::interpolate3DMulti(PyObject* args)
 
     if (PyArg_ParseTuple(args, "sOO", &name, &depthPoint, &samplePoint)) {
         try {
-            depth = getValue(depthPoint);
-            sample = getValue(samplePoint);
+            depth = MaterialValue::getValue(depthPoint);
+            sample = MaterialValue::getValue(samplePoint);
             sampled = true;
         }
         catch (const Base::TypeError&) {

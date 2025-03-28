@@ -149,3 +149,60 @@ class InterpolationTestCases(unittest.TestCase):
         self.assertAlmostEqual(values[1],
                                self.getQuantity("42.00 Pa").Value,
                                delta=maxErrorPa)
+
+    def testInterp3D(self):
+        """
+        Test interpolation for a 3D 2 column array
+        """
+
+        mat = self.MaterialManager.getMaterial("c6c64159-19c1-40b5-859c-10561f20f979")
+        self.assertIsNotNone(mat)
+        self.assertEqual(mat.Name, "Test Material")
+        self.assertEqual(mat.UUID, "c6c64159-19c1-40b5-859c-10561f20f979")
+
+        self.assertTrue(mat.hasPhysicalModel(self.uuids.TestModel))
+
+        self.assertFalse(mat.hasPhysicalProperty("Henry"))
+        with self.assertRaises(ValueError):
+            mat.interpolate2D("Henry", 1.0)
+
+        self.assertTrue(mat.hasPhysicalProperty("TestArray3D"))
+        maxError = self.getQuantity(".00001 Pa").Value
+
+        # Create some consistent data
+        array = mat.getPhysicalValue("TestArray3D")
+        array.Depth = 0 # Reset data
+        array.Depth = 3
+
+        for depthIndex in range(0, array.Depth):
+            array.setRows(depthIndex, 3)
+            array.setDepthValue(depthIndex, "{0} Pa".format(depthIndex * 10.0 + 10.0))
+
+        array.setValue(0, 0, 0, "{0} Pa".format(10.0))
+        array.setValue(0, 1, 0, "{0} Pa".format(20.0))
+        array.setValue(0, 2, 0, "{0} Pa".format(30.0))
+        array.setValue(0, 0, 1, "{0} Pa".format(10.0))
+        array.setValue(0, 1, 1, "{0} Pa".format(20.0))
+        array.setValue(0, 2, 1, "{0} Pa".format(10.0))
+        array.setValue(1, 0, 0, "{0} Pa".format(10.0))
+        array.setValue(1, 1, 0, "{0} Pa".format(20.0))
+        array.setValue(1, 2, 0, "{0} Pa".format(30.0))
+        array.setValue(1, 0, 1, "{0} Pa".format(10.0))
+        array.setValue(1, 1, 1, "{0} Pa".format(20.0))
+        array.setValue(1, 2, 1, "{0} Pa".format(30.0))
+        array.setValue(2, 0, 0, "{0} Pa".format(10.0))
+        array.setValue(2, 1, 0, "{0} Pa".format(20.0))
+        array.setValue(2, 2, 0, "{0} Pa".format(30.0))
+        array.setValue(2, 0, 1, "{0} Pa".format(30.0))
+        array.setValue(2, 1, 1, "{0} Pa".format(20.0))
+        array.setValue(2, 2, 1, "{0} Pa".format(10.0))
+
+        self.assertAlmostEqual(mat.interpolate3D("TestArray3D", 20.0, 25.0),
+                               self.getQuantity("25.00 Pa").Value,
+                               delta=maxError)
+        self.assertAlmostEqual(mat.interpolate3D("TestArray3D", "20.0 C", 25.0),
+                               self.getQuantity("25.00 Pa").Value,
+                               delta=maxError)
+        self.assertAlmostEqual(mat.interpolate3D("TestArray3D", self.getQuantity("25.0 C"), 25.0),
+                               self.getQuantity("25.00 Pa").Value,
+                               delta=maxError)

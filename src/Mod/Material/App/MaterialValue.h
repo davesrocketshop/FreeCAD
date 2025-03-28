@@ -115,6 +115,9 @@ public:
     // The precision is based on the value from the original materials editor
     static const int PRECISION = 6;
     
+    static QVariant getValue(PyObject* valueObject);
+    static Base::Quantity getQuantityValue(PyObject* valueObject);
+
     void validate(const MaterialValue& other) const;
 
 protected:

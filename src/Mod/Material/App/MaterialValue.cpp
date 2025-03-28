@@ -27,6 +27,8 @@
 
 #include <App/Application.h>
 #include <Base/Quantity.h>
+#include <Base/QuantityPy.h>
+#include <CXX/Objects.hxx>
 #include <Gui/MetaTypes.h>
 
 #include "Exceptions.h"
@@ -356,6 +358,52 @@ QString MaterialValue::getYAMLString() const
 const Base::QuantityFormat MaterialValue::getQuantityFormat()
 {
     return Base::QuantityFormat(Base::QuantityFormat::NumberFormat::Default, PRECISION);
+}
+
+QVariant MaterialValue::getValue(PyObject* valueObject)
+{
+    QVariant value = 0.0;
+    if (PyObject_TypeCheck(valueObject, &Base::QuantityPy::Type)) {
+        Base::QuantityPy* qp = static_cast<Base::QuantityPy*>(valueObject);
+        Base::Quantity* q = qp->getQuantityPtr();
+        value = QVariant::fromValue(*q);
+    }
+    else if (PyFloat_Check(valueObject)) {
+        value = PyFloat_AsDouble(valueObject);
+    }
+    else if (PyLong_Check(valueObject)) {
+        value = PyLong_AsDouble(valueObject);
+    }
+    else if (PyUnicode_Check(valueObject)) {
+        const char* utf8value = PyUnicode_AsUTF8(valueObject);
+        if (!utf8value) {
+            FC_THROWM(Base::ValueError, "Invalid unicode string");
+        }
+        Base::Quantity q = Base::Quantity::parse(utf8value);
+        value = QVariant::fromValue(q);
+    }
+    else {
+        throw Base::TypeError();
+    }
+
+    return value;
+}
+
+Base::Quantity MaterialValue::getQuantityValue(PyObject* valueObject)
+{
+    if (PyObject_TypeCheck(valueObject, &Base::QuantityPy::Type)) {
+        Base::QuantityPy* qp = static_cast<Base::QuantityPy*>(valueObject);
+        return *(qp->getQuantityPtr());
+    }
+    else if (PyUnicode_Check(valueObject)) {
+        const char* utf8value = PyUnicode_AsUTF8(valueObject);
+        if (!utf8value) {
+            FC_THROWM(Base::ValueError, "Invalid unicode string");
+        }
+        return Base::Quantity::parse(utf8value);
+    }
+
+    throw Base::TypeError();
 }
 
 //===

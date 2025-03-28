@@ -186,11 +186,16 @@ PyObject* Array3DPy::getDepthValue(PyObject* args)
 PyObject* Array3DPy::setDepthValue(PyObject* args)
 {
     int depth;
+
     PyObject* valueObj;
-    if (PyArg_ParseTuple(args, "iO!", &depth, &PyUnicode_Type, &valueObj)) {
-        Py::String item(valueObj);
+    if (PyArg_ParseTuple(args, "iO", &depth, &valueObj)) {
         try {
-            getArray3DPtr()->setDepthValue(depth, Base::Quantity::parse(item.as_string()));
+            auto value = MaterialValue::getQuantityValue(valueObj);
+            getArray3DPtr()->setDepthValue(depth, value);
+        }
+        catch (const Base::TypeError& error) {
+            PyErr_SetString(PyExc_TypeError, "Expected (integer, Quantity) arguments");
+            return nullptr;
         }
         catch (const InvalidIndex&) {
             PyErr_SetString(PyExc_IndexError, "Invalid array index");
@@ -199,7 +204,7 @@ PyObject* Array3DPy::setDepthValue(PyObject* args)
         Py_Return;
     }
 
-    PyErr_SetString(PyExc_TypeError, "Expected (integer, string) arguments");
+    PyErr_SetString(PyExc_TypeError, "Expected (integer, Quantity) arguments");
     return nullptr;
 }
 
@@ -209,10 +214,15 @@ PyObject* Array3DPy::setValue(PyObject* args)
     int row;
     int column;
     PyObject* valueObj;
-    if (PyArg_ParseTuple(args, "iiiO!", &depth, &row, &column, &PyUnicode_Type, &valueObj)) {
-        Py::String item(valueObj);
+    if (PyArg_ParseTuple(args, "iiiO", &depth, &row, &column, &valueObj)) {
         try {
-            getArray3DPtr()->setValue(depth, row, column, Base::Quantity::parse(item.as_string()));
+            auto value = MaterialValue::getQuantityValue(valueObj);
+            getArray3DPtr()->setValue(depth, row, column, value);
+        }
+        catch (const Base::TypeError& error) {
+            PyErr_SetString(PyExc_TypeError,
+                            "Expected (integer, integer, integer, Quantity) arguments");
+            return nullptr;
         }
         catch (const InvalidIndex&) {
             PyErr_SetString(PyExc_IndexError, "Invalid array index");
@@ -221,7 +231,7 @@ PyObject* Array3DPy::setValue(PyObject* args)
         Py_Return;
     }
 
-    PyErr_SetString(PyExc_TypeError, "Expected (integer, integer, integer, string) arguments");
+    PyErr_SetString(PyExc_TypeError, "Expected (integer, integer, integer, Quantity) arguments");
     return nullptr;
 }
 
