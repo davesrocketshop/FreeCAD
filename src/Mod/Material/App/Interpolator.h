@@ -43,8 +43,8 @@ public:
     virtual ~Interpolator() = default;
 
     virtual QList<QVariant> interpolate(const QVariant& samplePoint, bool extrapolate) = 0;
-    virtual QList<QVariant> interpolate(const QVariant& samplePoint1,
-                                        const QVariant& samplePoint2) = 0;
+    virtual QList<QVariant>
+    interpolate(const QVariant& samplePoint1, const QVariant& samplePoint2, bool extrapolate) = 0;
 
 protected:
     static double valueOf(const QVariant& value);
@@ -60,12 +60,13 @@ public:
     InterpolatorSpline();
     explicit InterpolatorSpline(const InterpolatorSpline& other);
     explicit InterpolatorSpline(const Array2D& array);
-    explicit InterpolatorSpline(const Array3D& array, const QVariant& samplePoint);
+    explicit InterpolatorSpline(const Array3D& array, int depth);
     ~InterpolatorSpline() override = default;
 
     QList<QVariant> interpolate(const QVariant& samplePoint, bool extrapolate) override;
     QList<QVariant> interpolate(const QVariant& samplePoint1,
-                                const QVariant& samplePoint2) override;
+                                const QVariant& samplePoint2,
+                                bool extrapolate) override;
 
 private:
     double scale(double x) const;
@@ -73,7 +74,7 @@ private:
     Spline2d createInterpolator(std::vector<double>& abscissas, std::vector<double>& ordinates);
 
     void create(const Array2D& array);
-    void create(const Array3D& array, const QVariant& samplePoint);
+    void create(const Array3D& array, int depth);
     QList<Spline2d>
     createSplines(const Array3D& array, int depth, const QVariant& samplePoint);
 
@@ -92,20 +93,21 @@ public:
 
     QList<QVariant> interpolate(const QVariant& samplePoint, bool extrapolate) override;
     QList<QVariant> interpolate(const QVariant& samplePoint1,
-                                const QVariant& samplePoint2) override;
+                                const QVariant& samplePoint2,
+                                bool extrapolate) override;
 
 private:
-    double scale(double x) const;
+    double scale(double z) const;
     Eigen::RowVectorXd scaledValues(Eigen::VectorXd const& x_vec) const;
-    Spline3d createInterpolator(std::vector<double>& abscissas, std::vector<double>& ordinates);
+    Spline2d createInterpolator(std::vector<double>& abscissas, std::vector<double>& ordinates);
 
     void create(const Array3D& array);
-    QList<Spline3d>
-    createSplines(const Array3D& array, int depth, const QVariant& samplePoint);
+    QList<Spline2d> createSplines(const Array3D& array, int depth, const QVariant& samplePoint);
 
-    QList<Spline3d> _interpolators;
-    double _xmin;
-    double _xmax;
+    QList<InterpolatorSpline> _interpolators;
+    Spline2d _3dInterpolator;
+    double _zmin;
+    double _zmax;
 };
 
 }  // namespace Materials

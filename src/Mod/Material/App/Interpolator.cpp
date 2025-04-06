@@ -89,9 +89,9 @@ InterpolatorSpline::InterpolatorSpline(const Array2D& array)
     create(array);
 }
 
-InterpolatorSpline::InterpolatorSpline(const Array3D& array, const QVariant& samplePoint)
+InterpolatorSpline::InterpolatorSpline(const Array3D& array, int depth)
 {
-    create(array, samplePoint);
+    create(array, depth);
 }
 
 double InterpolatorSpline::scale(double x) const
@@ -132,7 +132,8 @@ QList<QVariant> InterpolatorSpline::interpolate(const QVariant& samplePoint, boo
 }
 
 QList<QVariant> InterpolatorSpline::interpolate(const QVariant& samplePoint1,
-                                                const QVariant& samplePoint2)
+                                                const QVariant& samplePoint2,
+                                                bool extrapolate)
 {
     // May be a quantity, int, float, etc
     auto pointValue = scale(valueOf(samplePoint1));
@@ -208,35 +209,18 @@ void InterpolatorSpline::create(const Array2D& array)
     }
 }
 
-void InterpolatorSpline::create(const Array3D& array, const QVariant& samplePoint)
+void InterpolatorSpline::create(const Array3D& array, int depth)
 {
-    auto depth = array.depth();
-    if (depth < 2 || array.columns() < 2) {
+    if (array.columns() < 2 || array.rows(depth) < 2) {
         throw InterpolationError(QLatin1String("No data to interpolate"));
-    }
-
-    std::vector<std::vector<double>> depthArray;
-    for (int i = 0; i < depth; i++) {
-        if (array.rows(i) < 2) {
-            throw InterpolationError(QLatin1String("No data to interpolate"));
-        }
-
-        QList<Spline2d> splines = createSplines(array, depth, samplePoint);
-        std::vector<double> rowCopy;
-        rowCopy.push_back(array.getDepthValue(i).getValue());
-        for (auto column : splines) {
-            auto value = column(valueOf(samplePoint));
-            rowCopy.push_back(value(0));
-        }
-        depthArray.push_back(rowCopy);
     }
 
     // Sort the array so that the abscissas are in order
     std::vector<std::vector<double>> sortArray;
-    for (auto row : depthArray) {
+    for (auto row : *array.getTable(depth)) {
         std::vector<double> rowCopy;
-        for (auto column : row) {
-            rowCopy.push_back(valueOf(column));
+        for (auto column : *row) {
+            rowCopy.push_back(column.getValue());
         }
         sortArray.push_back(rowCopy);
     }
@@ -255,8 +239,8 @@ void InterpolatorSpline::create(const Array3D& array, const QVariant& samplePoin
         }
     }
 
-    // _xmin = abscissas[0];
-    // _xmax = abscissas[array.rows() - 1];
+    _xmin = abscissas[0];
+    _xmax = abscissas[array.rows() - 1];
 
     _interpolators.clear();
     for (auto ordinate : ordinates) {
@@ -310,11 +294,12 @@ InterpolatorSpline3D::InterpolatorSpline3D()
 {}
 
 InterpolatorSpline3D::InterpolatorSpline3D(const InterpolatorSpline3D& other)
-    : _xmin(other._xmin)
-    , _xmax(other._xmax)
+    : _3dInterpolator(other._3dInterpolator)
+    , _zmin(other._zmin)
+    , _zmax(other._zmax)
 {
-    for (auto interp : other._interpolators) {
-        _interpolators.append(Spline3d(interp));
+    for (auto& interp : other._interpolators) {
+        _interpolators.append(InterpolatorSpline(interp));
     }
 }
 
@@ -323,10 +308,10 @@ InterpolatorSpline3D::InterpolatorSpline3D(const Array3D& array)
     create(array);
 }
 
-double InterpolatorSpline3D::scale(double x) const
+double InterpolatorSpline3D::scale(double z) const
 {
     // Helpers to scale X values down to [0, 1]
-    return (x - _xmin) / (_xmax - _xmin);
+    return (z - _zmin) / (_zmax - _zmin);
 }
 
 Eigen::RowVectorXd InterpolatorSpline3D::scaledValues(Eigen::VectorXd const& x_vec) const
@@ -340,28 +325,29 @@ Eigen::RowVectorXd InterpolatorSpline3D::scaledValues(Eigen::VectorXd const& x_v
 
 QList<QVariant> InterpolatorSpline3D::interpolate(const QVariant& samplePoint, bool extrapolate)
 {
-    // May be a quantity, int, float, etc
-    auto pointValue = scale(valueOf(samplePoint));
-    // Base::Console().Log("sample point(%f)->%f\n", valueOf(samplePoint), pointValue);
+    // // May be a quantity, int, float, etc
+    // auto pointValue = scale(valueOf(samplePoint));
+    // // Base::Console().Log("sample point(%f)->%f\n", valueOf(samplePoint), pointValue);
 
-    if (!extrapolate) {
-        if ((pointValue < 0.0) || (pointValue > 1.0)) {
-            throw InterpolationOutOfRangeError();
-        }
-    }
+    // if (!extrapolate) {
+    //     if ((pointValue < 0.0) || (pointValue > 1.0)) {
+    //         throw InterpolationOutOfRangeError();
+    //     }
+    // }
 
     QList<QVariant> ret;
 
-    for (auto interp : _interpolators) {
-        auto values = interp(pointValue);
-        ret.append(values(0));
-    }
+    // for (auto interp : _interpolators) {
+    //     auto values = interp(pointValue);
+    //     ret.append(values(0));
+    // }
 
     return ret;
 }
 
 QList<QVariant> InterpolatorSpline3D::interpolate(const QVariant& samplePoint1,
-                                                const QVariant& samplePoint2)
+                                                  const QVariant& samplePoint2,
+                                                  bool extrapolate)
 {
     // May be a quantity, int, float, etc
     auto pointValue1 = scale(valueOf(samplePoint1));
@@ -375,16 +361,16 @@ QList<QVariant> InterpolatorSpline3D::interpolate(const QVariant& samplePoint1,
 
     QList<QVariant> ret;
 
-    for (auto interp : _interpolators) {
-        // auto values = interp(pointValue1, pointValue2);
-        auto values = interp(pointValue1);
-        ret.append(values(0));
-    }
+    // for (auto interp : _interpolators) {
+    //     // auto values = interp(pointValue1, pointValue2);
+    //     auto values = interp(pointValue1);
+    //     ret.append(values(0));
+    // }
 
     return ret;
 }
 
-Spline3d InterpolatorSpline3D::createInterpolator(std::vector<double>& abscissas,
+Spline2d InterpolatorSpline3D::createInterpolator(std::vector<double>& abscissas,
                                                 std::vector<double>& ordinates)
 {
     Eigen::VectorXd x_vec(abscissas.size());
@@ -395,7 +381,7 @@ Spline3d InterpolatorSpline3D::createInterpolator(std::vector<double>& abscissas
     }
 
     // No more than cubic spline, but accept short vectors.
-    return Eigen::SplineFitting<Spline3d>::Interpolate(y_vec.transpose(),
+    return Eigen::SplineFitting<Spline2d>::Interpolate(y_vec.transpose(),
                                                        std::min<int>(x_vec.rows() - 1, 3),
                                                        scaledValues(x_vec));
 }
@@ -456,7 +442,7 @@ void InterpolatorSpline3D::create(const Array3D& array)
     // }
 }
 
-QList<Spline3d> InterpolatorSpline3D::createSplines(const Array3D& array,
+QList<Spline2d> InterpolatorSpline3D::createSplines(const Array3D& array,
                                                   int depth,
                                                   const QVariant& samplePoint)
 {
@@ -489,7 +475,7 @@ QList<Spline3d> InterpolatorSpline3D::createSplines(const Array3D& array,
     // _xmin = abscissas[0];
     // _xmax = abscissas[array.rows() - 1];
 
-    QList<Spline3d> interpolators;
+    QList<Spline2d> interpolators;
     // for (auto ordinate : ordinates) {
     //     interpolators.append(createInterpolator(abscissas, ordinate));
     // }
