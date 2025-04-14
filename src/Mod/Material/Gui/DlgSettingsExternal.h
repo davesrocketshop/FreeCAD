@@ -19,67 +19,40 @@
  *                                                                         *
  **************************************************************************/
 
-#ifndef MATERIAL_MODELLIBRARY_H
-#define MATERIAL_MODELLIBRARY_H
+#ifndef MATGUI_DLGSETTINGSEXTERNAL_H
+#define MATGUI_DLGSETTINGSEXTERNAL_H
 
+#include <Gui/PropertyPage.h>
 #include <memory>
 
-#include <QDir>
-#include <QString>
 
-#include <Base/BaseClass.h>
-#include <Base/Quantity.h>
-
-#include <Mod/Material/MaterialGlobal.h>
-
-#include "Library.h"
-#include "MaterialValue.h"
-#include "Model.h"
-namespace Materials
+namespace MatGui
 {
+class Ui_DlgSettingsExternal;
 
-class MaterialsExport ModelLibrary: public Library,
-                                    public std::enable_shared_from_this<ModelLibrary>
+class DlgSettingsExternal: public Gui::Dialog::PreferencePage
 {
-    TYPESYSTEM_HEADER_WITH_OVERRIDE();
+    Q_OBJECT
 
 public:
-    ModelLibrary();
-    ModelLibrary(const Library& library);
-    ModelLibrary(const QString& libraryName,
-                 const QString& dir,
-                 const QString& icon,
-                 bool readOnly = true);
-    ~ModelLibrary() override = default;
+    explicit DlgSettingsExternal(QWidget* parent = nullptr);
+    ~DlgSettingsExternal() override;
 
-    bool operator==(const ModelLibrary& library) const
-    {
-        return Library::operator==(library);
-    }
-    bool operator!=(const ModelLibrary& library) const
-    {
-        return !operator==(library);
-    }
-    std::shared_ptr<Model> getModelByPath(const QString& path) const;
+protected:
+    void saveSettings() override;
+    void loadSettings() override;
+    void loadInterfaces();
+    void changeEvent(QEvent* e) override;
 
-    std::shared_ptr<Model> addModel(const Model& model, const QString& path);
-
-    // Use this to get a shared_ptr for *this
-    std::shared_ptr<ModelLibrary> getptr()
-    {
-        return shared_from_this();
-    }
-    std::shared_ptr<std::map<QString, std::shared_ptr<ModelTreeNode>>>
-    getModelTree(ModelFilter filter) const;
+    std::string getPreferences() const;
+    std::string getPreferencesInterfaces() const;
 
 private:
-    ModelLibrary(const ModelLibrary&);
+    QString toPerCent(double value) const;
 
-    std::unique_ptr<std::map<QString, std::shared_ptr<Model>>> _modelPathMap;
+    std::unique_ptr<Ui_DlgSettingsExternal> ui;
 };
 
-}  // namespace Materials
+}  // namespace MatGui
 
-Q_DECLARE_METATYPE(std::shared_ptr<Materials::ModelLibrary>)
-
-#endif  // MATERIAL_MODELLIBRARY_H
+#endif  // MATGUI_DLGSETTINGSDATABASE_H

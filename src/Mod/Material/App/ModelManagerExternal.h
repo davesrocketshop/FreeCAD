@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (c) 2023 David Carter <dcarter@david.carter.ca>             *
+ *   Copyright (c) 2024 David Carter <dcarter@david.carter.ca>             *
  *                                                                         *
  *   This file is part of FreeCAD.                                         *
  *                                                                         *
@@ -19,67 +19,64 @@
  *                                                                         *
  **************************************************************************/
 
-#ifndef MATERIAL_MODELLIBRARY_H
-#define MATERIAL_MODELLIBRARY_H
+#ifndef MATERIAL_MODELMANAGEREXTERNAL_H
+#define MATERIAL_MODELMANAGEREXTERNAL_H
 
 #include <memory>
-
-#include <QDir>
-#include <QString>
-
-#include <Base/BaseClass.h>
-#include <Base/Quantity.h>
+#include <lru/lru.hpp>
 
 #include <Mod/Material/MaterialGlobal.h>
 
-#include "Library.h"
-#include "MaterialValue.h"
+#include <QMutex>
+
+#include "Exceptions.h"
+#include "FolderTree.h"
 #include "Model.h"
+#include "ModelLibrary.h"
+
 namespace Materials
 {
 
-class MaterialsExport ModelLibrary: public Library,
-                                    public std::enable_shared_from_this<ModelLibrary>
+class MaterialsExport ModelManagerExternal: public Base::BaseClass
 {
     TYPESYSTEM_HEADER_WITH_OVERRIDE();
 
 public:
-    ModelLibrary();
-    ModelLibrary(const Library& library);
-    ModelLibrary(const QString& libraryName,
-                 const QString& dir,
-                 const QString& icon,
-                 bool readOnly = true);
-    ~ModelLibrary() override = default;
+    ModelManagerExternal();
+    ~ModelManagerExternal() override = default;
 
-    bool operator==(const ModelLibrary& library) const
-    {
-        return Library::operator==(library);
-    }
-    bool operator!=(const ModelLibrary& library) const
-    {
-        return !operator==(library);
-    }
-    std::shared_ptr<Model> getModelByPath(const QString& path) const;
+    static void cleanup();
+    void refresh();
 
-    std::shared_ptr<Model> addModel(const Model& model, const QString& path);
+    static const int DEFAULT_CACHE_SIZE = 100;
 
-    // Use this to get a shared_ptr for *this
-    std::shared_ptr<ModelLibrary> getptr()
-    {
-        return shared_from_this();
-    }
-    std::shared_ptr<std::map<QString, std::shared_ptr<ModelTreeNode>>>
-    getModelTree(ModelFilter filter) const;
+    // Library management
+    std::shared_ptr<std::list<std::shared_ptr<ModelLibrary>>> getLibraries();
+    void createLibrary(const QString& libraryName,
+                       const QString& icon,
+                       bool readOnly = true);
+
+    // Model management
+    std::shared_ptr<Model> getModel(const QString& uuid);
+    void
+    addModel(const QString& libraryName, const QString& path, const std::shared_ptr<Model>& model);
+    void
+    migrateModel(const QString& libraryName, const QString& path, const std::shared_ptr<Model>& model);
+
+    // Cache functions
+    void resetCache();
+    double modelHitRate();
 
 private:
-    ModelLibrary(const ModelLibrary&);
+    static void initCache();
 
-    std::unique_ptr<std::map<QString, std::shared_ptr<Model>>> _modelPathMap;
+    static QMutex _mutex;
+
+    // Older platforms (Ubuntu 20.04) can't use QString as the index
+    // due to a lack of a move constructor
+    static LRU::Cache<std::string, std::shared_ptr<Model>> _cache;
 };
 
 }  // namespace Materials
 
-Q_DECLARE_METATYPE(std::shared_ptr<Materials::ModelLibrary>)
-
-#endif  // MATERIAL_MODELLIBRARY_H
+#endif  // MATERIAL_MODELMANAGEREXTERNAL_H
