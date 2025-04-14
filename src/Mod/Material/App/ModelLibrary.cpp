@@ -38,6 +38,12 @@ using namespace Materials;
 
 TYPESYSTEM_SOURCE(Materials::ModelLibrary, Materials::Library)
 
+ModelLibrary::ModelLibrary(const Library& other)
+    : Library(other)
+{
+    _modelPathMap = std::make_unique<std::map<QString, std::shared_ptr<Model>>>();
+}
+
 ModelLibrary::ModelLibrary(const QString& libraryName,
                            const QString& dir,
                            const QString& icon,
