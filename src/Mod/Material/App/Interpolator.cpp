@@ -353,11 +353,11 @@ QList<QVariant> InterpolatorSpline3D::interpolate(const QVariant& samplePoint1,
     auto pointValue1 = scale(valueOf(samplePoint1));
     auto pointValue2 = scale(valueOf(samplePoint2));
 
-    // if (!extrapolate) {
-    //     if ((pointValue < 0.0) || (pointValue > 1.0)) {
-    //         throw InterpolationOutOfRangeError();
-    //     }
-    // }
+    if (!extrapolate) {
+        if ((pointValue1 < 0.0) || (pointValue1 > 1.0)) {
+            throw InterpolationOutOfRangeError();
+        }
+    }
 
     QList<QVariant> ret;
 
@@ -388,58 +388,29 @@ Spline2d InterpolatorSpline3D::createInterpolator(std::vector<double>& abscissas
 
 void InterpolatorSpline3D::create(const Array3D& array)
 {
-    // auto depth = array.depth();
-    // if (depth < 2 || array.columns() < 2) {
-    //     throw InterpolationError(QLatin1String("No data to interpolate"));
-    // }
+    auto depth = array.depth();
+    if (depth < 2 || array.columns() < 2) {
+        throw InterpolationError(QLatin1String("No data to interpolate"));
+    }
+    _zmin = array.getDepthValue(0).getValue();
+    _zmax = _zmin;
 
-    // std::vector<std::vector<double>> depthArray;
-    // for (int i = 0; i < depth; i++) {
-    //     if (array.rows(i) < 2) {
-    //         throw InterpolationError(QLatin1String("No data to interpolate"));
-    //     }
+    _interpolators.clear();
+    for (int i = 0; i < depth; i++) {
+        // if (array.rows(i) < 2) {
+        //     throw InterpolationError(QLatin1String("No data to interpolate"));
+        // }
 
-    //     QList<Spline2d> splines = createSplines(array, depth, samplePoint);
-    //     std::vector<double> rowCopy;
-    //     rowCopy.push_back(array.getDepthValue(i).getValue());
-    //     for (auto column : splines) {
-    //         auto value = column(valueOf(samplePoint));
-    //         rowCopy.push_back(value(0));
-    //     }
-    //     depthArray.push_back(rowCopy);
-    // }
+        double value = array.getDepthValue(depth).getValue();
+        if (_zmin > value) {
+            _zmin = value;
+        }
+        if (_zmax < value) {
+            _zmax = value;
+        }
 
-    // // Sort the array so that the abscissas are in order
-    // std::vector<std::vector<double>> sortArray;
-    // for (auto row : depthArray) {
-    //     std::vector<double> rowCopy;
-    //     for (auto column : row) {
-    //         rowCopy.push_back(valueOf(column));
-    //     }
-    //     sortArray.push_back(rowCopy);
-    // }
-    // std::sort(sortArray.begin(), sortArray.end(), compare);
-
-
-    // std::vector<double> abscissas;
-    // std::vector<std::vector<double>> ordinates;
-    // for (int i = 1; i < array.columns(); i++) {
-    //     ordinates.push_back(std::vector<double>());
-    // }
-    // for (auto row : sortArray) {
-    //     abscissas.push_back(valueOf(row[0]));
-    //     for (int i = 1; i < array.columns(); i++) {
-    //         ordinates[i - 1].push_back(valueOf(row[i]));
-    //     }
-    // }
-
-    // // _xmin = abscissas[0];
-    // // _xmax = abscissas[array.rows() - 1];
-
-    // _interpolators.clear();
-    // for (auto ordinate : ordinates) {
-    //     _interpolators.append(createInterpolator(abscissas, ordinate));
-    // }
+        _interpolators.append(InterpolatorSpline(array, depth));
+    }
 }
 
 QList<Spline2d> InterpolatorSpline3D::createSplines(const Array3D& array,

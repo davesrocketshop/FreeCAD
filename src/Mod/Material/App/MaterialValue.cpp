@@ -1083,11 +1083,12 @@ QString Array3D::getYAMLString() const
     return yaml;
 }
 
-QList<QVariant> Array3D::interpolate(const QVariant& samplePoint1, const QVariant& samplePoint2)
+QList<QVariant>
+Array3D::interpolate(const QVariant& samplePoint1, const QVariant& samplePoint2, bool extrapolate)
 {
     if (!_interpolator) {
         _interpolator = std::make_shared<InterpolatorSpline3D>(*this);
     }
 
-    return _interpolator->interpolate(samplePoint1, samplePoint2);
+    return _interpolator->interpolate(samplePoint1, samplePoint2, extrapolate);
 }
