@@ -51,8 +51,10 @@ public:
     static void cleanup();
     void refresh();
 
+    // Library management
     std::shared_ptr<std::list<std::shared_ptr<ModelLibrary>>> getLibraries();
     std::shared_ptr<std::list<std::shared_ptr<ModelLibrary>>> getLocalLibraries();
+    std::shared_ptr<ModelLibrary> getLibrary(const QString& name) const;
     void createLibrary(const QString& libraryName, const QString& icon, bool readOnly = true);
     void createLocalLibrary(const QString& libraryName,
                        const QString& directory,
@@ -65,17 +67,22 @@ public:
     libraryModels(const QString& libraryName);
     bool isLocalLibrary(const QString& libraryName);
 
-    std::shared_ptr<std::map<QString, std::shared_ptr<Model>>> getModels();
-    std::shared_ptr<std::map<QString, std::shared_ptr<Model>>> getLocalModels();
+    // Folder management
+
+    // Tree management
     std::shared_ptr<std::map<QString, std::shared_ptr<ModelTreeNode>>>
     getModelTree(std::shared_ptr<ModelLibrary> library, ModelFilter filter = ModelFilter_None) const
     {
         return library->getModelTree(filter);
     }
+
+    // Model management
+    std::shared_ptr<std::map<QString, std::shared_ptr<Model>>> getModels();
+    std::shared_ptr<std::map<QString, std::shared_ptr<Model>>> getLocalModels();
     std::shared_ptr<Model> getModel(const QString& uuid) const;
+    std::shared_ptr<Model> getModel(const QString& libraryName, const QString& uuid) const;
     std::shared_ptr<Model> getModelByPath(const QString& path) const;
     std::shared_ptr<Model> getModelByPath(const QString& path, const QString& lib) const;
-    std::shared_ptr<ModelLibrary> getLibrary(const QString& name) const;
 
     static bool isModel(const QString& file);
     static bool passFilter(ModelFilter filter, Model::ModelType modelType);

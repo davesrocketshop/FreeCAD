@@ -89,11 +89,32 @@ std::shared_ptr<std::list<std::shared_ptr<ModelLibrary>>> ModelManagerExternal::
     return libraryList;
 }
 
+std::shared_ptr<ModelLibrary> ModelManagerExternal::getLibrary(const QString& name) const
+{
+    try {
+        auto lib = ExternalManager::getManager()->getLibrary(name);
+        auto library = std::make_shared<ModelLibrary>(*lib);
+        return library;
+    }
+    catch (const LibraryNotFound& e) {
+        throw LibraryNotFound(e);
+    }
+    catch (const ConnectionError& e) {
+        throw LibraryNotFound(e.what());
+    }
+}
+
 void ModelManagerExternal::createLibrary(const QString& libraryName,
                                       const QString& icon,
                                       bool readOnly)
 {
     ExternalManager::getManager()->createLibrary(libraryName, icon, readOnly);
+}
+
+std::shared_ptr<std::vector<std::tuple<QString, QString, QString>>>
+ModelManagerExternal::libraryModels(const QString& libraryName)
+{
+    return ExternalManager::getManager()->libraryModels(libraryName);
 }
 
 //=====
@@ -121,6 +142,12 @@ std::shared_ptr<Model> ModelManagerExternal::getModel(const QString& uuid)
         _cache.emplace(uuid.toStdString(), nullptr);
         return nullptr;
     }
+}
+
+std::shared_ptr<std::map<QString, std::shared_ptr<Model>>> ModelManagerExternal::getModels()
+{
+    // TODO: Implement an external call
+    return std::make_shared<std::map<QString, std::shared_ptr<Model>>>();
 }
 
 void ModelManagerExternal::addModel(const QString& libraryName,

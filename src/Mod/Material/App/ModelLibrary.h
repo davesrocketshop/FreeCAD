@@ -35,6 +35,7 @@
 #include "Library.h"
 #include "MaterialValue.h"
 #include "Model.h"
+
 namespace Materials
 {
 
@@ -50,7 +51,38 @@ public:
                  const QString& dir,
                  const QString& icon,
                  bool readOnly = true);
+    ModelLibrary(const ModelLibrary& other) = delete;
     ~ModelLibrary() override = default;
+
+    bool isLocal() const;
+    void setLocal(bool local);
+
+    std::shared_ptr<std::map<QString, std::shared_ptr<ModelTreeNode>>>
+    getModelTree(ModelFilter filter) const;
+
+    // Use this to get a shared_ptr for *this
+    std::shared_ptr<ModelLibrary> getptr()
+    {
+        return shared_from_this();
+    }
+
+private:
+    bool _local;
+};
+
+class MaterialsExport ModelLibraryLocal: public ModelLibrary
+{
+    TYPESYSTEM_HEADER_WITH_OVERRIDE();
+
+public:
+    ModelLibraryLocal();
+    ModelLibraryLocal(const Library& other);
+    ModelLibraryLocal(const QString& libraryName,
+                 const QString& dir,
+                 const QString& icon,
+                 bool readOnly = true);
+    ModelLibraryLocal(const ModelLibraryLocal& other) = delete;
+    ~ModelLibraryLocal() override = default;
 
     bool operator==(const ModelLibrary& library) const
     {
@@ -65,15 +97,14 @@ public:
     std::shared_ptr<Model> addModel(const Model& model, const QString& path);
 
     // Use this to get a shared_ptr for *this
-    std::shared_ptr<ModelLibrary> getptr()
-    {
-        return shared_from_this();
-    }
+    // std::shared_ptr<ModelLibrary> getptr()
+    // {
+    //     return shared_from_this();
+    // }
     std::shared_ptr<std::map<QString, std::shared_ptr<ModelTreeNode>>>
     getModelTree(ModelFilter filter) const;
 
 private:
-    ModelLibrary(const ModelLibrary& other);
 
     std::unique_ptr<std::map<QString, std::shared_ptr<Model>>> _modelPathMap;
 };
@@ -81,5 +112,6 @@ private:
 }  // namespace Materials
 
 Q_DECLARE_METATYPE(std::shared_ptr<Materials::ModelLibrary>)
+Q_DECLARE_METATYPE(std::shared_ptr<Materials::ModelLibraryLocal>)
 
 #endif  // MATERIAL_MODELLIBRARY_H

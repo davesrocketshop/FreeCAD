@@ -109,6 +109,11 @@ bool ModelManager::isModel(const QString& file)
 void ModelManager::cleanup()
 {
     return ModelManagerLocal::cleanup();
+#if defined(BUILD_MATERIAL_EXTERNAL)
+    if (_externalManager) {
+        _externalManager->cleanup();
+    }
+#endif
 }
 
 void ModelManager::refresh()
@@ -116,9 +121,36 @@ void ModelManager::refresh()
     _localManager->refresh();
 }
 
+//=====
+//
+// Library management
+//
+//=====
+
 std::shared_ptr<std::list<std::shared_ptr<ModelLibrary>>> ModelManager::getLibraries()
 {
-    return _localManager->getLibraries();
+    // External libraries take precedence over local libraries
+    auto libMap = std::map<QString, std::shared_ptr<ModelLibrary>>();
+#if defined(BUILD_MATERIAL_EXTERNAL)
+    if (_useExternal) {
+        auto remoteLibraries = _externalManager->getLibraries();
+        for (auto& remote : *remoteLibraries) {
+            libMap.try_emplace(remote->getName(), remote);
+        }
+    }
+#endif
+    auto localLibraries = _localManager->getLibraries();
+    for (auto& local : *localLibraries) {
+        libMap.try_emplace(local->getName(), local);
+    }
+
+    // Consolidate into a single list
+    auto libraries = std::make_shared<std::list<std::shared_ptr<ModelLibrary>>>();
+    for (auto libEntry : libMap) {
+        libraries->push_back(libEntry.second);
+    }
+
+    return libraries;
 }
 
 std::shared_ptr<std::list<std::shared_ptr<ModelLibrary>>> ModelManager::getLocalLibraries()
@@ -131,6 +163,19 @@ void ModelManager::createLibrary(const QString& libraryName, const QString& icon
 #if defined(BUILD_MATERIAL_EXTERNAL)
     _externalManager->createLibrary(libraryName, icon, readOnly);
 #endif
+}
+
+std::shared_ptr<ModelLibrary> ModelManager::getLibrary(const QString& name) const
+{
+#if defined(BUILD_MATERIAL_EXTERNAL)
+    if (_useExternal) {
+        auto library = _externalManager->getLibrary(name);
+        if (library) {
+            return library;
+        }
+    }
+#endif
+    return _localManager->getLibrary(name);
 }
 
 void ModelManager::createLocalLibrary(const QString& libraryName,
@@ -159,22 +204,75 @@ void ModelManager::removeLibrary(const QString& libraryName)
 std::shared_ptr<std::vector<std::tuple<QString, QString, QString>>>
 ModelManager::libraryModels(const QString& libraryName)
 {
+#if defined(BUILD_MATERIAL_EXTERNAL)
+    if (_useExternal) {
+        try {
+            auto models = _externalManager->libraryModels(libraryName);
+            if (models) {
+                return models;
+            }
+        }
+        catch (const LibraryNotFound& e) {
+        }
+        catch (const InvalidModel& e) {
+        }
+    }
+#endif
     return _localManager->libraryModels(libraryName);
 }
 
 bool ModelManager::isLocalLibrary(const QString& libraryName)
 {
+#if defined(BUILD_MATERIAL_EXTERNAL)
+    if (_useExternal) {
+        try {
+            auto lib = _externalManager->getLibrary(libraryName);
+            if (lib) {
+                return false;
+            }
+        }
+        catch (const LibraryNotFound& e) {
+        }
+    }
+#endif
     return true;
 }
 
+//=====
+//
+// Model management
+//
+//=====
+
 std::shared_ptr<std::map<QString, std::shared_ptr<Model>>> ModelManager::getModels()
 {
-    return _localManager->getModels();
+    // External libraries take precedence over local libraries
+    auto modelMap = std::make_shared<std::map<QString, std::shared_ptr<Model>>>();
+#if defined(BUILD_MATERIAL_EXTERNAL)
+    if (_useExternal) {
+        auto remoteModels = _externalManager->getModels();
+        for (auto& remote : *remoteModels) {
+            modelMap->try_emplace(remote.first, remote.second);
+        }
+    }
+#endif
+    auto localModels = _localManager->getModels();
+    for (auto& local : *localModels) {
+        modelMap->try_emplace(local.first, local.second);
+    }
+
+    return modelMap;
 }
 
 std::shared_ptr<std::map<QString, std::shared_ptr<Model>>> ModelManager::getLocalModels()
 {
     return _localManager->getModels();
+}
+
+std::shared_ptr<Model> ModelManager::getModel(const QString& /*libraryName*/, const QString& uuid) const
+{
+    // TODO: Search a specific library
+    return getModel(uuid);
 }
 
 std::shared_ptr<Model> ModelManager::getModel(const QString& uuid) const
@@ -199,11 +297,6 @@ std::shared_ptr<Model> ModelManager::getModelByPath(const QString& path) const
 std::shared_ptr<Model> ModelManager::getModelByPath(const QString& path, const QString& lib) const
 {
     return _localManager->getModelByPath(path, lib);
-}
-
-std::shared_ptr<ModelLibrary> ModelManager::getLibrary(const QString& name) const
-{
-    return _localManager->getLibrary(name);
 }
 
 bool ModelManager::passFilter(ModelFilter filter, Model::ModelType modelType)

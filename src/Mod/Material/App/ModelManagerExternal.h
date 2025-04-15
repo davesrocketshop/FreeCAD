@@ -52,12 +52,16 @@ public:
 
     // Library management
     std::shared_ptr<std::list<std::shared_ptr<ModelLibrary>>> getLibraries();
+    std::shared_ptr<ModelLibrary> getLibrary(const QString& name) const;
     void createLibrary(const QString& libraryName,
                        const QString& icon,
                        bool readOnly = true);
+    std::shared_ptr<std::vector<std::tuple<QString, QString, QString>>>
+    libraryModels(const QString& libraryName);
 
     // Model management
     std::shared_ptr<Model> getModel(const QString& uuid);
+    std::shared_ptr<std::map<QString, std::shared_ptr<Model>>> getModels();
     void
     addModel(const QString& libraryName, const QString& path, const std::shared_ptr<Model>& model);
     void
