@@ -232,8 +232,7 @@ void ModelLoader::addToTree(std::shared_ptr<ModelEntry> model,
     if (!model->getLibrary()->isLocal()) {
         throw InvalidLibrary();
     }
-    auto library =
-        reinterpret_cast<const std::shared_ptr<Materials::ModelLibraryLocal>&>(model->getLibrary());
+    auto library = model->getLibrary();
     auto base = model->getBase().toStdString();
     auto name = model->getName();
     auto directory = model->getDirectory();
