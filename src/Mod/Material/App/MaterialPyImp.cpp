@@ -23,8 +23,10 @@
 
 #include <QMetaType>
 
+#include <Base/Exception.h>
 #include <Base/Quantity.h>
 #include <Base/QuantityPy.h>
+#include <Base/PyWrapParseTupleAndKeywords.h>
 #include <CXX/Objects.hxx>
 #include <Gui/MetaTypes.h>
 
@@ -480,13 +482,11 @@ PyObject* MaterialPy::getPhysicalValue(PyObject* args)
     }
 
     if (property->getType() == MaterialValue::Array2D) {
-        auto value =
-            std::static_pointer_cast<Materials::Array2D>(property->getMaterialValue());
+        auto value = std::static_pointer_cast<Materials::Array2D>(property->getMaterialValue());
         return new Array2DPy(new Array2D(*value));
     }
     if (property->getType() == MaterialValue::Array3D) {
-        auto value =
-            std::static_pointer_cast<Materials::Array3D>(property->getMaterialValue());
+        auto value = std::static_pointer_cast<Materials::Array3D>(property->getMaterialValue());
         return new Array3DPy(new Array3D(*value));
     }
 
@@ -524,13 +524,11 @@ PyObject* MaterialPy::getAppearanceValue(PyObject* args)
     }
 
     if (property->getType() == MaterialValue::Array2D) {
-        auto value =
-            std::static_pointer_cast<Materials::Array2D>(property->getMaterialValue());
+        auto value = std::static_pointer_cast<Materials::Array2D>(property->getMaterialValue());
         return new Array2DPy(new Array2D(*value));
     }
     if (property->getType() == MaterialValue::Array3D) {
-        auto value =
-            std::static_pointer_cast<Materials::Array3D>(property->getMaterialValue());
+        auto value = std::static_pointer_cast<Materials::Array3D>(property->getMaterialValue());
         return new Array3DPy(new Array3D(*value));
     }
 
@@ -551,6 +549,7 @@ PyObject* MaterialPy::setAppearanceValue(PyObject* args)
     Py_INCREF(Py_None);
     return Py_None;
 }
+
 PyObject* MaterialPy::setValue(PyObject* args)
 {
     char* name;
@@ -639,6 +638,266 @@ Py::Dict MaterialPy::getPropertyObjects() const
     return dict;
 }
 
+QVariant getValue(PyObject* sampleValue)
+{
+    QVariant sample = 0.0;
+    if (PyObject_TypeCheck(sampleValue, &Base::QuantityPy::Type)) {
+        Base::QuantityPy* qp = static_cast<Base::QuantityPy*>(sampleValue);
+        Base::Quantity* q = qp->getQuantityPtr();
+        sample = QVariant::fromValue(*q);
+    }
+    else if (PyFloat_Check(sampleValue)) {
+        sample = PyFloat_AsDouble(sampleValue);
+    }
+    else if (PyLong_Check(sampleValue)) {
+        sample = PyLong_AsDouble(sampleValue);
+    }
+    else if (PyUnicode_Check(sampleValue)) {
+        const char* utf8value = PyUnicode_AsUTF8(sampleValue);
+        if (!utf8value) {
+            FC_THROWM(Base::ValueError, "Invalid unicode string");
+        }
+        Base::Quantity q = Base::Quantity::parse(utf8value);
+        sample = QVariant::fromValue(q);
+    }
+    else {
+        throw Base::TypeError();
+    }
+
+    return sample;
+}
+
+PyObject* MaterialPy::interpolate2D(PyObject* args, PyObject* kwds)
+{
+    QVariant sample = 0.0;
+    bool sampled = false;
+
+    char* name;
+    PyObject* samplePoint;
+    PyObject* extrapolate = Py_False;
+    static const std::array<const char*, 4> kwlist {"name", "sample", "extrapolate", nullptr};
+    if (Base::Wrapped_ParseTupleAndKeywords(args,
+                                            kwds,
+                                            "sO|O!",
+                                            kwlist,
+                                            &name,
+                                            &samplePoint,
+                                            &PyBool_Type,
+                                            &extrapolate)) {
+        try {
+            sample = MaterialValue::getValue(samplePoint);
+            sampled = true;
+        }
+        catch (const Base::TypeError& error) {
+        }
+    }
+
+    if (!sampled) {
+        PyErr_SetString(
+            PyExc_TypeError,
+            "interplate2D requires the name of a 2D array property and a point at which to sample");
+        return nullptr;
+    }
+
+    if (!getMaterialPtr()->hasPhysicalProperty(QString::fromStdString(name))) {
+        PyErr_SetString(PyExc_ValueError, "Property not found");
+        return nullptr;
+    }
+
+    auto property = getMaterialPtr()->getPhysicalProperty(QString::fromStdString(name));
+    if (!property) {
+        PyErr_SetString(PyExc_ValueError, "Property not found");
+        return nullptr;
+    }
+
+    if (property->getType() != MaterialValue::Array2D) {
+        PyErr_SetString(PyExc_TypeError, "interplate2D can only operate on a 2D array");
+        return nullptr;
+    }
+
+    try {
+        QVariant value = property->interpolate2D(sample, Base::asBoolean(extrapolate));
+        return _pyObjectFromVariant(value);
+    }
+    catch (InterpolationOutOfRangeError) {
+        PyErr_SetString(PyExc_ValueError, "Sample point out of range");
+        return nullptr;
+    }
+}
+
+PyObject* MaterialPy::interpolate2DMulti(PyObject* args, PyObject* kwds)
+{
+    QVariant sample = 0.0;
+    bool sampled = false;
+
+    char* name;
+    PyObject* samplePoint;
+    PyObject* extrapolate = Py_False;
+    static const std::array<const char*, 4> kwlist {"name", "sample", "extrapolate", nullptr};
+    if (Base::Wrapped_ParseTupleAndKeywords(args,
+                                            kwds,
+                                            "sO|O!",
+                                            kwlist,
+                                            &name,
+                                            &samplePoint,
+                                            &PyBool_Type,
+                                            &extrapolate)) {
+        try {
+            sample = MaterialValue::getValue(samplePoint);
+            sampled = true;
+        }
+        catch (const Base::TypeError& error) {
+        }
+    }
+
+    if (!sampled) {
+        PyErr_SetString(PyExc_TypeError,
+                        "interpolate2DMulti requires the name of a 2D array property and a point "
+                        "at which to sample");
+        return nullptr;
+    }
+
+    if (!getMaterialPtr()->hasPhysicalProperty(QString::fromStdString(name))) {
+        PyErr_SetString(PyExc_ValueError, "Property not found");
+        return nullptr;
+    }
+
+    auto property = getMaterialPtr()->getPhysicalProperty(QString::fromStdString(name));
+    if (!property) {
+        PyErr_SetString(PyExc_ValueError, "Property not found");
+        return nullptr;
+    }
+
+    if (property->getType() != MaterialValue::Array2D) {
+        PyErr_SetString(PyExc_TypeError, "interpolate2DMulti can only operate on a 3D array");
+        return nullptr;
+    }
+
+    try {
+        QList<QVariant> value = property->interpolate2DMulti(sample, Base::asBoolean(extrapolate));
+        Py::List list;
+
+        for (auto it : value) {
+            list.append(Py::Object(_pyObjectFromVariant(it)));
+        }
+        return Py::new_reference_to(list);
+    }
+    catch (InterpolationOutOfRangeError) {
+        PyErr_SetString(PyExc_ValueError, "Sample point out of range");
+        return nullptr;
+    }
+}
+
+PyObject* MaterialPy::interpolate3D(PyObject* args)
+{
+    QVariant depth = 0.0;
+    QVariant sample = 0.0;
+    bool sampled = false;
+
+    char* name;
+    PyObject* depthPoint;
+    PyObject* samplePoint;
+    if (PyArg_ParseTuple(args, "sOO", &name, &depthPoint, &samplePoint)) {
+        try {
+            depth = MaterialValue::getValue(depthPoint);
+            sample = MaterialValue::getValue(samplePoint);
+            sampled = true;
+        }
+        catch (const Base::TypeError&) {
+        }
+    }
+
+    if (!sampled) {
+        PyErr_SetString(
+            PyExc_TypeError,
+            "interplate3D requires the name of a 3D array property and a point and depth at which to sample");
+        return nullptr;
+    }
+
+    if (!getMaterialPtr()->hasPhysicalProperty(QString::fromStdString(name))) {
+        PyErr_SetString(PyExc_ValueError, "Property not found");
+        return nullptr;
+    }
+
+    auto property = getMaterialPtr()->getPhysicalProperty(QString::fromStdString(name));
+    if (!property) {
+        PyErr_SetString(PyExc_ValueError, "Property not found");
+        return nullptr;
+    }
+
+    if (property->getType() != MaterialValue::Array3D) {
+        PyErr_SetString(PyExc_TypeError, "interplate3D can only operate on a 3D array");
+        return nullptr;
+    }
+
+    try {
+        QVariant value = property->interpolate3D(depth, sample);
+        return _pyObjectFromVariant(value);
+    }
+    catch (InterpolationOutOfRangeError) {
+        PyErr_SetString(PyExc_ValueError, "Sample point out of range");
+        return nullptr;
+    }
+}
+
+PyObject* MaterialPy::interpolate3DMulti(PyObject* args)
+{
+    QVariant depth = 0.0;
+    QVariant sample = 0.0;
+    bool sampled = false;
+
+    char* name;
+    PyObject* depthPoint;
+    PyObject* samplePoint;
+
+    if (PyArg_ParseTuple(args, "sOO", &name, &depthPoint, &samplePoint)) {
+        try {
+            depth = MaterialValue::getValue(depthPoint);
+            sample = MaterialValue::getValue(samplePoint);
+            sampled = true;
+        }
+        catch (const Base::TypeError&) {
+        }
+    }
+
+    if (!sampled) {
+        PyErr_SetString(PyExc_TypeError,
+                        "interplate3DMulti requires the name of a 3D array property and a point and "
+                        "depth at which to sample");
+        return nullptr;
+    }
+
+    if (!getMaterialPtr()->hasPhysicalProperty(QString::fromStdString(name))) {
+        PyErr_SetString(PyExc_ValueError, "Property not found");
+        return nullptr;
+    }
+
+    auto property = getMaterialPtr()->getPhysicalProperty(QString::fromStdString(name));
+    if (!property) {
+        PyErr_SetString(PyExc_ValueError, "Property not found");
+        return nullptr;
+    }
+
+    if (property->getType() != MaterialValue::Array3D) {
+        PyErr_SetString(PyExc_TypeError, "interplate3DMulti can only operate on a 3D array");
+        return nullptr;
+    }
+
+    try {
+        QList<QVariant> value = property->interpolate3DMulti(depth, sample);
+        Py::List list;
+
+        for (auto it : value) {
+            list.append(Py::Object(_pyObjectFromVariant(it)));
+        }
+        return Py::new_reference_to(list);
+    }
+    catch (InterpolationOutOfRangeError) {
+        PyErr_SetString(PyExc_ValueError, "Sample point out of range");
+        return nullptr;
+    }
+}
+
 PyObject* MaterialPy::keys()
 {
     return Py::new_reference_to(this->getProperties().keys());
@@ -649,7 +908,7 @@ PyObject* MaterialPy::values()
     return Py::new_reference_to(this->getProperties().values());
 }
 
-Py_ssize_t MaterialPy::sequence_length(PyObject *self)
+Py_ssize_t MaterialPy::sequence_length(PyObject* self)
 {
     return static_cast<MaterialPy*>(self)->getProperties().size();
 }
