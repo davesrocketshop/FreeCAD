@@ -121,7 +121,7 @@ std::shared_ptr<ModelEntry> ModelLoader::getModelFromPath(std::shared_ptr<ModelL
         throw InvalidModel();
     }
 
-    auto localLibrary = reinterpret_cast<std::shared_ptr<ModelLibraryLocal>&>(library);
+    auto localLibrary = std::static_pointer_cast<ModelLibraryLocal>(library);
     std::shared_ptr<ModelEntry> model = std::make_shared<ModelEntry>(localLibrary,
                                                                      QString::fromStdString(base),
                                                                      QString::fromStdString(name),

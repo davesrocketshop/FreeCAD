@@ -192,8 +192,7 @@ std::shared_ptr<Model> ModelManagerLocal::getModelByPath(const QString& path) co
 
     for (auto& library : *_libraryList) {
         if (library->isLocal()) {
-            auto localLibrary =
-                reinterpret_cast<const std::shared_ptr<Materials::ModelLibraryLocal>&>(library);
+            auto localLibrary = std::static_pointer_cast<Materials::ModelLibraryLocal> (library);
             if (cleanPath.startsWith(localLibrary->getDirectory())) {
                 return localLibrary->getModelByPath(cleanPath);
             }
@@ -208,8 +207,7 @@ std::shared_ptr<Model> ModelManagerLocal::getModelByPath(const QString& path,
 {
     auto library = getLibrary(lib);        // May throw LibraryNotFound
     if (library->isLocal()) {
-        auto localLibrary = reinterpret_cast<const std::shared_ptr<Materials::ModelLibraryLocal>&>(
-            library);
+        auto localLibrary = std::static_pointer_cast<Materials::ModelLibraryLocal>(library);
         return localLibrary->getModelByPath(path);  // May throw ModelNotFound
     }
 

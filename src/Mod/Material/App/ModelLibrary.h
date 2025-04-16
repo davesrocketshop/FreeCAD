@@ -96,14 +96,6 @@ public:
 
     std::shared_ptr<Model> addModel(const Model& model, const QString& path);
 
-    // Use this to get a shared_ptr for *this
-    // std::shared_ptr<ModelLibrary> getptr()
-    // {
-    //     return shared_from_this();
-    // }
-    std::shared_ptr<std::map<QString, std::shared_ptr<ModelTreeNode>>>
-    getModelTree(ModelFilter filter) const;
-
 private:
 
     std::unique_ptr<std::map<QString, std::shared_ptr<Model>>> _modelPathMap;
