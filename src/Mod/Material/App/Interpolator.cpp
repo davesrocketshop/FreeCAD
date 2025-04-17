@@ -396,12 +396,8 @@ void InterpolatorSpline3D::create(const Array3D& array)
     _zmax = _zmin;
 
     _interpolators.clear();
-    for (int i = 0; i < depth; i++) {
-        // if (array.rows(i) < 2) {
-        //     throw InterpolationError(QLatin1String("No data to interpolate"));
-        // }
-
-        double value = array.getDepthValue(depth).getValue();
+    for (int depthIndex = 0; depthIndex < depth; depthIndex++) {
+        double value = array.getDepthValue(depthIndex).getValue();
         if (_zmin > value) {
             _zmin = value;
         }
@@ -409,7 +405,7 @@ void InterpolatorSpline3D::create(const Array3D& array)
             _zmax = value;
         }
 
-        _interpolators.append(InterpolatorSpline(array, depth));
+        _interpolators.append(InterpolatorSpline(array, depthIndex));
     }
 }
 
