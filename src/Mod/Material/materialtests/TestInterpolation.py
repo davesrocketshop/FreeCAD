@@ -178,6 +178,8 @@ class InterpolationTestCases(unittest.TestCase):
             array.setRows(depthIndex, 3)
             array.setDepthValue(depthIndex, "{0} Pa".format(depthIndex * 10.0 + 10.0))
 
+        table = Materials.Array2D()
+
         array.setValue(0, 0, 0, "{0} Pa".format(10.0))
         array.setValue(0, 1, 0, "{0} Pa".format(20.0))
         array.setValue(0, 2, 0, "{0} Pa".format(30.0))

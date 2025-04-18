@@ -235,6 +235,32 @@ PyObject* Array3DPy::setValue(PyObject* args)
     return nullptr;
 }
 
+PyObject* Array3DPy::setDepthArray(PyObject* args)
+{
+    int depth;
+    PyObject* valueObj;
+    PyObject* arrayObj;
+    if (PyArg_ParseTuple(args, "iOO", &depth, &valueObj, &arrayObj)) {
+        // try {
+        //     auto value = MaterialValue::getQuantityValue(valueObj);
+        //     getArray3DPtr()->setValue(depth, row, column, value);
+        // }
+        // catch (const Base::TypeError& error) {
+        //     PyErr_SetString(PyExc_TypeError,
+        //                    "Expected (integer, Quantity, Array2D) arguments");
+        //     return nullptr;
+        // }
+        // catch (const InvalidIndex&) {
+        //     PyErr_SetString(PyExc_IndexError, "Invalid array index");
+        //     return nullptr;
+        // }
+        Py_Return;
+    }
+
+    PyErr_SetString(PyExc_TypeError, "Expected (integer, Quantity, Array2D) arguments");
+    return nullptr;
+}
+
 PyObject* Array3DPy::setRows(PyObject* args)
 {
     int depth;

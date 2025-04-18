@@ -1,6 +1,7 @@
 from Base.Metadata import export, constmethod
 from Base.BaseClass import BaseClass
 from typing import Any, Final, List
+from Materials import Array2D
 
 
 @export(
@@ -67,6 +68,12 @@ class Array3D(BaseClass):
         ...
 
     def setValue(self, depth: int, row: int, column: int, value: Any):
+        """
+        Set the value at the given depth, row, and column
+        """
+        ...
+
+    def setDepthArray(self, depth: int, value: Any, array: Array2D):
         """
         Set the value at the given depth, row, and column
         """
