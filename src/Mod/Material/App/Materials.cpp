@@ -386,6 +386,20 @@ void MaterialProperty::setFloat(const QString& value)
 void MaterialProperty::setQuantity(const Base::Quantity& value)
 {
     auto quantity = value;
+    auto units = quantity.getUnit();
+    Base::Unit propertyUnit = Base::Unit(getUnits().toStdString());
+    if (units.isEmpty()) {
+        // Assign the default units when none are provided.
+        //
+        // This needs to be parsed rather than just setting units. Otherwise we get mm->m conversion
+        // errors, etc
+        quantity = Base::Quantity::parse(quantity.getUserString() + getUnits().toStdString());
+    }
+    else {
+        if (propertyUnit != units) {
+            throw Base::ValueError("Incompatible material units");
+        }
+    }
     quantity.setFormat(MaterialValue::getQuantityFormat());
     _valuePtr->setValue(QVariant(QVariant::fromValue(quantity)));
 }
