@@ -315,14 +315,6 @@ void MaterialProperty::setValue(const QString& value)
             // Save as a string
             setString(value);
         }
-        catch (const Base::ValueError& e) {
-            // Units mismatch
-            Base::Console().Log("MaterialProperty::setValue Error '%s' - '%s'\n",
-                                e.what(),
-                                value.toStdString().c_str());
-            auto quantity = Base::Quantity::parse(value.toStdString());
-            setQuantity(Base::Quantity(quantity.getValue(), getUnits().toStdString()));
-        }
     }
     else {
         setString(value);
