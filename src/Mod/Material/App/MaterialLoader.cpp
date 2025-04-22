@@ -253,7 +253,7 @@ void MaterialYamlEntry::addToTree(
                             catch (const Base::ValueError& e) {
                                 // Units mismatch
                                 Base::Console().Log("Units mismatch in material '%s':'%s' = '%s', "
-                                                    "setting to property units '%s'\n",
+                                                    "setting to default property units '%s'\n",
                                                     name.toStdString().c_str(),
                                                     propertyName,
                                                     propertyValue.toStdString().c_str(),
