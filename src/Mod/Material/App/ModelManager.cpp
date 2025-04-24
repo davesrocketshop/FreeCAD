@@ -146,6 +146,7 @@ std::shared_ptr<std::list<std::shared_ptr<ModelLibrary>>> ModelManager::getLibra
 
     // Consolidate into a single list
     auto libraries = std::make_shared<std::list<std::shared_ptr<ModelLibrary>>>();
+    libraries->resize(libMap.size());
     for (auto libEntry : libMap) {
         libraries->push_back(libEntry.second);
     }
