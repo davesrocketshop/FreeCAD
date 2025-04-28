@@ -157,6 +157,8 @@ if(BUILD_MATERIAL_EXTERNAL)
     list(APPEND Materials_SRCS
         ExternalManager.cpp
         ExternalManager.h
+        MaterialManagerExternal.cpp
+        MaterialManagerExternal.h
         ModelManagerExternal.cpp
         ModelManagerExternal.h
     )

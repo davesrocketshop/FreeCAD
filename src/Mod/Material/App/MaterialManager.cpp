@@ -333,12 +333,11 @@ MaterialManager::libraryMaterials(const QString& libraryName,
     return _localManager->libraryMaterials(libraryName, filter, options);
 }
 
-bool MaterialManager::isLocalLibrary(const QString& /*libraryName*/)
-{
 #if defined(BUILD_MATERIAL_EXTERNAL)
+bool MaterialManager::isLocalLibrary(const QString& libraryName)
+{
     if (_useExternal) {
-        try
-        {
+        try {
             auto lib = _externalManager->getLibrary(libraryName);
             if (lib) {
                 return false;
@@ -347,9 +346,14 @@ bool MaterialManager::isLocalLibrary(const QString& /*libraryName*/)
         catch (const LibraryNotFound& e) {
         }
     }
-#endif
     return true;
 }
+#else
+bool MaterialManager::isLocalLibrary(const QString& /*libraryName*/)
+{
+    return true;
+}
+#endif
 
 //=====
 //

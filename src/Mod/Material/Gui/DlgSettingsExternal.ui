@@ -131,7 +131,7 @@
       <item row="2" column="0">
        <widget class="QLabel" name="label_8">
         <property name="text">
-         <string>Meterial Cache Size</string>
+         <string>Material Cache Size</string>
         </property>
        </widget>
       </item>
