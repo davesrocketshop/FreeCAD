@@ -71,8 +71,10 @@ Py::List Array3DPy::getArray() const
         for (auto& row : *std::get<1>(depth)) {
             Py::List rowList;
             for (auto& column : *row) {
-                auto quantity = new Base::QuantityPy(new Base::Quantity(column));
-                rowList.append(Py::asObject(quantity));
+                auto quantity = new Base::Quantity(column);
+                quantity->setFormat(MaterialValue::getQuantityFormat());
+                auto quantityPy = new Base::QuantityPy(quantity);
+                rowList.append(Py::asObject(quantityPy));
             }
 
             depthList.append(rowList);
@@ -118,6 +120,34 @@ PyObject* Array3DPy::getRows(PyObject* args) const
     return PyLong_FromLong(getArray3DPtr()->rows(depth));
 }
 
+PyObject* Array3DPy::getRow(PyObject* args) const
+{
+    int depth;
+    int row;
+    if (!PyArg_ParseTuple(args, "ii", &depth, &row)) {
+        return nullptr;
+    }
+
+    try {
+        Py::List list;
+
+        auto arrayRow = getArray3DPtr()->getRow(depth, row);
+        for (auto& column : *arrayRow) {
+            auto quantity = new Base::Quantity(column);
+            quantity->setFormat(MaterialValue::getQuantityFormat());
+            auto quantityPy = new Base::QuantityPy(quantity);
+            list.append(Py::asObject(quantityPy));
+        }
+
+        return Py::new_reference_to(list);
+    }
+    catch (const InvalidIndex&) {
+    }
+
+    PyErr_SetString(PyExc_IndexError, "Invalid array index");
+    return nullptr;
+}
+
 PyObject* Array3DPy::getValue(PyObject* args) const
 {
     int depth;
@@ -129,7 +159,9 @@ PyObject* Array3DPy::getValue(PyObject* args) const
 
     try {
         auto value = getArray3DPtr()->getValue(depth, row, column);
-        return new Base::QuantityPy(new Base::Quantity(value));
+        auto quantity = new Base::Quantity(value);
+        quantity->setFormat(MaterialValue::getQuantityFormat());
+        return new Base::QuantityPy(quantity);
     }
     catch (const InvalidIndex&) {
     }
@@ -147,7 +179,9 @@ PyObject* Array3DPy::getDepthValue(PyObject* args) const
 
     try {
         auto value = getArray3DPtr()->getDepthValue(depth);
-        return new Base::QuantityPy(new Base::Quantity(value));
+        auto quantity = new Base::Quantity(value);
+        quantity->setFormat(MaterialValue::getQuantityFormat());
+        return new Base::QuantityPy(quantity);
     }
     catch (const InvalidIndex&) {
     }
@@ -159,11 +193,18 @@ PyObject* Array3DPy::getDepthValue(PyObject* args) const
 PyObject* Array3DPy::setDepthValue(PyObject* args)
 {
     int depth;
+
     PyObject* valueObj;
-    if (PyArg_ParseTuple(args, "iO!", &depth, &PyUnicode_Type, &valueObj)) {
+    if (PyArg_ParseTuple(args, "iO", &depth, &valueObj)) {
         Py::String item(valueObj);
         try {
-            getArray3DPtr()->setDepthValue(depth, Base::Quantity::parse(item.as_string()));
+            auto quantity = Base::Quantity::parse(item.as_string());
+            quantity.setFormat(MaterialValue::getQuantityFormat());
+            getArray3DPtr()->setDepthValue(depth, quantity);
+        }
+        catch (const Base::TypeError& error) {
+            PyErr_SetString(PyExc_TypeError, "Expected (integer, Quantity) arguments");
+            return nullptr;
         }
         catch (const InvalidIndex&) {
             PyErr_SetString(PyExc_IndexError, "Invalid array index");
@@ -172,7 +213,7 @@ PyObject* Array3DPy::setDepthValue(PyObject* args)
         Py_Return;
     }
 
-    PyErr_SetString(PyExc_TypeError, "Expected (integer, string) arguments");
+    PyErr_SetString(PyExc_TypeError, "Expected (integer, Quantity) arguments");
     return nullptr;
 }
 
@@ -182,10 +223,17 @@ PyObject* Array3DPy::setValue(PyObject* args)
     int row;
     int column;
     PyObject* valueObj;
-    if (PyArg_ParseTuple(args, "iiiO!", &depth, &row, &column, &PyUnicode_Type, &valueObj)) {
+    if (PyArg_ParseTuple(args, "iiiO", &depth, &row, &column, &valueObj)) {
         Py::String item(valueObj);
         try {
-            getArray3DPtr()->setValue(depth, row, column, Base::Quantity::parse(item.as_string()));
+            auto quantity = Base::Quantity::parse(item.as_string());
+            quantity.setFormat(MaterialValue::getQuantityFormat());
+            getArray3DPtr()->setValue(depth, row, column, quantity);
+        }
+        catch (const Base::TypeError& error) {
+            PyErr_SetString(PyExc_TypeError,
+                            "Expected (integer, integer, integer, Quantity) arguments");
+            return nullptr;
         }
         catch (const InvalidIndex&) {
             PyErr_SetString(PyExc_IndexError, "Invalid array index");
@@ -194,7 +242,33 @@ PyObject* Array3DPy::setValue(PyObject* args)
         Py_Return;
     }
 
-    PyErr_SetString(PyExc_TypeError, "Expected (integer, integer, integer, string) arguments");
+    PyErr_SetString(PyExc_TypeError, "Expected (integer, integer, integer, Quantity) arguments");
+    return nullptr;
+}
+
+PyObject* Array3DPy::setDepthArray(PyObject* args)
+{
+    int depth;
+    PyObject* valueObj;
+    PyObject* arrayObj;
+    if (PyArg_ParseTuple(args, "iOO", &depth, &valueObj, &arrayObj)) {
+        // try {
+        //     auto value = MaterialValue::getQuantityValue(valueObj);
+        //     getArray3DPtr()->setValue(depth, row, column, value);
+        // }
+        // catch (const Base::TypeError& error) {
+        //     PyErr_SetString(PyExc_TypeError,
+        //                    "Expected (integer, Quantity, Array2D) arguments");
+        //     return nullptr;
+        // }
+        // catch (const InvalidIndex&) {
+        //     PyErr_SetString(PyExc_IndexError, "Invalid array index");
+        //     return nullptr;
+        // }
+        Py_Return;
+    }
+
+    PyErr_SetString(PyExc_TypeError, "Expected (integer, Quantity, Array2D) arguments");
     return nullptr;
 }
 
@@ -206,7 +280,13 @@ PyObject* Array3DPy::setRows(PyObject* args)
         return nullptr;
     }
 
-    getArray3DPtr()->setRows(depth, rows);
+    try {
+        getArray3DPtr()->setRows(depth, rows);
+    }
+    catch (const InvalidIndex&) {
+        PyErr_SetString(PyExc_IndexError, "Invalid array index");
+        return nullptr;
+    }
     Py_Return;
 }
 
