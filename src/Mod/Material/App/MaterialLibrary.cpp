@@ -45,7 +45,6 @@ TYPESYSTEM_SOURCE(Materials::MaterialLibrary, Base::BaseClass)
 
 MaterialLibrary::MaterialLibrary(const QString& libraryName, const QString& icon, bool readOnly)
     : Library(libraryName, icon, readOnly)
-    , _local(false)
 {}
 
 MaterialLibrary::MaterialLibrary(const QString& libraryName,
@@ -53,23 +52,11 @@ MaterialLibrary::MaterialLibrary(const QString& libraryName,
                                  const QString& icon,
                                  bool readOnly)
     : Library(libraryName, dir, icon, readOnly)
-    , _local(false)
 {}
 
 MaterialLibrary::MaterialLibrary(const Library& library)
     : Library(library)
-    , _local(false)
 {}
-
-bool MaterialLibrary::isLocal() const
-{
-    return _local;
-}
-
-void MaterialLibrary::setLocal(bool local)
-{
-    _local = local;
-}
 
 std::shared_ptr<std::map<QString, std::shared_ptr<MaterialTreeNode>>>
 MaterialLibrary::getMaterialTree(const std::shared_ptr<Materials::MaterialFilter>& filter,

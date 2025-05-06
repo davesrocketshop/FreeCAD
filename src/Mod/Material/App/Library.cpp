@@ -38,6 +38,7 @@ Library::Library(const QString& libraryName, const QString& icon, bool readOnly)
     : _name(libraryName)
     , _iconPath(icon)
     , _readOnly(readOnly)
+    , _local(false)
 {}
 
 Library::Library(const QString& libraryName,
@@ -48,6 +49,7 @@ Library::Library(const QString& libraryName,
     , _icon(icon)
     , _readOnly(readOnly)
     , _timestamp(timestamp)
+    , _local(false)
 {}
 
 Library::Library(const QString& libraryName, const QString& dir, const QString& icon, bool readOnly)
@@ -55,7 +57,18 @@ Library::Library(const QString& libraryName, const QString& dir, const QString& 
     , _directory(QDir::cleanPath(dir))
     , _iconPath(icon)
     , _readOnly(readOnly)
+    , _local(false)
 {}
+
+bool Library::isLocal() const
+{
+    return _local;
+}
+
+void Library::setLocal(bool local)
+{
+    _local = local;
+}
 
 bool Library::operator==(const Library& library) const
 {

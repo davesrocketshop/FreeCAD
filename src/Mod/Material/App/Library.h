@@ -51,6 +51,9 @@ public:
             bool readOnly = true);
     ~Library() override = default;
 
+    bool isLocal() const;
+    void setLocal(bool local);
+
     QString getName() const
     {
         return _name;
@@ -136,6 +139,7 @@ private:
     QString _timestamp;
 
     QByteArray _icon;
+    bool _local;
 };
 
 }  // namespace Materials
