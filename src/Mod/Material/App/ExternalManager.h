@@ -53,7 +53,10 @@ public:
     std::shared_ptr<std::vector<std::shared_ptr<Library>>> modelLibraries();
     std::shared_ptr<std::vector<std::shared_ptr<Library>>> materialLibraries();
     std::shared_ptr<Library> getLibrary(const QString& name);
-    void createLibrary(const QString& libraryName, const QString& icon, bool readOnly = true);
+    void createLibrary(const QString& libraryName,
+                       const QByteArray& icon,
+                       const QString& iconPath,
+                       bool readOnly = true);
     void renameLibrary(const QString& libraryName, const QString& newName);
     void changeIcon(const QString& libraryName, const QString& icon);
     void removeLibrary(const QString& libraryName);

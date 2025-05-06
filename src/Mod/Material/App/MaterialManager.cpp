@@ -61,15 +61,21 @@ std::unique_ptr<MaterialManagerExternal> MaterialManager::_externalManager;
 
 MaterialManager::MaterialManager()
 {
+#if defined(BUILD_MATERIAL_EXTERNAL)
     _hGrp = App::GetApplication().GetParameterGroupByPath(
         "User parameter:BaseApp/Preferences/Mod/Material/ExternalInterface");
     _useExternal = _hGrp->GetBool("UseExternal", false);
     _hGrp->Attach(this);
+#else
+    _useExternal = false;
+#endif
 }
 
 MaterialManager::~MaterialManager()
 {
+#if defined(BUILD_MATERIAL_EXTERNAL)
     _hGrp->Detach(this);
+#endif
 }
 
 MaterialManager& MaterialManager::getManager()
@@ -267,8 +273,17 @@ std::shared_ptr<MaterialLibrary> MaterialManager::getLibrary(const QString& name
     return _localManager->getLibrary(name);
 }
 
-void MaterialManager::createLibrary(const QString& /*libraryName*/, const QString& /*icon*/, bool /*readOnly*/)
+void MaterialManager::createLibrary(const QString& libraryName,
+                                    const QByteArray& icon,
+                                    const QString& iconPath,
+                                    bool readOnly)
 {
+#if defined(BUILD_MATERIAL_EXTERNAL)
+    if (_useExternal) {
+        _externalManager->createLibrary(libraryName, icon, iconPath, readOnly);
+        return;
+    }
+#endif
     throw CreationError("Local library requires a path");
 }
 
@@ -296,10 +311,10 @@ void MaterialManager::removeLibrary(const QString& libraryName)
 }
 
 std::shared_ptr<std::vector<std::tuple<QString, QString, QString>>>
-MaterialManager::libraryMaterials(const QString& libraryName)
+MaterialManager::libraryMaterials(const QString& libraryName, bool local)
 {
 #if defined(BUILD_MATERIAL_EXTERNAL)
-    if (_useExternal) {
+    if (_useExternal && !local) {
         try {
             auto materials = _externalManager->libraryMaterials(libraryName);
             if (materials) {
@@ -316,10 +331,11 @@ MaterialManager::libraryMaterials(const QString& libraryName)
 std::shared_ptr<std::vector<std::tuple<QString, QString, QString>>>
 MaterialManager::libraryMaterials(const QString& libraryName,
                                   const std::shared_ptr<MaterialFilter>& filter,
-                                  const MaterialFilterOptions& options)
+                                  const MaterialFilterOptions& options,
+                                  bool local)
 {
 #if defined(BUILD_MATERIAL_EXTERNAL)
-    if (_useExternal) {
+    if (_useExternal && !local) {
         try {
             auto materials = _externalManager->libraryMaterials(libraryName, filter, options);
             if (materials) {
@@ -562,9 +578,16 @@ void MaterialManager::dereference(std::shared_ptr<Material> material) const
 #if defined(BUILD_MATERIAL_EXTERNAL)
 void MaterialManager::migrateToExternal(const std::shared_ptr<Materials::MaterialLibrary>& library)
 {
-    _externalManager->createLibrary(library->getName(),
-                                    library->getIconPath(),
-                                    library->isReadOnly());
+    try {
+        _externalManager->createLibrary(library->getName(),
+                                        library->getIcon(),
+                                        library->getIconPath(),
+                                        library->isReadOnly());
+    }
+    catch (const CreationError&) {
+    }
+    catch (const ConnectionError&) {
+    }
 
     auto materials = _localManager->libraryMaterials(library->getName());
     for (auto& tuple : *materials) {

@@ -41,11 +41,11 @@ Library::Library(const QString& libraryName, const QString& icon, bool readOnly)
 {}
 
 Library::Library(const QString& libraryName,
-                 const QString& icon,
+                 const QByteArray& icon,
                  bool readOnly,
                  const QString& timestamp)
     : _name(libraryName)
-    , _iconPath(icon)
+    , _icon(icon)
     , _readOnly(readOnly)
     , _timestamp(timestamp)
 {}
@@ -67,11 +67,11 @@ void Library::validate(const Library& remote) const
     if (getName() != remote.getName()) {
         throw InvalidLibrary("Library names don't match");
     }
-    if (getIconPath() != remote.getIconPath()) {
-        Base::Console().Log("Icon path 1 '%s'\n", getIconPath().toStdString().c_str());
-        Base::Console().Log("Icon path 2 '%s'\n", remote.getIconPath().toStdString().c_str());
-        throw InvalidLibrary("Library icon paths don't match");
-    }
+    // if (getIconPath() != remote.getIconPath()) {
+    //     Base::Console().Log("Icon path 1 '%s'\n", getIconPath().toStdString().c_str());
+    //     Base::Console().Log("Icon path 2 '%s'\n", remote.getIconPath().toStdString().c_str());
+    //     throw InvalidLibrary("Library icon paths don't match");
+    // }
 
     // Local and remote paths will differ
     if (!remote.getDirectory().isEmpty()) {

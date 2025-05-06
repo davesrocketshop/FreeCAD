@@ -127,10 +127,11 @@ std::shared_ptr<MaterialLibrary> MaterialManagerExternal::getLibrary(const QStri
 }
 
 void MaterialManagerExternal::createLibrary(const QString& libraryName,
-                                            const QString& icon,
+                                            const QByteArray& icon,
+                                            const QString& iconPath,
                                             bool readOnly)
 {
-    ExternalManager::getManager()->createLibrary(libraryName, icon, readOnly);
+    ExternalManager::getManager()->createLibrary(libraryName, icon, iconPath, readOnly);
 }
 
 std::shared_ptr<std::vector<std::tuple<QString, QString, QString>>>

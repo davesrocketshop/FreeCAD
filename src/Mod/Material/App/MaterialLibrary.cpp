@@ -78,7 +78,7 @@ MaterialLibrary::getMaterialTree(const std::shared_ptr<Materials::MaterialFilter
     std::shared_ptr<std::map<QString, std::shared_ptr<MaterialTreeNode>>> materialTree =
         std::make_shared<std::map<QString, std::shared_ptr<MaterialTreeNode>>>();
 
-    auto materials = MaterialManager::getManager().libraryMaterials(getName(), filter, options);
+    auto materials = MaterialManager::getManager().libraryMaterials(getName(), filter, options, isLocal());
     for (auto& it : *materials) {
         auto uuid = std::get<0>(it);
         auto path = std::get<1>(it);

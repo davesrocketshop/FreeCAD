@@ -23,6 +23,7 @@
 #define MATERIAL_LIBRARY_H
 
 #include <QDir>
+#include <QByteArray>
 #include <QString>
 
 #include <Base/BaseClass.h>
@@ -41,7 +42,7 @@ public:
     Library(const Library &other) = default;
     Library(const QString& libraryName, const QString& icon, bool readOnly = true);
     Library(const QString& libraryName,
-            const QString& icon,
+            const QByteArray& icon,
             bool readOnly,
             const QString& timestamp);
     Library(const QString& libraryName,
@@ -63,13 +64,25 @@ public:
         return (_name == name);
     }
 
+    QByteArray getIcon() const
+    {
+        return _icon;
+    }
+    void setIcon(const QByteArray& icon)
+    {
+        _icon = icon;
+    }
+    bool hasIcon() const
+    {
+        return !_icon.isEmpty();
+    }
     QString getIconPath() const
     {
         return _iconPath;
     }
-    void setIconPath(const QString& icon)
+    void setIconPath(const QString& iconPath)
     {
-        _iconPath = icon;
+        _iconPath = iconPath;
     }
     bool isReadOnly() const
     {
@@ -121,6 +134,8 @@ private:
     QString _iconPath;
     bool _readOnly;
     QString _timestamp;
+
+    QByteArray _icon;
 };
 
 }  // namespace Materials

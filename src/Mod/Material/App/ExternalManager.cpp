@@ -180,7 +180,10 @@ ExternalManager::libraryFromObject(const Py::Object& entry)
     }
 
     Py::String pyName(entry.getAttr("name"));
-    Py::Bytes pyIcon(entry.getAttr("icon"));
+    Py::Bytes pyIcon;
+    if (entry.getAttr("icon") != Py::None()) {
+        pyIcon = Py::Bytes(entry.getAttr("icon"));
+    }
     Py::Boolean pyReadOnly(entry.getAttr("readOnly"));
     Py::String pyTimestamp(entry.getAttr("timestamp"));
 
@@ -188,9 +191,9 @@ ExternalManager::libraryFromObject(const Py::Object& entry)
     if (!pyName.isNone()) {
         libraryName = QString::fromStdString(pyName.as_string());
     }
-    QString icon;
+    QByteArray icon;
     if (!pyIcon.isNone()) {
-        icon = QString::fromStdString(pyIcon.as_string());
+        icon = QByteArray(pyIcon.as_string().data(), pyIcon.size());
     }
 
     bool readOnly = pyReadOnly.as_bool();
@@ -257,6 +260,7 @@ ExternalManager::libraries()
     }
     catch (Py::Exception& e) {
         Base::PyException e1;  // extract the Python error text
+        Base::Console().Log("Library error %s", e1.what());
         throw LibraryNotFound(e1.what());
     }
 
@@ -332,10 +336,9 @@ std::shared_ptr<Library> ExternalManager::getLibrary(const QString& name)
             Py::Callable libraries(_managerObject.getAttr("getLibrary"));
             Py::Tuple args(1);
             args.setItem(0, Py::String(name.toStdString()));
-            Py::Tuple result(libraries.apply(args));
+            Py::Object result(libraries.apply(args));
 
-            Py::Object libObject = result.getItem(0);
-            auto lib = libraryFromObject(Py::Tuple(libObject));
+            auto lib = libraryFromObject(result);
             return std::make_shared<Library>(*lib);
         }
         else {
@@ -343,13 +346,16 @@ std::shared_ptr<Library> ExternalManager::getLibrary(const QString& name)
             throw ConnectionError();
         }
     }
+    catch (const InvalidLibrary&) {
+        throw LibraryNotFound();
+    }
     catch (Py::Exception& e) {
         Base::PyException e1;  // extract the Python error text
-        throw CreationError(e1.what());
+        throw LibraryNotFound(e1.what());
     }
 }
 
-void ExternalManager::createLibrary(const QString& libraryName, const QString& icon, bool readOnly)
+void ExternalManager::createLibrary(const QString& libraryName, const QByteArray& icon, const QString& iconPath, bool readOnly)
 {
     connect();
 
@@ -357,10 +363,11 @@ void ExternalManager::createLibrary(const QString& libraryName, const QString& i
     try {
         if (_managerObject.hasAttr("createLibrary")) {
             Py::Callable libraries(_managerObject.getAttr("createLibrary"));
-            Py::Tuple args(3);
+            Py::Tuple args(4);
             args.setItem(0, Py::String(libraryName.toStdString()));
-            args.setItem(1, Py::String(icon.toStdString()));
-            args.setItem(2, Py::Boolean(readOnly));
+            args.setItem(1, Py::Bytes(icon.data(), icon.size()));
+            args.setItem(2, Py::String(iconPath.toStdString()));
+            args.setItem(3, Py::Boolean(readOnly));
             libraries.apply(args);  // No return expected
         }
         else {
@@ -584,23 +591,11 @@ std::shared_ptr<Model> ExternalManager::getModel(const QString& uuid)
             Py::Tuple result(libraries.apply(args));  // ignore return for now
 
             Py::Object uuidObject = result.getItem(0);
-            Py::Tuple libraryObject(result.getItem(1));
+            Py::Object libraryObject = result.getItem(1);
             Py::Object modelObject = result.getItem(2);
 
-            Py::Object pyName = libraryObject.getItem(0);
-            Py::Object pyIcon = libraryObject.getItem(1);
-            Py::Object readOnly = libraryObject.getItem(2);
-
-            QString name;
-            if (!pyName.isNone()) {
-                name = QString::fromStdString(pyName.as_string());
-            }
-            QString icon;
-            if (!pyIcon.isNone()) {
-                icon = QString::fromStdString(pyIcon.as_string());
-            }
-            auto library =
-                std::make_shared<ModelLibrary>(name, QString(), icon, readOnly.as_bool());
+            auto library = std::make_shared<ModelLibrary>(
+                *libraryFromObject(libraryObject));
 
             Model* model = static_cast<ModelPy*>(*modelObject)->getModelPtr();
             model->setUUID(uuid);
@@ -693,23 +688,10 @@ std::shared_ptr<Material> ExternalManager::getMaterial(const QString& uuid)
             Py::Tuple result(libraries.apply(args));
 
             Py::Object uuidObject = result.getItem(0);
-            Py::Tuple libraryObject(result.getItem(1));
+            Py::Object libraryObject = result.getItem(1);
             Py::Object materialObject = result.getItem(2);
 
-            Py::Object pyName = libraryObject.getItem(0);
-            Py::Object pyIcon = libraryObject.getItem(1);
-            Py::Object readOnly = libraryObject.getItem(2);
-
-            QString name;
-            if (!pyName.isNone()) {
-                name = QString::fromStdString(pyName.as_string());
-            }
-            QString icon;
-            if (!pyIcon.isNone()) {
-                icon = QString::fromStdString(pyIcon.as_string());
-            }
-            auto library =
-                std::make_shared<MaterialLibrary>(name, QString(), icon, readOnly.as_bool());
+            auto library = std::make_shared<MaterialLibrary>(*libraryFromObject(libraryObject));
 
             Material* material = static_cast<MaterialPy*>(*materialObject)->getMaterialPtr();
             material->setUUID(uuid);
