@@ -120,7 +120,6 @@ public:
     void updateMaterialGeneral();
     void updateMaterial();
     void onSelectMaterial(const QItemSelection& selected, const QItemSelection& deselected);
-    void onDoubleClick(const QModelIndex& index);
     void onContextMenu(const QPoint& pos);
 
     bool isMaterialSelected() const

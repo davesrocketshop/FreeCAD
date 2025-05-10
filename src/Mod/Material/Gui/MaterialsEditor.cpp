@@ -189,7 +189,6 @@ void MaterialsEditor::setupSelectionCallbacks()
             &QItemSelectionModel::selectionChanged,
             this,
             &MaterialsEditor::onSelectMaterial);
-    connect(ui->treeMaterials, &QTreeView::doubleClicked, this, &MaterialsEditor::onDoubleClick);
 }
 
 void MaterialsEditor::setupContextMenus()
@@ -1336,23 +1335,6 @@ void MaterialsEditor::onSelectMaterial(const QItemSelection& selected,
     updateMaterial();
     _material->resetEditState();
     _materialSelected = true;
-}
-
-void MaterialsEditor::onDoubleClick(const QModelIndex& index)
-{
-    Q_UNUSED(index)
-
-    // Ensure data is saved (or discarded) before exiting
-    if (_material->getEditState() != Materials::Material::ModelEdit_None) {
-        // Prompt the user to save or discard changes
-        int res = confirmSave(this);
-        if (res == QMessageBox::Cancel) {
-            return;
-        }
-    }
-
-    _materialSelected = true;
-    accept();
 }
 
 const QStandardItemModel* MaterialsEditor::getActionModel() const
