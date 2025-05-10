@@ -1133,47 +1133,52 @@ void MaterialsEditor::updateMaterialAppearance()
     tree->setColumnWidth(1, 250);
     tree->setColumnHidden(2, true);
 
-    auto models = _material->getAppearanceModels();
-    if (models) {
-        for (auto it = models->begin(); it != models->end(); it++) {
-            QString uuid = *it;
-            try {
-                auto model = Materials::ModelManager::getManager().getModel(uuid);
-                QString name = model->getName();
+    ui->buttonAppearanceAdd->setEnabled(_materialSelected);
+    ui->buttonAppearanceRemove->setEnabled(_materialSelected);
 
-                auto modelRoot = new QStandardItem(name);
-                modelRoot->setFlags(Qt::ItemIsEnabled | Qt::ItemIsDragEnabled
-                                    | Qt::ItemIsDropEnabled);
-                addExpanded(tree, treeModel, modelRoot);
-                for (auto itp = model->begin(); itp != model->end(); itp++) {
-                    QList<QStandardItem*> items;
+    if (_materialSelected) {
+        auto models = _material->getAppearanceModels();
+        if (models) {
+            for (auto it = models->begin(); it != models->end(); it++) {
+                QString uuid = *it;
+                try {
+                    auto model = Materials::ModelManager::getManager().getModel(uuid);
+                    QString name = model->getName();
 
-                    QString key = itp->first;
-                    // auto propertyItem = new QStandardItem(key);
-                    auto propertyItem = new QStandardItem(itp->second.getDisplayName());
-                    propertyItem->setData(key);
-                    propertyItem->setToolTip(itp->second.getDescription());
-                    items.append(propertyItem);
+                    auto modelRoot = new QStandardItem(name);
+                    modelRoot->setFlags(Qt::ItemIsEnabled | Qt::ItemIsDragEnabled
+                                        | Qt::ItemIsDropEnabled);
+                    addExpanded(tree, treeModel, modelRoot);
+                    for (auto itp = model->begin(); itp != model->end(); itp++) {
+                        QList<QStandardItem*> items;
 
-                    auto valueItem = new QStandardItem(_material->getAppearanceValueString(key));
-                    valueItem->setToolTip(itp->second.getDescription());
-                    QVariant variant;
-                    // variant.setValue(_material->getAppearanceValueString(key));
-                    variant.setValue(_material);
-                    valueItem->setData(variant);
-                    items.append(valueItem);
+                        QString key = itp->first;
+                        // auto propertyItem = new QStandardItem(key);
+                        auto propertyItem = new QStandardItem(itp->second.getDisplayName());
+                        propertyItem->setData(key);
+                        propertyItem->setToolTip(itp->second.getDescription());
+                        items.append(propertyItem);
 
-                    auto typeItem = new QStandardItem(itp->second.getPropertyType());
-                    items.append(typeItem);
+                        auto valueItem = new QStandardItem(_material->getAppearanceValueString(key));
+                        valueItem->setToolTip(itp->second.getDescription());
+                        QVariant variant;
+                        // variant.setValue(_material->getAppearanceValueString(key));
+                        variant.setValue(_material);
+                        valueItem->setData(variant);
+                        items.append(valueItem);
 
-                    auto unitsItem = new QStandardItem(itp->second.getUnits());
-                    items.append(unitsItem);
+                        auto typeItem = new QStandardItem(itp->second.getPropertyType());
+                        items.append(typeItem);
 
-                    modelRoot->appendRow(items);
-                    tree->setExpanded(modelRoot->index(), true);
+                        auto unitsItem = new QStandardItem(itp->second.getUnits());
+                        items.append(unitsItem);
+
+                        modelRoot->appendRow(items);
+                        tree->setExpanded(modelRoot->index(), true);
+                    }
                 }
-            }
-            catch (Materials::ModelNotFound const&) {
+                catch (Materials::ModelNotFound const&) {
+                }
             }
         }
     }
@@ -1197,49 +1202,54 @@ void MaterialsEditor::updateMaterialProperties()
     tree->setColumnHidden(2, true);
     tree->setColumnHidden(3, true);
 
-    auto models = _material->getPhysicalModels();
-    if (models) {
-        for (auto it = models->begin(); it != models->end(); it++) {
-            QString uuid = *it;
-            try {
-                auto model = Materials::ModelManager::getManager().getModel(uuid);
-                QString name = model->getName();
+    ui->buttonPhysicalAdd->setEnabled(_materialSelected);
+    ui->buttonPhysicalRemove->setEnabled(_materialSelected);
 
-                auto modelRoot = new QStandardItem(name);
-                modelRoot->setFlags(Qt::ItemIsEnabled | Qt::ItemIsDragEnabled
-                                    | Qt::ItemIsDropEnabled);
-                addExpanded(tree, treeModel, modelRoot);
-                for (auto itp = model->begin(); itp != model->end(); itp++) {
-                    QList<QStandardItem*> items;
+    if (_materialSelected) {
+        auto models = _material->getPhysicalModels();
+        if (models) {
+            for (auto it = models->begin(); it != models->end(); it++) {
+                QString uuid = *it;
+                try {
+                    auto model = Materials::ModelManager::getManager().getModel(uuid);
+                    QString name = model->getName();
 
-                    QString key = itp->first;
-                    Materials::ModelProperty modelProperty =
-                        static_cast<Materials::ModelProperty>(itp->second);
-                    // auto propertyItem = new QStandardItem(key);
-                    auto propertyItem = new QStandardItem(modelProperty.getDisplayName());
-                    propertyItem->setData(key);
-                    propertyItem->setToolTip(modelProperty.getDescription());
-                    items.append(propertyItem);
+                    auto modelRoot = new QStandardItem(name);
+                    modelRoot->setFlags(Qt::ItemIsEnabled | Qt::ItemIsDragEnabled
+                                        | Qt::ItemIsDropEnabled);
+                    addExpanded(tree, treeModel, modelRoot);
+                    for (auto itp = model->begin(); itp != model->end(); itp++) {
+                        QList<QStandardItem*> items;
 
-                    auto valueItem = new QStandardItem(_material->getPhysicalValueString(key));
-                    valueItem->setToolTip(modelProperty.getDescription());
-                    QVariant variant;
-                    variant.setValue(_material);
-                    valueItem->setData(variant);
-                    items.append(valueItem);
+                        QString key = itp->first;
+                        Materials::ModelProperty modelProperty =
+                            static_cast<Materials::ModelProperty>(itp->second);
+                        // auto propertyItem = new QStandardItem(key);
+                        auto propertyItem = new QStandardItem(modelProperty.getDisplayName());
+                        propertyItem->setData(key);
+                        propertyItem->setToolTip(modelProperty.getDescription());
+                        items.append(propertyItem);
 
-                    auto typeItem = new QStandardItem(modelProperty.getPropertyType());
-                    items.append(typeItem);
+                        auto valueItem = new QStandardItem(_material->getPhysicalValueString(key));
+                        valueItem->setToolTip(modelProperty.getDescription());
+                        QVariant variant;
+                        variant.setValue(_material);
+                        valueItem->setData(variant);
+                        items.append(valueItem);
 
-                    auto unitsItem = new QStandardItem(modelProperty.getUnits());
-                    items.append(unitsItem);
+                        auto typeItem = new QStandardItem(modelProperty.getPropertyType());
+                        items.append(typeItem);
 
-                    // addExpanded(tree, modelRoot, propertyItem);
-                    modelRoot->appendRow(items);
-                    tree->setExpanded(modelRoot->index(), true);
+                        auto unitsItem = new QStandardItem(modelProperty.getUnits());
+                        items.append(unitsItem);
+
+                        // addExpanded(tree, modelRoot, propertyItem);
+                        modelRoot->appendRow(items);
+                        tree->setExpanded(modelRoot->index(), true);
+                    }
                 }
-            }
-            catch (Materials::ModelNotFound const&) {
+                catch (Materials::ModelNotFound const&) {
+                }
             }
         }
     }
@@ -1263,24 +1273,47 @@ QString MaterialsEditor::libraryPath(const std::shared_ptr<Materials::Material>&
 
 void MaterialsEditor::updateMaterialGeneral()
 {
-    QString parentString;
-    try {
-        auto parent = Materials::MaterialManager::getManager().getParent(_material);
-        parentString = libraryPath(parent);
+    if (_materialSelected) {
+        QString parentString;
+        try {
+            auto parent = Materials::MaterialManager::getManager().getParent(_material);
+            parentString = libraryPath(parent);
+        }
+        catch (const Materials::MaterialNotFound&) {
+        }
+
+        // Update the general information
+        ui->editName->setText(_material->getName());
+        ui->editAuthor->setText(_material->getAuthor());
+        ui->editLicense->setText(_material->getLicense());
+        ui->editParent->setText(parentString);
+        ui->editParent->setReadOnly(true);
+        ui->editSourceURL->setText(_material->getURL());
+        ui->editSourceReference->setText(_material->getReference());
+        // ui->editTags->setText(_material->getName());
+        ui->editDescription->setText(_material->getDescription());
     }
-    catch (const Materials::MaterialNotFound&) {
+    else {
+        ui->editName->clear();
+        ui->editAuthor->clear();
+        ui->editLicense->clear();
+        ui->editParent->clear();
+        ui->editParent->clear();
+        ui->editSourceURL->clear();
+        ui->editSourceReference->clear();
+        ui->editTags->clear();
+        ui->editDescription->clear();
     }
 
-    // Update the general information
-    ui->editName->setText(_material->getName());
-    ui->editAuthor->setText(_material->getAuthor());
-    ui->editLicense->setText(_material->getLicense());
-    ui->editParent->setText(parentString);
-    ui->editParent->setReadOnly(true);
-    ui->editSourceURL->setText(_material->getURL());
-    ui->editSourceReference->setText(_material->getReference());
-    // ui->editTags->setText(_material->getName());
-    ui->editDescription->setText(_material->getDescription());
+    ui->editName->setEnabled(_materialSelected);
+    ui->editAuthor->setEnabled(_materialSelected);
+    ui->editLicense->setEnabled(_materialSelected);
+    ui->editParent->setEnabled(_materialSelected);
+    ui->editParent->setEnabled(_materialSelected);
+    ui->editSourceURL->setEnabled(_materialSelected);
+    ui->editSourceReference->setEnabled(_materialSelected);
+    ui->editTags->setEnabled(_materialSelected);
+    ui->editDescription->setEnabled(_materialSelected);
 }
 
 void MaterialsEditor::updateMaterial()
@@ -1310,17 +1343,23 @@ void MaterialsEditor::onSelectMaterial(const QItemSelection& selected,
         }
     }
 
-    if (uuid.isEmpty() || uuid == _material->getUUID()) {
-        return;
+    if (uuid.isEmpty() || uuid != _material->getUUID()) {
+        // Ensure data is saved (or discarded) before changing materials
+        if (_material->getEditState() != Materials::Material::ModelEdit_None) {
+            // Prompt the user to save or discard changes
+            int res = confirmSave(this);
+            if (res == QMessageBox::Cancel) {
+                return;
+            }
+        }
     }
 
-    // Ensure data is saved (or discarded) before changing materials
-    if (_material->getEditState() != Materials::Material::ModelEdit_None) {
-        // Prompt the user to save or discard changes
-        int res = confirmSave(this);
-        if (res == QMessageBox::Cancel) {
-            return;
-        }
+    if (uuid.isEmpty()) {
+        // Clear selection
+        _materialSelected = false;
+        updateMaterial();
+        _material->resetEditState();
+        return;
     }
 
     // Get the selected material
@@ -1332,9 +1371,9 @@ void MaterialsEditor::onSelectMaterial(const QItemSelection& selected,
         _material = std::make_shared<Materials::Material>();
     }
 
+    _materialSelected = true;
     updateMaterial();
     _material->resetEditState();
-    _materialSelected = true;
 }
 
 const QStandardItemModel* MaterialsEditor::getActionModel() const
