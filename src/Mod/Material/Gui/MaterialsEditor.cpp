@@ -61,6 +61,147 @@ using namespace MatGui;
 
 /* TRANSLATOR MatGui::MaterialsEditor */
 
+MaterialLibraryLoader::MaterialLibraryLoader(
+    QTreeView* tree,
+    QStandardItem* libraryItem,
+    const std::shared_ptr<Materials::MaterialLibrary>& library)
+    : _tree(tree)
+    , _libraryItem(libraryItem)
+    , _library(library)
+{}
+
+void MaterialLibraryLoader::run()
+{
+    Base::Console().Log("Load library '%s'\n", _library->getName().toStdString().c_str());
+    auto materialTree = getMaterialManager().getMaterialTree(_library);
+
+    auto param = App::GetApplication().GetParameterGroupByPath(
+        "User parameter:BaseApp/Preferences/Mod/Material/Editor/MaterialTree");
+
+    QIcon icon = getIcon(_library);
+    QIcon folderIcon(QStringLiteral(":/icons/folder.svg"));
+
+    addMaterials(*_libraryItem, materialTree, folderIcon, icon, param);
+
+    _libraryItem->setText(_library->getName());
+
+    Base::Console().Log("Library '%s' loaded\n", _library->getName().toStdString().c_str());
+}
+
+void MaterialLibraryLoader::addExpanded(QTreeView* tree,
+                                        QStandardItem* parent,
+                                        QStandardItem* child)
+{
+    parent->appendRow(child);
+    tree->setExpanded(child->index(), true);
+}
+
+void MaterialLibraryLoader::addExpanded(QTreeView* tree,
+                                        QStandardItem* parent,
+                                        QStandardItem* child,
+                                        const Base::Reference<ParameterGrp>& param)
+{
+    parent->appendRow(child);
+
+    // Restore to any previous expansion state
+    auto expand = param->GetBool(child->text().toStdString().c_str(), true);
+    tree->setExpanded(child->index(), expand);
+}
+
+void MaterialLibraryLoader::addExpanded(QTreeView* tree,
+                                        QStandardItemModel* parent,
+                                        QStandardItem* child)
+{
+    parent->appendRow(child);
+    tree->setExpanded(child->index(), true);
+}
+
+void MaterialLibraryLoader::addExpanded(QTreeView* tree,
+                                        QStandardItemModel* parent,
+                                        QStandardItem* child,
+                                        const Base::Reference<ParameterGrp>& param)
+{
+    parent->appendRow(child);
+
+    // Restore to any previous expansion state
+    auto expand = param->GetBool(child->text().toStdString().c_str(), true);
+    tree->setExpanded(child->index(), expand);
+}
+
+void MaterialLibraryLoader::addMaterials(
+    QStandardItem& parent,
+    const std::shared_ptr<std::map<QString, std::shared_ptr<Materials::MaterialTreeNode>>>
+        materialTree,
+    const QIcon& folderIcon,
+    const QIcon& icon,
+    const Base::Reference<ParameterGrp>& param)
+{
+    auto childParam = param->GetGroup(parent.text().toStdString().c_str());
+    for (auto& mat : *materialTree) {
+        std::shared_ptr<Materials::MaterialTreeNode> nodePtr = mat.second;
+        if (nodePtr->getType() == Materials::MaterialTreeNode::NodeType::DataNode) {
+            QString uuid = nodePtr->getUUID();
+            // auto material = nodePtr->getData();
+            // if (!material) {
+            //     material = Materials::MaterialManager::getManager().getMaterial(uuid);
+            //     nodePtr->setData(material);
+            // }
+
+            QIcon matIcon = icon;
+            // if (material->isOldFormat()) {
+            //     // matIcon = _warningIcon;
+            //     matIcon = QIcon(QStringLiteral(":/icons/Warning.svg"));
+            // }
+            auto card = new QStandardItem(matIcon, mat.first);
+            card->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsDragEnabled
+                           | Qt::ItemIsDropEnabled);
+            card->setData(QVariant(uuid), TreeDataRole);
+            card->setData(QVariant(TreeFunctionType::TreeFunctionMaterial), TreeFunctionRole);
+            // if (material->isOldFormat()) {
+            //     // card->setToolTip(tr("This card uses the old format and must be saved before use"));
+            //     card->setToolTip(QStringLiteral("This card uses the old format and must be saved before use"));
+            // }
+
+            addExpanded(_tree, &parent, card);
+        }
+        else {
+            auto node = new QStandardItem(folderIcon, mat.first);
+            addExpanded(_tree, &parent, node, childParam);
+            node->setFlags(Qt::ItemIsEnabled | Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled);
+            node->setData(QVariant(TreeFunctionType::TreeFunctionFolder), TreeFunctionRole);
+            auto treeMap = nodePtr->getFolder();
+            // if (treeMap) {
+            addMaterials(*node, treeMap, folderIcon, icon, childParam);
+            // }
+        }
+    }
+}
+
+QIcon MaterialLibraryLoader::getIcon(
+    const std::shared_ptr<Materials::MaterialLibrary>& library) const
+{
+    // Load from the QByteArray if available
+    QIcon icon;
+    if (library->hasIcon()) {
+        Base::Console().Log("Library '%s' has icon of size %d\n",
+                            library->getName().toStdString().c_str(),
+                            library->getIcon().size());
+        auto image = QImage::fromData(library->getIcon());
+        icon = QIcon(QPixmap::fromImage(image));
+    }
+    else {
+        icon = QIcon(library->getIconPath());
+    }
+
+    return icon;
+}
+
+//=====
+//
+// Main editor
+//
+//=====
+
 MaterialsEditor::MaterialsEditor(std::shared_ptr<Materials::MaterialFilter> filter, QWidget* parent)
     : QDialog(parent)
     , ui(new Ui_MaterialsEditor)
@@ -914,24 +1055,33 @@ void MaterialsEditor::fillMaterialTree()
 
     auto libraries = getMaterialManager().getLibraries();
     for (const auto& library : *libraries) {
-        auto materialTree = getMaterialManager().getMaterialTree(library);
+        auto lib = new QStandardItem(library->getName() + tr(" loading..."));
+        lib->setFlags(Qt::ItemIsEnabled | Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled);
+        lib->setData(QVariant(TreeFunctionType::TreeFunctionLibrary), TreeFunctionRole);
+        addExpanded(tree, model, lib, param);
 
-        bool showLibraries = _filterOptions.includeEmptyLibraries();
-        if (!_filterOptions.includeEmptyLibraries() && materialTree->size() > 0) {
-            showLibraries = true;
-        }
+        // if (library->getName() == QStringLiteral("System")) {
+            QThreadPool::globalInstance()->start(new MaterialLibraryLoader(tree, lib, library));
+        // }
 
-        if (showLibraries) {
-            auto lib = new QStandardItem(library->getName());
-            lib->setFlags(Qt::ItemIsEnabled | Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled);
-            lib->setData(QVariant(TreeFunctionType::TreeFunctionLibrary), TreeFunctionRole);
-            addExpanded(tree, model, lib, param);
+        // auto materialTree = getMaterialManager().getMaterialTree(library);
 
-            QIcon icon = getIcon(library);
-            QIcon folderIcon(QStringLiteral(":/icons/folder.svg"));
+        // bool showLibraries = _filterOptions.includeEmptyLibraries();
+        // if (!_filterOptions.includeEmptyLibraries() && materialTree->size() > 0) {
+        //     showLibraries = true;
+        // }
 
-            addMaterials(*lib, materialTree, folderIcon, icon, param);
-        }
+        // if (showLibraries) {
+        //     auto lib = new QStandardItem(library->getName());
+        //     lib->setFlags(Qt::ItemIsEnabled | Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled);
+        //     lib->setData(QVariant(TreeFunctionType::TreeFunctionLibrary), TreeFunctionRole);
+        //     addExpanded(tree, model, lib, param);
+
+        //     QIcon icon = getIcon(library);
+        //     QIcon folderIcon(QStringLiteral(":/icons/folder.svg"));
+
+        //     addMaterials(*lib, materialTree, folderIcon, icon, param);
+        // }
     }
 }
 

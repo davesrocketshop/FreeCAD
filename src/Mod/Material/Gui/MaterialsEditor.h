@@ -76,6 +76,45 @@ public:
     ~ActionError() noexcept override = default;
 };
 
+class MaterialLibraryLoader: public QRunnable
+{
+public:
+    explicit MaterialLibraryLoader(QTreeView* tree,
+                                   QStandardItem* libraryItem,
+                                   const std::shared_ptr<Materials::MaterialLibrary>& library);
+
+    void run() override;
+
+private:
+    QTreeView* _tree;
+    QStandardItem* _libraryItem;
+    std::shared_ptr<Materials::MaterialLibrary> _library;
+
+    static void addExpanded(QTreeView* tree, QStandardItem* parent, QStandardItem* child);
+    static void addExpanded(QTreeView* tree,
+                            QStandardItem* parent,
+                            QStandardItem* child,
+                            const Base::Reference<ParameterGrp>& param);
+    static void addExpanded(QTreeView* tree, QStandardItemModel* parent, QStandardItem* child);
+    static void addExpanded(QTreeView* tree,
+                            QStandardItemModel* parent,
+                            QStandardItem* child,
+                            const Base::Reference<ParameterGrp>& param);
+    void addMaterials(
+        QStandardItem& parent,
+        const std::shared_ptr<std::map<QString, std::shared_ptr<Materials::MaterialTreeNode>>>
+            modelTree,
+        const QIcon& folderIcon,
+        const QIcon& icon,
+        const Base::Reference<ParameterGrp>& param);
+    QIcon getIcon(const std::shared_ptr<Materials::MaterialLibrary>& library) const;
+
+    Materials::MaterialManager& getMaterialManager()
+    {
+        return Materials::MaterialManager::getManager();
+    }
+};
+
 class MaterialsEditor: public QDialog
 {
     Q_OBJECT

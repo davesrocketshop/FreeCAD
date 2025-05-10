@@ -160,9 +160,8 @@ MaterialManagerExternal::libraryMaterials(const QString& libraryName,
 std::shared_ptr<Material> MaterialManagerExternal::materialNotFound(const QString& uuid) const
 {
     // Setting the cache value to nullptr prevents repeated lookups
-    auto empty = std::make_shared<Material>();
-    _cache.emplace(uuid.toStdString(), empty);
-    return empty;
+    _cache.emplace(uuid.toStdString(), nullptr);
+    return nullptr;
 }
 
 std::shared_ptr<Material> MaterialManagerExternal::getMaterial(const QString& uuid) const
