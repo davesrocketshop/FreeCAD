@@ -700,24 +700,29 @@ void MaterialsEditor::addMaterials(
         std::shared_ptr<Materials::MaterialTreeNode> nodePtr = mat.second;
         if (nodePtr->getType() == Materials::MaterialTreeNode::NodeType::DataNode) {
             QString uuid = nodePtr->getUUID();
-            auto material = nodePtr->getData();
-            if (!material) {
-                material = Materials::MaterialManager::getManager().getMaterial(uuid);
-                nodePtr->setData(material);
-            }
+
+            // -- Don't load the materials! They will be loaded on demand
+            // auto material = nodePtr->getData();
+            // if (!material) {
+            //     material = Materials::MaterialManager::getManager().getMaterial(uuid);
+            //     nodePtr->setData(material);
+            // }
 
             QIcon matIcon = icon;
-            if (material->isOldFormat()) {
-                matIcon = _warningIcon;
-            }
+            // TODO: Find a way to do this without loading the material. It will only apply
+            // to local files
+            //
+            // if (material->isOldFormat()) {
+            //     matIcon = _warningIcon;
+            // }
             auto card = new QStandardItem(matIcon, mat.first);
             card->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsDragEnabled
                            | Qt::ItemIsDropEnabled);
             card->setData(QVariant(uuid), TreeDataRole);
             card->setData(QVariant(TreeFunctionType::TreeFunctionMaterial), TreeFunctionRole);
-            if (material->isOldFormat()) {
-                card->setToolTip(tr("This card uses the old format and must be saved before use"));
-            }
+            // if (material->isOldFormat()) {
+            //     card->setToolTip(tr("This card uses the old format and must be saved before use"));
+            // }
 
             addExpanded(tree, &parent, card);
         }
