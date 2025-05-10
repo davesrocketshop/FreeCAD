@@ -69,14 +69,6 @@ MaterialsEditor::MaterialsEditor(std::shared_ptr<Materials::MaterialFilter> filt
     , _materialSelected(false)
     , _recentMax(0)
     , _filter(filter)
-#if defined(BUILD_MATERIAL_EXTERNAL)
-    , _actionNewLibrary(tr("New remote library"), this)
-#endif
-    , _actionNewLocalLibrary(tr("New local library"), this)
-    , _actionNewFolder(tr("New folder"), this)
-    , _actionNewMaterial(tr("New material"), this)
-    , _actionFavorite(tr("Add to favorites"), this)
-    , _actionChangeIcon(tr("Change icon"), this)
 {
     setup();
 }
@@ -89,14 +81,6 @@ MaterialsEditor::MaterialsEditor(QWidget* parent)
     , _materialSelected(false)
     , _recentMax(0)
     , _filter(nullptr)
-#if defined(BUILD_MATERIAL_EXTERNAL)
-    , _actionNewLibrary(tr("New remote library"), this)
-#endif
-    , _actionNewLocalLibrary(tr("New local library"), this)
-    , _actionNewFolder(tr("New folder"), this)
-    , _actionNewMaterial(tr("New material"), this)
-    , _actionFavorite(tr("Add to favorites"), this)
-    , _actionChangeIcon(tr("Change icon"), this)
 {
     setup();
 }
@@ -108,6 +92,8 @@ void MaterialsEditor::setup()
 
     _warningIcon = QIcon(QStringLiteral(":/icons/Warning.svg"));
 
+    setupData();
+
     // Reset to previous size
     setupDialogSize();
     setupButtonIcons();
@@ -115,8 +101,6 @@ void MaterialsEditor::setup()
     setupEditorCallbacks();
     setupSelectionCallbacks();
     setupContextMenus();
-
-    setupData();
 }
 
 void MaterialsEditor::setupData()
@@ -225,6 +209,17 @@ void MaterialsEditor::setupContextMenus()
     connect(&_actionNewMaterial, &QAction::triggered, this, &MaterialsEditor::onMenuNewMaterial);
     connect(&_actionFavorite, &QAction::triggered, this, &MaterialsEditor::onFavourite);
     connect(&_actionChangeIcon, &QAction::triggered, this, &MaterialsEditor::onMenuChangeIcon);
+
+    // TODO: Add tooltips
+#if defined(BUILD_MATERIAL_EXTERNAL)
+    _actionNewLibrary.setText(tr("New remote library"));
+#endif
+    _actionNewLocalLibrary.setText(tr("New local library"));
+    _actionNewFolder.setText(tr("New folder"));
+    _actionNewMaterial.setText(tr("New material"));
+    _actionFavorite.setText(tr("Add to favorites"));
+
+    _actionChangeIcon.setText(tr("Change icon"));
 }
 
 void MaterialsEditor::getFavorites()
@@ -733,28 +728,18 @@ void MaterialsEditor::addMaterials(
         if (nodePtr->getType() == Materials::MaterialTreeNode::NodeType::DataNode) {
             QString uuid = nodePtr->getUUID();
 
-            // -- Don't load the materials! They will be loaded on demand
-            // auto material = nodePtr->getData();
-            // if (!material) {
-            //     material = Materials::MaterialManager::getManager().getMaterial(uuid);
-            //     nodePtr->setData(material);
-            // }
-
             QIcon matIcon = icon;
-            // TODO: Find a way to do this without loading the material. It will only apply
-            // to local files
-            //
-            // if (material->isOldFormat()) {
-            //     matIcon = _warningIcon;
-            // }
+            if (nodePtr->isOldFormat()) {
+                matIcon = _warningIcon;
+            }
             auto card = new QStandardItem(matIcon, mat.first);
             card->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsDragEnabled
                            | Qt::ItemIsDropEnabled);
             card->setData(QVariant(uuid), TreeDataRole);
             card->setData(QVariant(TreeFunctionType::TreeFunctionMaterial), TreeFunctionRole);
-            // if (material->isOldFormat()) {
-            //     card->setToolTip(tr("This card uses the old format and must be saved before use"));
-            // }
+            if (nodePtr->isOldFormat()) {
+                card->setToolTip(tr("This card uses the old format and must be saved before use"));
+            }
 
             addExpanded(tree, &parent, card);
         }
