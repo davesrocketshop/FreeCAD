@@ -92,6 +92,7 @@ public:
 
 private:
     static void initCache();
+    std::shared_ptr<Material> materialNotFound(const QString& uuid) const;
 
     static QMutex _mutex;
 

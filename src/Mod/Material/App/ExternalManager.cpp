@@ -38,6 +38,7 @@
 #include "MaterialLibraryPy.h"
 #include "MaterialPy.h"
 #include "ModelLibrary.h"
+#include "ModelManager.h"
 #include "ModelPy.h"
 #include "MaterialFilterPy.h"
 #include "MaterialFilterOptionsPy.h"
@@ -578,6 +579,37 @@ ExternalManager::libraryMaterials(const QString& libraryName,
 //
 //=====
 
+bool ExternalManager::checkModelObjectType(const Py::Object& entry)
+{
+    return entry.hasAttr("libraryName") && entry.hasAttr("model");
+}
+
+std::shared_ptr<Model> ExternalManager::modelFromObject(const Py::Object& entry,
+                                                        const QString& uuid)
+{
+    if (!checkModelObjectType(entry)) {
+        throw InvalidModel();
+    }
+
+    Py::String pyName(entry.getAttr("libraryName"));
+    Py::Object modelObject(entry.getAttr("model"));
+
+    QString libraryName;
+    if (!pyName.isNone()) {
+        libraryName = QString::fromStdString(pyName.as_string());
+    }
+
+    // Using this call will use caching, whereas using our class function will not
+    auto library = ModelManager::getManager().getLibrary(libraryName);
+
+    Model* model = static_cast<ModelPy*>(*modelObject)->getModelPtr();
+    model->setUUID(uuid);
+    model->setLibrary(library);
+    auto shared = std::make_shared<Model>(*model);
+
+    return shared;
+}
+
 std::shared_ptr<Model> ExternalManager::getModel(const QString& uuid)
 {
     connect();
@@ -588,19 +620,9 @@ std::shared_ptr<Model> ExternalManager::getModel(const QString& uuid)
             Py::Callable libraries(_managerObject.getAttr("getModel"));
             Py::Tuple args(1);
             args.setItem(0, Py::String(uuid.toStdString()));
-            Py::Tuple result(libraries.apply(args));  // ignore return for now
+            Py::Object result(libraries.apply(args));  // ignore return for now
 
-            Py::Object uuidObject = result.getItem(0);
-            Py::Object libraryObject = result.getItem(1);
-            Py::Object modelObject = result.getItem(2);
-
-            auto library = std::make_shared<ModelLibrary>(
-                *libraryFromObject(libraryObject));
-
-            Model* model = static_cast<ModelPy*>(*modelObject)->getModelPtr();
-            model->setUUID(uuid);
-            model->setLibrary(library);
-            auto shared = std::make_shared<Model>(*model);
+            auto shared = modelFromObject(result, uuid);
 
             return shared;
         }

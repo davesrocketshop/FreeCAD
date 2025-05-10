@@ -102,6 +102,9 @@ std::shared_ptr<ModelLibrary> ModelManagerExternal::getLibrary(const QString& na
     catch (const ConnectionError& e) {
         throw LibraryNotFound(e.what());
     }
+    catch (...) {
+        throw LibraryNotFound("Unknown exception");
+    }
 }
 
 void ModelManagerExternal::createLibrary(const QString& libraryName,
@@ -124,6 +127,14 @@ ModelManagerExternal::libraryModels(const QString& libraryName)
 //
 //=====
 
+std::shared_ptr<Model> ModelManagerExternal::modelNotFound(const QString& uuid)
+{
+    // Setting the cache value to nullptr prevents repeated lookups
+    auto empty = std::make_shared<Model>();
+    _cache.emplace(uuid.toStdString(), empty);
+    return empty;
+}
+
 std::shared_ptr<Model> ModelManagerExternal::getModel(const QString& uuid)
 {
     if (_cache.contains(uuid.toStdString())) {
@@ -136,12 +147,13 @@ std::shared_ptr<Model> ModelManagerExternal::getModel(const QString& uuid)
         return model;
     }
     catch (const ModelNotFound& e) {
-        _cache.emplace(uuid.toStdString(), nullptr);
-        return nullptr;
+        return modelNotFound(uuid);
     }
     catch (const ConnectionError& e) {
-        _cache.emplace(uuid.toStdString(), nullptr);
-        return nullptr;
+        return modelNotFound(uuid);
+    }
+    catch (...) {
+        return modelNotFound(uuid);
     }
 }
 

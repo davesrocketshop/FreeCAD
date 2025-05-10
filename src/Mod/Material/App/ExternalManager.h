@@ -97,6 +97,8 @@ private:
     std::shared_ptr<Library> libraryFromObject(const Py::Object& entry);
     bool checkMaterialObjectType(const Py::Object& entry);
     std::tuple<QString, QString, QString> materialObjectTypeFromObject(const Py::Object& entry);
+    bool checkModelObjectType(const Py::Object& entry);
+    std::shared_ptr<Model> modelFromObject(const Py::Object& entry, const QString& uuid);
 
     static ExternalManager* _manager;
     static QMutex _mutex;

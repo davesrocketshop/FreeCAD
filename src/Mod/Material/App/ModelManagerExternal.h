@@ -74,6 +74,7 @@ public:
 
 private:
     static void initCache();
+    std::shared_ptr<Model> modelNotFound(const QString& uuid);
 
     static QMutex _mutex;
 

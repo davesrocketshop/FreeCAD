@@ -124,6 +124,9 @@ std::shared_ptr<MaterialLibrary> MaterialManagerExternal::getLibrary(const QStri
     catch (const ConnectionError& e) {
         throw LibraryNotFound(e.what());
     }
+    catch (...) {
+        throw LibraryNotFound("Unknown exception");
+    }
 }
 
 void MaterialManagerExternal::createLibrary(const QString& libraryName,
@@ -154,6 +157,14 @@ MaterialManagerExternal::libraryMaterials(const QString& libraryName,
 //
 //=====
 
+std::shared_ptr<Material> MaterialManagerExternal::materialNotFound(const QString& uuid) const
+{
+    // Setting the cache value to nullptr prevents repeated lookups
+    auto empty = std::make_shared<Material>();
+    _cache.emplace(uuid.toStdString(), empty);
+    return empty;
+}
+
 std::shared_ptr<Material> MaterialManagerExternal::getMaterial(const QString& uuid) const
 {
     if (_cache.contains(uuid.toStdString())) {
@@ -165,12 +176,13 @@ std::shared_ptr<Material> MaterialManagerExternal::getMaterial(const QString& uu
         return material;
     }
     catch (const MaterialNotFound& e) {
-        _cache.emplace(uuid.toStdString(), nullptr);
-        return nullptr;
+        return materialNotFound(uuid);
     }
     catch (const ConnectionError& e) {
-        _cache.emplace(uuid.toStdString(), nullptr);
-        return nullptr;
+        return materialNotFound(uuid);
+    }
+    catch (...) {
+        return materialNotFound(uuid);
     }
 }
 
