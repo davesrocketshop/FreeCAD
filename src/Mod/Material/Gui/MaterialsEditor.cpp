@@ -108,6 +108,19 @@ void MaterialsEditor::setup()
 
     _warningIcon = QIcon(QStringLiteral(":/icons/Warning.svg"));
 
+    // Reset to previous size
+    setupDialogSize();
+    setupButtonIcons();
+    setupButtonConnections();
+    setupEditorCallbacks();
+    setupSelectionCallbacks();
+    setupContextMenus();
+
+    setupData();
+}
+
+void MaterialsEditor::setupData()
+{
     getFavorites();
     getRecents();
 
@@ -116,7 +129,10 @@ void MaterialsEditor::setup()
     createAppearanceTree();
     createPreviews();
     setMaterialDefaults();
+}
 
+void MaterialsEditor::setupDialogSize()
+{
     // Reset to previous size
     auto param = App::GetApplication().GetParameterGroupByPath(
         "User parameter:BaseApp/Preferences/Mod/Material/Editor");
@@ -124,9 +140,16 @@ void MaterialsEditor::setup()
     auto height = param->GetInt("EditorHeight", 542);
 
     resize(width, height);
+}
 
+void MaterialsEditor::setupButtonIcons()
+{
     ui->buttonURL->setIcon(QIcon(QStringLiteral(":/icons/internet-web-browser.svg")));
 
+}
+
+void MaterialsEditor::setupButtonConnections()
+{
     connect(ui->standardButtons->button(QDialogButtonBox::Ok),
             &QPushButton::clicked,
             this,
@@ -139,7 +162,10 @@ void MaterialsEditor::setup()
             &QPushButton::clicked,
             this,
             &MaterialsEditor::onSave);
+}
 
+void MaterialsEditor::setupEditorCallbacks()
+{
     connect(ui->editName, &QLineEdit::textEdited, this, &MaterialsEditor::onName);
     connect(ui->editAuthor, &QLineEdit::textEdited, this, &MaterialsEditor::onAuthor);
     connect(ui->editLicense, &QLineEdit::textEdited, this, &MaterialsEditor::onLicense);
@@ -170,14 +196,20 @@ void MaterialsEditor::setup()
             &MaterialsEditor::onInheritNewMaterial);
     connect(ui->buttonNew, &QPushButton::clicked, this, &MaterialsEditor::onNewMaterial);
     connect(ui->buttonFavorite, &QPushButton::clicked, this, &MaterialsEditor::onFavourite);
+}
 
+void MaterialsEditor::setupSelectionCallbacks()
+{
     QItemSelectionModel* selectionModel = ui->treeMaterials->selectionModel();
     connect(selectionModel,
             &QItemSelectionModel::selectionChanged,
             this,
             &MaterialsEditor::onSelectMaterial);
     connect(ui->treeMaterials, &QTreeView::doubleClicked, this, &MaterialsEditor::onDoubleClick);
+}
 
+void MaterialsEditor::setupContextMenus()
+{
     // Context menus
     ui->treeMaterials->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(ui->treeMaterials,

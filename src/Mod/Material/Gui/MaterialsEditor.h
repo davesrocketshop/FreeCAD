@@ -160,6 +160,13 @@ private:
     QAction _actionChangeIcon;
 
     void setup();
+    void setupData();
+    void setupDialogSize();
+    void setupButtonIcons();
+    void setupButtonConnections();
+    void setupEditorCallbacks();
+    void setupSelectionCallbacks();
+    void setupContextMenus();
 
     void saveWindow();
     void saveMaterialTreeChildren(const Base::Reference<ParameterGrp>& param,
