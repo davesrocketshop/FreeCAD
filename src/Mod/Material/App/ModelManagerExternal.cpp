@@ -130,9 +130,8 @@ ModelManagerExternal::libraryModels(const QString& libraryName)
 std::shared_ptr<Model> ModelManagerExternal::modelNotFound(const QString& uuid)
 {
     // Setting the cache value to nullptr prevents repeated lookups
-    auto empty = std::make_shared<Model>();
-    _cache.emplace(uuid.toStdString(), empty);
-    return empty;
+    _cache.emplace(uuid.toStdString(), nullptr);
+    return nullptr;
 }
 
 std::shared_ptr<Model> ModelManagerExternal::getModel(const QString& uuid)
