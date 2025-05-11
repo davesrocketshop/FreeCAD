@@ -297,7 +297,20 @@ void MaterialManager::createLocalLibrary(const QString& libraryName,
 
 void MaterialManager::renameLibrary(const QString& libraryName, const QString& newName)
 {
-    _localManager->renameLibrary(libraryName, newName);
+    auto library = getLibrary(libraryName);
+    if (library) {
+#if defined(BUILD_MATERIAL_EXTERNAL)
+        if (!library->isLocal()) {
+            if (_useExternal) {
+                _externalManager->renameLibrary(libraryName, newName);
+                return;
+            }
+
+            throw Materials::RenameError();
+        }
+#endif
+        _localManager->renameLibrary(libraryName, newName);
+    }
 }
 
 void MaterialManager::changeIcon(const QString& libraryName, const QString& icon)

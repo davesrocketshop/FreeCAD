@@ -51,6 +51,7 @@ class Ui_MaterialsEditor;
 
 const int TreeDataRole = Qt::UserRole;
 const int TreeFunctionRole = Qt::UserRole + 1;
+const int TreeNameRole = Qt::UserRole + 2;
 
 typedef enum
 {
@@ -86,6 +87,8 @@ public:
     explicit MaterialsEditor(QWidget* parent = nullptr);
     ~MaterialsEditor() override = default;
 
+    void onTreeItemChanged(QStandardItem* item);
+
     void onName(const QString& text);
     void onAuthor(const QString& text);
     void onLicense(const QString& text);
@@ -111,6 +114,14 @@ public:
     Materials::MaterialManager& getMaterialManager()
     {
         return Materials::MaterialManager::getManager();
+    }
+    Materials::MaterialManager& getMaterialManager() const
+    {
+        return Materials::MaterialManager::getManager();
+    }
+    bool useExternal() const
+    {
+        return getMaterialManager().useExternal();
     }
 
     static QString libraryPath(const std::shared_ptr<Materials::Material>& material);
@@ -150,7 +161,7 @@ private:
     // Actions
     QModelIndex _actionIndex;
 #if defined(BUILD_MATERIAL_EXTERNAL)
-    QAction _actionNewLibrary;
+    QAction _actionNewRemoteLibrary;
 #endif
     QAction _actionNewLocalLibrary;
     QAction _actionNewFolder;
@@ -166,6 +177,7 @@ private:
     void setupEditorCallbacks();
     void setupSelectionCallbacks();
     void setupContextMenus();
+    void setupModelCallbacks();
 
     void saveWindow();
     void saveMaterialTreeChildren(const Base::Reference<ParameterGrp>& param,

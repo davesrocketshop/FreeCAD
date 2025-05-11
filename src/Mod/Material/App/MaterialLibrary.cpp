@@ -85,6 +85,7 @@ MaterialLibrary::getMaterialTree(const std::shared_ptr<Materials::MaterialFilter
                     std::shared_ptr<MaterialTreeNode> child =
                         std::make_shared<MaterialTreeNode>();
                     child->setFolder(mapPtr);
+                    child->setReadOnly(isReadOnly());
                     (*node)[itp] = child;
                     node = mapPtr;
                 }
@@ -95,6 +96,7 @@ MaterialLibrary::getMaterialTree(const std::shared_ptr<Materials::MaterialFilter
         }
         std::shared_ptr<MaterialTreeNode> child = std::make_shared<MaterialTreeNode>();
         child->setUUID(uuid);
+        child->setReadOnly(isReadOnly());
         if (isLocal()) {
             auto material = MaterialManager::getManager().getMaterial(uuid);
             child->setOldFormat(material->isOldFormat());

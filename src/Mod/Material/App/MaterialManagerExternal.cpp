@@ -137,6 +137,21 @@ void MaterialManagerExternal::createLibrary(const QString& libraryName,
     ExternalManager::getManager()->createLibrary(libraryName, icon, iconPath, readOnly);
 }
 
+void MaterialManagerExternal::renameLibrary(const QString& libraryName, const QString& newName)
+{
+    ExternalManager::getManager()->renameLibrary(libraryName, newName);
+}
+
+void MaterialManagerExternal::changeIcon(const QString& libraryName, const QByteArray& icon)
+{
+    ExternalManager::getManager()->changeIcon(libraryName, icon);
+}
+
+void MaterialManagerExternal::removeLibrary(const QString& libraryName)
+{
+    ExternalManager::getManager()->removeLibrary(libraryName);
+}
+
 std::shared_ptr<std::vector<std::tuple<QString, QString, QString>>>
 MaterialManagerExternal::libraryMaterials(const QString& libraryName)
 {

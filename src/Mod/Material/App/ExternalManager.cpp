@@ -406,7 +406,7 @@ void ExternalManager::renameLibrary(const QString& libraryName, const QString& n
     }
 }
 
-void ExternalManager::changeIcon(const QString& libraryName, const QString& icon)
+void ExternalManager::changeIcon(const QString& libraryName, const QByteArray& icon)
 {
     connect();
 
@@ -416,7 +416,7 @@ void ExternalManager::changeIcon(const QString& libraryName, const QString& icon
             Py::Callable libraries(_managerObject.getAttr("changeIcon"));
             Py::Tuple args(2);
             args.setItem(0, Py::String(libraryName.toStdString()));
-            args.setItem(1, Py::String(icon.toStdString()));
+            args.setItem(1, Py::Bytes(icon.data(), icon.size()));
             libraries.apply(args);  // No return expected
         }
         else {
