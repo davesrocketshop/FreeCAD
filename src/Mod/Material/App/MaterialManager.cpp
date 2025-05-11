@@ -412,6 +412,14 @@ void MaterialManager::createFolder(const std::shared_ptr<MaterialLibrary>& libra
 
         _localManager->createFolder(materialLibrary, path);
     }
+#if defined(BUILD_MATERIAL_EXTERNAL)
+    else if (_useExternal) {
+            _externalManager->createFolder(library, path);
+    }
+    else {
+        throw Materials::CreationError("External materials are not enabled");
+    }
+#endif
 }
 
 void MaterialManager::renameFolder(const std::shared_ptr<MaterialLibrary>& library,
@@ -424,6 +432,14 @@ void MaterialManager::renameFolder(const std::shared_ptr<MaterialLibrary>& libra
 
         _localManager->renameFolder(materialLibrary, oldPath, newPath);
     }
+#if defined(BUILD_MATERIAL_EXTERNAL)
+    else if (_useExternal) {
+        _externalManager->renameFolder(library, oldPath, newPath);
+    }
+    else {
+        throw Materials::RenameError("External materials are not enabled");
+    }
+#endif
 }
 
 void MaterialManager::deleteRecursive(const std::shared_ptr<MaterialLibrary>& library,
@@ -435,6 +451,14 @@ void MaterialManager::deleteRecursive(const std::shared_ptr<MaterialLibrary>& li
 
         _localManager->deleteRecursive(materialLibrary, path);
     }
+#if defined(BUILD_MATERIAL_EXTERNAL)
+    else if (_useExternal) {
+        _externalManager->deleteRecursive(library, path);
+    }
+    else {
+        throw Materials::DeleteError("External materials are not enabled");
+    }
+#endif
 }
 
 //=====

@@ -575,6 +575,87 @@ ExternalManager::libraryMaterials(const QString& libraryName,
 
 //=====
 //
+// Folder management
+//
+//=====
+
+void ExternalManager::createFolder(const QString& libraryName, const QString& path)
+{
+    connect();
+
+    Base::PyGILStateLocker lock;
+    try {
+        if (_managerObject.hasAttr("createFolder")) {
+            Py::Callable libraries(_managerObject.getAttr("createFolder"));
+            Py::Tuple args(2);
+            args.setItem(0, Py::String(libraryName.toStdString()));
+            args.setItem(1, Py::String(path.toStdString()));
+            Py::Object result(libraries.apply(args));
+        }
+        else {
+            Base::Console().Log("\tcreateFolder() not found\n");
+            throw ConnectionError();
+        }
+    }
+    catch (Py::Exception& e) {
+        Base::PyException e1;  // extract the Python error text
+        throw CreationError(e1.what());
+    }
+}
+
+void ExternalManager::renameFolder(const QString& libraryName,
+                                   const QString& oldPath,
+                                   const QString& newPath)
+{
+    connect();
+
+    Base::PyGILStateLocker lock;
+    try {
+        if (_managerObject.hasAttr("renameFolder")) {
+            Py::Callable libraries(_managerObject.getAttr("renameFolder"));
+            Py::Tuple args(3);
+            args.setItem(0, Py::String(libraryName.toStdString()));
+            args.setItem(1, Py::String(oldPath.toStdString()));
+            args.setItem(2, Py::String(newPath.toStdString()));
+            Py::Object result(libraries.apply(args));
+        }
+        else {
+            Base::Console().Log("\trenameFolder() not found\n");
+            throw ConnectionError();
+        }
+    }
+    catch (Py::Exception& e) {
+        Base::PyException e1;  // extract the Python error text
+        throw RenameError(e1.what());
+    }
+}
+
+void ExternalManager::deleteRecursive(const QString& libraryName, const QString& path)
+{
+    connect();
+
+    Base::PyGILStateLocker lock;
+    try {
+        if (_managerObject.hasAttr("deleteRecursive")) {
+            Py::Callable libraries(_managerObject.getAttr("deleteRecursive"));
+            Py::Tuple args(2);
+            args.setItem(0, Py::String(libraryName.toStdString()));
+            args.setItem(1, Py::String(path.toStdString()));
+            Py::Object result(libraries.apply(args));
+        }
+        else {
+            Base::Console().Log("\tdeleteRecursive() not found\n");
+            throw ConnectionError();
+        }
+    }
+    catch (Py::Exception& e) {
+        Base::PyException e1;  // extract the Python error text
+        throw DeleteError(e1.what());
+    }
+}
+
+//=====
+//
 // Model management
 //
 //=====

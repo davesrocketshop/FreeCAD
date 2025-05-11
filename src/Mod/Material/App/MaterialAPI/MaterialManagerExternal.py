@@ -150,6 +150,25 @@ class MaterialManagerExternal(ABC):
         pass
 
     #
+    # Folder methods
+    #
+
+    @abstractmethod
+    def createFolder(self, library: str, path: str) -> None:
+        """Create a new folder in the given library"""
+        pass
+
+    @abstractmethod
+    def renameFolder(self, library: str, oldPath: str, newPath: str) -> None:
+        """Rename the folder"""
+        pass
+
+    @abstractmethod
+    def deleteRecursive(self, library: str, path: str) -> None:
+        """Delete the folder and all of its contents"""
+        pass
+
+    #
     # Model methods
     #
 

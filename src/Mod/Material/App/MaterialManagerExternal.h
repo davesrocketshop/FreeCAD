@@ -79,6 +79,11 @@ public:
                      const MaterialFilterOptions& options);
 
     // Folder management
+    void createFolder(const std::shared_ptr<MaterialLibrary>& library, const QString& path);
+    void renameFolder(const std::shared_ptr<MaterialLibrary>& library,
+                      const QString& oldPath,
+                      const QString& newPath);
+    void deleteRecursive(const std::shared_ptr<MaterialLibrary>& library, const QString& path);
 
     // Material management
     std::shared_ptr<Material> getMaterial(const QString& uuid) const;

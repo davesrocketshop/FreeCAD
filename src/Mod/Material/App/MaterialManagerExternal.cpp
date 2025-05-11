@@ -168,6 +168,31 @@ MaterialManagerExternal::libraryMaterials(const QString& libraryName,
 
 //=====
 //
+// Folder management
+//
+//=====
+
+void MaterialManagerExternal::createFolder(const std::shared_ptr<MaterialLibrary>& library,
+                                           const QString& path)
+{
+    ExternalManager::getManager()->createFolder(library->getName(), path);
+}
+
+void MaterialManagerExternal::renameFolder(const std::shared_ptr<MaterialLibrary>& library,
+                                           const QString& oldPath,
+                                           const QString& newPath)
+{
+    ExternalManager::getManager()->renameFolder(library->getName(), oldPath, newPath);
+}
+
+void MaterialManagerExternal::deleteRecursive(const std::shared_ptr<MaterialLibrary>& library,
+                                              const QString& path)
+{
+    ExternalManager::getManager()->deleteRecursive(library->getName(), path);
+}
+
+//=====
+//
 // Material management
 //
 //=====

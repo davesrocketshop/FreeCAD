@@ -202,9 +202,9 @@ private:
     bool isRecent(const QString& uuid) const;
 
     const QStandardItemModel* getActionModel() const;
-    const QStandardItem* getActionItem() const;
+    QStandardItem* getActionItem();
     TreeFunctionType getActionFunction(const QStandardItem* item) const;
-    TreeFunctionType getActionFunction() const;
+    TreeFunctionType getActionFunction();
 
     void favoriteContextMenu(QMenu& contextMenu);
     void recentContextMenu(QMenu& contextMenu);
@@ -212,8 +212,9 @@ private:
     void folderContextMenu(QMenu& contextMenu);
     void materialContextMenu(QMenu& contextMenu);
 
-    QString getPath(const QStandardItem* item, const QString &path);
-    QString getLibrary(const QStandardItem* item);
+    QString getPath(const QStandardItem* item, const QString& path) const;
+    QString getParentPath(const QStandardItem* item) const;
+    QString getLibraryName(const QStandardItem* item) const;
 
     void onMenuNewLibrary(bool checked);
     void onMenuNewFolder(bool checked);
@@ -254,6 +255,10 @@ private:
         const QIcon& icon,
         const Base::Reference<ParameterGrp>& param);
     QIcon getIcon(const std::shared_ptr<Materials::MaterialLibrary>& library) const;
+
+    void renameLibrary(QStandardItem* item);
+    void renameFolder(QStandardItem* item);
+    void renameMaterial(QStandardItem* item);
 
     /* Indicates if we should show favourite materials
      */

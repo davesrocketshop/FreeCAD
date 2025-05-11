@@ -69,6 +69,13 @@ public:
                      const std::shared_ptr<MaterialFilter>& filter,
                      const MaterialFilterOptions& options);
 
+    // Folder management
+    void createFolder(const QString& libraryName, const QString& path);
+    void renameFolder(const QString& libraryName,
+                      const QString& oldPath,
+                      const QString& newPath);
+    void deleteRecursive(const QString& libraryName, const QString& path);
+
     // Model management
     std::shared_ptr<Model> getModel(const QString& uuid);
     void
