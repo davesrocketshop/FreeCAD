@@ -177,7 +177,7 @@ void MaterialManagerLocal::changeIcon(const QString& libraryName, const QString&
         if (library->isLocal() && library->isName(libraryName)) {
             auto materialLibrary =
                 reinterpret_cast<const std::shared_ptr<Materials::MaterialLibraryLocal>&>(library);
-            materialLibrary->setIconPath(icon);
+            materialLibrary->setIcon(icon);
             return;
         }
     }

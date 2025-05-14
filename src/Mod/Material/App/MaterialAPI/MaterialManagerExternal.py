@@ -106,7 +106,7 @@ class MaterialManagerExternal(ABC):
         pass
 
     @abstractmethod
-    def createLibrary(self, libraryName: str, icon: bytes, iconPath: str, readOnly: bool) -> None:
+    def createLibrary(self, libraryName: str, icon: bytes, readOnly: bool) -> None:
         """Create a new library
 
         Create a new library with the given name. If the icon is empty, the module will attempt to

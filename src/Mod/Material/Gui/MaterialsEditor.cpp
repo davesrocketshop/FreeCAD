@@ -883,9 +883,12 @@ QIcon MaterialsEditor::getIcon(const std::shared_ptr<Materials::MaterialLibrary>
     // Load from the QByteArray if available
     QIcon icon;
     if (library->hasIcon()) {
-        Base::Console().Log("Library '%s' has icon of size %d\n", library->getName().toStdString().c_str(),
-            library->getIcon().size());
-        auto image = QImage::fromData(library->getIcon());
+        QImage image;
+        if (!image.loadFromData(library->getIcon())) {
+            Base::Console().Log("Unable to load icon image for library '%s'\n",
+                                library->getName().toStdString().c_str());
+            return QIcon();
+        }
         icon = QIcon(QPixmap::fromImage(image));
     }
     else {

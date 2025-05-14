@@ -80,7 +80,7 @@ Py::String MaterialLibraryPy::getIcon() const
 
 void MaterialLibraryPy::setIcon(const Py::String value)
 {
-    getMaterialLibraryPtr()->setIconPath(QString::fromStdString(value));
+    getMaterialLibraryPtr()->setIcon(QString::fromStdString(value));
 }
 
 Py::String MaterialLibraryPy::getDirectory() const
