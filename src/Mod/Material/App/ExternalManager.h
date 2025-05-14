@@ -55,7 +55,6 @@ public:
     std::shared_ptr<Library> getLibrary(const QString& name);
     void createLibrary(const QString& libraryName,
                        const QByteArray& icon,
-                       const QString& iconPath,
                        bool readOnly = true);
     void renameLibrary(const QString& libraryName, const QString& newName);
     void changeIcon(const QString& libraryName, const QByteArray& icon);
@@ -106,8 +105,6 @@ private:
     std::tuple<QString, QString, QString> materialObjectTypeFromObject(const Py::Object& entry);
     bool checkModelObjectType(const Py::Object& entry);
     std::shared_ptr<Model> modelFromObject(const Py::Object& entry, const QString& uuid);
-
-    QByteArray loadByteArrayFromFile(const QString& filePath) const;
 
     static ExternalManager* _manager;
     static QMutex _mutex;

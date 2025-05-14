@@ -274,13 +274,13 @@ std::shared_ptr<MaterialLibrary> MaterialManager::getLibrary(const QString& name
 }
 
 void MaterialManager::createLibrary(const QString& libraryName,
-                                    const QByteArray& icon,
                                     const QString& iconPath,
                                     bool readOnly)
 {
 #if defined(BUILD_MATERIAL_EXTERNAL)
     if (_useExternal) {
-        _externalManager->createLibrary(libraryName, icon, iconPath, readOnly);
+        auto icon = Materials::Library::getIcon(iconPath);
+        _externalManager->createLibrary(libraryName, icon, readOnly);
         return;
     }
 #endif
@@ -289,10 +289,10 @@ void MaterialManager::createLibrary(const QString& libraryName,
 
 void MaterialManager::createLocalLibrary(const QString& libraryName,
                                          const QString& directory,
-                                         const QString& icon,
+                                         const QString& iconPath,
                                          bool readOnly)
 {
-    _localManager->createLibrary(libraryName, directory, icon, readOnly);
+    _localManager->createLibrary(libraryName, directory, iconPath, readOnly);
 }
 
 void MaterialManager::renameLibrary(const QString& libraryName, const QString& newName)
@@ -313,8 +313,9 @@ void MaterialManager::renameLibrary(const QString& libraryName, const QString& n
     }
 }
 
-void MaterialManager::changeIcon(const QString& libraryName, const QString& icon)
+void MaterialManager::changeIcon(const QString& libraryName, const QString& iconPath)
 {
+    auto icon = Materials::Library::getIcon(iconPath);
     _localManager->changeIcon(libraryName, icon);
 }
 
@@ -618,7 +619,6 @@ void MaterialManager::migrateToExternal(const std::shared_ptr<Materials::Materia
     try {
         _externalManager->createLibrary(library->getName(),
                                         library->getIcon(),
-                                        library->getIconPath(),
                                         library->isReadOnly());
     }
     catch (const CreationError&) {

@@ -64,11 +64,11 @@ Library::Library(const QString& libraryName,
     setIcon(iconPath);
 }
 
-QByteArray Library::loadByteArrayFromFile(const QString& filePath) const
+QByteArray Library::getIcon(const QString& iconPath)
 {
-    QFile file(filePath);
+    QFile file(iconPath);
     if (!file.open(QIODevice::ReadOnly)) {
-        Base::Console().Log("Failed to open icon file '%s'\n", filePath.toStdString().c_str());
+        Base::Console().Log("Failed to open icon file '%s'\n", iconPath.toStdString().c_str());
         return QByteArray();  // Return an empty QByteArray if file opening fails
     }
 
@@ -80,7 +80,7 @@ QByteArray Library::loadByteArrayFromFile(const QString& filePath) const
 void Library::setIcon(const QString& iconPath)
 {
     _iconPath = iconPath;
-    _icon = loadByteArrayFromFile(iconPath);
+    _icon = getIcon(iconPath);
 }
 
 bool Library::isLocal() const
@@ -103,11 +103,9 @@ void Library::validate(const Library& remote) const
     if (getName() != remote.getName()) {
         throw InvalidLibrary("Library names don't match");
     }
-    // if (getIconPath() != remote.getIconPath()) {
-    //     Base::Console().Log("Icon path 1 '%s'\n", getIconPath().toStdString().c_str());
-    //     Base::Console().Log("Icon path 2 '%s'\n", remote.getIconPath().toStdString().c_str());
-    //     throw InvalidLibrary("Library icon paths don't match");
-    // }
+    if (getIcon() != remote.getIcon()) {
+        throw InvalidLibrary("Library icons don't match");
+    }
 
     // Local and remote paths will differ
     if (!remote.getDirectory().isEmpty()) {

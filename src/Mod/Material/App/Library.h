@@ -71,6 +71,7 @@ public:
     {
         return _icon;
     }
+    static QByteArray getIcon(const QString& iconPath);
     void setIcon(const QByteArray& icon)
     {
         _icon = icon;

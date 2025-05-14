@@ -55,7 +55,6 @@ public:
     std::shared_ptr<ModelLibrary> getLibrary(const QString& name) const;
     void createLibrary(const QString& libraryName,
                        const QByteArray& icon,
-                       const QString& iconPath,
                        bool readOnly = true);
     std::shared_ptr<std::vector<std::tuple<QString, QString, QString>>>
     libraryModels(const QString& libraryName);

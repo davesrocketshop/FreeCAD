@@ -66,7 +66,6 @@ public:
     std::shared_ptr<MaterialLibrary> getLibrary(const QString& name) const;
     void createLibrary(const QString& libraryName,
                        const QByteArray& icon,
-                       const QString& iconPath,
                        bool readOnly = true);
     void renameLibrary(const QString& libraryName, const QString& newName);
     void changeIcon(const QString& libraryName, const QByteArray& icon);

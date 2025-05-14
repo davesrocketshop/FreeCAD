@@ -237,27 +237,6 @@ ExternalManager::materialObjectTypeFromObject(const Py::Object& entry)
     return std::tuple<QString, QString, QString>(uuid, path, name);
 }
 
-QByteArray ExternalManager::loadByteArrayFromFile(const QString& filePath) const
-{
-    QFile file(filePath);
-    if (!file.open(QIODevice::ReadOnly)) {
-        // qDebug() << "Failed to open file:" << filePath;
-        return QByteArray();  // Return an empty QByteArray if file opening fails
-    }
-
-    QByteArray data = file.readAll();
-    file.close();
-    Base::Console().Log("loadByteArrayFromFile(%s) - size %d\n", filePath.toStdString().c_str(), data.size());
-    return data;
-}
-
-void dump(const QByteArray& array)
-{
-    if (!array.isEmpty()) {
-       auto data = array.data();
-    }
-}
-
 std::shared_ptr<std::vector<std::shared_ptr<Library>>>
 ExternalManager::libraries()
 {
@@ -377,16 +356,8 @@ std::shared_ptr<Library> ExternalManager::getLibrary(const QString& name)
     }
 }
 
-void ExternalManager::createLibrary(const QString& libraryName, const QByteArray& icon, const QString& iconPath, bool readOnly)
+void ExternalManager::createLibrary(const QString& libraryName, const QByteArray& icon, bool readOnly)
 {
-    QByteArray iconBytes = icon;
-    if (iconBytes.isEmpty()) {
-        iconBytes = loadByteArrayFromFile(iconPath);
-        Base::Console().Log("Library '%s' has icon of size %d\n",
-                            libraryName.toStdString().c_str(),
-                            iconBytes.size());
-    }
-
     connect();
 
     Base::PyGILStateLocker lock;
@@ -395,7 +366,7 @@ void ExternalManager::createLibrary(const QString& libraryName, const QByteArray
             Py::Callable libraries(_managerObject.getAttr("createLibrary"));
             Py::Tuple args(3);
             args.setItem(0, Py::String(libraryName.toStdString()));
-            args.setItem(1, Py::Bytes(iconBytes.data(), iconBytes.size()));
+            args.setItem(1, Py::Bytes(icon.data(), icon.size()));
             args.setItem(2, Py::Boolean(readOnly));
             libraries.apply(args);  // No return expected
         }

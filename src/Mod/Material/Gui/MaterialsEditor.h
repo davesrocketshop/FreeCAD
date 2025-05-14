@@ -87,6 +87,10 @@ public:
     explicit MaterialsEditor(QWidget* parent = nullptr);
     ~MaterialsEditor() override = default;
 
+    static QIcon getIcon(const std::shared_ptr<Materials::MaterialLibrary>& library);
+    static QIcon getIcon(const std::shared_ptr<Materials::ModelLibrary>& library);
+    static QIcon getIcon(const std::shared_ptr<Materials::Library>& library);
+
     void onTreeItemChanged(QStandardItem* item);
 
     void onName(const QString& text);
@@ -254,7 +258,6 @@ private:
         const QIcon& folderIcon,
         const QIcon& icon,
         const Base::Reference<ParameterGrp>& param);
-    QIcon getIcon(const std::shared_ptr<Materials::MaterialLibrary>& library) const;
 
     void renameLibrary(QStandardItem* item);
     void renameFolder(QStandardItem* item);

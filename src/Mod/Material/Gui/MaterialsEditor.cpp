@@ -878,7 +878,7 @@ void MaterialsEditor::createAppearanceTree()
     connect(delegate, &MaterialDelegate::propertyChange, this, &MaterialsEditor::propertyChange);
 }
 
-QIcon MaterialsEditor::getIcon(const std::shared_ptr<Materials::MaterialLibrary>& library) const
+QIcon MaterialsEditor::getIcon(const std::shared_ptr<Materials::Library>& library)
 {
     // Load from the QByteArray if available
     QIcon icon;
@@ -891,11 +891,18 @@ QIcon MaterialsEditor::getIcon(const std::shared_ptr<Materials::MaterialLibrary>
         }
         icon = QIcon(QPixmap::fromImage(image));
     }
-    else {
-        icon = QIcon(library->getIconPath());
-    }
 
     return icon;
+}
+
+QIcon MaterialsEditor::getIcon(const std::shared_ptr<Materials::ModelLibrary>& library)
+{
+    return getIcon(std::static_pointer_cast<Materials::Library>(library));
+}
+
+QIcon MaterialsEditor::getIcon(const std::shared_ptr<Materials::MaterialLibrary>& library)
+{
+    return getIcon(std::static_pointer_cast<Materials::Library>(library));
 }
 
 void MaterialsEditor::addRecents(QStandardItem* parent)
@@ -1634,7 +1641,7 @@ void MaterialsEditor::onMenuNewLibrary(bool checked)
     catch (const Materials::LibraryNotFound &) {}
 
     try {
-        getMaterialManager().createLibrary(name, QByteArray(), QString(), false);
+        getMaterialManager().createLibrary(name, QStringLiteral(":/icons/freecad.svg"), false);
     }
     catch (const Materials::CreationError& e) {
         Base::Console().Log("Unable to create library '%s': %s\n",

@@ -109,10 +109,9 @@ std::shared_ptr<ModelLibrary> ModelManagerExternal::getLibrary(const QString& na
 
 void ModelManagerExternal::createLibrary(const QString& libraryName,
                                          const QByteArray& icon,
-                                         const QString& iconPath,
                                          bool readOnly)
 {
-    ExternalManager::getManager()->createLibrary(libraryName, icon, iconPath, readOnly);
+    ExternalManager::getManager()->createLibrary(libraryName, icon, readOnly);
 }
 
 std::shared_ptr<std::vector<std::tuple<QString, QString, QString>>>

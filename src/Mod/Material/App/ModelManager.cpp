@@ -159,12 +159,12 @@ std::shared_ptr<std::list<std::shared_ptr<ModelLibrary>>> ModelManager::getLocal
 }
 
 void ModelManager::createLibrary(const QString& libraryName,
-                                 const QByteArray& icon,
                                  const QString& iconPath,
                                  bool readOnly)
 {
 #if defined(BUILD_MATERIAL_EXTERNAL)
-    _externalManager->createLibrary(libraryName, icon, iconPath, readOnly);
+    auto icon = Materials::Library::getIcon(iconPath);
+    _externalManager->createLibrary(libraryName, icon, readOnly);
 #endif
 }
 
@@ -324,7 +324,6 @@ void ModelManager::migrateToExternal(const std::shared_ptr<Materials::ModelLibra
     try {
         _externalManager->createLibrary(library->getName(),
                                         library->getIcon(),
-                                        library->getIconPath(),
                                         library->isReadOnly());
     }
     catch (const CreationError&) {
