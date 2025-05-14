@@ -52,13 +52,36 @@ Library::Library(const QString& libraryName,
     , _local(false)
 {}
 
-Library::Library(const QString& libraryName, const QString& dir, const QString& icon, bool readOnly)
+Library::Library(const QString& libraryName,
+                 const QString& dir,
+                 const QString& iconPath,
+                 bool readOnly)
     : _name(libraryName)
     , _directory(QDir::cleanPath(dir))
-    , _iconPath(icon)
     , _readOnly(readOnly)
     , _local(false)
-{}
+{
+    setIcon(iconPath);
+}
+
+QByteArray Library::loadByteArrayFromFile(const QString& filePath) const
+{
+    QFile file(filePath);
+    if (!file.open(QIODevice::ReadOnly)) {
+        Base::Console().Log("Failed to open icon file '%s'\n", filePath.toStdString().c_str());
+        return QByteArray();  // Return an empty QByteArray if file opening fails
+    }
+
+    QByteArray data = file.readAll();
+    file.close();
+    return data;
+}
+
+void Library::setIcon(const QString& iconPath)
+{
+    _iconPath = iconPath;
+    _icon = loadByteArrayFromFile(iconPath);
+}
 
 bool Library::isLocal() const
 {

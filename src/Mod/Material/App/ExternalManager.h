@@ -107,6 +107,8 @@ private:
     bool checkModelObjectType(const Py::Object& entry);
     std::shared_ptr<Model> modelFromObject(const Py::Object& entry, const QString& uuid);
 
+    QByteArray loadByteArrayFromFile(const QString& filePath) const;
+
     static ExternalManager* _manager;
     static QMutex _mutex;
 

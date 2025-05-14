@@ -47,7 +47,7 @@ public:
             const QString& timestamp);
     Library(const QString& libraryName,
             const QString& dir,
-            const QString& icon,
+            const QString& iconPath,
             bool readOnly = true);
     ~Library() override = default;
 
@@ -75,6 +75,7 @@ public:
     {
         _icon = icon;
     }
+    void setIcon(const QString& iconPath);
     bool hasIcon() const
     {
         return !_icon.isEmpty();
@@ -82,10 +83,6 @@ public:
     QString getIconPath() const
     {
         return _iconPath;
-    }
-    void setIconPath(const QString& iconPath)
-    {
-        _iconPath = iconPath;
     }
     bool isReadOnly() const
     {
@@ -140,6 +137,8 @@ private:
 
     QByteArray _icon;
     bool _local;
+
+    QByteArray loadByteArrayFromFile(const QString& filePath) const;
 };
 
 }  // namespace Materials
