@@ -32,7 +32,6 @@ class MaterialLibraryType:
     name: str
     icon: bytes
     readOnly: bool
-    timestamp: str
 
 @dataclass
 class MaterialLibraryObjectType:
@@ -68,8 +67,7 @@ class MaterialManagerExternal(ABC):
 
         The list contains a series of tuples describing all libraries managed by
         this module. Each tuple contains the library name, icon, a boolean to indicate
-        if it is a read only library, and a timestamp that indicates when it was last
-        modified."""
+        if it is a read only library."""
         pass
 
     @abstractmethod
@@ -78,8 +76,7 @@ class MaterialManagerExternal(ABC):
 
         The list contains a series of tuples describing all libraries managed by
         this module. Each tuple contains the library name, icon, and a boolean to indicate
-        if it is a read only library, and a timestamp that indicates when it was last
-        modified.
+        if it is a read only library.
 
         This differs from the libraries() function in that it only returns libraries
         containing model objects."""
@@ -91,8 +88,7 @@ class MaterialManagerExternal(ABC):
 
         The list contains a series of tuples describing all libraries managed by
         this module. Each tuple contains the library name, icon, and a boolean to indicate
-        if it is a read only library, and a timestamp that indicates when it was last
-        modified.
+        if it is a read only library.
 
         This differs from the libraries() function in that it only returns libraries
         containing material objects."""

@@ -41,10 +41,7 @@ public:
     Library() = default;
     Library(const Library &other) = default;
     Library(const QString& libraryName, const QString& icon, bool readOnly = true);
-    Library(const QString& libraryName,
-            const QByteArray& icon,
-            bool readOnly,
-            const QString& timestamp);
+    Library(const QString& libraryName, const QByteArray& icon, bool readOnly);
     Library(const QString& libraryName,
             const QString& dir,
             const QString& iconPath,
@@ -102,14 +99,6 @@ public:
     {
         return QDir(_directory).absolutePath();
     }
-    QString getTimestamp() const
-    {
-        return _timestamp;
-    }
-    void setTimestamp(const QString& timestamp)
-    {
-        _timestamp = timestamp;
-    }
 
     bool operator==(const Library& library) const;
     bool operator!=(const Library& library) const
@@ -130,7 +119,6 @@ private:
     QString _directory;
     QByteArray _icon;
     bool _readOnly;
-    QString _timestamp;
 
     bool _local;
 

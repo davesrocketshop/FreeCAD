@@ -42,14 +42,10 @@ Library::Library(const QString& libraryName, const QString& iconPath, bool readO
     setIcon(iconPath);
 }
 
-Library::Library(const QString& libraryName,
-                 const QByteArray& icon,
-                 bool readOnly,
-                 const QString& timestamp)
+Library::Library(const QString& libraryName, const QByteArray& icon, bool readOnly)
     : _name(libraryName)
     , _icon(icon)
     , _readOnly(readOnly)
-    , _timestamp(timestamp)
     , _local(false)
 {}
 

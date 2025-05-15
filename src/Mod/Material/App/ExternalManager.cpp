@@ -169,8 +169,7 @@ ExternalManager* ExternalManager::getManager()
 
 bool ExternalManager::checkMaterialLibraryType(const Py::Object& entry)
 {
-    return entry.hasAttr("name") && entry.hasAttr("icon") && entry.hasAttr("readOnly")
-        && entry.hasAttr("timestamp");
+    return entry.hasAttr("name") && entry.hasAttr("icon") && entry.hasAttr("readOnly");
 }
 
 std::shared_ptr<Library>
@@ -186,7 +185,6 @@ ExternalManager::libraryFromObject(const Py::Object& entry)
         pyIcon = Py::Bytes(entry.getAttr("icon"));
     }
     Py::Boolean pyReadOnly(entry.getAttr("readOnly"));
-    Py::String pyTimestamp(entry.getAttr("timestamp"));
 
     QString libraryName;
     if (!pyName.isNone()) {
@@ -199,12 +197,7 @@ ExternalManager::libraryFromObject(const Py::Object& entry)
 
     bool readOnly = pyReadOnly.as_bool();
 
-    QString timestamp;
-    if (!pyTimestamp.isNone()) {
-        timestamp = QString::fromStdString(pyTimestamp.as_string());
-    }
-
-    auto library = std::make_shared<Library>(libraryName, icon, readOnly, timestamp);
+    auto library = std::make_shared<Library>(libraryName, icon, readOnly);
     return library;
 }
 
