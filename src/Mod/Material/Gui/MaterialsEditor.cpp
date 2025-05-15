@@ -776,11 +776,12 @@ void MaterialsEditor::addMaterials(
         }
         else {
             auto node = new QStandardItem(folderIcon, mat.first);
-            addExpanded(tree, &parent, node, childParam);
             node->setFlags(flags);
             node->setData(QVariant(TreeFunctionType::TreeFunctionFolder), TreeFunctionRole);
             node->setData(QVariant(mat.first), TreeNameRole);
             auto treeMap = nodePtr->getFolder();
+
+            addExpanded(tree, &parent, node, childParam);
             addMaterials(*node, treeMap, folderIcon, icon, childParam);
         }
     }
