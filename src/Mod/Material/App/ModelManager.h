@@ -55,7 +55,9 @@ public:
     std::shared_ptr<std::list<std::shared_ptr<ModelLibrary>>> getLibraries();
     std::shared_ptr<std::list<std::shared_ptr<ModelLibrary>>> getLocalLibraries();
     std::shared_ptr<ModelLibrary> getLibrary(const QString& name) const;
-    void createLibrary(const QString& libraryName, const QString& icon, bool readOnly = true);
+    void createLibrary(const QString& libraryName,
+                       const QString& iconPath,
+                       bool readOnly = true);
     void createLocalLibrary(const QString& libraryName,
                        const QString& directory,
                        const QString& icon,

@@ -23,6 +23,7 @@
 #define MATERIAL_LIBRARY_H
 
 #include <QDir>
+#include <QByteArray>
 #include <QString>
 
 #include <Base/BaseClass.h>
@@ -41,14 +42,17 @@ public:
     Library(const Library &other) = default;
     Library(const QString& libraryName, const QString& icon, bool readOnly = true);
     Library(const QString& libraryName,
-            const QString& icon,
+            const QByteArray& icon,
             bool readOnly,
             const QString& timestamp);
     Library(const QString& libraryName,
             const QString& dir,
-            const QString& icon,
+            const QString& iconPath,
             bool readOnly = true);
     ~Library() override = default;
+
+    bool isLocal() const;
+    void setLocal(bool local);
 
     QString getName() const
     {
@@ -63,13 +67,19 @@ public:
         return (_name == name);
     }
 
-    QString getIconPath() const
+    QByteArray getIcon() const
     {
-        return _iconPath;
+        return _icon;
     }
-    void setIconPath(const QString& icon)
+    static QByteArray getIcon(const QString& iconPath);
+    void setIcon(const QByteArray& icon)
     {
-        _iconPath = icon;
+        _icon = icon;
+    }
+    void setIcon(const QString& iconPath);
+    bool hasIcon() const
+    {
+        return !_icon.isEmpty();
     }
     bool isReadOnly() const
     {
@@ -118,9 +128,13 @@ public:
 private:
     QString _name;
     QString _directory;
-    QString _iconPath;
+    QByteArray _icon;
     bool _readOnly;
     QString _timestamp;
+
+    bool _local;
+
+    QByteArray loadByteArrayFromFile(const QString& filePath) const;
 };
 
 }  // namespace Materials
