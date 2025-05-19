@@ -161,6 +161,7 @@ private:
     QIcon _warningIcon;
     std::shared_ptr<Materials::MaterialFilter> _filter;
     Materials::MaterialFilterOptions _filterOptions;
+    QStandardItem* _newItem;
 
     // Actions
     QModelIndex _actionIndex;
@@ -262,6 +263,8 @@ private:
     void renameLibrary(QStandardItem* item);
     void renameFolder(QStandardItem* item);
     void renameMaterial(QStandardItem* item);
+    void discardIfNew();
+
 
     /* Indicates if we should show favourite materials
      */

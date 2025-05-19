@@ -592,6 +592,9 @@ void MaterialsEditor::onNewMaterial(bool checked)
         if (res == QMessageBox::Cancel) {
             return;
         }
+        else if (res = QMessageBox::Discard) {
+            discardIfNew();
+        }
     }
 
     // Create a new material
@@ -614,6 +617,9 @@ void MaterialsEditor::onInheritNewMaterial(bool checked)
         if (res == QMessageBox::Cancel) {
             return;
         }
+        else if (res = QMessageBox::Discard) {
+            discardIfNew();
+        }
     }
 
     // Create a new material
@@ -632,6 +638,9 @@ void MaterialsEditor::onOk(bool checked)
         int res = confirmSave(this);
         if (res == QMessageBox::Cancel) {
             return;
+        }
+        else if (res = QMessageBox::Discard) {
+            discardIfNew();
         }
     }
 
@@ -1400,6 +1409,9 @@ void MaterialsEditor::onSelectMaterial(const QItemSelection& selected,
             if (res == QMessageBox::Cancel) {
                 return;
             }
+            else if (res = QMessageBox::Discard) {
+                discardIfNew();
+            }
         }
     }
 
@@ -1413,16 +1425,21 @@ void MaterialsEditor::onSelectMaterial(const QItemSelection& selected,
 
     // Get the selected material
     try {
-        _material = std::make_shared<Materials::Material>(*getMaterialManager().getMaterial(uuid));
+        if (!_material || _material->getUUID() != uuid) {
+            _material = std::make_shared<Materials::Material>(*getMaterialManager().getMaterial(uuid));
+            _materialSelected = true;
+            updateMaterial();
+            _material->resetEditState();
+        }
+        // else don't reset edit state
     }
     catch (Materials::ModelNotFound const&) {
         Base::Console().log("*** Unable to load material '%s'\n", uuid.toStdString().c_str());
         _material = std::make_shared<Materials::Material>();
+        _materialSelected = true;
+        updateMaterial();
+        _material->resetEditState();
     }
-
-    _materialSelected = true;
-    updateMaterial();
-    _material->resetEditState();
 }
 
 const QStandardItemModel* MaterialsEditor::getActionModel() const
@@ -1700,6 +1717,7 @@ void MaterialsEditor::onMenuNewMaterial(bool checked)
 
     // Create a new material
     _material = std::make_shared<Materials::Material>();
+    _material->setEditStateAlter();
     setMaterialDefaults();
     _material->setLibrary(library);
     _material->setName(tr("New Material"));
@@ -1718,7 +1736,16 @@ void MaterialsEditor::onMenuNewMaterial(bool checked)
     addExpanded(ui->treeMaterials, item, card);
 
     _materialSelected = true;
+    _newItem = card;
     updateMaterial();
+
+    // Now select the material in the tree
+    auto index = card->index();
+    if (index.isValid()) {
+        QItemSelectionModel* selectionModel = ui->treeMaterials->selectionModel();
+        selectionModel->select(index, QItemSelectionModel::SelectCurrent);
+        ui->treeMaterials->scrollTo(index);
+    }
 }
 
 void MaterialsEditor::onMenuChangeIcon(bool checked)
@@ -1734,6 +1761,20 @@ void MaterialsEditor::onInherit(bool checked)
 void MaterialsEditor::onInheritNew(bool checked)
 {
     Q_UNUSED(checked)
+}
+
+void MaterialsEditor::discardIfNew()
+{
+    // If the material we're discarding is a new one, remove it from the tree
+    if (_newItem) {
+        auto parent = _newItem->parent();
+        if (parent) {
+            parent->removeRow(_newItem->row());
+        }
+        _newItem = nullptr;
+    }
+
+    // If it's an existing one, restore the original name
 }
 
 int MaterialsEditor::confirmSave(QWidget* parent)
@@ -1788,6 +1829,7 @@ void MaterialsEditor::renameLibrary(QStandardItem* item)
                             originalName.toStdString().c_str(),
                             newName.toStdString().c_str());
         getMaterialManager().renameLibrary(originalName, newName);
+        item->setData(QVariant(newName), TreeNameRole);
     }
 }
 
@@ -1810,6 +1852,7 @@ void MaterialsEditor::renameFolder(QStandardItem* item)
                             oldPath.toStdString().c_str(),
                             newPath.toStdString().c_str());
         getMaterialManager().renameFolder(library, oldPath, newPath);
+        item->setData(QVariant(newName), TreeNameRole);
     }
 }
 
@@ -1828,6 +1871,8 @@ void MaterialsEditor::renameMaterial(QStandardItem* item)
         Base::Console().log("\t path '%s'->'%s'\n",
                             oldPath.toStdString().c_str(),
                             newPath.toStdString().c_str());
+        _material->setName(newName);
+        item->setData(QVariant(newName), TreeNameRole);
     }
 }
 
