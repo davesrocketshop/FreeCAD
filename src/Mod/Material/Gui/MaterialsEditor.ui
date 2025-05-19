@@ -232,6 +232,9 @@
           </item>
           <item>
            <widget class="QPushButton" name="buttonPhysicalAdd">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
             <property name="toolTip">
              <string>Add physical model</string>
             </property>
@@ -242,6 +245,9 @@
           </item>
           <item>
            <widget class="QPushButton" name="buttonPhysicalRemove">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
             <property name="toolTip">
              <string>Delete physical model</string>
             </property>
@@ -282,6 +288,9 @@
           </item>
           <item>
            <widget class="QPushButton" name="buttonAppearanceAdd">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
             <property name="toolTip">
              <string>Add appearance model</string>
             </property>
@@ -292,6 +301,9 @@
           </item>
           <item>
            <widget class="QPushButton" name="buttonAppearanceRemove">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
             <property name="toolTip">
              <string>Delete appearance model</string>
             </property>

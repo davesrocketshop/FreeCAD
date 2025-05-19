@@ -41,30 +41,17 @@ TYPESYSTEM_SOURCE(Materials::ModelLibrary, Materials::Library)
 
 ModelLibrary::ModelLibrary(const Library& other)
     : Library(other)
-    , _local(false)
 {}
 
 ModelLibrary::ModelLibrary(const QString& libraryName,
                            const QString& dir,
-                           const QString& icon,
+                           const QString& iconPath,
                            bool readOnly)
-    : Library(libraryName, dir, icon, readOnly)
-    , _local(false)
+    : Library(libraryName, dir, iconPath, readOnly)
 {}
 
 ModelLibrary::ModelLibrary()
-    : _local(false)
 {
-}
-
-bool ModelLibrary::isLocal() const
-{
-    return _local;
-}
-
-void ModelLibrary::setLocal(bool local)
-{
-    _local = local;
 }
 
 std::shared_ptr<std::map<QString, std::shared_ptr<ModelTreeNode>>>
@@ -121,9 +108,9 @@ ModelLibraryLocal::ModelLibraryLocal(const Library& other)
 
 ModelLibraryLocal::ModelLibraryLocal(const QString& libraryName,
                                      const QString& dir,
-                                     const QString& icon,
+                                     const QString& iconPath,
                                      bool readOnly)
-    : ModelLibrary(libraryName, dir, icon, readOnly)
+    : ModelLibrary(libraryName, dir, iconPath, readOnly)
 {
     setLocal(true);
 

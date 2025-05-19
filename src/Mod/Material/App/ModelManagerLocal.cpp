@@ -134,7 +134,7 @@ void ModelManagerLocal::changeIcon(const QString& libraryName, const QString& ic
 {
     for (auto& library : *_libraryList) {
         if (library->isName(libraryName)) {
-            library->setIconPath(icon);
+            library->setIcon(icon);
             return;
         }
     }

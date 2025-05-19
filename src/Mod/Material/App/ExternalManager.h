@@ -53,9 +53,11 @@ public:
     std::shared_ptr<std::vector<std::shared_ptr<Library>>> modelLibraries();
     std::shared_ptr<std::vector<std::shared_ptr<Library>>> materialLibraries();
     std::shared_ptr<Library> getLibrary(const QString& name);
-    void createLibrary(const QString& libraryName, const QString& icon, bool readOnly = true);
+    void createLibrary(const QString& libraryName,
+                       const QByteArray& icon,
+                       bool readOnly = true);
     void renameLibrary(const QString& libraryName, const QString& newName);
-    void changeIcon(const QString& libraryName, const QString& icon);
+    void changeIcon(const QString& libraryName, const QByteArray& icon);
     void removeLibrary(const QString& libraryName);
     std::shared_ptr<std::vector<std::tuple<QString, QString, QString>>>
     libraryModels(const QString& libraryName);
@@ -65,6 +67,13 @@ public:
     libraryMaterials(const QString& libraryName,
                      const std::shared_ptr<MaterialFilter>& filter,
                      const MaterialFilterOptions& options);
+
+    // Folder management
+    void createFolder(const QString& libraryName, const QString& path);
+    void renameFolder(const QString& libraryName,
+                      const QString& oldPath,
+                      const QString& newPath);
+    void deleteRecursive(const QString& libraryName, const QString& path);
 
     // Model management
     std::shared_ptr<Model> getModel(const QString& uuid);
@@ -94,6 +103,8 @@ private:
     std::shared_ptr<Library> libraryFromObject(const Py::Object& entry);
     bool checkMaterialObjectType(const Py::Object& entry);
     std::tuple<QString, QString, QString> materialObjectTypeFromObject(const Py::Object& entry);
+    bool checkModelObjectType(const Py::Object& entry);
+    std::shared_ptr<Model> modelFromObject(const Py::Object& entry, const QString& uuid);
 
     static ExternalManager* _manager;
     static QMutex _mutex;

@@ -29,6 +29,7 @@
 #include <QIcon>
 #include <QPoint>
 #include <QStandardItem>
+#include <QStandardItemModel>
 #include <QStyledItemDelegate>
 #include <QSvgWidget>
 #include <QTreeView>
@@ -48,6 +49,34 @@ namespace MatGui
 
 class Ui_MaterialsEditor;
 
+const int TreeDataRole = Qt::UserRole;
+const int TreeFunctionRole = Qt::UserRole + 1;
+const int TreeNameRole = Qt::UserRole + 2;
+
+typedef enum
+{
+    TreeFunctionFavorites,
+    TreeFunctionRecents,
+    TreeFunctionLibrary,
+    TreeFunctionFolder,
+    TreeFunctionMaterial
+} TreeFunctionType;
+
+class ActionError: public Base::Exception
+{
+public:
+    ActionError()
+        : Base::Exception("Invalid action")
+    {}
+    explicit ActionError(const char* msg)
+        : Base::Exception(msg)
+    {}
+    explicit ActionError(const QString& msg)
+        : Base::Exception(msg.toStdString().c_str())
+    {}
+    ~ActionError() noexcept override = default;
+};
+
 class MaterialsEditor: public QDialog
 {
     Q_OBJECT
@@ -57,6 +86,12 @@ public:
                              QWidget* parent = nullptr);
     explicit MaterialsEditor(QWidget* parent = nullptr);
     ~MaterialsEditor() override = default;
+
+    static QIcon getIcon(const std::shared_ptr<Materials::MaterialLibrary>& library);
+    static QIcon getIcon(const std::shared_ptr<Materials::ModelLibrary>& library);
+    static QIcon getIcon(const std::shared_ptr<Materials::Library>& library);
+
+    void onTreeItemChanged(QStandardItem* item);
 
     void onName(const QString& text);
     void onAuthor(const QString& text);
@@ -84,6 +119,14 @@ public:
     {
         return Materials::MaterialManager::getManager();
     }
+    Materials::MaterialManager& getMaterialManager() const
+    {
+        return Materials::MaterialManager::getManager();
+    }
+    bool useExternal() const
+    {
+        return getMaterialManager().useExternal();
+    }
 
     static QString libraryPath(const std::shared_ptr<Materials::Material>& material);
 
@@ -92,7 +135,6 @@ public:
     void updateMaterialGeneral();
     void updateMaterial();
     void onSelectMaterial(const QItemSelection& selected, const QItemSelection& deselected);
-    void onDoubleClick(const QModelIndex& index);
     void onContextMenu(const QPoint& pos);
 
     bool isMaterialSelected() const
@@ -119,8 +161,28 @@ private:
     QIcon _warningIcon;
     std::shared_ptr<Materials::MaterialFilter> _filter;
     Materials::MaterialFilterOptions _filterOptions;
+    QStandardItem* _newItem;
+
+    // Actions
+    QModelIndex _actionIndex;
+#if defined(BUILD_MATERIAL_EXTERNAL)
+    QAction _actionNewRemoteLibrary;
+#endif
+    QAction _actionNewLocalLibrary;
+    QAction _actionNewFolder;
+    QAction _actionNewMaterial;
+    QAction _actionFavorite;
+    QAction _actionChangeIcon;
 
     void setup();
+    void setupData();
+    void setupDialogSize();
+    void setupButtonIcons();
+    void setupButtonConnections();
+    void setupEditorCallbacks();
+    void setupSelectionCallbacks();
+    void setupContextMenus();
+    void setupModelCallbacks();
 
     void saveWindow();
     void saveMaterialTreeChildren(const Base::Reference<ParameterGrp>& param,
@@ -136,12 +198,33 @@ private:
     void addFavorite(const QString& uuid);
     void removeFavorite(const QString& uuid);
     bool isFavorite(const QString& uuid) const;
+    void favoriteActionAdd();
+    void favoriteActionRemove();
 
     void getRecents();
     void saveRecents();
     void addRecent(const QString& uuid);
     bool isRecent(const QString& uuid) const;
 
+    const QStandardItemModel* getActionModel() const;
+    QStandardItem* getActionItem();
+    TreeFunctionType getActionFunction(const QStandardItem* item) const;
+    TreeFunctionType getActionFunction();
+
+    void favoriteContextMenu(QMenu& contextMenu);
+    void recentContextMenu(QMenu& contextMenu);
+    void libraryContextMenu(QMenu& contextMenu);
+    void folderContextMenu(QMenu& contextMenu);
+    void materialContextMenu(QMenu& contextMenu);
+
+    QString getPath(const QStandardItem* item, const QString& path) const;
+    QString getParentPath(const QStandardItem* item) const;
+    QString getLibraryName(const QStandardItem* item) const;
+
+    void onMenuNewLibrary(bool checked);
+    void onMenuNewFolder(bool checked);
+    void onMenuNewMaterial(bool checked);
+    void onMenuChangeIcon(bool checked);
     void onInherit(bool checked);
     void onInheritNew(bool checked);
 
@@ -176,6 +259,12 @@ private:
         const QIcon& folderIcon,
         const QIcon& icon,
         const Base::Reference<ParameterGrp>& param);
+
+    void renameLibrary(QStandardItem* item);
+    void renameFolder(QStandardItem* item);
+    void renameMaterial(QStandardItem* item);
+    void discardIfNew();
+
 
     /* Indicates if we should show favourite materials
      */
@@ -235,5 +324,7 @@ private:
 };
 
 }  // namespace MatGui
+
+Q_DECLARE_METATYPE(MatGui::TreeFunctionType)
 
 #endif  // MATGUI_MATERIALSEDITOR_H
