@@ -38,6 +38,7 @@
 #include "MaterialLibraryPy.h"
 #include "MaterialPy.h"
 #include "ModelLibrary.h"
+#include "ModelManager.h"
 #include "ModelPy.h"
 #include "MaterialFilterPy.h"
 #include "MaterialFilterOptionsPy.h"
@@ -98,10 +99,10 @@ void ExternalManager::getConfiguration()
 void ExternalManager::instantiate()
 {
     _instantiated = false;
-    Base::Console().Log("Loading external manager...\n");
+    Base::Console().log("Loading external manager...\n");
 
     if (_moduleName.empty() || _className.empty()) {
-        Base::Console().Log("External module not defined\n");
+        Base::Console().log("External module not defined\n");
         return;
     }
 
@@ -110,7 +111,7 @@ void ExternalManager::instantiate()
         Py::Module mod(PyImport_ImportModule(_moduleName.c_str()), true);
 
         if (mod.isNull()) {
-            Base::Console().Log(" failed\n");
+            Base::Console().log(" failed\n");
             return;
         }
 
@@ -121,14 +122,14 @@ void ExternalManager::instantiate()
         }
 
         if (_instantiated) {
-            Base::Console().Log("done\n");
+            Base::Console().log("done\n");
         }
         else {
-            Base::Console().Log("failed\n");
+            Base::Console().log("failed\n");
         }
     }
     catch (Py::Exception& e) {
-        Base::Console().Log("failed\n");
+        Base::Console().log("failed\n");
         e.clear();
     }
 }
@@ -168,8 +169,7 @@ ExternalManager* ExternalManager::getManager()
 
 bool ExternalManager::checkMaterialLibraryType(const Py::Object& entry)
 {
-    return entry.hasAttr("name") && entry.hasAttr("icon") && entry.hasAttr("readOnly")
-        && entry.hasAttr("timestamp");
+    return entry.hasAttr("name") && entry.hasAttr("icon") && entry.hasAttr("readOnly");
 }
 
 std::shared_ptr<Library>
@@ -180,27 +180,24 @@ ExternalManager::libraryFromObject(const Py::Object& entry)
     }
 
     Py::String pyName(entry.getAttr("name"));
-    Py::Bytes pyIcon(entry.getAttr("icon"));
+    Py::Bytes pyIcon;
+    if (entry.getAttr("icon") != Py::None()) {
+        pyIcon = Py::Bytes(entry.getAttr("icon"));
+    }
     Py::Boolean pyReadOnly(entry.getAttr("readOnly"));
-    Py::String pyTimestamp(entry.getAttr("timestamp"));
 
     QString libraryName;
     if (!pyName.isNone()) {
         libraryName = QString::fromStdString(pyName.as_string());
     }
-    QString icon;
+    QByteArray icon;
     if (!pyIcon.isNone()) {
-        icon = QString::fromStdString(pyIcon.as_string());
+        icon = QByteArray(pyIcon.as_std_string().data(), pyIcon.size());
     }
 
     bool readOnly = pyReadOnly.as_bool();
 
-    QString timestamp;
-    if (!pyTimestamp.isNone()) {
-        timestamp = QString::fromStdString(pyTimestamp.as_string());
-    }
-
-    auto library = std::make_shared<Library>(libraryName, icon, readOnly, timestamp);
+    auto library = std::make_shared<Library>(libraryName, icon, readOnly);
     return library;
 }
 
@@ -251,12 +248,13 @@ ExternalManager::libraries()
             }
         }
         else {
-            Base::Console().Log("\tlibraries() not found\n");
+            Base::Console().log("\tlibraries() not found\n");
             throw ConnectionError();
         }
     }
     catch (Py::Exception& e) {
         Base::PyException e1;  // extract the Python error text
+        Base::Console().log("Library error %s", e1.what());
         throw LibraryNotFound(e1.what());
     }
 
@@ -280,7 +278,7 @@ std::shared_ptr<std::vector<std::shared_ptr<Library>>> ExternalManager::modelLib
             }
         }
         else {
-            Base::Console().Log("\tmodelLibraries() not found\n");
+            Base::Console().log("\tmodelLibraries() not found\n");
             throw ConnectionError();
         }
     }
@@ -309,7 +307,7 @@ std::shared_ptr<std::vector<std::shared_ptr<Library>>> ExternalManager::material
             }
         }
         else {
-            Base::Console().Log("\tmaterialLibraries() not found\n");
+            Base::Console().log("\tmaterialLibraries() not found\n");
             throw ConnectionError();
         }
     }
@@ -332,24 +330,26 @@ std::shared_ptr<Library> ExternalManager::getLibrary(const QString& name)
             Py::Callable libraries(_managerObject.getAttr("getLibrary"));
             Py::Tuple args(1);
             args.setItem(0, Py::String(name.toStdString()));
-            Py::Tuple result(libraries.apply(args));
+            Py::Object result(libraries.apply(args));
 
-            Py::Object libObject = result.getItem(0);
-            auto lib = libraryFromObject(Py::Tuple(libObject));
+            auto lib = libraryFromObject(result);
             return std::make_shared<Library>(*lib);
         }
         else {
-            Base::Console().Log("\tgetLibrary() not found\n");
+            Base::Console().log("\tgetLibrary() not found\n");
             throw ConnectionError();
         }
     }
+    catch (const InvalidLibrary&) {
+        throw LibraryNotFound();
+    }
     catch (Py::Exception& e) {
         Base::PyException e1;  // extract the Python error text
-        throw CreationError(e1.what());
+        throw LibraryNotFound(e1.what());
     }
 }
 
-void ExternalManager::createLibrary(const QString& libraryName, const QString& icon, bool readOnly)
+void ExternalManager::createLibrary(const QString& libraryName, const QByteArray& icon, bool readOnly)
 {
     connect();
 
@@ -359,12 +359,12 @@ void ExternalManager::createLibrary(const QString& libraryName, const QString& i
             Py::Callable libraries(_managerObject.getAttr("createLibrary"));
             Py::Tuple args(3);
             args.setItem(0, Py::String(libraryName.toStdString()));
-            args.setItem(1, Py::String(icon.toStdString()));
+            args.setItem(1, Py::Bytes(icon.data(), icon.size()));
             args.setItem(2, Py::Boolean(readOnly));
             libraries.apply(args);  // No return expected
         }
         else {
-            Base::Console().Log("\tcreateLibrary() not found\n");
+            Base::Console().log("\tcreateLibrary() not found\n");
             throw ConnectionError();
         }
     }
@@ -388,7 +388,7 @@ void ExternalManager::renameLibrary(const QString& libraryName, const QString& n
             libraries.apply(args);  // No return expected
         }
         else {
-            Base::Console().Log("\trenameLibrary() not found\n");
+            Base::Console().log("\trenameLibrary() not found\n");
             throw ConnectionError();
         }
     }
@@ -398,7 +398,7 @@ void ExternalManager::renameLibrary(const QString& libraryName, const QString& n
     }
 }
 
-void ExternalManager::changeIcon(const QString& libraryName, const QString& icon)
+void ExternalManager::changeIcon(const QString& libraryName, const QByteArray& icon)
 {
     connect();
 
@@ -408,11 +408,11 @@ void ExternalManager::changeIcon(const QString& libraryName, const QString& icon
             Py::Callable libraries(_managerObject.getAttr("changeIcon"));
             Py::Tuple args(2);
             args.setItem(0, Py::String(libraryName.toStdString()));
-            args.setItem(1, Py::String(icon.toStdString()));
+            args.setItem(1, Py::Bytes(icon.data(), icon.size()));
             libraries.apply(args);  // No return expected
         }
         else {
-            Base::Console().Log("\tchangeIcon() not found\n");
+            Base::Console().log("\tchangeIcon() not found\n");
             throw ConnectionError();
         }
     }
@@ -435,7 +435,7 @@ void ExternalManager::removeLibrary(const QString& libraryName)
             libraries.apply(args);  // No return expected
         }
         else {
-            Base::Console().Log("\tremoveLibrary() not found\n");
+            Base::Console().log("\tremoveLibrary() not found\n");
             throw ConnectionError();
         }
     }
@@ -469,7 +469,7 @@ ExternalManager::libraryModels(const QString& libraryName)
             }
         }
         else {
-            Base::Console().Log("\tlibraryModels() not found\n");
+            Base::Console().log("\tlibraryModels() not found\n");
             throw ConnectionError();
         }
     }
@@ -505,7 +505,7 @@ ExternalManager::libraryMaterials(const QString& libraryName)
             }
         }
         else {
-            Base::Console().Log("\tlibraryMaterials() not found\n");
+            Base::Console().log("\tlibraryMaterials() not found\n");
             throw ConnectionError();
         }
     }
@@ -553,7 +553,7 @@ ExternalManager::libraryMaterials(const QString& libraryName,
             }
         }
         else {
-            Base::Console().Log("\tlibraryMaterials() not found\n");
+            Base::Console().log("\tlibraryMaterials() not found\n");
             throw ConnectionError();
         }
     }
@@ -567,9 +567,121 @@ ExternalManager::libraryMaterials(const QString& libraryName,
 
 //=====
 //
+// Folder management
+//
+//=====
+
+void ExternalManager::createFolder(const QString& libraryName, const QString& path)
+{
+    connect();
+
+    Base::PyGILStateLocker lock;
+    try {
+        if (_managerObject.hasAttr("createFolder")) {
+            Py::Callable libraries(_managerObject.getAttr("createFolder"));
+            Py::Tuple args(2);
+            args.setItem(0, Py::String(libraryName.toStdString()));
+            args.setItem(1, Py::String(path.toStdString()));
+            Py::Object result(libraries.apply(args));
+        }
+        else {
+            Base::Console().log("\tcreateFolder() not found\n");
+            throw ConnectionError();
+        }
+    }
+    catch (Py::Exception& e) {
+        Base::PyException e1;  // extract the Python error text
+        throw CreationError(e1.what());
+    }
+}
+
+void ExternalManager::renameFolder(const QString& libraryName,
+                                   const QString& oldPath,
+                                   const QString& newPath)
+{
+    connect();
+
+    Base::PyGILStateLocker lock;
+    try {
+        if (_managerObject.hasAttr("renameFolder")) {
+            Py::Callable libraries(_managerObject.getAttr("renameFolder"));
+            Py::Tuple args(3);
+            args.setItem(0, Py::String(libraryName.toStdString()));
+            args.setItem(1, Py::String(oldPath.toStdString()));
+            args.setItem(2, Py::String(newPath.toStdString()));
+            Py::Object result(libraries.apply(args));
+        }
+        else {
+            Base::Console().log("\trenameFolder() not found\n");
+            throw ConnectionError();
+        }
+    }
+    catch (Py::Exception& e) {
+        Base::PyException e1;  // extract the Python error text
+        throw RenameError(e1.what());
+    }
+}
+
+void ExternalManager::deleteRecursive(const QString& libraryName, const QString& path)
+{
+    connect();
+
+    Base::PyGILStateLocker lock;
+    try {
+        if (_managerObject.hasAttr("deleteRecursive")) {
+            Py::Callable libraries(_managerObject.getAttr("deleteRecursive"));
+            Py::Tuple args(2);
+            args.setItem(0, Py::String(libraryName.toStdString()));
+            args.setItem(1, Py::String(path.toStdString()));
+            Py::Object result(libraries.apply(args));
+        }
+        else {
+            Base::Console().log("\tdeleteRecursive() not found\n");
+            throw ConnectionError();
+        }
+    }
+    catch (Py::Exception& e) {
+        Base::PyException e1;  // extract the Python error text
+        throw DeleteError(e1.what());
+    }
+}
+
+//=====
+//
 // Model management
 //
 //=====
+
+bool ExternalManager::checkModelObjectType(const Py::Object& entry)
+{
+    return entry.hasAttr("libraryName") && entry.hasAttr("model");
+}
+
+std::shared_ptr<Model> ExternalManager::modelFromObject(const Py::Object& entry,
+                                                        const QString& uuid)
+{
+    if (!checkModelObjectType(entry)) {
+        throw InvalidModel();
+    }
+
+    Py::String pyName(entry.getAttr("libraryName"));
+    Py::Object modelObject(entry.getAttr("model"));
+
+    QString libraryName;
+    if (!pyName.isNone()) {
+        libraryName = QString::fromStdString(pyName.as_string());
+    }
+
+    // Using this call will use caching, whereas using our class function will not
+    auto library = ModelManager::getManager().getLibrary(libraryName);
+
+    Model* model = static_cast<ModelPy*>(*modelObject)->getModelPtr();
+    model->setUUID(uuid);
+    model->setLibrary(library);
+    auto shared = std::make_shared<Model>(*model);
+
+    return shared;
+}
 
 std::shared_ptr<Model> ExternalManager::getModel(const QString& uuid)
 {
@@ -581,36 +693,14 @@ std::shared_ptr<Model> ExternalManager::getModel(const QString& uuid)
             Py::Callable libraries(_managerObject.getAttr("getModel"));
             Py::Tuple args(1);
             args.setItem(0, Py::String(uuid.toStdString()));
-            Py::Tuple result(libraries.apply(args));  // ignore return for now
+            Py::Object result(libraries.apply(args));  // ignore return for now
 
-            Py::Object uuidObject = result.getItem(0);
-            Py::Tuple libraryObject(result.getItem(1));
-            Py::Object modelObject = result.getItem(2);
-
-            Py::Object pyName = libraryObject.getItem(0);
-            Py::Object pyIcon = libraryObject.getItem(1);
-            Py::Object readOnly = libraryObject.getItem(2);
-
-            QString name;
-            if (!pyName.isNone()) {
-                name = QString::fromStdString(pyName.as_string());
-            }
-            QString icon;
-            if (!pyIcon.isNone()) {
-                icon = QString::fromStdString(pyIcon.as_string());
-            }
-            auto library =
-                std::make_shared<ModelLibrary>(name, QString(), icon, readOnly.as_bool());
-
-            Model* model = static_cast<ModelPy*>(*modelObject)->getModelPtr();
-            model->setUUID(uuid);
-            model->setLibrary(library);
-            auto shared = std::make_shared<Model>(*model);
+            auto shared = modelFromObject(result, uuid);
 
             return shared;
         }
         else {
-            Base::Console().Log("\tgetModel() not found\n");
+            Base::Console().log("\tgetModel() not found\n");
             throw ConnectionError();
         }
     }
@@ -637,7 +727,7 @@ void ExternalManager::addModel(const QString& libraryName,
             libraries.apply(args);  // No return expected
         }
         else {
-            Base::Console().Log("\taddModel() not found\n");
+            Base::Console().log("\taddModel() not found\n");
             throw ConnectionError();
         }
     }
@@ -664,7 +754,7 @@ void ExternalManager::migrateModel(const QString& libraryName,
             libraries.apply(args);  // No return expected
         }
         else {
-            Base::Console().Log("\tmigrateModel() not found\n");
+            Base::Console().log("\tmigrateModel() not found\n");
             throw ConnectionError();
         }
     }
@@ -693,23 +783,10 @@ std::shared_ptr<Material> ExternalManager::getMaterial(const QString& uuid)
             Py::Tuple result(libraries.apply(args));
 
             Py::Object uuidObject = result.getItem(0);
-            Py::Tuple libraryObject(result.getItem(1));
+            Py::Object libraryObject = result.getItem(1);
             Py::Object materialObject = result.getItem(2);
 
-            Py::Object pyName = libraryObject.getItem(0);
-            Py::Object pyIcon = libraryObject.getItem(1);
-            Py::Object readOnly = libraryObject.getItem(2);
-
-            QString name;
-            if (!pyName.isNone()) {
-                name = QString::fromStdString(pyName.as_string());
-            }
-            QString icon;
-            if (!pyIcon.isNone()) {
-                icon = QString::fromStdString(pyIcon.as_string());
-            }
-            auto library =
-                std::make_shared<MaterialLibrary>(name, QString(), icon, readOnly.as_bool());
+            auto library = std::make_shared<MaterialLibrary>(*libraryFromObject(libraryObject));
 
             Material* material = static_cast<MaterialPy*>(*materialObject)->getMaterialPtr();
             material->setUUID(uuid);
@@ -719,7 +796,7 @@ std::shared_ptr<Material> ExternalManager::getMaterial(const QString& uuid)
             return shared;
         }
         else {
-            Base::Console().Log("\tgetMaterial() not found\n");
+            Base::Console().log("\tgetMaterial() not found\n");
             throw ConnectionError();
         }
     }
@@ -746,7 +823,7 @@ void ExternalManager::addMaterial(const QString& libraryName,
             libraries.apply(args);  // No return expected
         }
         else {
-            Base::Console().Log("\taddMaterial() not found\n");
+            Base::Console().log("\taddMaterial() not found\n");
             throw ConnectionError();
         }
     }
@@ -774,7 +851,7 @@ void ExternalManager::migrateMaterial(const QString& libraryName,
             libraries.apply(args);  // No return expected
         }
         else {
-            Base::Console().Log("\tmigrateMaterial() not found\n");
+            Base::Console().log("\tmigrateMaterial() not found\n");
             throw ConnectionError();
         }
     }

@@ -1783,6 +1783,10 @@ App::Material Material::getMaterialAppearance() const
 
 void Material::validate(const std::shared_ptr<Material>& other) const
 {
+    if (!other) {
+        // nullptr
+        throw InvalidMaterial("Empty material");
+    }
 
     try {
         _library->validate(*(other->_library));
@@ -1792,34 +1796,34 @@ void Material::validate(const std::shared_ptr<Material>& other) const
     }
 
     if (_directory != other->_directory) {
-        throw InvalidMaterial("Model directories don't match");
+        throw InvalidMaterial("Material directories don't match");
     }
     if (!other->_filename.isEmpty()) {
         throw InvalidMaterial("Remote filename is not empty");
     }
     if (_uuid != other->_uuid) {
-        throw InvalidMaterial("Model UUIDs don't match");
+        throw InvalidMaterial("Material UUIDs don't match");
     }
     if (_name != other->_name) {
-        throw InvalidMaterial("Model names don't match");
+        throw InvalidMaterial("Material names don't match");
     }
     if (_author != other->_author) {
-        throw InvalidMaterial("Model authors don't match");
+        throw InvalidMaterial("Material authors don't match");
     }
     if (_license != other->_license) {
-        throw InvalidMaterial("Model licenses don't match");
+        throw InvalidMaterial("Material licenses don't match");
     }
     if (_parentUuid != other->_parentUuid) {
-        throw InvalidMaterial("Model parents don't match");
+        throw InvalidMaterial("Material parents don't match");
     }
     if (_description != other->_description) {
-        throw InvalidMaterial("Model descriptions don't match");
+        throw InvalidMaterial("Material descriptions don't match");
     }
     if (_url != other->_url) {
-        throw InvalidMaterial("Model URLs don't match");
+        throw InvalidMaterial("Material URLs don't match");
     }
     if (_reference != other->_reference) {
-        throw InvalidMaterial("Model references don't match");
+        throw InvalidMaterial("Material references don't match");
     }
 
     if (_tags.size() != other->_tags.size()) {
