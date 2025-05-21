@@ -167,10 +167,13 @@ private:
     QModelIndex _actionIndex;
 #if defined(BUILD_MATERIAL_EXTERNAL)
     QAction _actionNewRemoteLibrary;
+    QIcon _actionNewRemoteLibraryIcon;
 #endif
     QAction _actionNewLocalLibrary;
     QAction _actionNewFolder;
+    QIcon _actionNewFolderIcon;
     QAction _actionNewMaterial;
+    QIcon _actionNewMaterialIcon;
     QAction _actionFavorite;
     QAction _actionChangeIcon;
 

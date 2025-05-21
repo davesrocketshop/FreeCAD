@@ -162,10 +162,10 @@ inline const UnitsSchemaSpec s3
             { 1e-3            , "Pa/m"       , 1e-6            },
             { 1               , "kPa/m"      , 1e-3            },
             { 1e3             , "MPa/m"      , 1.0             },
-            { 1e3             , "mN"         , 1.0             },
             { 0               , "GPa/m"      , 1e3             }}
         },
         { "Force", {
+            { 1e3             , "mN"         , 1.0             },
             { 1e6             , "N"          , 1e3             },
             { 1e9             , "kN"         , 1e6             },
             { 0               , "MN"         , 1e9             }}

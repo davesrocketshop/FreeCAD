@@ -220,10 +220,22 @@ void MaterialsEditor::setupContextMenus()
     // TODO: Add tooltips
 #if defined(BUILD_MATERIAL_EXTERNAL)
     _actionNewRemoteLibrary.setText(tr("New remote library"));
+    _actionNewRemoteLibraryIcon = QIcon(QStringLiteral(":/icons/Material_Library.svg"));
+    _actionNewRemoteLibrary.setIcon(_actionNewRemoteLibraryIcon);
+    _actionNewRemoteLibrary.setToolTip(tr("New remote library"));
 #endif
     _actionNewLocalLibrary.setText(tr("New local library"));
+
     _actionNewFolder.setText(tr("New folder"));
+    _actionNewFolderIcon = QIcon(QStringLiteral(":/icons/Group.svg"));
+    _actionNewFolder.setIcon(_actionNewFolderIcon);
+    _actionNewFolder.setToolTip(tr("New folder"));
+
     _actionNewMaterial.setText(tr("New material"));
+    _actionNewMaterialIcon = QIcon(QStringLiteral(":/icons/Material_Edit.svg"));
+    _actionNewMaterial.setIcon(_actionNewMaterialIcon);
+    _actionNewMaterial.setToolTip(tr("New material"));
+
     _actionFavorite.setText(tr("Add to favorites"));
 
     _actionChangeIcon.setText(tr("Change icon"));
@@ -1016,6 +1028,11 @@ void MaterialsEditor::createMaterialTree()
     tree->setModel(model);
 
     tree->setHeaderHidden(true);
+    auto toolbar = new QToolBar();
+    toolbar->addAction(&_actionNewRemoteLibrary);
+    toolbar->addAction(&_actionNewFolder);
+    toolbar->addAction(&_actionNewMaterial);
+    ui->frameLayout->insertWidget(0, toolbar);
     fillMaterialTree();
 }
 
@@ -1537,6 +1554,7 @@ void MaterialsEditor::favoriteContextMenu(QMenu& contextMenu)
     }
 #endif
     contextMenu.addAction(&_actionNewLocalLibrary);
+    contextMenu.addSeparator();
 
     auto item = getActionItem();
     if (item->text() != tr("Favorites")) {
@@ -1553,6 +1571,7 @@ void MaterialsEditor::recentContextMenu(QMenu& contextMenu)
     }
 #endif
     contextMenu.addAction(&_actionNewLocalLibrary);
+    contextMenu.addSeparator();
     auto item = getActionItem();
     if (item->text() != tr("Recent")) {
         auto selected = _material->getUUID();
@@ -1568,8 +1587,16 @@ void MaterialsEditor::recentContextMenu(QMenu& contextMenu)
 
 void MaterialsEditor::libraryContextMenu(QMenu& contextMenu)
 {
-    folderContextMenu(contextMenu);
+#if defined(BUILD_MATERIAL_EXTERNAL)
+    if (useExternal()) {
+        contextMenu.addAction(&_actionNewRemoteLibrary);
+    }
+#endif
+    contextMenu.addAction(&_actionNewLocalLibrary);
     contextMenu.addAction(&_actionChangeIcon);
+    contextMenu.addSeparator();
+    contextMenu.addAction(&_actionNewFolder);
+    contextMenu.addAction(&_actionNewMaterial);
 }
 
 void MaterialsEditor::folderContextMenu(QMenu& contextMenu)
@@ -1580,6 +1607,7 @@ void MaterialsEditor::folderContextMenu(QMenu& contextMenu)
     }
 #endif
     contextMenu.addAction(&_actionNewLocalLibrary);
+    contextMenu.addSeparator();
     contextMenu.addAction(&_actionNewFolder);
     contextMenu.addAction(&_actionNewMaterial);
 }
@@ -1587,6 +1615,7 @@ void MaterialsEditor::folderContextMenu(QMenu& contextMenu)
 void MaterialsEditor::materialContextMenu(QMenu& contextMenu)
 {
     folderContextMenu(contextMenu);
+    contextMenu.addSeparator();
     auto selected = _material->getUUID();
     if (isFavorite(selected)) {
         favoriteActionRemove();
