@@ -324,7 +324,7 @@ void MaterialManager::removeLibrary(const QString& libraryName)
     _localManager->removeLibrary(libraryName);
 }
 
-std::shared_ptr<std::vector<std::tuple<QString, QString, QString>>>
+std::shared_ptr<std::vector<LibraryObject>>
 MaterialManager::libraryMaterials(const QString& libraryName, bool local)
 {
 #if defined(BUILD_MATERIAL_EXTERNAL)
@@ -342,7 +342,7 @@ MaterialManager::libraryMaterials(const QString& libraryName, bool local)
     return _localManager->libraryMaterials(libraryName);
 }
 
-std::shared_ptr<std::vector<std::tuple<QString, QString, QString>>>
+std::shared_ptr<std::vector<LibraryObject>>
 MaterialManager::libraryMaterials(const QString& libraryName,
                                   const std::shared_ptr<MaterialFilter>& filter,
                                   const MaterialFilterOptions& options,
@@ -627,10 +627,10 @@ void MaterialManager::migrateToExternal(const std::shared_ptr<Materials::Materia
     }
 
     auto materials = _localManager->libraryMaterials(library->getName());
-    for (auto& tuple : *materials) {
-        auto uuid = std::get<0>(tuple);
-        auto path = std::get<1>(tuple);
-        auto name = std::get<2>(tuple);
+    for (auto& it : *materials) {
+        auto uuid = it.getUUID();
+        auto path = it.getPath();
+        auto name = it.getName();
         Base::Console().log("\t('%s', '%s', '%s')\n",
                             uuid.toStdString().c_str(),
                             path.toStdString().c_str(),
@@ -646,10 +646,11 @@ void MaterialManager::migrateToExternal(const std::shared_ptr<Materials::Materia
 void MaterialManager::validateMigration(const std::shared_ptr<Materials::MaterialLibrary>& library)
 {
     auto materials = _localManager->libraryMaterials(library->getName());
-    for (auto& tuple : *materials) {
-        auto uuid = std::get<0>(tuple);
-        auto path = std::get<1>(tuple);
-        auto name = std::get<2>(tuple);
+    _externalManager->resetCache();
+    for (auto& it : *materials) {
+        auto uuid = it.getUUID();
+        auto path = it.getPath();
+        auto name = it.getName();
         Base::Console().log("\t('%s', '%s', '%s')\n",
                             uuid.toStdString().c_str(),
                             path.toStdString().c_str(),

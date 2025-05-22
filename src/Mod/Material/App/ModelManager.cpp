@@ -204,7 +204,7 @@ void ModelManager::removeLibrary(const QString& libraryName)
     _localManager->removeLibrary(libraryName);
 }
 
-std::shared_ptr<std::vector<std::tuple<QString, QString, QString>>>
+std::shared_ptr<std::vector<LibraryObject>>
 ModelManager::libraryModels(const QString& libraryName)
 {
 #if defined(BUILD_MATERIAL_EXTERNAL)
@@ -332,10 +332,10 @@ void ModelManager::migrateToExternal(const std::shared_ptr<Materials::ModelLibra
     }
 
     auto models = _localManager->libraryModels(library->getName());
-    for (auto& tuple : *models) {
-        auto uuid = std::get<0>(tuple);
-        auto path = std::get<1>(tuple);
-        auto name = std::get<2>(tuple);
+    for (auto& it : *models) {
+        auto uuid = it.getUUID();
+        auto path = it.getPath();
+        auto name = it.getName();
         Base::Console().log("\t('%s', '%s', '%s')\n",
                             uuid.toStdString().c_str(),
                             path.toStdString().c_str(),
@@ -349,10 +349,10 @@ void ModelManager::migrateToExternal(const std::shared_ptr<Materials::ModelLibra
 void ModelManager::validateMigration(const std::shared_ptr<Materials::ModelLibrary>& library)
 {
     auto models = _localManager->libraryModels(library->getName());
-    for (auto& tuple : *models) {
-        auto uuid = std::get<0>(tuple);
-        auto path = std::get<1>(tuple);
-        auto name = std::get<2>(tuple);
+    for (auto& it : *models) {
+        auto uuid = it.getUUID();
+        auto path = it.getPath();
+        auto name = it.getName();
         Base::Console().log("\t('%s', '%s', '%s')\n",
                             uuid.toStdString().c_str(),
                             path.toStdString().c_str(),

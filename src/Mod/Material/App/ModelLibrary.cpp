@@ -62,9 +62,9 @@ ModelLibrary::getModelTree(ModelFilter filter) const
 
     auto models = ModelManager::getManager().libraryModels(getName());
     for (auto& it : *models) {
-        auto uuid = std::get<0>(it);
-        auto path = std::get<1>(it);
-        auto filename = std::get<2>(it);
+        auto uuid = it.getUUID();
+        auto path = it.getPath();
+        auto filename = it.getName();
 
         auto model = ModelManager::getManager().getModel(getName(), uuid);
         if (ModelManager::passFilter(filter, model->getType())) {

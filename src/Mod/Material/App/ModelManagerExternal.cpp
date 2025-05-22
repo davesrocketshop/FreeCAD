@@ -114,7 +114,7 @@ void ModelManagerExternal::createLibrary(const QString& libraryName,
     ExternalManager::getManager()->createLibrary(libraryName, icon, readOnly);
 }
 
-std::shared_ptr<std::vector<std::tuple<QString, QString, QString>>>
+std::shared_ptr<std::vector<LibraryObject>>
 ModelManagerExternal::libraryModels(const QString& libraryName)
 {
     return ExternalManager::getManager()->libraryModels(libraryName);

@@ -56,7 +56,7 @@ public:
     void createLibrary(const QString& libraryName,
                        const QByteArray& icon,
                        bool readOnly = true);
-    std::shared_ptr<std::vector<std::tuple<QString, QString, QString>>>
+    std::shared_ptr<std::vector<LibraryObject>>
     libraryModels(const QString& libraryName);
 
     // Model management

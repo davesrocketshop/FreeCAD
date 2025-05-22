@@ -199,18 +199,17 @@ void MaterialManagerLocal::removeLibrary(const QString& libraryName)
     throw LibraryNotFound();
 }
 
-std::shared_ptr<std::vector<std::tuple<QString, QString, QString>>>
+std::shared_ptr<std::vector<LibraryObject>>
 MaterialManagerLocal::libraryMaterials(const QString& libraryName)
 {
-    auto materials = std::make_shared<std::vector<std::tuple<QString, QString, QString>>>();
+    auto materials = std::make_shared<std::vector<LibraryObject>>();
 
     for (auto& it : *_materialMap) {
         // This is needed to resolve cyclic dependencies
         auto library = it.second->getLibrary();
         if (library->isName(libraryName)) {
-            materials->push_back(std::tuple<QString, QString, QString>(it.first,
-                                                                       it.second->getDirectory(),
-                                                                       it.second->getName()));
+            materials->push_back(
+                LibraryObject(it.first, it.second->getDirectory(), it.second->getName()));
         }
     }
 
@@ -235,21 +234,20 @@ bool MaterialManagerLocal::passFilter(const std::shared_ptr<Material>& material,
     return filter->modelIncluded(material);
 }
 
-std::shared_ptr<std::vector<std::tuple<QString, QString, QString>>>
+std::shared_ptr<std::vector<LibraryObject>>
 MaterialManagerLocal::libraryMaterials(const QString& libraryName,
                                        const std::shared_ptr<MaterialFilter>& filter,
                                        const MaterialFilterOptions& options)
 {
-    auto materials = std::make_shared<std::vector<std::tuple<QString, QString, QString>>>();
+    auto materials = std::make_shared<std::vector<LibraryObject>>();
 
     for (auto& it : *_materialMap) {
         // This is needed to resolve cyclic dependencies
         auto library = it.second->getLibrary();
         if (library->isName(libraryName)) {
             if (passFilter(it.second, filter, options)) {
-                materials->push_back(std::tuple<QString, QString, QString>(it.first,
-                                                                        it.second->getDirectory(),
-                                                                        it.second->getName()));
+                materials->push_back(
+                    LibraryObject(it.first, it.second->getDirectory(), it.second->getName()));
             }
         }
     }

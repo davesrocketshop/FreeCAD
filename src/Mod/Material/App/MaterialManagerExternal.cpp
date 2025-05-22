@@ -151,13 +151,13 @@ void MaterialManagerExternal::removeLibrary(const QString& libraryName)
     ExternalManager::getManager()->removeLibrary(libraryName);
 }
 
-std::shared_ptr<std::vector<std::tuple<QString, QString, QString>>>
+std::shared_ptr<std::vector<LibraryObject>>
 MaterialManagerExternal::libraryMaterials(const QString& libraryName)
 {
     return ExternalManager::getManager()->libraryMaterials(libraryName);
 }
 
-std::shared_ptr<std::vector<std::tuple<QString, QString, QString>>>
+std::shared_ptr<std::vector<LibraryObject>>
 MaterialManagerExternal::libraryMaterials(const QString& libraryName,
                                           const std::shared_ptr<MaterialFilter>& filter,
                                           const MaterialFilterOptions& options)

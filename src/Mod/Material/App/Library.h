@@ -125,6 +125,66 @@ private:
     QByteArray loadByteArrayFromFile(const QString& filePath) const;
 };
 
+class MaterialsExport LibraryObject
+{
+public:
+    LibraryObject(const QString& uuid, const QString& path, const QString& name)
+        : _uuid(uuid)
+        , _path(path)
+        , _name(name)
+    {}
+    LibraryObject(const std::string& uuid, const std::string& path, const std::string& name)
+        : _uuid(QString::fromStdString(uuid))
+        , _path(QString::fromStdString(path))
+        , _name(QString::fromStdString(name))
+    {}
+    ~LibraryObject() = default;
+
+    void setUUID(const QString& uuid)
+    {
+        _uuid = uuid;
+    }
+    void setUUID(const std::string& uuid)
+    {
+        _uuid = QString::fromStdString(uuid);
+    }
+    QString getUUID() const
+    {
+        return _uuid;
+    }
+
+    void setPath(const QString& path)
+    {
+        _path = path;
+    }
+    void setPath(const std::string& path)
+    {
+        _path = QString::fromStdString(path);
+    }
+    QString getPath() const
+    {
+        return _path;
+    }
+
+    void setName(const QString& name)
+    {
+        _name = name;
+    }
+    void setName(const std::string& name)
+    {
+        _name = QString::fromStdString(name);
+    }
+    QString getName() const
+    {
+        return _name;
+    }
+
+private:
+    QString _uuid;
+    QString _path;
+    QString _name;
+};
+
 }  // namespace Materials
 
 #endif  // MATERIAL_LIBRARY_H

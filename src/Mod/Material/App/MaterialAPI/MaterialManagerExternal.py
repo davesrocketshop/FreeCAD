@@ -44,6 +44,11 @@ class ModelObjectType:
     libraryName: str
     model: Materials.Model
 
+@dataclass
+class MaterialObjectType:
+    libraryName: str
+    material: Materials.Material
+
 class MaterialManagerExternal(ABC):
     """Abstract base class for all external material managers
 
@@ -230,7 +235,7 @@ class MaterialManagerExternal(ABC):
     #
 
     @abstractmethod
-    def getMaterial(self, uuid: str) -> Materials.Material:
+    def getMaterial(self, uuid: str) -> MaterialObjectType:
         """ Retrieve a material given its UUID """
         pass
 

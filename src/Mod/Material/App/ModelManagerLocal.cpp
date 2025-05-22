@@ -156,16 +156,16 @@ void ModelManagerLocal::removeLibrary(const QString& libraryName)
     throw LibraryNotFound();
 }
 
-std::shared_ptr<std::vector<std::tuple<QString, QString, QString>>>
+std::shared_ptr<std::vector<LibraryObject>>
 ModelManagerLocal::libraryModels(const QString& libraryName)
 {
-    auto models = std::make_shared<std::vector<std::tuple<QString, QString, QString>>>();
+    auto models = std::make_shared<std::vector<LibraryObject>>();
 
     for (auto& it : *_modelMap) {
         // This is needed to resolve cyclic dependencies
         if (it.second->getLibrary()->isName(libraryName)) {
             models->push_back(
-                std::tuple<QString, QString, QString>(it.first, it.second->getDirectory(), it.second->getName()));
+                LibraryObject(it.first, it.second->getDirectory(), it.second->getName()));
         }
     }
 

@@ -36,6 +36,7 @@
 #include "ExternalManager.h"
 #include "MaterialLibrary.h"
 #include "MaterialLibraryPy.h"
+#include "MaterialManager.h"
 #include "MaterialPy.h"
 #include "ModelLibrary.h"
 #include "ModelManager.h"
@@ -201,33 +202,32 @@ ExternalManager::libraryFromObject(const Py::Object& entry)
     return library;
 }
 
-bool ExternalManager::checkMaterialObjectType(const Py::Object& entry)
+bool ExternalManager::checkMaterialLibraryObjectType(const Py::Object& entry)
 {
     return entry.hasAttr("UUID") && entry.hasAttr("path") && entry.hasAttr("name");
 }
 
-std::tuple<QString, QString, QString>
-ExternalManager::materialObjectTypeFromObject(const Py::Object& entry)
+LibraryObject ExternalManager::materialLibraryObjectTypeFromObject(const Py::Object& entry)
 {
-    QString uuid;
+    std::string uuid;
     auto pyUUID = entry.getAttr("UUID");
     if (!pyUUID.isNone()) {
-        uuid = QString::fromStdString(pyUUID.as_string());
+        uuid = pyUUID.as_string();
     }
 
-    QString path;
+    std::string path;
     auto pyPath = entry.getAttr("path");
     if (!pyPath.isNone()) {
-        path = QString::fromStdString(pyPath.as_string());
+        path = pyPath.as_string();
     }
 
-    QString name;
+    std::string name;
     auto pyName = entry.getAttr("name");
     if (!pyName.isNone()) {
-        name = QString::fromStdString(pyName.as_string());
+        name = pyName.as_string();
     }
 
-    return std::tuple<QString, QString, QString>(uuid, path, name);
+    return LibraryObject(uuid, path, name);
 }
 
 std::shared_ptr<std::vector<std::shared_ptr<Library>>>
@@ -445,10 +445,10 @@ void ExternalManager::removeLibrary(const QString& libraryName)
     }
 }
 
-std::shared_ptr<std::vector<std::tuple<QString, QString, QString>>>
+std::shared_ptr<std::vector<LibraryObject>>
 ExternalManager::libraryModels(const QString& libraryName)
 {
-    auto modelList = std::make_shared<std::vector<std::tuple<QString, QString, QString>>>();
+    auto modelList = std::make_shared<std::vector<LibraryObject>>();
 
     connect();
 
@@ -461,11 +461,11 @@ ExternalManager::libraryModels(const QString& libraryName)
             Py::List list(libraries.apply(args));
             for (auto library : list) {
                 auto entry = Py::Object(library);
-                if (!checkMaterialObjectType(entry)) {
+                if (!checkMaterialLibraryObjectType(entry)) {
                     throw InvalidModel();
                 }
 
-                modelList->push_back(materialObjectTypeFromObject(entry));
+                modelList->push_back(materialLibraryObjectTypeFromObject(entry));
             }
         }
         else {
@@ -481,10 +481,10 @@ ExternalManager::libraryModels(const QString& libraryName)
     return modelList;
 }
 
-std::shared_ptr<std::vector<std::tuple<QString, QString, QString>>>
+std::shared_ptr<std::vector<LibraryObject>>
 ExternalManager::libraryMaterials(const QString& libraryName)
 {
-    auto materialList = std::make_shared<std::vector<std::tuple<QString, QString, QString>>>();
+    auto materialList = std::make_shared<std::vector<LibraryObject>>();
 
     connect();
 
@@ -497,11 +497,11 @@ ExternalManager::libraryMaterials(const QString& libraryName)
             Py::List list(libraries.apply(args));
             for (auto library : list) {
                 auto entry = Py::Object(library);
-                if (!checkMaterialObjectType(entry)) {
+                if (!checkMaterialLibraryObjectType(entry)) {
                     throw InvalidMaterial();
                 }
 
-                materialList->push_back(materialObjectTypeFromObject(entry));
+                materialList->push_back(materialLibraryObjectTypeFromObject(entry));
             }
         }
         else {
@@ -517,12 +517,12 @@ ExternalManager::libraryMaterials(const QString& libraryName)
     return materialList;
 }
 
-std::shared_ptr<std::vector<std::tuple<QString, QString, QString>>>
+std::shared_ptr<std::vector<LibraryObject>>
 ExternalManager::libraryMaterials(const QString& libraryName,
                                   const std::shared_ptr<MaterialFilter>& filter,
                                   const MaterialFilterOptions& options)
 {
-    auto materialList = std::make_shared<std::vector<std::tuple<QString, QString, QString>>>();
+    auto materialList = std::make_shared<std::vector<LibraryObject>>();
 
     connect();
 
@@ -545,11 +545,11 @@ ExternalManager::libraryMaterials(const QString& libraryName,
             Py::List list(libraries.apply(args));
             for (auto library : list) {
                 auto entry = Py::Object(library);
-                if (!checkMaterialObjectType(entry)) {
+                if (!checkMaterialLibraryObjectType(entry)) {
                     throw InvalidMaterial();
                 }
 
-                materialList->push_back(materialObjectTypeFromObject(entry));
+                materialList->push_back(materialLibraryObjectTypeFromObject(entry));
             }
         }
         else {
@@ -563,6 +563,44 @@ ExternalManager::libraryMaterials(const QString& libraryName,
     }
 
     return materialList;
+}
+
+std::shared_ptr<std::vector<QString>> ExternalManager::libraryFolders(const QString& libraryName)
+{
+    auto folderList = std::make_shared<std::vector<QString>>();
+
+    connect();
+
+    Base::PyGILStateLocker lock;
+    try {
+        if (_managerObject.hasAttr("libraryFolders")) {
+            Py::Callable folders(_managerObject.getAttr("libraryFolders"));
+            Py::Tuple args(1);
+            args.setItem(0, Py::String(libraryName.toStdString()));
+            Py::List list(folders.apply(args));
+            for (auto folder : list) {
+                auto entry = Py::Object(folder);
+                Py::String pyName(entry.getAttr("name"));
+
+                QString folderName;
+                if (!pyName.isNone()) {
+                    folderName = QString::fromStdString(pyName.as_string());
+                }
+
+                folderList->push_back(folderName);
+            }
+        }
+        else {
+            Base::Console().log("\tlibraryFolders() not found\n");
+            throw ConnectionError();
+        }
+    }
+    catch (Py::Exception& e) {
+        Base::PyException e1;  // extract the Python error text
+        throw LibraryNotFound(e1.what());
+    }
+
+    return folderList;
 }
 
 //=====
@@ -770,6 +808,37 @@ void ExternalManager::migrateModel(const QString& libraryName,
 //
 //=====
 
+bool ExternalManager::checkMaterialObjectType(const Py::Object& entry)
+{
+    return entry.hasAttr("libraryName") && entry.hasAttr("material");
+}
+
+std::shared_ptr<Material> ExternalManager::materialFromObject(const Py::Object& entry,
+                                                              const QString& uuid)
+{
+    if (!checkMaterialObjectType(entry)) {
+        throw InvalidMaterial();
+    }
+
+    Py::String pyName(entry.getAttr("libraryName"));
+    Py::Object materialObject(entry.getAttr("material"));
+
+    QString libraryName;
+    if (!pyName.isNone()) {
+        libraryName = QString::fromStdString(pyName.as_string());
+    }
+
+    // Using this call will use caching, whereas using our class function will not
+    auto library = MaterialManager::getManager().getLibrary(libraryName);
+
+    Material* material = static_cast<MaterialPy*>(*materialObject)->getMaterialPtr();
+    material->setUUID(uuid);
+    material->setLibrary(library);
+    auto shared = std::make_shared<Material>(*material);
+
+    return shared;
+}
+
 std::shared_ptr<Material> ExternalManager::getMaterial(const QString& uuid)
 {
     connect();
@@ -780,18 +849,9 @@ std::shared_ptr<Material> ExternalManager::getMaterial(const QString& uuid)
             Py::Callable libraries(_managerObject.getAttr("getMaterial"));
             Py::Tuple args(1);
             args.setItem(0, Py::String(uuid.toStdString()));
-            Py::Tuple result(libraries.apply(args));
+            Py::Object result(libraries.apply(args));
 
-            Py::Object uuidObject = result.getItem(0);
-            Py::Object libraryObject = result.getItem(1);
-            Py::Object materialObject = result.getItem(2);
-
-            auto library = std::make_shared<MaterialLibrary>(*libraryFromObject(libraryObject));
-
-            Material* material = static_cast<MaterialPy*>(*materialObject)->getMaterialPtr();
-            material->setUUID(uuid);
-            material->setLibrary(library);
-            auto shared = std::make_shared<Material>(*material);
+            auto shared = materialFromObject(result, uuid);
 
             return shared;
         }

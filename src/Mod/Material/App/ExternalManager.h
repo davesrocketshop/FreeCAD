@@ -34,6 +34,7 @@ namespace Materials
 {
 
 class Library;
+class LibraryObject;
 class Material;
 class Model;
 class MaterialFilter;
@@ -59,14 +60,13 @@ public:
     void renameLibrary(const QString& libraryName, const QString& newName);
     void changeIcon(const QString& libraryName, const QByteArray& icon);
     void removeLibrary(const QString& libraryName);
-    std::shared_ptr<std::vector<std::tuple<QString, QString, QString>>>
-    libraryModels(const QString& libraryName);
-    std::shared_ptr<std::vector<std::tuple<QString, QString, QString>>>
-    libraryMaterials(const QString& libraryName);
-    std::shared_ptr<std::vector<std::tuple<QString, QString, QString>>>
+    std::shared_ptr<std::vector<LibraryObject>> libraryModels(const QString& libraryName);
+    std::shared_ptr<std::vector<LibraryObject>> libraryMaterials(const QString& libraryName);
+    std::shared_ptr<std::vector<LibraryObject>>
     libraryMaterials(const QString& libraryName,
                      const std::shared_ptr<MaterialFilter>& filter,
                      const MaterialFilterOptions& options);
+    std::shared_ptr<std::vector<QString>> libraryFolders(const QString& libraryName);
 
     // Folder management
     void createFolder(const QString& libraryName, const QString& path);
@@ -101,10 +101,12 @@ private:
     void connect();
     bool checkMaterialLibraryType(const Py::Object& entry);
     std::shared_ptr<Library> libraryFromObject(const Py::Object& entry);
-    bool checkMaterialObjectType(const Py::Object& entry);
-    std::tuple<QString, QString, QString> materialObjectTypeFromObject(const Py::Object& entry);
+    bool checkMaterialLibraryObjectType(const Py::Object& entry);
+    LibraryObject materialLibraryObjectTypeFromObject(const Py::Object& entry);
     bool checkModelObjectType(const Py::Object& entry);
     std::shared_ptr<Model> modelFromObject(const Py::Object& entry, const QString& uuid);
+    bool checkMaterialObjectType(const Py::Object& entry);
+    std::shared_ptr<Material> materialFromObject(const Py::Object& entry, const QString& uuid);
 
     static ExternalManager* _manager;
     static QMutex _mutex;

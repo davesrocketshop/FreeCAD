@@ -83,9 +83,9 @@ public:
     void renameLibrary(const QString& libraryName, const QString& newName);
     void changeIcon(const QString& libraryName, const QString& iconPath);
     void removeLibrary(const QString& libraryName);
-    std::shared_ptr<std::vector<std::tuple<QString, QString, QString>>>
+    std::shared_ptr<std::vector<LibraryObject>>
     libraryMaterials(const QString& libraryName, bool local = false);
-    std::shared_ptr<std::vector<std::tuple<QString, QString, QString>>>
+    std::shared_ptr<std::vector<LibraryObject>>
     libraryMaterials(const QString& libraryName,
                      const std::shared_ptr<MaterialFilter>& filter,
                      const MaterialFilterOptions& options,
