@@ -802,6 +802,137 @@ void ExternalManager::migrateModel(const QString& libraryName,
     }
 }
 
+void ExternalManager::updateModel(const QString& libraryName,
+                                  const QString& path,
+                                  const std::shared_ptr<Model>& model)
+{
+    connect();
+
+    Base::PyGILStateLocker lock;
+    try {
+        if (_managerObject.hasAttr("updateModel")) {
+            Py::Callable libraries(_managerObject.getAttr("updateModel"));
+            Py::Tuple args(3);
+            args.setItem(0, Py::String(libraryName.toStdString()));
+            args.setItem(1, Py::String(path.toStdString()));
+            args.setItem(2, Py::Object(new ModelPy(new Model(*model)), true));
+            libraries.apply(args);  // No return expected
+        }
+        else {
+            Base::Console().log("\tupdateModel() not found\n");
+            throw ConnectionError();
+        }
+    }
+    catch (Py::Exception& e) {
+        Base::PyException e1;  // extract the Python error text
+        throw UpdateError(e1.what());
+    }
+}
+
+void ExternalManager::setModelPath(const QString& libraryName,
+                                   const QString& path,
+                                   const QString& uuid)
+{
+    connect();
+
+    Base::PyGILStateLocker lock;
+    try {
+        if (_managerObject.hasAttr("setModelPath")) {
+            Py::Callable libraries(_managerObject.getAttr("setModelPath"));
+            Py::Tuple args(3);
+            args.setItem(0, Py::String(libraryName.toStdString()));
+            args.setItem(1, Py::String(path.toStdString()));
+            args.setItem(2, Py::String(uuid.toStdString()));
+            libraries.apply(args);  // No return expected
+        }
+        else {
+            Base::Console().log("\tsetModelPath() not found\n");
+            throw ConnectionError();
+        }
+    }
+    catch (Py::Exception& e) {
+        Base::PyException e1;  // extract the Python error text
+        throw UpdateError(e1.what());
+    }
+}
+
+void ExternalManager::renameModel(const QString& libraryName,
+                                  const QString& name,
+                                  const QString& uuid)
+{
+    connect();
+
+    Base::PyGILStateLocker lock;
+    try {
+        if (_managerObject.hasAttr("renameModel")) {
+            Py::Callable libraries(_managerObject.getAttr("renameModel"));
+            Py::Tuple args(3);
+            args.setItem(0, Py::String(libraryName.toStdString()));
+            args.setItem(1, Py::String(name.toStdString()));
+            args.setItem(2, Py::String(uuid.toStdString()));
+            libraries.apply(args);  // No return expected
+        }
+        else {
+            Base::Console().log("\trenameModel() not found\n");
+            throw ConnectionError();
+        }
+    }
+    catch (Py::Exception& e) {
+        Base::PyException e1;  // extract the Python error text
+        throw RenameError(e1.what());
+    }
+}
+
+void ExternalManager::moveModel(const QString& libraryName,
+                                const QString& path,
+                                const QString& uuid)
+{
+    connect();
+
+    Base::PyGILStateLocker lock;
+    try {
+        if (_managerObject.hasAttr("moveModel")) {
+            Py::Callable libraries(_managerObject.getAttr("moveModel"));
+            Py::Tuple args(3);
+            args.setItem(0, Py::String(libraryName.toStdString()));
+            args.setItem(1, Py::String(path.toStdString()));
+            args.setItem(2, Py::String(uuid.toStdString()));
+            libraries.apply(args);  // No return expected
+        }
+        else {
+            Base::Console().log("\tmoveModel() not found\n");
+            throw ConnectionError();
+        }
+    }
+    catch (Py::Exception& e) {
+        Base::PyException e1;  // extract the Python error text
+        throw MoveError(e1.what());
+    }
+}
+
+void ExternalManager::removeModel(const QString& uuid)
+{
+    connect();
+
+    Base::PyGILStateLocker lock;
+    try {
+        if (_managerObject.hasAttr("removeModel")) {
+            Py::Callable libraries(_managerObject.getAttr("removeModel"));
+            Py::Tuple args(1);
+            args.setItem(0, Py::String(uuid.toStdString()));
+            libraries.apply(args);  // No return expected
+        }
+        else {
+            Base::Console().log("\tremoveModel() not found\n");
+            throw ConnectionError();
+        }
+    }
+    catch (Py::Exception& e) {
+        Base::PyException e1;  // extract the Python error text
+        throw DeleteError(e1.what());
+    }
+}
+
 //=====
 //
 // Material management
@@ -918,5 +1049,136 @@ void ExternalManager::migrateMaterial(const QString& libraryName,
     catch (Py::Exception& e) {
         Base::PyException e1;  // extract the Python error text
         throw CreationError(e1.what());
+    }
+}
+
+void ExternalManager::updateMaterial(const QString& libraryName,
+                    const QString& path,
+                    const std::shared_ptr<Material>& material)
+{
+    connect();
+
+    Base::PyGILStateLocker lock;
+    try {
+        if (_managerObject.hasAttr("updateMaterial")) {
+            Py::Callable libraries(_managerObject.getAttr("updateMaterial"));
+            Py::Tuple args(3);
+            args.setItem(0, Py::String(libraryName.toStdString()));
+            args.setItem(1, Py::String(path.toStdString()));
+            args.setItem(2, Py::Object(new MaterialPy(new Material(*material)), true));
+            libraries.apply(args);  // No return expected
+        }
+        else {
+            Base::Console().log("\tupdateMaterial() not found\n");
+            throw ConnectionError();
+        }
+    }
+    catch (Py::Exception& e) {
+        Base::PyException e1;  // extract the Python error text
+        throw UpdateError(e1.what());
+    }
+}
+
+void ExternalManager::setMaterialPath(const QString& libraryName,
+                                      const QString& path,
+                                      const QString& uuid)
+{
+    connect();
+
+    Base::PyGILStateLocker lock;
+    try {
+        if (_managerObject.hasAttr("setMaterialPath")) {
+            Py::Callable libraries(_managerObject.getAttr("setMaterialPath"));
+            Py::Tuple args(3);
+            args.setItem(0, Py::String(libraryName.toStdString()));
+            args.setItem(1, Py::String(path.toStdString()));
+            args.setItem(2, Py::String(uuid.toStdString()));
+            libraries.apply(args);  // No return expected
+        }
+        else {
+            Base::Console().log("\tsetMaterialPath() not found\n");
+            throw ConnectionError();
+        }
+    }
+    catch (Py::Exception& e) {
+        Base::PyException e1;  // extract the Python error text
+        throw UpdateError(e1.what());
+    }
+}
+
+void ExternalManager::renameMaterial(const QString& libraryName,
+                                     const QString& name,
+                                     const QString& uuid)
+{
+    connect();
+
+    Base::PyGILStateLocker lock;
+    try {
+        if (_managerObject.hasAttr("renameMaterial")) {
+            Py::Callable libraries(_managerObject.getAttr("renameMaterial"));
+            Py::Tuple args(3);
+            args.setItem(0, Py::String(libraryName.toStdString()));
+            args.setItem(1, Py::String(name.toStdString()));
+            args.setItem(2, Py::String(uuid.toStdString()));
+            libraries.apply(args);  // No return expected
+        }
+        else {
+            Base::Console().log("\trenameMaterial() not found\n");
+            throw ConnectionError();
+        }
+    }
+    catch (Py::Exception& e) {
+        Base::PyException e1;  // extract the Python error text
+        throw RenameError(e1.what());
+    }
+}
+
+void ExternalManager::moveMaterial(const QString& libraryName,
+                                   const QString& path,
+                                   const QString& uuid)
+{
+    connect();
+
+    Base::PyGILStateLocker lock;
+    try {
+        if (_managerObject.hasAttr("moveMaterial")) {
+            Py::Callable libraries(_managerObject.getAttr("moveMaterial"));
+            Py::Tuple args(3);
+            args.setItem(0, Py::String(libraryName.toStdString()));
+            args.setItem(1, Py::String(path.toStdString()));
+            args.setItem(2, Py::String(uuid.toStdString()));
+            libraries.apply(args);  // No return expected
+        }
+        else {
+            Base::Console().log("\tmoveMaterial() not found\n");
+            throw ConnectionError();
+        }
+    }
+    catch (Py::Exception& e) {
+        Base::PyException e1;  // extract the Python error text
+        throw MoveError(e1.what());
+    }
+}
+
+void ExternalManager::removeMaterial(const QString& uuid)
+{
+    connect();
+
+    Base::PyGILStateLocker lock;
+    try {
+        if (_managerObject.hasAttr("removeMaterial")) {
+            Py::Callable libraries(_managerObject.getAttr("removeMaterial"));
+            Py::Tuple args(1);
+            args.setItem(0, Py::String(uuid.toStdString()));
+            libraries.apply(args);  // No return expected
+        }
+        else {
+            Base::Console().log("\tremoveMaterial() not found\n");
+            throw ConnectionError();
+        }
+    }
+    catch (Py::Exception& e) {
+        Base::PyException e1;  // extract the Python error text
+        throw DeleteError(e1.what());
     }
 }

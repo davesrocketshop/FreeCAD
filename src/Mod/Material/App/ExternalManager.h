@@ -81,6 +81,13 @@ public:
     addModel(const QString& libraryName, const QString& path, const std::shared_ptr<Model>& model);
     void
     migrateModel(const QString& libraryName, const QString& path, const std::shared_ptr<Model>& model);
+    void updateModel(const QString& libraryName,
+                     const QString& path,
+                     const std::shared_ptr<Model>& model);
+    void setModelPath(const QString& libraryName, const QString& path, const QString& uuid);
+    void renameModel(const QString& libraryName, const QString& name, const QString& uuid);
+    void moveModel(const QString& libraryName, const QString& path, const QString& uuid);
+    void removeModel(const QString& uuid);
 
     // Material management
     std::shared_ptr<Material> getMaterial(const QString& uuid);
@@ -90,6 +97,13 @@ public:
     void migrateMaterial(const QString& libraryName,
                      const QString& path,
                      const std::shared_ptr<Material>& material);
+    void updateMaterial(const QString& libraryName,
+                        const QString& path,
+                        const std::shared_ptr<Material>& material);
+    void setMaterialPath(const QString& libraryName, const QString& path, const QString& uuid);
+    void renameMaterial(const QString& libraryName, const QString& name, const QString& uuid);
+    void moveMaterial(const QString& libraryName, const QString& path, const QString& uuid);
+    void removeMaterial(const QString& uuid);
 
 private:
     ExternalManager();

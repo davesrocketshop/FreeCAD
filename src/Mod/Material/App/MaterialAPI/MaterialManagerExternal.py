@@ -207,17 +207,17 @@ class MaterialManagerExternal(ABC):
         pass
 
     @abstractmethod
-    def setModelPath(self, libraryName: str, path: str, model: Materials.Model) -> None:
+    def setModelPath(self, libraryName: str, path: str, uuid: str) -> None:
         """Change the model path within the library"""
         pass
 
     @abstractmethod
-    def renameModel(self, libraryName: str, name: str, model: Materials.Model) -> None:
+    def renameModel(self, libraryName: str, name: str, uuid: str) -> None:
         """Change the model name"""
         pass
 
     @abstractmethod
-    def moveModel(self, libraryName: str, path: str, model: Materials.Model) -> None:
+    def moveModel(self, libraryName: str, path: str, uuid: str) -> None:
         """Move a model across libraries
 
         Move the model to the desired path in a different library. This should also
@@ -226,7 +226,7 @@ class MaterialManagerExternal(ABC):
         pass
 
     @abstractmethod
-    def removeModel(self, model: Materials.Model) -> None:
+    def removeModel(self, uuid: str) -> None:
         """Remove the model from the library"""
         pass
 
@@ -261,17 +261,17 @@ class MaterialManagerExternal(ABC):
         pass
 
     @abstractmethod
-    def setMaterialPath(self, libraryName: str, path: str, material: Materials.Material) -> None:
+    def setMaterialPath(self, libraryName: str, path: str, uuid: str) -> None:
         """Change the material path within the library"""
         pass
 
     @abstractmethod
-    def renameMaterial(self, libraryName: str, name: str, material: Materials.Material) -> None:
+    def renameMaterial(self, libraryName: str, name: str, uuid: str) -> None:
         """Change the material name"""
         pass
 
     @abstractmethod
-    def moveMaterial(self, libraryName: str, path: str, material: Materials.Material) -> None:
+    def moveMaterial(self, libraryName: str, path: str, uuid: str) -> None:
         """Move a material across libraries
 
         Move the material to the desired path in a different library. This should also
@@ -280,6 +280,6 @@ class MaterialManagerExternal(ABC):
         pass
 
     @abstractmethod
-    def removeMaterial(self, material: Materials.Material) -> None:
+    def removeMaterial(self, uuid: str) -> None:
         """Remove the material from the library"""
         pass
