@@ -28,13 +28,25 @@
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
      </property>
-     <widget class="QTreeView" name="treeMaterials">
-      <property name="selectionBehavior">
-       <enum>QAbstractItemView::SelectItems</enum>
+     <widget class="QFrame" name="frameMaterialTree">
+      <property name="frameShape">
+       <enum>QFrame::NoFrame</enum>
       </property>
-      <property name="headerHidden">
-       <bool>true</bool>
+      <property name="frameShadow">
+       <enum>QFrame::Plain</enum>
       </property>
+      <layout class="QVBoxLayout" name="frameLayout">
+       <item>
+        <widget class="QTreeView" name="treeMaterials">
+         <property name="selectionBehavior">
+          <enum>QAbstractItemView::SelectItems</enum>
+         </property>
+         <property name="headerHidden">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </widget>
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
