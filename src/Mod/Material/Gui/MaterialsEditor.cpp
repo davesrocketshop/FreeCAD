@@ -1029,7 +1029,9 @@ void MaterialsEditor::createMaterialTree()
 
     tree->setHeaderHidden(true);
     auto toolbar = new QToolBar();
+#if defined(BUILD_MATERIAL_EXTERNAL)
     toolbar->addAction(&_actionNewRemoteLibrary);
+#endif
     toolbar->addAction(&_actionNewFolder);
     toolbar->addAction(&_actionNewMaterial);
     ui->frameLayout->insertWidget(0, toolbar);
