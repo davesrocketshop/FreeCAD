@@ -604,7 +604,7 @@ void MaterialsEditor::onNewMaterial(bool checked)
         if (res == QMessageBox::Cancel) {
             return;
         }
-        else if (res = QMessageBox::Discard) {
+        else if (res == QMessageBox::Discard) {
             discardIfNew();
         }
     }
@@ -629,7 +629,7 @@ void MaterialsEditor::onInheritNewMaterial(bool checked)
         if (res == QMessageBox::Cancel) {
             return;
         }
-        else if (res = QMessageBox::Discard) {
+        else if (res == QMessageBox::Discard) {
             discardIfNew();
         }
     }
@@ -651,7 +651,7 @@ void MaterialsEditor::onOk(bool checked)
         if (res == QMessageBox::Cancel) {
             return;
         }
-        else if (res = QMessageBox::Discard) {
+        else if (res == QMessageBox::Discard) {
             discardIfNew();
         }
     }
@@ -1028,7 +1028,7 @@ void MaterialsEditor::createMaterialTree()
     tree->setModel(model);
 
     tree->setHeaderHidden(true);
-    auto toolbar = new QToolBar();
+    auto toolbar = ui->treeToolBar;
 #if defined(BUILD_MATERIAL_EXTERNAL)
     toolbar->addAction(&_actionNewRemoteLibrary);
 #endif
@@ -1428,7 +1428,7 @@ void MaterialsEditor::onSelectMaterial(const QItemSelection& selected,
             if (res == QMessageBox::Cancel) {
                 return;
             }
-            else if (res = QMessageBox::Discard) {
+            else if (res == QMessageBox::Discard) {
                 discardIfNew();
             }
         }

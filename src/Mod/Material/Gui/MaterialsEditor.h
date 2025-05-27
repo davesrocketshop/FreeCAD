@@ -24,6 +24,7 @@
 
 #include <memory>
 
+#include <QAction>
 #include <QDialog>
 #include <QDir>
 #include <QIcon>

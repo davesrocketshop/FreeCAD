@@ -37,6 +37,9 @@
       </property>
       <layout class="QVBoxLayout" name="frameLayout">
        <item>
+        <widget class="QToolBar" name="treeToolBar" native="true"/>
+       </item>
+       <item>
         <widget class="QTreeView" name="treeMaterials">
          <property name="selectionBehavior">
           <enum>QAbstractItemView::SelectItems</enum>
