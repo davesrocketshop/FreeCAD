@@ -174,12 +174,12 @@ void MaterialsEditor::setupEditorCallbacks()
             &QPushButton::clicked,
             this,
             &MaterialsEditor::onAppearanceRemove);
-    connect(ui->buttonInheritNew,
-            &QPushButton::clicked,
-            this,
-            &MaterialsEditor::onInheritNewMaterial);
-    connect(ui->buttonNew, &QPushButton::clicked, this, &MaterialsEditor::onNewMaterial);
-    connect(ui->buttonFavorite, &QPushButton::clicked, this, &MaterialsEditor::onFavourite);
+    // connect(ui->buttonInheritNew,
+    //         &QPushButton::clicked,
+    //         this,
+    //         &MaterialsEditor::onInheritNewMaterial);
+    // connect(ui->buttonNew, &QPushButton::clicked, this, &MaterialsEditor::onNewMaterial);
+    // connect(ui->buttonFavorite, &QPushButton::clicked, this, &MaterialsEditor::onFavourite);
 }
 
 void MaterialsEditor::setupSelectionCallbacks()
@@ -217,13 +217,21 @@ void MaterialsEditor::setupContextMenus()
     connect(&_actionChangeIcon, &QAction::triggered, this, &MaterialsEditor::onMenuChangeIcon);
 
     // TODO: Add tooltips
-#if defined(BUILD_MATERIAL_EXTERNAL)
+    _actionNewLibrary.setText(tr("New library"));
+    _actionNewLocalLibraryIcon = QIcon(QStringLiteral(":/icons/Material_Library.svg"));
+    _actionNewLibrary.setIcon(_actionNewLocalLibraryIcon);
+    _actionNewLibrary.setToolTip(tr("New library"));
+
+    #if defined(BUILD_MATERIAL_EXTERNAL)
     _actionNewRemoteLibrary.setText(tr("New remote library"));
     _actionNewRemoteLibraryIcon = QIcon(QStringLiteral(":/icons/Material_Library.svg"));
     _actionNewRemoteLibrary.setIcon(_actionNewRemoteLibraryIcon);
     _actionNewRemoteLibrary.setToolTip(tr("New remote library"));
 #endif
     _actionNewLocalLibrary.setText(tr("New local library"));
+    // _actionNewLocalLibraryIcon = QIcon(QStringLiteral(":/icons/Material_Library.svg"));
+    _actionNewLocalLibrary.setIcon(_actionNewLocalLibraryIcon);
+    _actionNewLocalLibrary.setToolTip(tr("New Local library"));
 
     _actionNewFolder.setText(tr("New folder"));
     _actionNewFolderIcon = QIcon(QStringLiteral(":/icons/Group.svg"));
@@ -235,9 +243,33 @@ void MaterialsEditor::setupContextMenus()
     _actionNewMaterial.setIcon(_actionNewMaterialIcon);
     _actionNewMaterial.setToolTip(tr("New material"));
 
+    _actionInheritMaterial.setText(tr("New material from selected"));
+    _actionInheritMaterialIcon = QIcon(QStringLiteral(":/icons/Material_Inherit.svg"));
+    _actionInheritMaterial.setIcon(_actionInheritMaterialIcon);
+    _actionInheritMaterial.setToolTip(
+        tr("Create a new material based on the currently selected material"));
+
     _actionFavorite.setText(tr("Add to favorites"));
 
     _actionChangeIcon.setText(tr("Change icon"));
+
+    _actionCut.setText(tr("Cut"));
+    _actionCutIcon = QIcon(QStringLiteral(":/icons/edit-cut.svg"));
+    _actionCut.setIcon(_actionCutIcon);
+    _actionCut.setToolTip(tr("Cut"));
+
+    _actionCopy.setText(tr("Copy"));
+    _actionCopyIcon = QIcon(QStringLiteral(":/icons/edit-copy.svg"));
+    _actionCopy.setIcon(_actionCopyIcon);
+    _actionCopy.setToolTip(tr("Copy"));
+
+    _actionPaste.setText(tr("Paste"));
+    _actionPasteIcon = QIcon(QStringLiteral(":/icons/edit-paste.svg"));
+    _actionPaste.setIcon(_actionPasteIcon);
+    _actionPaste.setToolTip(tr("Paste"));
+
+    _actionRename.setText(tr("Rename"));
+    _actionDelete.setText(tr("Delete"));
 }
 
 void MaterialsEditor::getFavorites()
@@ -1028,11 +1060,14 @@ void MaterialsEditor::createMaterialTree()
 
     tree->setHeaderHidden(true);
     auto toolbar = ui->treeToolBar;
-#if defined(BUILD_MATERIAL_EXTERNAL)
-    toolbar->addAction(&_actionNewRemoteLibrary);
-#endif
+    toolbar->addAction(&_actionNewLibrary);
     toolbar->addAction(&_actionNewFolder);
     toolbar->addAction(&_actionNewMaterial);
+    toolbar->addAction(&_actionInheritMaterial);
+    toolbar->addSeparator();
+    toolbar->addAction(&_actionCut);
+    toolbar->addAction(&_actionCopy);
+    toolbar->addAction(&_actionPaste);
     ui->frameLayout->insertWidget(0, toolbar);
     fillMaterialTree();
 }
@@ -1557,6 +1592,7 @@ void MaterialsEditor::favoriteContextMenu(QMenu& contextMenu)
 #endif
     contextMenu.addAction(&_actionNewLocalLibrary);
     contextMenu.addSeparator();
+    contextMenu.addAction(&_actionInheritMaterial);
 
     auto item = getActionItem();
     if (item->text() != tr("Favorites")) {
@@ -1573,6 +1609,8 @@ void MaterialsEditor::recentContextMenu(QMenu& contextMenu)
     }
 #endif
     contextMenu.addAction(&_actionNewLocalLibrary);
+    contextMenu.addSeparator();
+    contextMenu.addAction(&_actionInheritMaterial);
     contextMenu.addSeparator();
     auto item = getActionItem();
     if (item->text() != tr("Recent")) {
@@ -1612,11 +1650,27 @@ void MaterialsEditor::folderContextMenu(QMenu& contextMenu)
     contextMenu.addSeparator();
     contextMenu.addAction(&_actionNewFolder);
     contextMenu.addAction(&_actionNewMaterial);
+    contextMenu.addSeparator();
+    contextMenu.addAction(&_actionCut);
+    contextMenu.addAction(&_actionCopy);
+    contextMenu.addAction(&_actionPaste);
+    contextMenu.addSeparator();
+    contextMenu.addAction(&_actionRename);
+    contextMenu.addAction(&_actionDelete);
 }
 
 void MaterialsEditor::materialContextMenu(QMenu& contextMenu)
 {
-    folderContextMenu(contextMenu);
+#if defined(BUILD_MATERIAL_EXTERNAL)
+    if (useExternal()) {
+        contextMenu.addAction(&_actionNewRemoteLibrary);
+    }
+#endif
+    contextMenu.addAction(&_actionNewLocalLibrary);
+    contextMenu.addSeparator();
+    contextMenu.addAction(&_actionNewFolder);
+    contextMenu.addAction(&_actionNewMaterial);
+    contextMenu.addAction(&_actionInheritMaterial);
     contextMenu.addSeparator();
     auto selected = _material->getUUID();
     if (isFavorite(selected)) {
@@ -1626,6 +1680,13 @@ void MaterialsEditor::materialContextMenu(QMenu& contextMenu)
         favoriteActionAdd();
     }
     contextMenu.addAction(&_actionFavorite);
+    contextMenu.addSeparator();
+    contextMenu.addAction(&_actionCut);
+    contextMenu.addAction(&_actionCopy);
+    contextMenu.addAction(&_actionPaste);
+    contextMenu.addSeparator();
+    contextMenu.addAction(&_actionRename);
+    contextMenu.addAction(&_actionDelete);
 }
 
 QString MaterialsEditor::getPath(const QStandardItem* item, const QString& path) const

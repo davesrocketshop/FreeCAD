@@ -37,7 +37,7 @@
       </property>
       <layout class="QVBoxLayout" name="frameLayout">
        <item>
-        <widget class="QToolBar" name="treeToolBar" native="true"/>
+        <widget class="QToolBar" name="treeToolBar"/>
        </item>
        <item>
         <widget class="QTreeView" name="treeMaterials">
@@ -47,6 +47,93 @@
          <property name="headerHidden">
           <bool>true</bool>
          </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLineEdit" name="editSearch">
+         <property name="text">
+          <string/>
+         </property>
+         <property name="placeholderText">
+          <string>Search...</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupAdvancedSearch">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="title">
+          <string>Advanced</string>
+         </property>
+         <property name="flat">
+          <bool>true</bool>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+         <property name="checked">
+          <bool>false</bool>
+         </property>
+         <layout class="QHBoxLayout" name="horizontalLayout_5">
+          <item>
+           <widget class="QCheckBox" name="checkSearchName">
+            <property name="toolTip">
+             <string>Search the material or folder name</string>
+            </property>
+            <property name="text">
+             <string>Name</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="checkSearchModel">
+            <property name="toolTip">
+             <string>Search for the model by name</string>
+            </property>
+            <property name="text">
+             <string>Model</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="checkSearchProperty">
+            <property name="toolTip">
+             <string>Search the model property name</string>
+            </property>
+            <property name="text">
+             <string>Property</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="checkSearchValue">
+            <property name="toolTip">
+             <string>Search all property values</string>
+            </property>
+            <property name="text">
+             <string>Value</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="checkSearchTag">
+            <property name="toolTip">
+             <string>Search material tags</string>
+            </property>
+            <property name="text">
+             <string>Tag</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </widget>
        </item>
       </layout>
@@ -182,47 +269,6 @@
           </item>
          </layout>
         </item>
-        <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_3">
-          <item>
-           <spacer name="horizontalSpacer_3">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item>
-           <widget class="QPushButton" name="buttonNew">
-            <property name="text">
-             <string>&amp;New</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="buttonInheritNew">
-            <property name="text">
-             <string>Inherit New</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="buttonFavorite">
-            <property name="toolTip">
-             <string>Add to favorites</string>
-            </property>
-            <property name="text">
-             <string notr="true">*</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
        </layout>
       </widget>
       <widget class="QWidget" name="tabProperties">
@@ -337,6 +383,32 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>treeMaterials</tabstop>
+  <tabstop>editSearch</tabstop>
+  <tabstop>groupAdvancedSearch</tabstop>
+  <tabstop>checkSearchName</tabstop>
+  <tabstop>checkSearchModel</tabstop>
+  <tabstop>checkSearchProperty</tabstop>
+  <tabstop>checkSearchValue</tabstop>
+  <tabstop>checkSearchTag</tabstop>
+  <tabstop>tabWidget</tabstop>
+  <tabstop>editName</tabstop>
+  <tabstop>editAuthor</tabstop>
+  <tabstop>editLicense</tabstop>
+  <tabstop>editParent</tabstop>
+  <tabstop>editSourceURL</tabstop>
+  <tabstop>buttonURL</tabstop>
+  <tabstop>editSourceReference</tabstop>
+  <tabstop>editTags</tabstop>
+  <tabstop>editDescription</tabstop>
+  <tabstop>buttonPhysicalAdd</tabstop>
+  <tabstop>buttonPhysicalRemove</tabstop>
+  <tabstop>treePhysicalProperties</tabstop>
+  <tabstop>buttonAppearanceAdd</tabstop>
+  <tabstop>buttonAppearanceRemove</tabstop>
+  <tabstop>treeAppearance</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

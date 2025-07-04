@@ -166,17 +166,29 @@ private:
 
     // Actions
     QModelIndex _actionIndex;
+    QAction _actionNewLibrary;
 #if defined(BUILD_MATERIAL_EXTERNAL)
     QAction _actionNewRemoteLibrary;
     QIcon _actionNewRemoteLibraryIcon;
 #endif
     QAction _actionNewLocalLibrary;
+    QIcon _actionNewLocalLibraryIcon;
     QAction _actionNewFolder;
     QIcon _actionNewFolderIcon;
     QAction _actionNewMaterial;
     QIcon _actionNewMaterialIcon;
+    QAction _actionInheritMaterial;
+    QIcon _actionInheritMaterialIcon;
     QAction _actionFavorite;
     QAction _actionChangeIcon;
+    QAction _actionCut;
+    QIcon _actionCutIcon;
+    QAction _actionCopy;
+    QIcon _actionCopyIcon;
+    QAction _actionPaste;
+    QIcon _actionPasteIcon;
+    QAction _actionRename;
+    QAction _actionDelete;
 
     void setup();
     void setupData();
