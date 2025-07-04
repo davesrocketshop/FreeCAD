@@ -1783,7 +1783,6 @@ App::Material Material::getMaterialAppearance() const
 
 void Material::validate(Material& other) const
 {
-
     try {
         _library->validate(*other._library);
     }

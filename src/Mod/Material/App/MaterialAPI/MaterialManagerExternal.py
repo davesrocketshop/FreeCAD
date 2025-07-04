@@ -163,6 +163,32 @@ class MaterialManagerExternal(ABC):
     def deleteRecursive(self, libraryName: str, path: str) -> None:
         """Delete the folder and all of its contents"""
 
+    @abstractmethod
+    def libraryFolders(self, libraryName: str) -> list[str]:
+        """Returns a list of folders managed by this library
+
+        This will return a list of all folders in the library including empty folders"""
+        pass
+
+    #
+    # Folder methods
+    #
+
+    @abstractmethod
+    def createFolder(self, libraryName: str, path: str) -> None:
+        """Create a new folder in the given library"""
+        pass
+
+    @abstractmethod
+    def renameFolder(self, libraryName: str, oldPath: str, newPath: str) -> None:
+        """Rename the folder"""
+        pass
+
+    @abstractmethod
+    def deleteRecursive(self, libraryName: str, path: str) -> None:
+        """Delete the folder and all of its contents"""
+        pass
+
     #
     # Model methods
     #
