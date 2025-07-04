@@ -27,9 +27,12 @@
 
 #include <App/Application.h>
 #include <Base/Quantity.h>
+#include <Base/QuantityPy.h>
+#include <CXX/Objects.hxx>
 #include <Gui/MetaTypes.h>
 
 #include "Exceptions.h"
+#include "Interpolator.h"
 #include "MaterialValue.h"
 
 
@@ -280,8 +283,7 @@ QString MaterialValue::getYAMLStringList() const
 {
     QString yaml;
     for (auto& it : getList()) {
-        yaml += QStringLiteral("\n      - \"") + escapeString(it.toString())
-            + QStringLiteral("\"");
+        yaml += QStringLiteral("\n      - \"") + escapeString(it.toString()) + QStringLiteral("\"");
     }
     return yaml;
 }
@@ -304,8 +306,8 @@ QString MaterialValue::getYAMLStringMultiLine() const
 {
     QString yaml;
     yaml = QStringLiteral(" |2");
-    auto list =
-        getValue().toString().split(QRegularExpression(QStringLiteral("[\r\n]")), Qt::SkipEmptyParts);
+    auto list = getValue().toString().split(QRegularExpression(QStringLiteral("[\r\n]")),
+                                            Qt::SkipEmptyParts);
     for (auto& it : list) {
         yaml += QStringLiteral("\n      ") + it;
     }
@@ -358,6 +360,52 @@ const Base::QuantityFormat MaterialValue::getQuantityFormat()
     return Base::QuantityFormat(Base::QuantityFormat::NumberFormat::Default, PRECISION);
 }
 
+QVariant MaterialValue::getValue(PyObject* valueObject)
+{
+    QVariant value = 0.0;
+    if (PyObject_TypeCheck(valueObject, &Base::QuantityPy::Type)) {
+        Base::QuantityPy* qp = static_cast<Base::QuantityPy*>(valueObject);
+        Base::Quantity* q = qp->getQuantityPtr();
+        value = QVariant::fromValue(*q);
+    }
+    else if (PyFloat_Check(valueObject)) {
+        value = PyFloat_AsDouble(valueObject);
+    }
+    else if (PyLong_Check(valueObject)) {
+        value = PyLong_AsDouble(valueObject);
+    }
+    else if (PyUnicode_Check(valueObject)) {
+        const char* utf8value = PyUnicode_AsUTF8(valueObject);
+        if (!utf8value) {
+            FC_THROWM(Base::ValueError, "Invalid unicode string");
+        }
+        Base::Quantity q = Base::Quantity::parse(utf8value);
+        value = QVariant::fromValue(q);
+    }
+    else {
+        throw Base::TypeError();
+    }
+
+    return value;
+}
+
+Base::Quantity MaterialValue::getQuantityValue(PyObject* valueObject)
+{
+    if (PyObject_TypeCheck(valueObject, &Base::QuantityPy::Type)) {
+        Base::QuantityPy* qp = static_cast<Base::QuantityPy*>(valueObject);
+        return *(qp->getQuantityPtr());
+    }
+    else if (PyUnicode_Check(valueObject)) {
+        const char* utf8value = PyUnicode_AsUTF8(valueObject);
+        if (!utf8value) {
+            FC_THROWM(Base::ValueError, "Invalid unicode string");
+        }
+        return Base::Quantity::parse(utf8value);
+    }
+
+    throw Base::TypeError();
+}
+
 //===
 
 TYPESYSTEM_SOURCE(Materials::Array2D, Materials::MaterialValue)
@@ -389,6 +437,15 @@ Array2D& Array2D::operator=(const Array2D& other)
     deepCopy(other);
 
     return *this;
+}
+
+QList<QVariant> Array2D::interpolate(const QVariant& samplePoint, bool extrapolate)
+{
+    if (!_interpolator) {
+        _interpolator = std::make_shared<InterpolatorSpline>(*this);
+    }
+
+    return _interpolator->interpolate(samplePoint, extrapolate);
 }
 
 void Array2D::deepCopy(const Array2D& other)
@@ -496,6 +553,9 @@ void Array2D::deleteRow(int row)
 
 void Array2D::setRows(int rowCount)
 {
+    while (rows() > rowCount) {
+        deleteRow(rowCount);
+    }
     while (rows() < rowCount) {
         auto row = std::make_shared<QList<QVariant>>();
         for (int i = 0; i < columns(); i++) {
@@ -796,14 +856,16 @@ void Array3D::setDepth(int depthCount)
 {
     Base::Quantity dummy;
     dummy.setInvalid();
+
+    while (depth() > depthCount) {
+        deleteDepth(depthCount);
+    }
     while (depth() < depthCount) {
         addDepth(dummy);
     }
 }
 
-void Array3D::insertRow(int depth,
-                                int row,
-                                const std::shared_ptr<QList<Base::Quantity>>& rowData)
+void Array3D::insertRow(int depth, int row, const std::shared_ptr<QList<Base::Quantity>>& rowData)
 {
     try {
         auto table = getTable(depth);
@@ -856,9 +918,14 @@ int Array3D::rows(int depth) const
 
 void Array3D::setRows(int depth, int rowCount)
 {
+    validateDepth(depth);
+
     Base::Quantity dummy;
     dummy.setInvalid();
 
+    while (rows(depth) > rowCount) {
+        deleteRow(depth, rowCount);
+    }
     while (rows(depth) < rowCount) {
         auto row = std::make_shared<QList<Base::Quantity>>();
         for (int i = 0; i < columns(); i++) {
@@ -1014,4 +1081,14 @@ QString Array3D::getYAMLString() const
     }
     yaml += QStringLiteral("]");
     return yaml;
+}
+
+QList<QVariant>
+Array3D::interpolate(const QVariant& samplePoint1, const QVariant& samplePoint2, bool extrapolate)
+{
+    if (!_interpolator) {
+        _interpolator = std::make_shared<InterpolatorSpline3D>(*this);
+    }
+
+    return _interpolator->interpolate(samplePoint1, samplePoint2, extrapolate);
 }
