@@ -52,6 +52,7 @@ set(MatGui_UIC_SRCS
     DlgSettingsDefaultMaterial.ui
     DlgSettingsMaterial.ui
     ImageEdit.ui
+    LibraryType.ui
     ListEdit.ui
     MaterialSave.ui
     MaterialsEditor.ui
@@ -106,6 +107,9 @@ SET(MatGui_SRCS
     ImageEdit.cpp
     ImageEdit.h
     ImageEdit.ui
+    LibraryType.cpp
+    LibraryType.h
+    LibraryType.ui
     ListDelegate.cpp
     ListDelegate.h
     ListEdit.cpp

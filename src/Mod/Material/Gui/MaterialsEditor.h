@@ -105,6 +105,7 @@ public:
     void onInheritNewMaterial(bool checked);
     void onNewMaterial(bool checked);
     void onFavourite(bool checked);
+    void onAdvancedSearch(bool checked);
     void onURL(bool checked);
     void onPhysicalAdd(bool checked);
     void onPhysicalRemove(bool checked);
@@ -115,6 +116,9 @@ public:
     void onSave(bool checked);
     void accept() override;
     void reject() override;
+
+    void setAdvancedSearchState(bool checked);
+    void setAdvancedSearchState();
 
     Materials::MaterialManager& getMaterialManager()
     {
@@ -180,6 +184,7 @@ private:
     QAction _actionInheritMaterial;
     QIcon _actionInheritMaterialIcon;
     QAction _actionFavorite;
+    QIcon _actionFavoriteIcon;
     QAction _actionChangeIcon;
     QAction _actionCut;
     QIcon _actionCutIcon;
@@ -192,7 +197,7 @@ private:
 
     void setup();
     void setupData();
-    void setupDialogSize();
+    void restoreState();
     void setupButtonIcons();
     void setupButtonConnections();
     void setupEditorCallbacks();
@@ -200,7 +205,11 @@ private:
     void setupContextMenus();
     void setupModelCallbacks();
 
-    void saveWindow();
+    void setLibraryPropertyState();
+    void setFolderPropertyState();
+    void setMaterialPropertyState();
+
+    void saveState();
     void saveMaterialTreeChildren(const Base::Reference<ParameterGrp>& param,
                                   QTreeView* tree,
                                   QStandardItemModel* model,

@@ -50,6 +50,7 @@
 #include <Mod/Material/App/ModelManager.h>
 #include <Mod/Material/App/ModelUuids.h>
 
+#include "LibraryType.h"
 #include "MaterialDelegate.h"
 #include "MaterialSave.h"
 #include "MaterialsEditor.h"
@@ -93,8 +94,8 @@ void MaterialsEditor::setup()
 
     setupData();
 
-    // Reset to previous size
-    setupDialogSize();
+    // Reset to previous state
+    restoreState();
     setupButtonIcons();
     setupButtonConnections();
     setupEditorCallbacks();
@@ -115,7 +116,7 @@ void MaterialsEditor::setupData()
     setMaterialDefaults();
 }
 
-void MaterialsEditor::setupDialogSize()
+void MaterialsEditor::restoreState()
 {
     // Reset to previous size
     auto param = App::GetApplication().GetParameterGroupByPath(
@@ -124,6 +125,39 @@ void MaterialsEditor::setupDialogSize()
     auto height = param->GetInt("EditorHeight", 542);
 
     resize(width, height);
+
+    auto advanced = param->GetBool("AdvancedSearch", false);
+    auto name = param->GetBool("AdvancedSearchName", true);
+    auto model = param->GetBool("AdvancedSearchModel", false);
+    auto property = param->GetBool("AdvancedSearchProperty", false);
+    auto value = param->GetBool("AdvancedSearchValue", false);
+    auto tag = param->GetBool("AdvancedSearchTag", false);
+
+    ui->checkAdvancedSearch->setChecked(advanced);
+    ui->checkSearchName->setChecked(name);
+    ui->checkSearchModel->setChecked(model);
+    ui->checkSearchProperty->setChecked(property);
+    ui->checkSearchValue->setChecked(value);
+    ui->checkSearchTag->setChecked(tag);
+
+    setAdvancedSearchState();
+}
+
+void MaterialsEditor::saveState()
+{
+    auto param = App::GetApplication().GetParameterGroupByPath(
+        "User parameter:BaseApp/Preferences/Mod/Material/Editor");
+    param->SetInt("EditorWidth", width());
+    param->SetInt("EditorHeight", height());
+
+    param->SetBool("AdvancedSearch", ui->checkAdvancedSearch->isChecked());
+    param->SetBool("AdvancedSearchName", ui->checkSearchName->isChecked());
+    param->SetBool("AdvancedSearchModel", ui->checkSearchModel->isChecked());
+    param->SetBool("AdvancedSearchProperty", ui->checkSearchProperty->isChecked());
+    param->SetBool("AdvancedSearchValue", ui->checkSearchValue->isChecked());
+    param->SetBool("AdvancedSearchTag", ui->checkSearchTag->isChecked());
+
+    saveMaterialTree(param);
 }
 
 void MaterialsEditor::setupButtonIcons()
@@ -180,6 +214,10 @@ void MaterialsEditor::setupEditorCallbacks()
     //         &MaterialsEditor::onInheritNewMaterial);
     // connect(ui->buttonNew, &QPushButton::clicked, this, &MaterialsEditor::onNewMaterial);
     // connect(ui->buttonFavorite, &QPushButton::clicked, this, &MaterialsEditor::onFavourite);
+    connect(ui->checkAdvancedSearch,
+            &QCheckBox::toggled,
+            this,
+            &MaterialsEditor::onAdvancedSearch);
 }
 
 void MaterialsEditor::setupSelectionCallbacks()
@@ -207,6 +245,7 @@ void MaterialsEditor::setupContextMenus()
             this,
             &MaterialsEditor::onContextMenu);
 
+    connect(&_actionNewLibrary, &QAction::triggered, this, &MaterialsEditor::onMenuNewLibrary);
 #if defined(BUILD_MATERIAL_EXTERNAL)
     connect(&_actionNewRemoteLibrary, &QAction::triggered, this, &MaterialsEditor::onMenuNewLibrary);
 #endif
@@ -250,6 +289,9 @@ void MaterialsEditor::setupContextMenus()
         tr("Create a new material based on the currently selected material"));
 
     _actionFavorite.setText(tr("Add to favorites"));
+    _actionFavoriteIcon = QIcon(QStringLiteral(":/icons/Material_Favorite.svg"));
+    _actionFavorite.setIcon(_actionFavoriteIcon);
+    _actionFavorite.setToolTip(tr("Add or remove material from favorites list"));
 
     _actionChangeIcon.setText(tr("Change icon"));
 
@@ -600,6 +642,45 @@ void MaterialsEditor::onFavourite(bool checked)
     }
 }
 
+void MaterialsEditor::onAdvancedSearch(bool checked)
+{
+    setAdvancedSearchState(checked);
+}
+
+void MaterialsEditor::setAdvancedSearchState(bool checked)
+{
+    ui->groupAdvancedSearch->setVisible(checked);
+}
+
+void MaterialsEditor::setAdvancedSearchState()
+{
+    setAdvancedSearchState(ui->checkAdvancedSearch->isChecked());
+}
+
+void MaterialsEditor::setLibraryPropertyState()
+{
+    ui->tabGeneral->setVisible(false);
+    ui->tabPhysical->setVisible(false);
+    ui->tabAppearance->setVisible(false);
+    ui->tabProperties->setVisible(true);
+}
+
+void MaterialsEditor::setFolderPropertyState()
+{
+    ui->tabGeneral->setVisible(false);
+    ui->tabPhysical->setVisible(false);
+    ui->tabAppearance->setVisible(false);
+    ui->tabProperties->setVisible(true);
+}
+
+void MaterialsEditor::setMaterialPropertyState()
+{
+    ui->tabGeneral->setVisible(true);
+    ui->tabPhysical->setVisible(true);
+    ui->tabAppearance->setVisible(true);
+    ui->tabProperties->setVisible(false);
+}
+
 void MaterialsEditor::setMaterialDefaults()
 {
     _material->setName(tr("Unnamed"));
@@ -725,7 +806,7 @@ void MaterialsEditor::accept()
         return;
     }
     addRecent(_material->getUUID());
-    saveWindow();
+    saveState();
     QDialog::accept();
 }
 
@@ -743,18 +824,8 @@ void MaterialsEditor::oldFormatError()
 
 void MaterialsEditor::reject()
 {
-    saveWindow();
+    saveState();
     QDialog::reject();
-}
-
-void MaterialsEditor::saveWindow()
-{
-    auto param = App::GetApplication().GetParameterGroupByPath(
-        "User parameter:BaseApp/Preferences/Mod/Material/Editor");
-    param->SetInt("EditorWidth", width());
-    param->SetInt("EditorHeight", height());
-
-    saveMaterialTree(param);
 }
 
 void MaterialsEditor::saveMaterialTreeChildren(const Base::Reference<ParameterGrp>& param,
@@ -1068,6 +1139,8 @@ void MaterialsEditor::createMaterialTree()
     toolbar->addAction(&_actionCut);
     toolbar->addAction(&_actionCopy);
     toolbar->addAction(&_actionPaste);
+    toolbar->addSeparator();
+    toolbar->addAction(&_actionFavorite);
     ui->frameLayout->insertWidget(0, toolbar);
     fillMaterialTree();
 }
@@ -1450,6 +1523,17 @@ void MaterialsEditor::onSelectMaterial(const QItemSelection& selected,
         QStandardItem* item = model->itemFromIndex(*it);
 
         if (item) {
+            // auto fun = getActionFunction(item);
+            // if (fun == TreeFunctionLibrary) {
+            //     setLibraryPropertyState();
+            //     return;
+            // }
+            // else if (fun == TreeFunctionLibrary) {
+            //     setFolderPropertyState();
+            //     return;
+            // }
+
+            // setMaterialPropertyState();
             uuid = item->data(TreeDataRole).toString();
             break;
         }
@@ -1739,6 +1823,12 @@ void MaterialsEditor::onMenuNewLibrary(bool checked)
     Q_UNUSED(checked)
 
     Base::Console().log("onMenuNewLibrary()\n");
+
+    LibraryType dialog(this);
+    dialog.setModal(true);
+    if (dialog.exec() != QDialog::Accepted) {
+        return;
+    }
 
     QString name(QStringLiteral("New Library"));
     try {
