@@ -34,6 +34,7 @@
 #include <QStyledItemDelegate>
 #include <QSvgWidget>
 #include <QTreeView>
+#include <QWidget>
 
 #include <Base/Handle.h>
 #include <Base/Parameter.h>
@@ -49,6 +50,8 @@ namespace MatGui
 {
 
 class Ui_MaterialsEditor;
+class MaterialPropertiesWidget;
+class PropertiesWidget;
 
 const int TreeDataRole = Qt::UserRole;
 const int TreeFunctionRole = Qt::UserRole + 1;
@@ -101,7 +104,6 @@ public:
     void onSourceReference(const QString& text);
     void onDescription();
 
-    void propertyChange(const QString& property, const QVariant& value);
     void onInheritNewMaterial(bool checked);
     void onNewMaterial(bool checked);
     void onFavourite(bool checked);
@@ -135,17 +137,9 @@ public:
 
     static QString libraryPath(const std::shared_ptr<Materials::Material>& material);
 
-    void updateMaterialAppearance();
-    void updateMaterialProperties();
-    void updateMaterialGeneral();
-    void updateMaterial();
     void onSelectMaterial(const QItemSelection& selected, const QItemSelection& deselected);
     void onContextMenu(const QPoint& pos);
 
-    bool isMaterialSelected() const
-    {
-        return _materialSelected;
-    }
     std::shared_ptr<Materials::Material> getMaterial()
     {
         return _material;
@@ -158,8 +152,8 @@ protected:
 private:
     std::unique_ptr<Ui_MaterialsEditor> ui;
     std::shared_ptr<Materials::Material> _material;
-    AppearancePreview* _rendered;
-    bool _materialSelected;
+    MaterialPropertiesWidget* _materialPropertiesWidget;
+    PropertiesWidget* _propertiesWidget;
     std::list<QString> _favorites;
     std::list<QString> _recents;
     int _recentMax;
@@ -196,6 +190,7 @@ private:
     QAction _actionDelete;
 
     void setup();
+    void setupStackedWidgets();
     void setupData();
     void restoreState();
     void setupButtonIcons();
@@ -254,9 +249,6 @@ private:
     void onInheritNew(bool checked);
 
     void setMaterialDefaults();
-    bool updateTexturePreview() const;
-    bool updateMaterialPreview() const;
-    void updatePreview() const;
     static QString getColorHash(const QString& colorString, int colorRange = 255);
 
     static void addExpanded(QTreeView* tree, QStandardItem* parent, QStandardItem* child);
@@ -271,9 +263,6 @@ private:
                             const Base::Reference<ParameterGrp>& param);
     void addRecents(QStandardItem* parent);
     void addFavorites(QStandardItem* parent);
-    void createPreviews();
-    void createAppearanceTree();
-    void createPhysicalTree();
     void createMaterialTree();
     void fillMaterialTree();
     void refreshMaterialTree();

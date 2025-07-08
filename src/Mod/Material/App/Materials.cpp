@@ -1757,7 +1757,6 @@ App::Material Material::getMaterialAppearance() const
     if (hasAppearanceProperty(QStringLiteral("TextureImage"))) {
         auto property = getAppearanceProperty(QStringLiteral("TextureImage"));
         if (!property->isNull()) {
-            Base::Console().log("Has 'TextureImage'\n");
             material.image = property->getString().toStdString();
         }
 
@@ -1766,7 +1765,6 @@ App::Material Material::getMaterialAppearance() const
     else if (hasAppearanceProperty(QStringLiteral("TexturePath"))) {
         auto property = getAppearanceProperty(QStringLiteral("TexturePath"));
         if (!property->isNull()) {
-            Base::Console().log("Has 'TexturePath'\n");
             material.imagePath = property->getString().toStdString();
         }
 

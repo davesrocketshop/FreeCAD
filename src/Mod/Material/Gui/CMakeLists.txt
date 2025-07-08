@@ -58,6 +58,8 @@ set(MatGui_UIC_SRCS
     MaterialsEditor.ui
     ModelSelect.ui
     TextEdit.ui
+    Widgets/MaterialPropertiesWidget.ui
+    Widgets/PropertiesWidget.ui
 )
 if(BUILD_MATERIAL_EXTERNAL)
     list(APPEND MatGui_UIC_SRCS
@@ -139,6 +141,12 @@ SET(MatGui_SRCS
     Workbench.h
     WorkbenchManipulator.cpp
     WorkbenchManipulator.h
+    Widgets/MaterialPropertiesWidget.cpp
+    Widgets/MaterialPropertiesWidget.h
+    Widgets/MaterialPropertiesWidget.ui
+    Widgets/PropertiesWidget.cpp
+    Widgets/PropertiesWidget.h
+    Widgets/PropertiesWidget.ui
 )
 if(BUILD_MATERIAL_EXTERNAL)
     list(APPEND MatGui_SRCS
