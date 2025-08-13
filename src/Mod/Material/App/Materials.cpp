@@ -132,7 +132,8 @@ QString MaterialProperty::getString() const
         if (value.isNull()) {
             return {};
         }
-        return QString(QStringLiteral("%L1")).arg(value.toFloat(), 0, 'g', MaterialValue::PRECISION);
+        return QStringLiteral("%L1")
+            .arg(value.toFloat(), 0, 'g', MaterialValue::PRECISION);
     }
     return getValue().toString();
 }
@@ -187,9 +188,60 @@ QString MaterialProperty::getDictionaryString() const
         if (value.isNull()) {
             return {};
         }
-        return QString(QStringLiteral("%1")).arg(value.toFloat(), 0, 'g', MaterialValue::PRECISION);
+        return QStringLiteral("%1").arg(value.toFloat(), 0, 'g', MaterialValue::PRECISION);
     }
     return getValue().toString();
+}
+
+/*
+ * Interpolation methods for working with non-linear properties
+ */
+QVariant MaterialProperty::interpolate2D(const QVariant& samplePoint, bool extrapolate)
+{
+    if (getType() == MaterialValue::Array2D) {
+        auto value = std::static_pointer_cast<Materials::Array2D>(getMaterialValue());
+        auto list = value->interpolate(samplePoint, extrapolate);
+        if (list.size() > 0) {
+            return list[0];
+        }
+    }
+
+    throw InterpolationError();
+}
+
+QList<QVariant> MaterialProperty::interpolate2DMulti(const QVariant& samplePoint, bool extrapolate)
+{
+    if (getType() == MaterialValue::Array2D) {
+        auto value = std::static_pointer_cast<Materials::Array2D>(getMaterialValue());
+        return value->interpolate(samplePoint, extrapolate);
+    }
+
+    throw InterpolationError();
+}
+
+QVariant MaterialProperty::interpolate3D(const QVariant& samplePoint1,
+                                         const QVariant& samplePoint2)
+{
+    if (getType() == MaterialValue::Array3D) {
+        auto value = std::static_pointer_cast<Materials::Array3D>(getMaterialValue());
+        auto list = value->interpolate(samplePoint1, samplePoint2);
+        if (list.size() > 0) {
+            return list[0];
+        }
+    }
+
+    throw InterpolationError();
+}
+
+QList<QVariant> MaterialProperty::interpolate3DMulti(const QVariant& samplePoint1,
+                                                     const QVariant& samplePoint2)
+{
+    if (getType() == MaterialValue::Array3D) {
+        auto value = std::static_pointer_cast<Materials::Array3D>(getMaterialValue());
+        return value->interpolate(samplePoint1, samplePoint2);
+    }
+
+    throw InterpolationError();
 }
 
 void MaterialProperty::setPropertyType(const QString& type)
@@ -1043,6 +1095,54 @@ void Material::setLegacyValue(const QString& name, const QString& value)
     _legacy[name] = value;
 }
 
+/*
+ * Interpolation methods for working with non-linear properties
+ */
+QVariant Material::interpolate2D(const QString& name, const QVariant& samplePoint, bool extrapolate)
+{
+    auto property = getPhysicalProperty(name);
+    if (property) {
+        return property->interpolate2D(samplePoint, extrapolate);
+    }
+
+    throw PropertyNotFound();
+}
+
+QList<QVariant>
+Material::interpolate2DMulti(const QString& name, const QVariant& samplePoint, bool extrapolate)
+{
+    auto property = getPhysicalProperty(name);
+    if (property) {
+        return property->interpolate2DMulti(samplePoint, extrapolate);
+    }
+
+    throw PropertyNotFound();
+}
+
+QVariant Material::interpolate3D(const QString& name,
+                                 const QVariant& samplePoint1,
+                                 const QVariant& samplePoint2)
+{
+    auto property = getPhysicalProperty(name);
+    if (property) {
+        return property->interpolate3D(samplePoint1, samplePoint2);
+    }
+
+    throw PropertyNotFound();
+}
+
+QList<QVariant> Material::interpolate3DMulti(const QString& name,
+                                             const QVariant& samplePoint1,
+                                             const QVariant& samplePoint2)
+{
+    auto property = getPhysicalProperty(name);
+    if (property) {
+        return property->interpolate3DMulti(samplePoint1, samplePoint2);
+    }
+
+    throw PropertyNotFound();
+}
+
 std::shared_ptr<MaterialProperty> Material::getPhysicalProperty(const QString& name)
 {
     try {
@@ -1138,8 +1238,7 @@ Material::getValueString(const std::map<QString, std::shared_ptr<MaterialPropert
             if (value.isNull()) {
                 return {};
             }
-            return QString(QStringLiteral("%L1"))
-                .arg(value.toFloat(), 0, 'g', MaterialValue::PRECISION);
+            return QStringLiteral("%L1").arg(value.toFloat(), 0, 'g', MaterialValue::PRECISION);
         }
         return property->getValue().toString();
     }

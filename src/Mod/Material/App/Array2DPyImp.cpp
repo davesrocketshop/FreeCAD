@@ -70,9 +70,10 @@ Py::List Array2DPy::getArray() const
     for (auto& row : array) {
         Py::List rowList;
         for (auto& column : *row) {
-            auto quantity =
-                new Base::QuantityPy(new Base::Quantity(column.value<Base::Quantity>()));
-            rowList.append(Py::asObject(quantity));
+            auto quantity = new Base::Quantity(column.value<Base::Quantity>());
+            quantity->setFormat(MaterialValue::getQuantityFormat());
+            auto quantityPy = new Base::QuantityPy(quantity);
+            rowList.append(Py::asObject(quantityPy));
         }
 
         list.append(rowList);
@@ -118,9 +119,10 @@ PyObject* Array2DPy::getRow(PyObject* args) const
 
         auto arrayRow = getArray2DPtr()->getRow(row);
         for (auto& column : *arrayRow) {
-            auto quantity =
-                new Base::QuantityPy(new Base::Quantity(column.value<Base::Quantity>()));
-            list.append(Py::asObject(quantity));
+            auto quantity = new Base::Quantity(column.value<Base::Quantity>());
+            quantity->setFormat(MaterialValue::getQuantityFormat());
+            auto quantityPy = new Base::QuantityPy(quantity);
+            list.append(Py::asObject(quantityPy));
         }
 
         return Py::new_reference_to(list);
@@ -142,7 +144,9 @@ PyObject* Array2DPy::getValue(PyObject* args) const
 
     try {
         auto value = getArray2DPtr()->getValue(row, column);
-        return new Base::QuantityPy(new Base::Quantity(value.value<Base::Quantity>()));
+        auto quantity = new Base::Quantity(value.value<Base::Quantity>());
+        quantity->setFormat(MaterialValue::getQuantityFormat());
+        return new Base::QuantityPy(quantity);
     }
     catch (const InvalidIndex&) {
     }

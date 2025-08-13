@@ -345,6 +345,36 @@ public:
     ~ConnectionError() noexcept override = default;
 };
 
+class InterpolationError: public Base::Exception
+{
+public:
+    InterpolationError()
+        : Base::Exception("Unable to interpolate")
+    {}
+    explicit InterpolationError(char* msg)
+        : Base::Exception(msg)
+    {}
+    explicit InterpolationError(const QString& msg)
+        : Base::Exception(msg.toStdString().c_str())
+    {}
+    ~InterpolationError() noexcept override = default;
+};
+
+class InterpolationOutOfRangeError: public Base::Exception
+{
+public:
+    InterpolationOutOfRangeError()
+        : Base::Exception("Interpolation point is out of range")
+    {}
+    explicit InterpolationOutOfRangeError(char* msg)
+        : Base::Exception(msg)
+    {}
+    explicit InterpolationOutOfRangeError(const QString& msg)
+        : Base::Exception(msg.toStdString().c_str())
+    {}
+    ~InterpolationOutOfRangeError() noexcept override = default;
+};
+
 }  // namespace Materials
 
 #endif  // MATERIAL_EXCEPTIONS_H

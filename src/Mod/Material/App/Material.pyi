@@ -1,6 +1,6 @@
 from Base.Metadata import export, no_args, sequence_protocol
 from Base.BaseClass import BaseClass
-from typing import Final, Dict
+from typing import Any, Final, Dict
 
 
 @export(
@@ -143,6 +143,22 @@ class Material(BaseClass):
 
     def setValue(self) -> None:
         """Set the value associated with the property"""
+        ...
+
+    def interpolate2D(self, name: str, sample: Any, **kwargs) -> Any:
+        """Get an interpolated value from a 2D array at the specified sample point"""
+        ...
+
+    def interpolate2DMulti(self, name: str, sample: Any, **kwargs) -> Any:
+        """Get interpolated values from a multi-column 2D array at the specified sample point"""
+        ...
+
+    def interpolate3D(self, name: str, depth: Any, sample: Any) -> Any:
+        """Get an interpolated value from a 3D array at the specified depth and sample point"""
+        ...
+
+    def interpolate3DMulti(self, name: str, depth: Any, sample: Any) -> Any:
+        """Get interpolated values from a multi-column 3D array at the specified depth and sample point"""
         ...
 
     @no_args

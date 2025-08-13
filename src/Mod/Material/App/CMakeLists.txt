@@ -37,6 +37,7 @@ set(Materials_LIBS
 
 include_directories(
     SYSTEM
+    ${EIGEN3_INCLUDE_DIR}
     ${QtConcurrent_INCLUDE_DIRS}
 )
 list(APPEND Materials_LIBS
@@ -109,6 +110,8 @@ SET(Materials_SRCS
     ${Python_SRCS}
     AppMaterial.cpp
     FolderTree.h
+    Interpolator.cpp
+    Interpolator.h
     Library.cpp
     Library.h
     MaterialConfigLoader.cpp

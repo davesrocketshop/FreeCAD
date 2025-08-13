@@ -26,6 +26,7 @@ import unittest
 import FreeCAD
 import Materials
 
+from materialtests.TestInterpolation import InterpolationTestCases
 from materialtests.TestModels import ModelTestCases
 from materialtests.TestMaterials import MaterialTestCases
 from materialtests.TestMaterialCreation import MaterialCreationTestCases

@@ -35,6 +35,8 @@
 namespace Materials
 {
 
+class Interpolator;
+
 class MaterialsExport MaterialValue: public Base::BaseClass
 {
     TYPESYSTEM_HEADER();
@@ -112,6 +114,9 @@ public:
 
     // The precision is based on the value from the original materials editor
     static const int PRECISION = 6;
+    
+    static QVariant getValue(PyObject* valueObject);
+    static Base::Quantity getQuantityValue(PyObject* valueObject);
 
     void validate(const MaterialValue& other) const;
 
@@ -154,6 +159,7 @@ public:
     {
         return _rows;
     }
+    QList<QVariant> interpolate(const QVariant& samplePoint, bool extrapolate);
 
     void validateRow(int row) const;
     void validateColumn(int column) const;
@@ -192,6 +198,8 @@ protected:
 private:
     static void dumpRow(const std::shared_ptr<QList<QVariant>>& row);
     void dump() const;
+
+    std::shared_ptr<Interpolator> _interpolator;
 };
 
 class MaterialsExport Array3D: public MaterialValue
@@ -214,6 +222,8 @@ public:
     {
         return _rowMap;
     }
+    QList<QVariant>
+    interpolate(const QVariant& samplePoint1, const QVariant& samplePoint2, bool extrapolate = false);
 
     void validateDepth(int level) const;
     void validateColumn(int column) const;
@@ -279,6 +289,9 @@ protected:
         _rowMap;
     int _currentDepth;
     int _columns;
+
+    std::shared_ptr<Interpolator> _interpolator;
+    QVariant _interpolationPoint;
 };
 
 }  // namespace Materials

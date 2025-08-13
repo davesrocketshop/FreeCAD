@@ -33,9 +33,9 @@ class Array2D(BaseClass):
     """The number of columns in the array."""
 
     @constmethod
-    def getRow(self, value: Any) -> Any:
+    def getRow(self, row: int) -> List:
         """
-        Get the row given the first column value
+        Get the row given the row index
         """
         ...
 
