@@ -282,23 +282,36 @@ TYPESYSTEM_SOURCE(Part::TopoShape , Data::ComplexGeoData)
 TopoShape::~TopoShape() = default;
 
 TopoShape::TopoShape(long tag,App::StringHasherRef hasher, const TopoDS_Shape &shape)
-    :_Shape(*this, shape)
+    :_Shape(*this, shape),
+    _density(1.0)
 {
     Tag = tag;
     Hasher = hasher;
 }
 
 TopoShape::TopoShape(const TopoDS_Shape &shape, long tag, App::StringHasherRef hasher)
-    : _Shape(*this, shape)
+    : _Shape(*this, shape),
+    _density(1.0)
 {
     Tag = tag;
     Hasher = hasher;
 }
 
 TopoShape::TopoShape(const TopoShape& shape)
-    : _Shape(*this)
+    : _Shape(*this),
+    _density(1.0)
 {
     *this = shape;
+}
+
+void TopoShape::setDensity(const double density)
+{
+    _density = density;
+}
+
+double TopoShape::getDensity() const
+{
+    return _density;
 }
 
 std::pair<std::string, unsigned long> TopoShape::getElementTypeAndIndex(const char* Name)

@@ -104,7 +104,7 @@ Py::Float TopoShapeSolidPy::getMass() const
 {
     GProp_GProps props;
     BRepGProp::VolumeProperties(getTopoShapePtr()->getShape(), props);
-    double c = props.Mass();
+    double c = props.Mass() * getTopoShapePtr()->getDensity();
     return Py::Float(c);
 }
 

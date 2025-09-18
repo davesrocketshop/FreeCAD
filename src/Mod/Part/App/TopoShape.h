@@ -325,6 +325,14 @@ public:
     static gp_Trsf convert(const Base::Matrix4D& mtrx);
     //@}
 
+    /** @name Physical properties */
+    //@{
+    /// set the density
+    void setDensity(const double density);
+    /// get the density
+    double getDensity() const;
+    //@}
+
     /** @name Getting basic geometric entities */
     //@{
 private:
@@ -2702,6 +2710,10 @@ private:
     ShapeProtector _Shape;
 
 private:
+
+    // Material density of the shape
+    double _density;
+
     // Helper methods
     static std::vector<Data::ElementMap::MappedChildElements>
     createChildMap(size_t count, const std::vector<TopoShape>& shapes, const char* op);

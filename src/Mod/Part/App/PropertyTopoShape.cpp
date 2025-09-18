@@ -155,6 +155,12 @@ Base::BoundBox3d PropertyPartShape::getBoundingBox() const
     return box;
 }
 
+void PropertyPartShape::setDensity(const double density)
+{
+    // double densityValue = density.getValue();
+    _Shape.setDensity(density);
+}
+
 void PropertyPartShape::setTransform(const Base::Matrix4D &rclTrf)
 {
     _Shape.setTransform(rclTrf);

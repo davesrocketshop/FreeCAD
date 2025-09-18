@@ -75,6 +75,12 @@ public:
     Base::BoundBox3d getBoundingBox() const override;
     //@}
 
+    /** @name Set physical properties */
+    //@{
+    /** Set the density for mass and inertia calculations */
+    void setDensity(const double density);
+    //@}
+
     /** @name Python interface */
     //@{
     PyObject* getPyObject() override;

@@ -92,6 +92,7 @@ Feature::Feature()
     ADD_PROPERTY(Shape, (TopoDS_Shape()));
     auto mat = Materials::MaterialManager::defaultMaterial();
     ADD_PROPERTY(ShapeMaterial, (*mat));
+    setDensityFromMaterial();
 }
 
 Feature::~Feature() = default;
@@ -129,6 +130,19 @@ PyObject *Feature::getPyObject()
     return Py::new_reference_to(PythonObject);
 }
 
+void Feature::setDensityFromMaterial()
+{
+    auto& material = ShapeMaterial.getValue();
+    if (material.hasPhysicalProperty(QStringLiteral("Density"))) {
+        Base::Quantity density = material.getPhysicalQuantity(QStringLiteral("Density"));
+        Shape.setDensity(density.getValue());
+    }
+    else {
+        Shape.setDensity(1.0);
+    }
+}
+
+
 void Feature::copyMaterial(Feature* feature)
 {
     auto mat = Materials::MaterialManager::defaultMaterial();
@@ -136,6 +150,7 @@ void Feature::copyMaterial(Feature* feature)
         if (ShapeMaterial.getValue().getUUID() != feature->ShapeMaterial.getValue().getUUID()) {
             if (ShapeMaterial.getValue().getUUID() == mat->getUUID()) {
                 ShapeMaterial.setValue(feature->ShapeMaterial.getValue());
+                setDensityFromMaterial();
             }
         }
     }

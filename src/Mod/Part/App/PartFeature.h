@@ -209,6 +209,12 @@ protected:
     ShapeHistory buildHistory(BRepBuilderAPI_MakeShape&, TopAbs_ShapeEnum type,
         const TopoDS_Shape& newS, const TopoDS_Shape& oldS);
     ShapeHistory joinHistory(const ShapeHistory&, const ShapeHistory&);
+
+    /**
+     * Set the feature density as defined in the material.
+     */
+    void setDensityFromMaterial();
+
 private:
     struct ElementCache;
     std::map<std::string, ElementCache> _elementCache;
