@@ -27,10 +27,12 @@
 #include <Base/BaseClass.h>
 #include <Base/Exception.h>
 
+#include <Mod/Material/MaterialGlobal.h>
+
 namespace Materials
 {
 
-class Uninitialized: public Base::Exception
+class MaterialsExport Uninitialized: public Base::Exception
 {
 public:
     Uninitialized();
@@ -39,7 +41,7 @@ public:
     ~Uninitialized() noexcept override;
 };
 
-class ModelNotFound: public Base::Exception
+class MaterialsExport ModelNotFound: public Base::Exception
 {
 public:
     ModelNotFound();
@@ -48,7 +50,7 @@ public:
     ~ModelNotFound() noexcept override;
 };
 
-class InvalidMaterialType: public Base::Exception
+class MaterialsExport InvalidMaterialType: public Base::Exception
 {
 public:
     InvalidMaterialType();
@@ -57,7 +59,7 @@ public:
     ~InvalidMaterialType() noexcept override;
 };
 
-class MaterialNotFound: public Base::Exception
+class MaterialsExport MaterialNotFound: public Base::Exception
 {
 public:
     MaterialNotFound();
@@ -66,7 +68,7 @@ public:
     ~MaterialNotFound() noexcept override;
 };
 
-class MaterialExists: public Base::Exception
+class MaterialsExport MaterialExists: public Base::Exception
 {
 public:
     MaterialExists();
@@ -75,7 +77,7 @@ public:
     ~MaterialExists() noexcept override;
 };
 
-class MaterialReadError: public Base::Exception
+class MaterialsExport MaterialReadError: public Base::Exception
 {
 public:
     MaterialReadError();
@@ -84,7 +86,7 @@ public:
     ~MaterialReadError() noexcept override;
 };
 
-class PropertyNotFound: public Base::Exception
+class MaterialsExport PropertyNotFound: public Base::Exception
 {
 public:
     PropertyNotFound();
@@ -93,7 +95,7 @@ public:
     ~PropertyNotFound() noexcept override;
 };
 
-class LibraryNotFound: public Base::Exception
+class MaterialsExport LibraryNotFound: public Base::Exception
 {
 public:
     LibraryNotFound();
@@ -102,7 +104,7 @@ public:
     ~LibraryNotFound() noexcept override;
 };
 
-class CreationError: public Base::Exception
+class MaterialsExport CreationError: public Base::Exception
 {
 public:
     CreationError();
@@ -111,7 +113,7 @@ public:
     ~CreationError() noexcept override;
 };
 
-class InvalidModel: public Base::Exception
+class MaterialsExport InvalidModel: public Base::Exception
 {
 public:
     InvalidModel();
@@ -120,7 +122,7 @@ public:
     ~InvalidModel() noexcept override;
 };
 
-class InvalidMaterial: public Base::Exception
+class MaterialsExport InvalidMaterial: public Base::Exception
 {
 public:
     InvalidMaterial();
@@ -129,7 +131,7 @@ public:
     ~InvalidMaterial() noexcept override;
 };
 
-class InvalidProperty: public Base::Exception
+class MaterialsExport InvalidProperty: public Base::Exception
 {
 public:
     InvalidProperty();
@@ -138,7 +140,7 @@ public:
     ~InvalidProperty() noexcept override;
 };
 
-class InvalidLibrary: public Base::Exception
+class MaterialsExport InvalidLibrary: public Base::Exception
 {
 public:
     InvalidLibrary();
@@ -147,7 +149,7 @@ public:
     ~InvalidLibrary() noexcept override;
 };
 
-class InvalidIndex: public Base::Exception
+class MaterialsExport InvalidIndex: public Base::Exception
 {
 public:
     InvalidIndex();
@@ -156,7 +158,7 @@ public:
     ~InvalidIndex() noexcept override;
 };
 
-class UnknownValueType: public Base::Exception
+class MaterialsExport UnknownValueType: public Base::Exception
 {
 public:
     UnknownValueType();
@@ -165,7 +167,7 @@ public:
     ~UnknownValueType() noexcept override;
 };
 
-class DeleteError: public Base::Exception
+class MaterialsExport DeleteError: public Base::Exception
 {
 public:
     DeleteError();
@@ -174,7 +176,7 @@ public:
     ~DeleteError() noexcept override;
 };
 
-class RenameError: public Base::Exception
+class MaterialsExport RenameError: public Base::Exception
 {
 public:
     RenameError();
@@ -183,7 +185,7 @@ public:
     ~RenameError() noexcept override;
 };
 
-class ReplacementError: public Base::Exception
+class MaterialsExport ReplacementError: public Base::Exception
 {
 public:
     ReplacementError();
@@ -192,7 +194,7 @@ public:
     ~ReplacementError() noexcept override;
 };
 
-class UpdateError: public Base::Exception
+class MaterialsExport UpdateError: public Base::Exception
 {
 public:
     UpdateError();
@@ -201,7 +203,7 @@ public:
     ~UpdateError() noexcept override;
 };
 
-class MoveError: public Base::Exception
+class MaterialsExport MoveError: public Base::Exception
 {
 public:
     MoveError();
@@ -210,7 +212,7 @@ public:
     ~MoveError() noexcept override;
 };
 
-class ConnectionError: public Base::Exception
+class MaterialsExport ConnectionError: public Base::Exception
 {
 public:
     ConnectionError();
