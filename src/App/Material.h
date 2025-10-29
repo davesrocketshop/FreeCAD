@@ -140,8 +140,9 @@ public:
     bool operator==(const Material& m) const
     {
         // clang-format off
-        if (!uuid.empty() && uuid == m.uuid)
+        if (!uuid.empty() && uuid == m.uuid) {
             return true;
+        }
         return shininess == m.shininess
             && transparency == m.transparency
             && ambientColor == m.ambientColor
