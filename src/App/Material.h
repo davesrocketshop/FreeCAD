@@ -149,7 +149,7 @@ public:
             && specularColor == m.specularColor
             && emissiveColor == m.emissiveColor
             && image == m.image
-            && image == m.imagePath;
+            && imagePath == m.imagePath;
         // clang-format on
     }
     bool operator!=(const Material& m) const
