@@ -71,6 +71,21 @@ MaterialsEditor::MaterialsEditor(Materials::MaterialFilter filter, QWidget* pare
     , _material(std::make_shared<Materials::Material>())
     , _recentMax(0)
     , _filter(filter)
+//     , _actionNewLibrary(this)
+// #if defined(BUILD_MATERIAL_EXTERNAL)
+//     , _actionNewRemoteLibrary(this)
+// #endif
+//     , _actionNewLocalLibrary(this)
+//     , _actionNewFolder(this)
+//     , _actionNewMaterial(this)
+//     , _actionInheritMaterial(this)
+//     , _actionFavorite(this)
+//     , _actionChangeIcon(this)
+//     , _actionCut(this)
+//     , _actionCopy(this)
+//     , _actionPaste(this)
+//     , _actionRename(this)
+//     , _actionDelete(this)
 {
     setup();
 }
@@ -80,6 +95,21 @@ MaterialsEditor::MaterialsEditor(QWidget* parent)
     , ui(new Ui_MaterialsEditor)
     , _material(std::make_shared<Materials::Material>())
     , _recentMax(0)
+//     , _actionNewLibrary(this)
+// #if defined(BUILD_MATERIAL_EXTERNAL)
+//     , _actionNewRemoteLibrary(this)
+// #endif
+//     , _actionNewLocalLibrary(this)
+//     , _actionNewFolder(this)
+//     , _actionNewMaterial(this)
+//     , _actionInheritMaterial(this)
+//     , _actionFavorite(this)
+//     , _actionChangeIcon(this)
+//     , _actionCut(this)
+//     , _actionCopy(this)
+//     , _actionPaste(this)
+//     , _actionRename(this)
+//     , _actionDelete(this)
 {
     setup();
 }
@@ -92,6 +122,7 @@ void MaterialsEditor::setup()
 
     _warningIcon = QIcon(QStringLiteral(":/icons/Warning.svg"));
 
+    createActions();
     setupData();
 
     // Reset to previous state
@@ -197,19 +228,30 @@ void MaterialsEditor::setupEditorCallbacks()
     // connect(ui->editDescription, &QTextEdit::textChanged, this, &MaterialsEditor::onDescription);
 
     // connect(ui->buttonURL, &QPushButton::clicked, this, &MaterialsEditor::onURL);
-    // connect(ui->buttonPhysicalAdd, &QPushButton::clicked, this, &MaterialsEditor::onPhysicalAdd);
-    // connect(ui->buttonPhysicalRemove,
-    //         &QPushButton::clicked,
-    //         this,
-    //         &MaterialsEditor::onPhysicalRemove);
-    // connect(ui->buttonAppearanceAdd,
-    //         &QPushButton::clicked,
-    //         this,
-    //         &MaterialsEditor::onAppearanceAdd);
-    // connect(ui->buttonAppearanceRemove,
-    //         &QPushButton::clicked,
-    //         this,
-    //         &MaterialsEditor::onAppearanceRemove);
+    connect(
+        ui->materialPropertiesWidget,
+        &MaterialPropertiesWidget::addPhysicalProperty,
+        this,
+        &MaterialsEditor::onPhysicalAdd
+    );
+    connect(
+        ui->materialPropertiesWidget,
+        &MaterialPropertiesWidget::removePhysicalProperty,
+        this,
+        &MaterialsEditor::onPhysicalRemove
+    );
+    connect(
+        ui->materialPropertiesWidget,
+        &MaterialPropertiesWidget::addAppearanceProperty,
+        this,
+        &MaterialsEditor::onAppearanceAdd
+    );
+    connect(
+        ui->materialPropertiesWidget,
+        &MaterialPropertiesWidget::removeAppearanceProperty,
+        this,
+        &MaterialsEditor::onAppearanceRemove
+    );
 
     connect(ui->checkAdvancedSearch,
             &QCheckBox::toggled,
@@ -241,7 +283,10 @@ void MaterialsEditor::setupContextMenus()
             &QWidget::customContextMenuRequested,
             this,
             &MaterialsEditor::onContextMenu);
+}
 
+void MaterialsEditor::createActions()
+{
     connect(&_actionNewLibrary, &QAction::triggered, this, &MaterialsEditor::onMenuNewLibrary);
 #if defined(BUILD_MATERIAL_EXTERNAL)
     connect(&_actionNewRemoteLibrary, &QAction::triggered, this, &MaterialsEditor::onMenuNewLibrary);
@@ -309,6 +354,16 @@ void MaterialsEditor::setupContextMenus()
 
     _actionRename.setText(tr("Rename"));
     _actionDelete.setText(tr("Delete"));
+}
+
+void MaterialsEditor::updateMaterial()
+{
+    ui->materialPropertiesWidget->updateMaterial(_material);
+}
+
+void MaterialsEditor::setMaterialSelected(bool selected)
+{
+    ui->materialPropertiesWidget->setMaterialSelected(selected);
 }
 
 void MaterialsEditor::getFavorites()
@@ -529,26 +584,22 @@ void MaterialsEditor::onURL(bool checked)
     // }
 }
 
-void MaterialsEditor::onPhysicalAdd(bool checked)
+void MaterialsEditor::onPhysicalAdd()
 {
-    Q_UNUSED(checked)
-
     ModelSelect dialog(this, Materials::ModelFilter_Physical);
     dialog.setModal(true);
     if (dialog.exec() == QDialog::Accepted) {
         QString selected = dialog.selectedModel();
         _material->addPhysical(selected);
-        ui->materialPropertiesWidget->updateMaterial(_material);
+        updateMaterial();
     }
     else {
         Base::Console().log("No model selected\n");
     }
 }
 
-void MaterialsEditor::onPhysicalRemove(bool checked)
+void MaterialsEditor::onPhysicalRemove(const QString& propertyName)
 {
-    Q_UNUSED(checked)
-
     // QItemSelectionModel* selectionModel = ui->treePhysicalProperties->selectionModel();
     // if (selectionModel->hasSelection()) {
     //     auto index = selectionModel->currentIndex().siblingAtColumn(0);
@@ -561,17 +612,15 @@ void MaterialsEditor::onPhysicalRemove(bool checked)
     //     if (!group) {
     //         QString propertyName = index.data().toString();
 
-    //         QString uuid = _material->getModelByName(propertyName);
-    //         _material->removePhysical(uuid);
-    //         updateMaterial();
+    QString uuid = _material->getModelByName(propertyName);
+    _material->removePhysical(uuid);
+    updateMaterial();
     //     }
     // }
 }
 
-void MaterialsEditor::onAppearanceAdd(bool checked)
+void MaterialsEditor::onAppearanceAdd()
 {
-    Q_UNUSED(checked)
-
     ModelSelect dialog(this, Materials::ModelFilter_Appearance);
     dialog.setModal(true);
     if (dialog.exec() == QDialog::Accepted) {
@@ -584,17 +633,15 @@ void MaterialsEditor::onAppearanceAdd(bool checked)
             *_material = *(getMaterialManager().defaultAppearance());
         }
 
-        ui->materialPropertiesWidget->updateMaterial(_material);
+        updateMaterial();
     }
     else {
         Base::Console().log("No model selected\n");
     }
 }
 
-void MaterialsEditor::onAppearanceRemove(bool checked)
+void MaterialsEditor::onAppearanceRemove(const QString& propertyName)
 {
-    Q_UNUSED(checked)
-
     // QItemSelectionModel* selectionModel = ui->treeAppearance->selectionModel();
     // if (selectionModel->hasSelection()) {
     //     auto index = selectionModel->currentIndex().siblingAtColumn(0);
@@ -607,9 +654,9 @@ void MaterialsEditor::onAppearanceRemove(bool checked)
     //     if (!group) {
     //         QString propertyName = index.data().toString();
 
-    //         QString uuid = _material->getModelByName(propertyName);
-    //         _material->removeAppearance(uuid);
-    //         updateMaterial();
+    QString uuid = _material->getModelByName(propertyName);
+    _material->removeAppearance(uuid);
+    updateMaterial();
     //     }
     // }
 }
@@ -677,7 +724,7 @@ void MaterialsEditor::setMaterialDefaults()
     // Empty materials will have no parent
     getMaterialManager().dereference(_material);
 
-    ui->materialPropertiesWidget->updateMaterial(_material);
+    updateMaterial();
     _material->resetEditState();
 }
 
@@ -700,7 +747,7 @@ void MaterialsEditor::onNewMaterial(bool checked)
     // Create a new material
     _material = std::make_shared<Materials::Material>();
     setMaterialDefaults();
-    ui->materialPropertiesWidget->setMaterialSelected(false);
+    setMaterialSelected(false);
 }
 
 void MaterialsEditor::onInheritNewMaterial(bool checked)
@@ -766,10 +813,10 @@ void MaterialsEditor::saveMaterial()
     MaterialSave dialog(_material, this);
     dialog.setModal(true);
     if (dialog.exec() == QDialog::Accepted) {
-        ui->materialPropertiesWidget->updateMaterial(_material);
+        updateMaterial();
         _material->resetEditState();
         refreshMaterialTree();
-        ui->materialPropertiesWidget->setMaterialSelected(true);
+        setMaterialSelected(true);
     }
 }
 
@@ -1051,10 +1098,10 @@ void MaterialsEditor::createMaterialTree()
 
     tree->setHeaderHidden(true);
     auto toolbar = ui->treeToolBar;
-    toolbar->addAction(&_actionNewLibrary);
-    toolbar->addAction(&_actionNewFolder);
     toolbar->addAction(&_actionNewMaterial);
     toolbar->addAction(&_actionInheritMaterial);
+    toolbar->addAction(&_actionNewLibrary);
+    toolbar->addAction(&_actionNewFolder);
     toolbar->addSeparator();
     toolbar->addAction(&_actionCut);
     toolbar->addAction(&_actionCopy);
@@ -1166,8 +1213,8 @@ void MaterialsEditor::onSelectMaterial(const QItemSelection& selected,
 
     if (uuid.isEmpty()) {
         // Clear selection
-        ui->materialPropertiesWidget->setMaterialSelected(false);
-        ui->materialPropertiesWidget->updateMaterial(_material);
+        setMaterialSelected(false);
+        updateMaterial();
         _material->resetEditState();
         return;
     }
@@ -1176,8 +1223,8 @@ void MaterialsEditor::onSelectMaterial(const QItemSelection& selected,
     try {
         if (!_material || _material->getUUID() != uuid) {
             _material = std::make_shared<Materials::Material>(*getMaterialManager().getMaterial(uuid));
-            ui->materialPropertiesWidget->setMaterialSelected(true);
-            ui->materialPropertiesWidget->updateMaterial(_material);
+            setMaterialSelected(true);
+            updateMaterial();
             _material->resetEditState();
         }
         // else don't reset edit state
@@ -1185,8 +1232,8 @@ void MaterialsEditor::onSelectMaterial(const QItemSelection& selected,
     catch (Materials::ModelNotFound const&) {
         Base::Console().log("*** Unable to load material '%s'\n", uuid.toStdString().c_str());
         _material = std::make_shared<Materials::Material>();
-        ui->materialPropertiesWidget->setMaterialSelected(true);
-        ui->materialPropertiesWidget->updateMaterial(_material);
+        setMaterialSelected(true);
+        updateMaterial();
         _material->resetEditState();
     }
 }
@@ -1280,6 +1327,7 @@ void MaterialsEditor::favoriteContextMenu(QMenu& contextMenu)
 {
     Q_UNUSED(contextMenu);
 
+    contextMenu.addAction(&_actionInheritMaterial);
 #if defined(BUILD_MATERIAL_EXTERNAL)
     if (useExternal()) {
         contextMenu.addAction(&_actionNewRemoteLibrary);
@@ -1287,7 +1335,6 @@ void MaterialsEditor::favoriteContextMenu(QMenu& contextMenu)
 #endif
     contextMenu.addAction(&_actionNewLocalLibrary);
     contextMenu.addSeparator();
-    contextMenu.addAction(&_actionInheritMaterial);
 
     auto item = getActionItem();
     if (item->text() != tr("Favorites")) {
@@ -1298,14 +1345,13 @@ void MaterialsEditor::favoriteContextMenu(QMenu& contextMenu)
 
 void MaterialsEditor::recentContextMenu(QMenu& contextMenu)
 {
+    contextMenu.addAction(&_actionInheritMaterial);
 #if defined(BUILD_MATERIAL_EXTERNAL)
     if (useExternal()) {
         contextMenu.addAction(&_actionNewRemoteLibrary);
     }
 #endif
     contextMenu.addAction(&_actionNewLocalLibrary);
-    contextMenu.addSeparator();
-    contextMenu.addAction(&_actionInheritMaterial);
     contextMenu.addSeparator();
     auto item = getActionItem();
     if (item->text() != tr("Recent")) {
@@ -1322,6 +1368,7 @@ void MaterialsEditor::recentContextMenu(QMenu& contextMenu)
 
 void MaterialsEditor::libraryContextMenu(QMenu& contextMenu)
 {
+    contextMenu.addAction(&_actionNewMaterial);
 #if defined(BUILD_MATERIAL_EXTERNAL)
     if (useExternal()) {
         contextMenu.addAction(&_actionNewRemoteLibrary);
@@ -1331,11 +1378,11 @@ void MaterialsEditor::libraryContextMenu(QMenu& contextMenu)
     contextMenu.addAction(&_actionChangeIcon);
     contextMenu.addSeparator();
     contextMenu.addAction(&_actionNewFolder);
-    contextMenu.addAction(&_actionNewMaterial);
 }
 
 void MaterialsEditor::folderContextMenu(QMenu& contextMenu)
 {
+    contextMenu.addAction(&_actionNewMaterial);
 #if defined(BUILD_MATERIAL_EXTERNAL)
     if (useExternal()) {
         contextMenu.addAction(&_actionNewRemoteLibrary);
@@ -1344,7 +1391,6 @@ void MaterialsEditor::folderContextMenu(QMenu& contextMenu)
     contextMenu.addAction(&_actionNewLocalLibrary);
     contextMenu.addSeparator();
     contextMenu.addAction(&_actionNewFolder);
-    contextMenu.addAction(&_actionNewMaterial);
     contextMenu.addSeparator();
     contextMenu.addAction(&_actionCut);
     contextMenu.addAction(&_actionCopy);
@@ -1356,6 +1402,8 @@ void MaterialsEditor::folderContextMenu(QMenu& contextMenu)
 
 void MaterialsEditor::materialContextMenu(QMenu& contextMenu)
 {
+    contextMenu.addAction(&_actionNewMaterial);
+    contextMenu.addAction(&_actionInheritMaterial);
 #if defined(BUILD_MATERIAL_EXTERNAL)
     if (useExternal()) {
         contextMenu.addAction(&_actionNewRemoteLibrary);
@@ -1364,8 +1412,6 @@ void MaterialsEditor::materialContextMenu(QMenu& contextMenu)
     contextMenu.addAction(&_actionNewLocalLibrary);
     contextMenu.addSeparator();
     contextMenu.addAction(&_actionNewFolder);
-    contextMenu.addAction(&_actionNewMaterial);
-    contextMenu.addAction(&_actionInheritMaterial);
     contextMenu.addSeparator();
     auto selected = _material->getUUID();
     if (isFavorite(selected)) {
@@ -1528,9 +1574,9 @@ void MaterialsEditor::onMenuNewMaterial(bool checked)
 
     addExpanded(ui->treeMaterials, item, card);
 
-    ui->materialPropertiesWidget->setMaterialSelected(true);
+    setMaterialSelected(true);
     _newItem = card;
-    ui->materialPropertiesWidget->updateMaterial(_material);
+    updateMaterial();
 
     // Now select the material in the tree
     auto index = card->index();

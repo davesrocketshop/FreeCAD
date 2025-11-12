@@ -111,10 +111,10 @@ public:
     void onFavourite(bool checked);
     void onAdvancedSearch(bool checked);
     void onURL(bool checked);
-    void onPhysicalAdd(bool checked);
-    void onPhysicalRemove(bool checked);
-    void onAppearanceAdd(bool checked);
-    void onAppearanceRemove(bool checked);
+    void onPhysicalAdd();
+    void onPhysicalRemove(const QString& propertyName);
+    void onAppearanceAdd();
+    void onAppearanceRemove(const QString& propertyName);
     void onOk(bool checked);
     void onCancel(bool checked);
     void onSave(bool checked);
@@ -198,6 +198,7 @@ private:
     void setupEditorCallbacks();
     void setupSelectionCallbacks();
     void setupContextMenus();
+    void createActions();
     void setupModelCallbacks();
 
     void setLibraryPropertyState();
@@ -335,6 +336,9 @@ private:
     {
         _filterOptions.setIncludeLegacy(legacy);
     }
+
+    void updateMaterial();
+    void setMaterialSelected(bool selected);
 };
 
 }  // namespace MatGui

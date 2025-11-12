@@ -47,6 +47,12 @@ public:
         _materialSelected = selected;
     }
 
+Q_SIGNALS:
+    void addPhysicalProperty();
+    void removePhysicalProperty(const QString& propertyName);
+    void addAppearanceProperty();
+    void removeAppearanceProperty(const QString& propertyName);
+
 private:
     std::unique_ptr<Ui_MaterialPropertiesWidget> ui;
     std::shared_ptr<Materials::Material> _material;
@@ -69,6 +75,7 @@ private:
     static void addExpanded(QTreeView* tree, QStandardItemModel* parent, QStandardItem* child);
 
     void setup();
+    void setupButtons();
 
     void createPhysicalTree();
     void createPreviews();
@@ -83,6 +90,10 @@ private:
     bool updateMaterialPreview() const;
 
     void onPropertyChange(const QString& property, const QVariant& value);
+    void onPhysicalAdd();
+    void onPhysicalRemove();
+    void onAppearanceAdd();
+    void onAppearanceRemove();
 };
 
 }  // namespace MatGui

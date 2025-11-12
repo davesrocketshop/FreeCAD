@@ -62,9 +62,67 @@ void MaterialPropertiesWidget::setup()
     Gui::WaitCursor wc;
     ui->setupUi(this);
 
+    setupButtons();
+
     createPhysicalTree();
     createAppearanceTree();
     createPreviews();
+}
+
+void MaterialPropertiesWidget::setupButtons()
+{
+    connect(ui->buttonPhysicalAdd, &QPushButton::clicked, this, &MaterialPropertiesWidget::onPhysicalAdd);
+    connect(ui->buttonPhysicalRemove, &QPushButton::clicked, this, &MaterialPropertiesWidget::onPhysicalRemove);
+    connect(ui->buttonAppearanceAdd, &QPushButton::clicked, this, &MaterialPropertiesWidget::onAppearanceAdd);
+    connect(ui->buttonAppearanceRemove, &QPushButton::clicked, this, &MaterialPropertiesWidget::onAppearanceRemove);
+}
+
+void MaterialPropertiesWidget::onPhysicalAdd()
+{
+    Q_EMIT addPhysicalProperty();
+}
+
+void MaterialPropertiesWidget::onPhysicalRemove()
+{
+    QItemSelectionModel* selectionModel = ui->treePhysicalProperties->selectionModel();
+    if (selectionModel->hasSelection()) {
+        auto index = selectionModel->currentIndex().siblingAtColumn(0);
+
+        auto treeModel = dynamic_cast<const QStandardItemModel*>(index.model());
+
+        // Check we're the material model root.
+        auto item = treeModel->itemFromIndex(index);
+        auto group = item->parent();
+        if (!group) {
+            QString propertyName = index.data().toString();
+
+            Q_EMIT removePhysicalProperty(propertyName);
+        }
+    }
+}
+
+void MaterialPropertiesWidget::onAppearanceAdd()
+{
+    Q_EMIT addAppearanceProperty();
+}
+
+void MaterialPropertiesWidget::onAppearanceRemove()
+{
+    QItemSelectionModel* selectionModel = ui->treeAppearance->selectionModel();
+    if (selectionModel->hasSelection()) {
+        auto index = selectionModel->currentIndex().siblingAtColumn(0);
+
+        auto treeModel = dynamic_cast<const QStandardItemModel*>(index.model());
+
+        // Check we're the material model root.
+        auto item = treeModel->itemFromIndex(index);
+        auto group = item->parent();
+        if (!group) {
+            QString propertyName = index.data().toString();
+
+            Q_EMIT removeAppearanceProperty(propertyName);
+        }
+    }
 }
 
 
