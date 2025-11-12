@@ -26,23 +26,23 @@
    <item>
     <widget class="QSplitter" name="splitter">
      <property name="frameShape">
-      <enum>QFrame::NoFrame</enum>
+      <enum>QFrame::Shape::NoFrame</enum>
      </property>
      <property name="frameShadow">
-      <enum>QFrame::Plain</enum>
+      <enum>QFrame::Shadow::Plain</enum>
      </property>
      <property name="orientation">
-      <enum>Qt::Horizontal</enum>
+      <enum>Qt::Orientation::Horizontal</enum>
      </property>
      <property name="childrenCollapsible">
       <bool>false</bool>
      </property>
      <widget class="QFrame" name="frameMaterialTree">
       <property name="frameShape">
-       <enum>QFrame::NoFrame</enum>
+       <enum>QFrame::Shape::NoFrame</enum>
       </property>
       <property name="frameShadow">
-       <enum>QFrame::Plain</enum>
+       <enum>QFrame::Shadow::Plain</enum>
       </property>
       <layout class="QVBoxLayout" name="frameLayout">
        <item>
@@ -54,7 +54,7 @@
           <bool>false</bool>
          </property>
          <property name="selectionBehavior">
-          <enum>QAbstractItemView::SelectItems</enum>
+          <enum>QAbstractItemView::SelectionBehavior::SelectItems</enum>
          </property>
          <property name="headerHidden">
           <bool>true</bool>
@@ -71,7 +71,7 @@
          </property>
         </widget>
        </item>
-       <item alignment="Qt::AlignRight">
+       <item alignment="Qt::AlignmentFlag::AlignRight">
         <widget class="QCheckBox" name="checkAdvancedSearch">
          <property name="text">
           <string>Advanced Search Options</string>
@@ -159,14 +159,17 @@
      </widget>
      <widget class="QFrame" name="frameProperties">
       <property name="frameShape">
-       <enum>QFrame::NoFrame</enum>
+       <enum>QFrame::Shape::NoFrame</enum>
       </property>
       <property name="frameShadow">
-       <enum>QFrame::Plain</enum>
+       <enum>QFrame::Shadow::Plain</enum>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_2">
        <item>
-        <widget class="QStackedWidget" name="stackedWidget"/>
+        <widget class="QStackedWidget" name="stackedWidget">
+         <widget class="MaterialPropertiesWidget" name="materialPropertiesWidget"/>
+         <widget class="PropertiesWidget" name="propertiesWidget"/>
+        </widget>
        </item>
       </layout>
      </widget>
@@ -175,15 +178,29 @@
    <item>
     <widget class="QDialogButtonBox" name="standardButtons">
      <property name="orientation">
-      <enum>Qt::Horizontal</enum>
+      <enum>Qt::Orientation::Horizontal</enum>
      </property>
      <property name="standardButtons">
-      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok|QDialogButtonBox::Save</set>
+      <set>QDialogButtonBox::StandardButton::Cancel|QDialogButtonBox::StandardButton::Ok|QDialogButtonBox::StandardButton::Save</set>
      </property>
     </widget>
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>MaterialPropertiesWidget</class>
+   <extends>QWidget</extends>
+   <header>Mod/Material/Gui/Widgets/MaterialPropertiesWidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>PropertiesWidget</class>
+   <extends>QWidget</extends>
+   <header>Mod/Material/Gui/Widgets/PropertiesWidget.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <tabstops>
   <tabstop>treeMaterials</tabstop>
   <tabstop>editSearch</tabstop>

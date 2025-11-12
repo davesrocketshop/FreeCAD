@@ -69,8 +69,6 @@ MaterialsEditor::MaterialsEditor(Materials::MaterialFilter filter, QWidget* pare
     : QDialog(parent)
     , ui(new Ui_MaterialsEditor)
     , _material(std::make_shared<Materials::Material>())
-    , _materialPropertiesWidget(new MaterialPropertiesWidget(this))
-    , _propertiesWidget(new PropertiesWidget(this))
     , _recentMax(0)
     , _filter(filter)
 {
@@ -81,8 +79,6 @@ MaterialsEditor::MaterialsEditor(QWidget* parent)
     : QDialog(parent)
     , ui(new Ui_MaterialsEditor)
     , _material(std::make_shared<Materials::Material>())
-    , _materialPropertiesWidget(new MaterialPropertiesWidget(this))
-    , _propertiesWidget(new PropertiesWidget(this))
     , _recentMax(0)
 {
     setup();
@@ -110,10 +106,6 @@ void MaterialsEditor::setup()
 
 void MaterialsEditor::setupStackedWidgets()
 {
-    // _materialPropertiesWidget = new MaterialPropertiesWidget(this);
-    // _propertiesWidget = new PropertiesWidget(this);
-    ui->stackedWidget->addWidget(_materialPropertiesWidget);
-    ui->stackedWidget->addWidget(_propertiesWidget);
     ui->stackedWidget->setCurrentIndex(0);
 }
 
@@ -546,7 +538,7 @@ void MaterialsEditor::onPhysicalAdd(bool checked)
     if (dialog.exec() == QDialog::Accepted) {
         QString selected = dialog.selectedModel();
         _material->addPhysical(selected);
-        _materialPropertiesWidget->updateMaterial(_material);
+        ui->materialPropertiesWidget->updateMaterial(_material);
     }
     else {
         Base::Console().log("No model selected\n");
@@ -592,7 +584,7 @@ void MaterialsEditor::onAppearanceAdd(bool checked)
             *_material = *(getMaterialManager().defaultAppearance());
         }
 
-        _materialPropertiesWidget->updateMaterial(_material);
+        ui->materialPropertiesWidget->updateMaterial(_material);
     }
     else {
         Base::Console().log("No model selected\n");
@@ -685,7 +677,7 @@ void MaterialsEditor::setMaterialDefaults()
     // Empty materials will have no parent
     getMaterialManager().dereference(_material);
 
-    _materialPropertiesWidget->updateMaterial(_material);
+    ui->materialPropertiesWidget->updateMaterial(_material);
     _material->resetEditState();
 }
 
@@ -708,7 +700,7 @@ void MaterialsEditor::onNewMaterial(bool checked)
     // Create a new material
     _material = std::make_shared<Materials::Material>();
     setMaterialDefaults();
-    _materialPropertiesWidget->setMaterialSelected(false);
+    ui->materialPropertiesWidget->setMaterialSelected(false);
 }
 
 void MaterialsEditor::onInheritNewMaterial(bool checked)
@@ -774,10 +766,10 @@ void MaterialsEditor::saveMaterial()
     MaterialSave dialog(_material, this);
     dialog.setModal(true);
     if (dialog.exec() == QDialog::Accepted) {
-        _materialPropertiesWidget->updateMaterial(_material);
+        ui->materialPropertiesWidget->updateMaterial(_material);
         _material->resetEditState();
         refreshMaterialTree();
-        _materialPropertiesWidget->setMaterialSelected(true);
+        ui->materialPropertiesWidget->setMaterialSelected(true);
     }
 }
 
@@ -1174,8 +1166,8 @@ void MaterialsEditor::onSelectMaterial(const QItemSelection& selected,
 
     if (uuid.isEmpty()) {
         // Clear selection
-        _materialPropertiesWidget->setMaterialSelected(false);
-        _materialPropertiesWidget->updateMaterial(_material);
+        ui->materialPropertiesWidget->setMaterialSelected(false);
+        ui->materialPropertiesWidget->updateMaterial(_material);
         _material->resetEditState();
         return;
     }
@@ -1184,8 +1176,8 @@ void MaterialsEditor::onSelectMaterial(const QItemSelection& selected,
     try {
         if (!_material || _material->getUUID() != uuid) {
             _material = std::make_shared<Materials::Material>(*getMaterialManager().getMaterial(uuid));
-            _materialPropertiesWidget->setMaterialSelected(true);
-            _materialPropertiesWidget->updateMaterial(_material);
+            ui->materialPropertiesWidget->setMaterialSelected(true);
+            ui->materialPropertiesWidget->updateMaterial(_material);
             _material->resetEditState();
         }
         // else don't reset edit state
@@ -1193,8 +1185,8 @@ void MaterialsEditor::onSelectMaterial(const QItemSelection& selected,
     catch (Materials::ModelNotFound const&) {
         Base::Console().log("*** Unable to load material '%s'\n", uuid.toStdString().c_str());
         _material = std::make_shared<Materials::Material>();
-        _materialPropertiesWidget->setMaterialSelected(true);
-        _materialPropertiesWidget->updateMaterial(_material);
+        ui->materialPropertiesWidget->setMaterialSelected(true);
+        ui->materialPropertiesWidget->updateMaterial(_material);
         _material->resetEditState();
     }
 }
@@ -1536,9 +1528,9 @@ void MaterialsEditor::onMenuNewMaterial(bool checked)
 
     addExpanded(ui->treeMaterials, item, card);
 
-    _materialPropertiesWidget->setMaterialSelected(true);
+    ui->materialPropertiesWidget->setMaterialSelected(true);
     _newItem = card;
-    _materialPropertiesWidget->updateMaterial(_material);
+    ui->materialPropertiesWidget->updateMaterial(_material);
 
     // Now select the material in the tree
     auto index = card->index();

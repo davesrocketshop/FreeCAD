@@ -154,8 +154,6 @@ protected:
 private:
     std::unique_ptr<Ui_MaterialsEditor> ui;
     std::shared_ptr<Materials::Material> _material;
-    MaterialPropertiesWidget* _materialPropertiesWidget;
-    PropertiesWidget* _propertiesWidget;
     std::list<QString> _favorites;
     std::list<QString> _recents;
     int _recentMax;
