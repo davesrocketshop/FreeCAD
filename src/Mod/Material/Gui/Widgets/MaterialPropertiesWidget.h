@@ -52,6 +52,12 @@ Q_SIGNALS:
     void removePhysicalProperty(const QString& propertyName);
     void addAppearanceProperty();
     void removeAppearanceProperty(const QString& propertyName);
+    void setName(const QString& name);
+    void setAuthor(const QString& author);
+    void setLicense(const QString& license);
+    void setSourceURL(const QString& url);
+    void setSourceReference(const QString& reference);
+    void setDescription(const QString& description);
 
 private:
     std::unique_ptr<Ui_MaterialPropertiesWidget> ui;
@@ -94,6 +100,15 @@ private:
     void onPhysicalRemove();
     void onAppearanceAdd();
     void onAppearanceRemove();
+
+    void onName(const QString& text);
+    void onAuthor(const QString& text);
+    void onLicense(const QString& text);
+    void onSourceURL(const QString& text);
+    void onSourceReference(const QString& text);
+    void onDescription();
+
+    void onURL(bool checked);
 };
 
 }  // namespace MatGui

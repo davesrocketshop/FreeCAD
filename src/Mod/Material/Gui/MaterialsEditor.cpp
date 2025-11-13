@@ -71,21 +71,6 @@ MaterialsEditor::MaterialsEditor(Materials::MaterialFilter filter, QWidget* pare
     , _material(std::make_shared<Materials::Material>())
     , _recentMax(0)
     , _filter(filter)
-//     , _actionNewLibrary(this)
-// #if defined(BUILD_MATERIAL_EXTERNAL)
-//     , _actionNewRemoteLibrary(this)
-// #endif
-//     , _actionNewLocalLibrary(this)
-//     , _actionNewFolder(this)
-//     , _actionNewMaterial(this)
-//     , _actionInheritMaterial(this)
-//     , _actionFavorite(this)
-//     , _actionChangeIcon(this)
-//     , _actionCut(this)
-//     , _actionCopy(this)
-//     , _actionPaste(this)
-//     , _actionRename(this)
-//     , _actionDelete(this)
 {
     setup();
 }
@@ -95,21 +80,6 @@ MaterialsEditor::MaterialsEditor(QWidget* parent)
     , ui(new Ui_MaterialsEditor)
     , _material(std::make_shared<Materials::Material>())
     , _recentMax(0)
-//     , _actionNewLibrary(this)
-// #if defined(BUILD_MATERIAL_EXTERNAL)
-//     , _actionNewRemoteLibrary(this)
-// #endif
-//     , _actionNewLocalLibrary(this)
-//     , _actionNewFolder(this)
-//     , _actionNewMaterial(this)
-//     , _actionInheritMaterial(this)
-//     , _actionFavorite(this)
-//     , _actionChangeIcon(this)
-//     , _actionCut(this)
-//     , _actionCopy(this)
-//     , _actionPaste(this)
-//     , _actionRename(this)
-//     , _actionDelete(this)
 {
     setup();
 }
@@ -217,17 +187,43 @@ void MaterialsEditor::setupButtonConnections()
 
 void MaterialsEditor::setupEditorCallbacks()
 {
-    // connect(ui->editName, &QLineEdit::textEdited, this, &MaterialsEditor::onName);
-    // connect(ui->editAuthor, &QLineEdit::textEdited, this, &MaterialsEditor::onAuthor);
-    // connect(ui->editLicense, &QLineEdit::textEdited, this, &MaterialsEditor::onLicense);
-    // connect(ui->editSourceURL, &QLineEdit::textEdited, this, &MaterialsEditor::onSourceURL);
-    // connect(ui->editSourceReference,
-    //         &QLineEdit::textEdited,
-    //         this,
-    //         &MaterialsEditor::onSourceReference);
-    // connect(ui->editDescription, &QTextEdit::textChanged, this, &MaterialsEditor::onDescription);
+    connect(
+        ui->materialPropertiesWidget,
+        &MaterialPropertiesWidget::setName,
+        this,
+        &MaterialsEditor::onName
+    );
+    connect(
+        ui->materialPropertiesWidget,
+        &MaterialPropertiesWidget::setAuthor,
+        this,
+        &MaterialsEditor::onAuthor
+    );
+    connect(
+        ui->materialPropertiesWidget,
+        &MaterialPropertiesWidget::setLicense,
+        this,
+        &MaterialsEditor::onLicense
+    );
+    connect(
+        ui->materialPropertiesWidget,
+        &MaterialPropertiesWidget::setSourceURL,
+        this,
+        &MaterialsEditor::onSourceURL
+    );
+    connect(
+        ui->materialPropertiesWidget,
+        &MaterialPropertiesWidget::setSourceReference,
+        this,
+        &MaterialsEditor::onSourceReference
+    );
+    connect(
+        ui->materialPropertiesWidget,
+        &MaterialPropertiesWidget::setDescription,
+        this,
+        &MaterialsEditor::onDescription
+    );
 
-    // connect(ui->buttonURL, &QPushButton::clicked, this, &MaterialsEditor::onURL);
     connect(
         ui->materialPropertiesWidget,
         &MaterialPropertiesWidget::addPhysicalProperty,
@@ -544,44 +540,34 @@ void MaterialsEditor::onTreeItemChanged(QStandardItem* item)
     }
 }
 
-void MaterialsEditor::onName(const QString& text)
+void MaterialsEditor::onName(const QString& name)
 {
-    _material->setName(text);
+    _material->setName(name);
 }
 
-void MaterialsEditor::onAuthor(const QString& text)
+void MaterialsEditor::onAuthor(const QString& author)
 {
-    _material->setAuthor(text);
+    _material->setAuthor(author);
 }
 
-void MaterialsEditor::onLicense(const QString& text)
+void MaterialsEditor::onLicense(const QString& license)
 {
-    _material->setLicense(text);
+    _material->setLicense(license);
 }
 
-void MaterialsEditor::onSourceURL(const QString& text)
+void MaterialsEditor::onSourceURL(const QString& url)
 {
-    _material->setURL(text);
+    _material->setURL(url);
 }
 
-void MaterialsEditor::onSourceReference(const QString& text)
+void MaterialsEditor::onSourceReference(const QString& reference)
 {
-    _material->setReference(text);
+    _material->setReference(reference);
 }
 
-void MaterialsEditor::onDescription()
+void MaterialsEditor::onDescription(const QString& description)
 {
-    // _material->setDescription(ui->editDescription->toPlainText());
-}
-
-void MaterialsEditor::onURL(bool checked)
-{
-    Q_UNUSED(checked)
-
-    // QString url = ui->editSourceURL->text();
-    // if (url.length() > 0) {
-    //     QDesktopServices::openUrl(QUrl(url, QUrl::TolerantMode));
-    // }
+    _material->setDescription(description);
 }
 
 void MaterialsEditor::onPhysicalAdd()

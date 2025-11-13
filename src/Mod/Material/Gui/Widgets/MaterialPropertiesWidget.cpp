@@ -75,6 +75,20 @@ void MaterialPropertiesWidget::setupButtons()
     connect(ui->buttonPhysicalRemove, &QPushButton::clicked, this, &MaterialPropertiesWidget::onPhysicalRemove);
     connect(ui->buttonAppearanceAdd, &QPushButton::clicked, this, &MaterialPropertiesWidget::onAppearanceAdd);
     connect(ui->buttonAppearanceRemove, &QPushButton::clicked, this, &MaterialPropertiesWidget::onAppearanceRemove);
+
+    connect(ui->editName, &QLineEdit::textEdited, this, &MaterialPropertiesWidget::onName);
+    connect(ui->editAuthor, &QLineEdit::textEdited, this, &MaterialPropertiesWidget::onAuthor);
+    connect(ui->editLicense, &QLineEdit::textEdited, this, &MaterialPropertiesWidget::onLicense);
+    connect(ui->editSourceURL, &QLineEdit::textEdited, this, &MaterialPropertiesWidget::onSourceURL);
+    connect(
+        ui->editSourceReference,
+        &QLineEdit::textEdited,
+        this,
+        &MaterialPropertiesWidget::onSourceReference
+    );
+    connect(ui->editDescription, &QTextEdit::textChanged, this, &MaterialPropertiesWidget::onDescription);
+
+    connect(ui->buttonURL, &QPushButton::clicked, this, &MaterialPropertiesWidget::onURL);
 }
 
 void MaterialPropertiesWidget::onPhysicalAdd()
@@ -572,6 +586,46 @@ void MaterialPropertiesWidget::onPropertyChange(const QString& property, const Q
         updatePreview();
     }
     update();
+}
+
+void MaterialPropertiesWidget::onName(const QString& text)
+{
+    Q_EMIT setName(text);
+}
+
+void MaterialPropertiesWidget::onAuthor(const QString& text)
+{
+    Q_EMIT setAuthor(text);
+}
+
+void MaterialPropertiesWidget::onLicense(const QString& text)
+{
+    Q_EMIT setLicense(text);
+}
+
+void MaterialPropertiesWidget::onSourceURL(const QString& text)
+{
+    Q_EMIT setSourceURL(text);
+}
+
+void MaterialPropertiesWidget::onSourceReference(const QString& text)
+{
+    Q_EMIT setSourceReference(text);
+}
+
+void MaterialPropertiesWidget::onDescription()
+{
+    Q_EMIT setDescription(ui->editDescription->toPlainText());
+}
+
+void MaterialPropertiesWidget::onURL(bool checked)
+{
+    Q_UNUSED(checked)
+
+    QString url = ui->editSourceURL->text();
+    if (!url.isEmpty()) {
+        QDesktopServices::openUrl(QUrl(url, QUrl::TolerantMode));
+    }
 }
 
 #include "moc_MaterialPropertiesWidget.cpp"

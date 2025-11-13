@@ -99,18 +99,17 @@ public:
 
     void onTreeItemChanged(QStandardItem* item);
 
-    void onName(const QString& text);
-    void onAuthor(const QString& text);
-    void onLicense(const QString& text);
-    void onSourceURL(const QString& text);
-    void onSourceReference(const QString& text);
-    void onDescription();
+    void onName(const QString& name);
+    void onAuthor(const QString& author);
+    void onLicense(const QString& license);
+    void onSourceURL(const QString& url);
+    void onSourceReference(const QString& reference);
+    void onDescription(const QString& description);
 
     void onInheritNewMaterial(bool checked);
     void onNewMaterial(bool checked);
     void onFavourite(bool checked);
     void onAdvancedSearch(bool checked);
-    void onURL(bool checked);
     void onPhysicalAdd();
     void onPhysicalRemove(const QString& propertyName);
     void onAppearanceAdd();
