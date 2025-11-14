@@ -302,7 +302,7 @@ void MaterialPropertiesWidget::updateMaterialGeneral()
         ui->editParent->clear();
         ui->editSourceURL->clear();
         ui->editSourceReference->clear();
-        ui->editTags->clear();
+        // ui->editTags->clear();
         ui->editDescription->clear();
     }
 
