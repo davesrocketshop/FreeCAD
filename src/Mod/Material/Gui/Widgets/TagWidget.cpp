@@ -265,7 +265,8 @@ void TagWidget::keyPressEvent(QKeyEvent* event)
                     editPreviousTag();
                 }
                 break;
-            case Qt::Key_Space:
+            case Qt::Key_Comma:
+            case Qt::Key_Return:
                 if (!editorText().isEmpty()) {
                     editNewTag(_editingIndex + 1);
                 }
