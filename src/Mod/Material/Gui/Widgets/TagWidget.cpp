@@ -58,9 +58,9 @@ TagWidget::TagWidget(QWidget* parent)
     setMouseTracking(true);
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
-    // impl->setupCompleter();
-    // impl->setCursorVisible(hasFocus(), this);
-    // impl->updateDisplayText();
+    // setupCompleter();
+    setCursorVisible(hasFocus(), this);
+    updateDisplayText();
 
     viewport()->setContentsMargins(1, 1, 1, 1);
 }
@@ -147,7 +147,7 @@ void TagWidget::timerEvent(QTimerEvent* event)
 //     bool keep_cursor_visible = true;
 //     EVERLOAD_TAGS_SCOPE_EXIT
 //     {
-//         impl->update1(keep_cursor_visible);
+//         update1(keep_cursor_visible);
 //     };
 
 //     // remove or edit a tag
@@ -358,6 +358,17 @@ void TagWidget::ensureCursorIsVisibleH()
     }
 }
 
+void TagWidget::update1(bool keep_cursor_visible)
+{
+    updateDisplayText();
+    calcRectsUpdateScrollRanges();
+    if (keep_cursor_visible) {
+        ensureCursorIsVisibleV();
+        ensureCursorIsVisibleH();
+    }
+    updateCursorBlinking(this);
+    viewport()->update();
+}
 
 QSize TagWidget::sizeHint() const
 {
@@ -391,7 +402,7 @@ void TagWidget::setTags(std::vector<QString> const& tags)
         Base::Console().log("\t%s\n", tag.toStdString().c_str());
     }
     _setTags(tags);
-    // impl->update1();
+    update1();
 }
 
 std::vector<QString> TagWidget::getTags() const

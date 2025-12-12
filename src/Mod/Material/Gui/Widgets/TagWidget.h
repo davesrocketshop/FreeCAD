@@ -139,8 +139,14 @@ private:
     void setCursorVisible(bool visible, QObject* ifce);
     void ensureCursorIsVisibleV();
     void ensureCursorIsVisibleH();
+    void update1(bool keep_cursor_visible = true);
     void drawEditor(QPainter& p, QPalette const& palette, QPoint const& offset) const;
     QVector<QTextLayout::FormatRange> formatting(QPalette const& palette) const;
+
+    void updateCursorBlinking(QObject* ifce)
+    {
+        setCursorVisible(blink_timer, ifce);
+    }
 
     QPoint offset() const
     {
