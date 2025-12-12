@@ -22,6 +22,7 @@
 #ifndef MATGUI_TAGWIDGET_H
 #define MATGUI_TAGWIDGET_H
 
+#include <QCompleter>
 #include <QWidget>
 
 namespace MatGui
@@ -60,16 +61,22 @@ public:
     /// Clear tags
     void clear();
 
+    /// Set list of completions
+    void completion(std::vector<QString> const& completions);
+
+Q_SIGNALS:
+    void tagsEdited();
+
 protected:
     // QWidget
     void paintEvent(QPaintEvent* event) override;
     void timerEvent(QTimerEvent* event) override;
-    // void mousePressEvent(QMouseEvent* event) override;
+    void mousePressEvent(QMouseEvent* event) override;
     void resizeEvent(QResizeEvent* event) override;
     void focusInEvent(QFocusEvent* event) override;
     void focusOutEvent(QFocusEvent* event) override;
-    // void keyPressEvent(QKeyEvent* event) override;
-    // void mouseMoveEvent(QMouseEvent* event) override;
+    void keyPressEvent(QKeyEvent* event) override;
+    void mouseMoveEvent(QMouseEvent* event) override;
 
 private:
     std::vector<Tag> tags {Tag {}};
@@ -80,6 +87,7 @@ private:
     int select_start {0};
     int select_size {0};
     QTextLayout text_layout;
+    std::unique_ptr<QCompleter> completer {new QCompleter {}};
     std::chrono::steady_clock::time_point focused_at {};
 
     // Behaviour config
@@ -120,6 +128,7 @@ private:
 
     void _setTags(std::vector<QString> const& tags);
     bool isCurrentTagADuplicate() const;
+    void setupCompleter();
 
     qreal cursorToX();
     void moveCursor(int pos, bool mark);
@@ -128,6 +137,9 @@ private:
     bool hasSelection() const noexcept;
     void selectAll();
     void removeSelection();
+    void removeBackwardOne();
+    void removeDuplicates();
+    void removeDuplicates(std::vector<Tag>& tags);
 
     void calcRects(QRect r, QPoint& lt, QFontMetrics const& fm);
     QRect calcRects(QRect r);
@@ -142,10 +154,23 @@ private:
     void update1(bool keep_cursor_visible = true);
     void drawEditor(QPainter& p, QPalette const& palette, QPoint const& offset) const;
     QVector<QTextLayout::FormatRange> formatting(QPalette const& palette) const;
+    void setEditorIndex(size_t i);
+    void editNewTag(size_t i);
+    void editPreviousTag();
+    void editNextTag();
+    void editTag(size_t i);
+    void removeTag(size_t i);
+    bool isAcceptableInput(QKeyEvent const& event);
+    void setEditorText(QString const& text);
 
     void updateCursorBlinking(QObject* ifce)
     {
         setCursorVisible(blink_timer, ifce);
+    }
+
+    auto elapsed(std::chrono::steady_clock::time_point const& ts)
+    {
+        return std::chrono::steady_clock::now() - ts;
     }
 
     QPoint offset() const
@@ -153,17 +178,23 @@ private:
         return QPoint {horizontalScrollBar()->value(), verticalScrollBar()->value()};
     }
 
+    bool inCrossArea(size_t tag_index, QPoint const& point, QPoint const& offset) const
+    {
+        return crossRect(tags[tag_index].rect).adjusted(-1, -1, 1, 1).translated(-offset).contains(point)
+            && (!cursorVisible() || tag_index != editing_index);
+    }
+
     QRect const& editorRect() const
     {
         return tags[editing_index].rect;
     }
 
-    QString editorText()
+    QString& editorText()
     {
         return tags[editing_index].text;
     }
 
-    QString editorText() const
+    QString const& editorText() const
     {
         return tags[editing_index].text;
     }

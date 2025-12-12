@@ -58,7 +58,7 @@ TagWidget::TagWidget(QWidget* parent)
     setMouseTracking(true);
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
-    // setupCompleter();
+    setupCompleter();
     setCursorVisible(hasFocus(), this);
     updateDisplayText();
 
@@ -73,6 +73,16 @@ TagWidget::~TagWidget() = default;
 //     // no need to delete child widgets, Qt does it all for us
 //     // but we can't use default as Ui_PropertiesWidget is undefined
 // }
+
+void TagWidget::setupCompleter()
+{
+    completer->setWidget(this);
+    QObject::connect(
+        completer.get(),
+        qOverload<QString const&>(&QCompleter::activated),
+        [this](QString const& text) { setEditorText(text); }
+    );
+}
 
 void TagWidget::resizeEvent(QResizeEvent* event)
 {
@@ -136,68 +146,173 @@ void TagWidget::timerEvent(QTimerEvent* event)
     }
 }
 
-// void TagWidget::mousePressEvent(QMouseEvent* event)
-// {
-//     // we don't want to change cursor position if this event is part of focusIn
-//     using namespace std::chrono_literals;
-//     if (impl->restore_cursor_position_on_focus_click && elapsed(impl->focused_at) < 1ms) {
-//         return;
-//     }
+void TagWidget::mousePressEvent(QMouseEvent* event)
+{
+    // we don't want to change cursor position if this event is part of focusIn
+    using namespace std::chrono_literals;
+    if (restore_cursor_position_on_focus_click && elapsed(focused_at) < 1ms) {
+        return;
+    }
 
-//     bool keep_cursor_visible = true;
-//     EVERLOAD_TAGS_SCOPE_EXIT
-//     {
-//         update1(keep_cursor_visible);
-//     };
+    bool keep_cursor_visible = true;
+    // EVERLOAD_TAGS_SCOPE_EXIT
+    // {
+    //     update1(keep_cursor_visible);
+    // };
 
-//     // remove or edit a tag
-//     for (size_t i = 0; i < impl->tags.size(); ++i) {
-//         if (!impl->tags[i].rect.translated(-impl->offset()).contains(event->pos())) {
-//             continue;
-//         }
+    // remove or edit a tag
+    for (size_t i = 0; i < tags.size(); ++i) {
+        if (!tags[i].rect.translated(-offset()).contains(event->pos())) {
+            continue;
+        }
 
-//         if (impl->inCrossArea(i, event->pos(), impl->offset())) {
-//             impl->removeTag(i);
-//             keep_cursor_visible = false;
-//         }
-//         else if (impl->editing_index == i) {
-//             impl->moveCursor(
-//                 impl->text_layout.lineAt(0).xToCursor(
-//                     (event->pos()
-//                      - (impl->editorRect() - impl->pill_thickness).translated(-impl->offset()).topLeft())
-//                         .x()
-//                 ),
-//                 false
-//             );
-//         }
-//         else {
-//             impl->editTag(i);
-//         }
+        if (inCrossArea(i, event->pos(), offset())) {
+            removeTag(i);
+            keep_cursor_visible = false;
+        }
+        else if (editing_index == i) {
+            moveCursor(
+                text_layout.lineAt(0).xToCursor(
+                    (event->pos()
+                     - (editorRect() - pill_thickness).translated(-offset()).topLeft())
+                        .x()
+                ),
+                false
+            );
+        }
+        else {
+            editTag(i);
+        }
 
-//         return;
-//     }
+        update1(keep_cursor_visible);
+        return;
+    }
 
-//     // add new tag closest to the cursor
-//     for (auto it = begin(impl->tags); it != end(impl->tags); ++it) {
-//         // find the row
-//         if (it->rect.translated(-impl->offset()).bottom() < event->pos().y()) {
-//             continue;
-//         }
+    // add new tag closest to the cursor
+    for (auto it = begin(tags); it != end(tags); ++it) {
+        // find the row
+        if (it->rect.translated(-offset()).bottom() < event->pos().y()) {
+            continue;
+        }
 
-//         // find the closest spot
-//         auto const row = it->rect.translated(-impl->offset()).top();
-//         while (it != end(impl->tags) && it->rect.translated(-impl->offset()).top() == row
-//                && event->pos().x() > it->rect.translated(-impl->offset()).left()) {
-//             ++it;
-//         }
+        // find the closest spot
+        auto const row = it->rect.translated(-offset()).top();
+        while (it != end(tags) && it->rect.translated(-offset()).top() == row
+               && event->pos().x() > it->rect.translated(-offset()).left()) {
+            ++it;
+        }
 
-//         impl->editNewTag(static_cast<size_t>(std::distance(begin(impl->tags), it)));
-//         return;
-//     }
+        editNewTag(static_cast<size_t>(std::distance(begin(tags), it)));
+        update1(keep_cursor_visible);
+        return;
+    }
 
-//     // append a new nag
-//     impl->editNewTag(impl->tags.size());
-// }
+    // append a new nag
+    editNewTag(tags.size());
+    update1(keep_cursor_visible);
+}
+
+void TagWidget::keyPressEvent(QKeyEvent* event)
+{
+    if (read_only) {
+        return;
+    }
+
+    if (event == QKeySequence::SelectAll) {
+        selectAll();
+    }
+    else if (event == QKeySequence::SelectPreviousChar) {
+        moveCursor(text_layout.previousCursorPosition(cursor), true);
+    }
+    else if (event == QKeySequence::SelectNextChar) {
+        moveCursor(text_layout.nextCursorPosition(cursor), true);
+    }
+    else {
+        switch (event->key()) {
+            case Qt::Key_Left:
+                if (cursor == 0) {
+                    editPreviousTag();
+                }
+                else {
+                    moveCursor(text_layout.previousCursorPosition(cursor), false);
+                }
+                break;
+            case Qt::Key_Right:
+                if (cursor == editorText().size()) {
+                    editNextTag();
+                }
+                else {
+                    moveCursor(text_layout.nextCursorPosition(cursor), false);
+                }
+                break;
+            case Qt::Key_Home:
+                if (cursor == 0) {
+                    editTag(0);
+                }
+                else {
+                    moveCursor(0, false);
+                }
+                break;
+            case Qt::Key_End:
+                if (cursor == editorText().size()) {
+                    editTag(tags.size() - 1);
+                }
+                else {
+                    moveCursor(editorText().length(), false);
+                }
+                break;
+            case Qt::Key_Backspace:
+                if (!editorText().isEmpty()) {
+                    removeBackwardOne();
+                }
+                else if (editing_index > 0) {
+                    editPreviousTag();
+                }
+                break;
+            case Qt::Key_Space:
+                if (!editorText().isEmpty()) {
+                    editNewTag(editing_index + 1);
+                }
+                break;
+            default:
+                if (isAcceptableInput(*event)) {
+                    if (hasSelection()) {
+                        removeSelection();
+                    }
+                    editorText().insert(cursor, event->text());
+                    cursor = cursor + event->text().length();
+                    break;
+                }
+                else {
+                    event->setAccepted(false);
+                    return;
+                }
+        }
+    }
+
+    update1();
+
+    completer->setCompletionPrefix(editorText());
+    completer->complete();
+
+    Q_EMIT tagsEdited();
+}
+
+void TagWidget::mouseMoveEvent(QMouseEvent* event)
+{
+    for (size_t i = 0; i < tags.size(); ++i) {
+        if (inCrossArea(i, event->pos(), offset())) {
+            viewport()->setCursor(Qt::ArrowCursor);
+            return;
+        }
+    }
+    if (contentsRect().contains(event->pos())) {
+        viewport()->setCursor(Qt::IBeamCursor);
+    }
+    else {
+        QAbstractScrollArea::mouseMoveEvent(event);
+    }
+}
 
 /// Calculate the width that a tag would have with the given text width
 int TagWidget::pillWidth(int text_width, bool has_cross)
@@ -425,6 +540,16 @@ void TagWidget::clear()
     _setTags(tags);
 }
 
+void TagWidget::completion(std::vector<QString> const& completions)
+{
+    completer = std::make_unique<QCompleter>([&] {
+        QStringList ret;
+        std::copy(completions.begin(), completions.end(), std::back_inserter(ret));
+        return ret;
+    }());
+    setupCompleter();
+}
+
 void TagWidget::_setTags(std::vector<QString> const& tags)
 {
     std::unordered_set<QString> unique_tags;
@@ -521,6 +646,135 @@ QVector<QTextLayout::FormatRange> TagWidget::formatting(QPalette const& palette)
     selection.format.setBackground(palette.brush(QPalette::Highlight));
     selection.format.setForeground(palette.brush(QPalette::HighlightedText));
     return {selection};
+}
+
+/// Makes the tag at `i` currently editing, and ensures Invariant-1 and Invariant-2`.
+void TagWidget::setEditorIndex(size_t i)
+{
+    assert(i < tags.size());
+    if (editorText().isEmpty() || (unique && isCurrentTagADuplicate())) {
+        tags.erase(std::next(begin(tags), static_cast<std::ptrdiff_t>(editing_index)));
+        if (editing_index <= i) {  // Did we shift `i`?
+            --i;
+        }
+    }
+    editing_index = i;
+}
+
+// Inserts a new tag at `i`, makes the tag currently editing, and ensures Invariant-1.
+void TagWidget::editNewTag(size_t i)
+{
+    assert(i <= tags.size());
+    tags.insert(begin(tags) + static_cast<std::ptrdiff_t>(i), Tag {});
+    if (i <= editing_index) {  // Did we shift `editing_index`?
+        ++editing_index;
+    }
+    setEditorIndex(i);
+    moveCursor(0, false);
+}
+
+void TagWidget::editPreviousTag()
+{
+    if (editing_index > 0) {
+        setEditorIndex(editing_index - 1);
+        moveCursor(editorText().size(), false);
+    }
+}
+
+void TagWidget::editNextTag()
+{
+    if (editing_index < tags.size() - 1) {
+        setEditorIndex(editing_index + 1);
+        moveCursor(0, false);
+    }
+}
+
+void TagWidget::editTag(size_t i)
+{
+    assert(i < tags.size());
+    setEditorIndex(i);
+    moveCursor(editorText().size(), false);
+}
+
+void TagWidget::removeTag(size_t i)
+{
+    tags.erase(tags.begin() + static_cast<ptrdiff_t>(i));
+    if (i <= editing_index) {
+        --editing_index;
+    }
+}
+
+void TagWidget::removeBackwardOne()
+{
+    if (hasSelection()) {
+        removeSelection();
+    }
+    else {
+        editorText().remove(--cursor, 1);
+    }
+}
+
+void TagWidget::removeDuplicates()
+{
+    removeDuplicates(tags);
+    auto const it = std::find_if(tags.begin(), tags.end(), [](auto const& x) {
+        return x.text.isEmpty();  // Thanks to Invariant-1 we can track back the editing_index.
+    });
+    assert(it != tags.end());
+    editing_index = static_cast<size_t>(std::distance(tags.begin(), it));
+}
+
+void TagWidget::removeDuplicates(std::vector<Tag>& tags)
+{
+    std::unordered_map<QString, size_t> unique;
+    for (auto const i : std::views::iota(size_t {0}, tags.size())) {
+        unique.emplace(tags[i].text, i);
+    }
+
+    for (auto b = tags.rbegin(), it = b, e = tags.rend(); it != e;) {
+        if (auto const i = static_cast<size_t>(std::distance(it, e) - 1); unique.at(it->text) != i) {
+            tags.erase(it++.base() - 1);
+        }
+        else {
+            ++it;
+        }
+    }
+}
+
+bool TagWidget::isAcceptableInput(QKeyEvent const& event)
+{
+    auto const text = event.text();
+    if (text.isEmpty()) {
+        return false;
+    }
+
+    auto const c = text.at(0);
+
+    if (c.category() == QChar::Other_Format) {
+        return true;
+    }
+
+    if (event.modifiers() == Qt::ControlModifier
+        || event.modifiers() == (Qt::ShiftModifier | Qt::ControlModifier)) {
+        return false;
+    }
+
+    if (c.isPrint()) {
+        return true;
+    }
+
+    if (c.category() == QChar::Other_PrivateUse) {
+        return true;
+    }
+
+    return false;
+}
+
+void TagWidget::setEditorText(QString const& text)
+{
+    editorText() = text;
+    moveCursor(editorText().length(), false);
+    update1();
 }
 
 #include "moc_TagWidget.cpp"
