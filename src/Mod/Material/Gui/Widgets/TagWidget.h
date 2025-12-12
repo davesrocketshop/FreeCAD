@@ -31,11 +31,11 @@ namespace MatGui
 struct Tag
 {
     QString text;
-    QRect rect;
+    QRect rectangle;
 
     bool operator==(Tag const& rhs) const
     {
-        return text == rhs.text && rect == rhs.rect;
+        return text == rhs.text && rectangle == rhs.rectangle;
     }
 };
 // typedef std::ranges::output_range<Tag> TagRange;
@@ -51,7 +51,7 @@ public:
 
     QSize sizeHint() const override;
     QSize minimumSizeHint() const override;
-    int heightForWidth(int w) const override;
+    int heightForWidth(int width) const override;
 
     /// Set tags
     void setTags(std::vector<QString> const& tags);
@@ -142,9 +142,9 @@ private:
     void removeDuplicates();
     void removeDuplicates(std::vector<Tag>& tags);
 
-    void calcRects(QRect r, QPoint& leftTop, QFontMetrics const& metrics);
-    QRect calcRects(QRect r);
-    QRect calcRects();
+    void calculateRectangles(QRect rectangle, QPoint& leftTop, QFontMetrics const& metrics);
+    QRect calculateRectangles(QRect rectangle);
+    QRect calculateRectangles();
     void calcRectsUpdateScrollRanges();
     void updateVScrollRange();
     void updateHScrollRange();
@@ -181,13 +181,13 @@ private:
 
     bool inCrossArea(size_t tag_index, QPoint const& point, QPoint const& offset) const
     {
-        return crossRect(_tags[tag_index].rect).adjusted(-1, -1, 1, 1).translated(-offset).contains(point)
+        return crossRectangle(_tags[tag_index].rectangle).adjusted(-1, -1, 1, 1).translated(-offset).contains(point)
             && (!cursorVisible() || tag_index != _editingIndex);
     }
 
     QRect const& editorRect() const
     {
-        return _tags[_editingIndex].rect;
+        return _tags[_editingIndex].rectangle;
     }
 
     QString& editorText()
@@ -206,7 +206,7 @@ private:
     }
 
     template<std::ranges::output_range<Tag> Range>
-    static void calcRects(
+    static void calculateRectangles(
         QPoint& leftTop,
         Range&& tags,
         QFontMetrics const& metrics,
@@ -216,32 +216,32 @@ private:
     {
         for (auto& tag : tags) {
             auto const text_width = metrics.horizontalAdvance(tag.text);
-            QRect rect(leftTop, QSize(pillWidth(text_width, hasCross), pillHeight(metrics.height())));
+            QRect rectangle(leftTop, QSize(pillWidth(text_width, hasCross), pillHeight(metrics.height())));
 
             if (fit) {
                 if (
-                    fit->right() < rect.right() &&  // doesn't fit in current line
-                    rect.left() != fit->left()      // doesn't occupy entire line already
+                    fit->right() < rectangle.right() &&  // doesn't fit in current line
+                    rectangle.left() != fit->left()      // doesn't occupy entire line already
                 ) {
-                    rect.moveTo(fit->left(), rect.bottom() + _tagVerticalSpacing);
-                    leftTop = rect.topLeft();
+                    rectangle.moveTo(fit->left(), rectangle.bottom() + _tagVerticalSpacing);
+                    leftTop = rectangle.topLeft();
                 }
             }
 
-            tag.rect = rect;
-            leftTop.setX(rect.right() + _pillsHorizontalSpacing);
+            tag.rectangle = rectangle;
+            leftTop.setX(rectangle.right() + _pillsHorizontalSpacing);
         }
     }
 
     template<std::ranges::output_range<Tag> Range>
-    void calcRects(
+    void calculateRectangles(
         QPoint& leftTop,
         Range&& tags,
         QFontMetrics const& metrics,
         std::optional<QRect> const& fit = std::nullopt
     ) const
     {
-        calcRects(leftTop, tags, metrics, fit, true);
+        calculateRectangles(leftTop, tags, metrics, fit, true);
     }
 
     template<std::ranges::input_range Range>
@@ -254,12 +254,12 @@ private:
     )
     {
         for (auto const& tag : tags) {
-            QRect const& i_r = tag.rect.translated(offset);
+            QRect const& i_r = tag.rectangle.translated(offset);
             auto const text_pos = i_r.topLeft()
                 + QPointF(_pillThickness.left(),
                           metrics.ascent() + ((i_r.height() - metrics.height()) / 2));
 
-            // draw tag rect
+            // draw tag rectangle
             QPainterPath path;
             path.addRoundedRect(i_r, _roundingXRadius, _roundingYRadius);
             painter.fillPath(path, _tagColor);
@@ -268,7 +268,7 @@ private:
             painter.drawText(text_pos, tag.text);
 
             if (hasCross) {
-                auto const i_cross_r = crossRect(i_r, _tagCrossSize);
+                auto const i_cross_r = crossRectangle(i_r, _tagCrossSize);
 
                 QPen pen = painter.pen();
                 pen.setWidth(2);
@@ -289,16 +289,16 @@ private:
         drawTags(painter, range, fontMetrics(), -offset(), !_readOnly);
     }
 
-    static QRectF crossRect(QRectF const& rect, qreal crossSize)
+    static QRectF crossRectangle(QRectF const& rectangle, qreal crossSize)
     {
         QRectF cross(QPointF {0, 0}, QSizeF {crossSize, crossSize});
-        cross.moveCenter(QPointF(rect.right() - crossSize, rect.center().y()));
+        cross.moveCenter(QPointF(rectangle.right() - crossSize, rectangle.center().y()));
         return cross;
     }
 
-    QRectF crossRect(QRectF const& rect) const
+    QRectF crossRectangle(QRectF const& rectangle) const
     {
-        return crossRect(rect, _tagCrossSize);
+        return crossRectangle(rectangle, _tagCrossSize);
     }
 };
 

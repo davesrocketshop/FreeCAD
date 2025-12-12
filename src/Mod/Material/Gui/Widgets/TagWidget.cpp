@@ -158,7 +158,7 @@ void TagWidget::mousePressEvent(QMouseEvent* event)
 
     // remove or edit a tag
     for (size_t i = 0; i < _tags.size(); ++i) {
-        if (!_tags[i].rect.translated(-offset()).contains(event->pos())) {
+        if (!_tags[i].rectangle.translated(-offset()).contains(event->pos())) {
             continue;
         }
 
@@ -187,14 +187,14 @@ void TagWidget::mousePressEvent(QMouseEvent* event)
     // add new tag closest to the cursor
     for (auto it = begin(_tags); it != end(_tags); ++it) {
         // find the row
-        if (it->rect.translated(-offset()).bottom() < event->pos().y()) {
+        if (it->rectangle.translated(-offset()).bottom() < event->pos().y()) {
             continue;
         }
 
         // find the closest spot
-        auto const row = it->rect.translated(-offset()).top();
-        while (it != end(_tags) && it->rect.translated(-offset()).top() == row
-               && event->pos().x() > it->rect.translated(-offset()).left()) {
+        auto const row = it->rectangle.translated(-offset()).top();
+        while (it != end(_tags) && it->rectangle.translated(-offset()).top() == row
+               && event->pos().x() > it->rectangle.translated(-offset()).left()) {
             ++it;
         }
 
@@ -324,36 +324,36 @@ int TagWidget::pillHeight(int textHeight)
     return textHeight + _pillThickness.top() + _pillThickness.bottom();
 }
 
-void TagWidget::calcRects(QRect r, QPoint& leftTop, QFontMetrics const& metrics)
+void TagWidget::calculateRectangles(QRect rectangle, QPoint& leftTop, QFontMetrics const& metrics)
 {
     auto const middle = _tags.begin() + static_cast<ptrdiff_t>(_editingIndex);
 
-    calcRects(leftTop, std::ranges::subrange(_tags.begin(), middle), metrics, r);
+    calculateRectangles(leftTop, std::ranges::subrange(_tags.begin(), middle), metrics, rectangle);
 
     if (cursorVisible() || !editorText().isEmpty()) {
-        calcRects(leftTop, std::ranges::subrange(middle, middle + 1), metrics, r);
+        calculateRectangles(leftTop, std::ranges::subrange(middle, middle + 1), metrics, rectangle);
     }
 
-    calcRects(leftTop, std::ranges::subrange(middle + 1, _tags.end()), metrics, r);
+    calculateRectangles(leftTop, std::ranges::subrange(middle + 1, _tags.end()), metrics, rectangle);
 }
 
-QRect TagWidget::calcRects(QRect r)
+QRect TagWidget::calculateRectangles(QRect rectangle)
 {
-    auto leftTop = r.topLeft();
+    auto leftTop = rectangle.topLeft();
     QFontMetrics metrics = fontMetrics();
-    calcRects(r, leftTop, metrics);
-    r.setBottom(leftTop.y() + pillHeight(metrics.height()) - 1);
-    return r;
+    calculateRectangles(rectangle, leftTop, metrics);
+    rectangle.setBottom(leftTop.y() + pillHeight(metrics.height()) - 1);
+    return rectangle;
 }
 
-QRect TagWidget::calcRects()
+QRect TagWidget::calculateRectangles()
 {
-    return calcRects(contentsRect());
+    return calculateRectangles(contentsRect());
 }
 
 void TagWidget::calcRectsUpdateScrollRanges()
 {
-    calcRects();
+    calculateRectangles();
     updateVScrollRange();
     updateHScrollRange();
 }
@@ -370,14 +370,14 @@ void TagWidget::updateVScrollRange()
     verticalScrollBar()->setPageStep(row_h);
     assert(!_tags.empty());  // Invariant-1
 
-    int top = _tags.front().rect.top();
-    int bottom = _tags.back().rect.bottom();
+    int top = _tags.front().rectangle.top();
+    int bottom = _tags.back().rectangle.bottom();
 
     if (_editingIndex == 0 && !(cursorVisible() || !editorText().isEmpty())) {
-        top = _tags[1].rect.top();
+        top = _tags[1].rectangle.top();
     }
     else if (_editingIndex == _tags.size() - 1 && !(cursorVisible() || !editorText().isEmpty())) {
-        bottom = _tags[_tags.size() - 2].rect.bottom();
+        bottom = _tags[_tags.size() - 2].rectangle.bottom();
     }
 
     auto const h = bottom - top + 1;
@@ -395,8 +395,8 @@ void TagWidget::updateHScrollRange()
 {
     assert(!_tags.empty());  // Invariant-1
     auto const width = std::max_element(begin(_tags), end(_tags), [](auto const& x, auto const& y) {
-                           return x.rect.width() < y.rect.width();
-                       })->rect.width();
+                           return x.rectangle.width() < y.rectangle.width();
+                       })->rectangle.width();
 
     auto const contents_rect_width = contentsRect().width();
 
@@ -491,18 +491,18 @@ QSize TagWidget::minimumSizeHint() const
 {
     ensurePolished();
     QFontMetrics metrics = fontMetrics();
-    QRect rect(0, 0, pillWidth(metrics.maxWidth(), true), pillHeight(metrics.height()));
-    rect += contentsMargins() + viewport()->contentsMargins() + viewportMargins();
-    return rect.size();
+    QRect rectangle(0, 0, pillWidth(metrics.maxWidth(), true), pillHeight(metrics.height()));
+    rectangle += contentsMargins() + viewport()->contentsMargins() + viewportMargins();
+    return rectangle.size();
 }
 
-int TagWidget::heightForWidth(int w) const
+int TagWidget::heightForWidth(int width) const
 {
-    auto const content_width = w;
+    auto const content_width = width;
     QRect contents_rect(0, 0, content_width, 100);
     contents_rect -= contentsMargins() + viewport()->contentsMargins() + viewportMargins();
     // auto tags = impl->tags;
-    contents_rect = const_cast<TagWidget*>(this)->calcRects(contents_rect);
+    contents_rect = const_cast<TagWidget*>(this)->calculateRectangles(contents_rect);
     contents_rect += contentsMargins() + viewport()->contentsMargins() + viewportMargins();
     return contents_rect.height();
 }
@@ -618,8 +618,8 @@ void TagWidget::removeSelection()
 
 void TagWidget::drawEditor(QPainter& painter, QPalette const& palette, QPoint const& offset) const
 {
-    auto const& r = editorRect();
-    auto const& txt_p = r.topLeft() + QPointF(_pillThickness.left(), _pillThickness.top());
+    auto const& rectangle = editorRect();
+    auto const& txt_p = rectangle.topLeft() + QPointF(_pillThickness.left(), _pillThickness.top());
     auto const f = formatting(palette);
     _textLayout.draw(&painter, txt_p - offset, f);
     if (_blinkStatus) {
