@@ -23,6 +23,10 @@
 #ifndef _PreComp_
 #endif
 
+#include <QStyleHints>
+
+#include <Base/Console.h>
+
 #include "TagWidget.h"
 
 using namespace MatGui;
@@ -35,6 +39,10 @@ int TagWidget::pills_h_spacing = 7;
 int TagWidget::tag_v_spacing = 2;
 qreal TagWidget::tag_cross_size = 8;
 int TagWidget::tag_cross_spacing = 3;
+qreal TagWidget::rounding_x_radius = 5;
+qreal TagWidget::rounding_y_radius = 5;
+bool TagWidget::unique = true;
+QColor TagWidget::color {255, 164, 100, 100};
 
 TagWidget::TagWidget(QWidget* parent)
     : QAbstractScrollArea(parent)
@@ -64,6 +72,131 @@ TagWidget::~TagWidget() = default;
 // {
 //     // no need to delete child widgets, Qt does it all for us
 //     // but we can't use default as Ui_PropertiesWidget is undefined
+// }
+
+void TagWidget::resizeEvent(QResizeEvent* event)
+{
+    QAbstractScrollArea::resizeEvent(event);
+    calcRectsUpdateScrollRanges();
+}
+
+void TagWidget::focusInEvent(QFocusEvent* event)
+{
+    QAbstractScrollArea::focusInEvent(event);
+    focused_at = std::chrono::steady_clock::now();
+    setCursorVisible(true, this);
+    updateDisplayText();
+    calcRectsUpdateScrollRanges();
+    if (event->reason() != Qt::FocusReason::MouseFocusReason
+        || restore_cursor_position_on_focus_click) {
+        ensureCursorIsVisibleH();
+        ensureCursorIsVisibleV();
+    }
+    viewport()->update();
+}
+
+void TagWidget::focusOutEvent(QFocusEvent* event)
+{
+    QAbstractScrollArea::focusOutEvent(event);
+    setCursorVisible(false, this);
+    updateDisplayText();
+    calcRectsUpdateScrollRanges();
+    viewport()->update();
+}
+
+void TagWidget::paintEvent(QPaintEvent* e)
+{
+    QAbstractScrollArea::paintEvent(e);
+
+    QPainter p(viewport());
+
+    p.setClipRect(contentsRect());
+
+    auto const middle = tags.cbegin() + static_cast<ptrdiff_t>(editing_index);
+
+    // tags
+    drawTags(p, std::ranges::subrange(tags.cbegin(), middle));
+
+    if (cursorVisible()) {
+        drawEditor(p, palette(), offset());
+    }
+    else if (!editorText().isEmpty()) {
+        drawTags(p, std::ranges::subrange(middle, middle + 1));
+    }
+
+    // tags
+    drawTags(p, std::ranges::subrange(middle + 1, tags.cend()));
+}
+
+void TagWidget::timerEvent(QTimerEvent* event)
+{
+    if (event->timerId() == blink_timer) {
+        blink_status = !blink_status;
+        viewport()->update();
+    }
+}
+
+// void TagWidget::mousePressEvent(QMouseEvent* event)
+// {
+//     // we don't want to change cursor position if this event is part of focusIn
+//     using namespace std::chrono_literals;
+//     if (impl->restore_cursor_position_on_focus_click && elapsed(impl->focused_at) < 1ms) {
+//         return;
+//     }
+
+//     bool keep_cursor_visible = true;
+//     EVERLOAD_TAGS_SCOPE_EXIT
+//     {
+//         impl->update1(keep_cursor_visible);
+//     };
+
+//     // remove or edit a tag
+//     for (size_t i = 0; i < impl->tags.size(); ++i) {
+//         if (!impl->tags[i].rect.translated(-impl->offset()).contains(event->pos())) {
+//             continue;
+//         }
+
+//         if (impl->inCrossArea(i, event->pos(), impl->offset())) {
+//             impl->removeTag(i);
+//             keep_cursor_visible = false;
+//         }
+//         else if (impl->editing_index == i) {
+//             impl->moveCursor(
+//                 impl->text_layout.lineAt(0).xToCursor(
+//                     (event->pos()
+//                      - (impl->editorRect() - impl->pill_thickness).translated(-impl->offset()).topLeft())
+//                         .x()
+//                 ),
+//                 false
+//             );
+//         }
+//         else {
+//             impl->editTag(i);
+//         }
+
+//         return;
+//     }
+
+//     // add new tag closest to the cursor
+//     for (auto it = begin(impl->tags); it != end(impl->tags); ++it) {
+//         // find the row
+//         if (it->rect.translated(-impl->offset()).bottom() < event->pos().y()) {
+//             continue;
+//         }
+
+//         // find the closest spot
+//         auto const row = it->rect.translated(-impl->offset()).top();
+//         while (it != end(impl->tags) && it->rect.translated(-impl->offset()).top() == row
+//                && event->pos().x() > it->rect.translated(-impl->offset()).left()) {
+//             ++it;
+//         }
+
+//         impl->editNewTag(static_cast<size_t>(std::distance(begin(impl->tags), it)));
+//         return;
+//     }
+
+//     // append a new nag
+//     impl->editNewTag(impl->tags.size());
 // }
 
 /// Calculate the width that a tag would have with the given text width
@@ -106,6 +239,126 @@ QRect TagWidget::calcRects()
     return calcRects(contentsRect());
 }
 
+void TagWidget::calcRectsUpdateScrollRanges()
+{
+    calcRects();
+    updateVScrollRange();
+    updateHScrollRange();
+}
+
+void TagWidget::updateVScrollRange()
+{
+    if (tags.size() == 1 && tags.front().text.isEmpty()) {
+        verticalScrollBar()->setRange(0, 0);
+        return;
+    }
+
+    auto const fm = fontMetrics();
+    auto const row_h = pillHeight(fm.height()) + tag_v_spacing;
+    verticalScrollBar()->setPageStep(row_h);
+    assert(!tags.empty());  // Invariant-1
+
+    int top = tags.front().rect.top();
+    int bottom = tags.back().rect.bottom();
+
+    if (editing_index == 0 && !(cursorVisible() || !editorText().isEmpty())) {
+        top = tags[1].rect.top();
+    }
+    else if (editing_index == tags.size() - 1 && !(cursorVisible() || !editorText().isEmpty())) {
+        bottom = tags[tags.size() - 2].rect.bottom();
+    }
+
+    auto const h = bottom - top + 1;
+    auto const contents_rect = contentsRect();
+
+    if (contents_rect.height() < h) {
+        verticalScrollBar()->setRange(0, h - contents_rect.height());
+    }
+    else {
+        verticalScrollBar()->setRange(0, 0);
+    }
+}
+
+void TagWidget::updateHScrollRange()
+{
+    assert(!tags.empty());  // Invariant-1
+    auto const width = std::max_element(begin(tags), end(tags), [](auto const& x, auto const& y) {
+                           return x.rect.width() < y.rect.width();
+                       })->rect.width();
+
+    auto const contents_rect_width = contentsRect().width();
+
+    if (contents_rect_width < width) {
+        horizontalScrollBar()->setRange(0, width - contents_rect_width);
+    }
+    else {
+        horizontalScrollBar()->setRange(0, 0);
+    }
+}
+
+void TagWidget::updateDisplayText()
+{
+    text_layout.clearLayout();
+    text_layout.setText(editorText());
+    text_layout.beginLayout();
+    text_layout.createLine();
+    text_layout.endLayout();
+}
+
+void TagWidget::setCursorVisible(bool visible, QObject* ifce)
+{
+    if (blink_timer) {
+        killTimer(blink_timer);
+        blink_timer = 0;
+    }
+
+    if (visible) {
+        blink_status = true;
+        int flashTime = QGuiApplication::styleHints()->cursorFlashTime();
+        if (flashTime >= 2) {
+            blink_timer = startTimer(flashTime / 2);
+        }
+    }
+    else {
+        blink_status = false;
+    }
+}
+
+void TagWidget::ensureCursorIsVisibleV()
+{
+    if (!cursorVisible()) {
+        return;
+    }
+    auto const fm = fontMetrics();
+    auto const row_h = pillHeight(fm.height());
+    auto const vscroll = verticalScrollBar()->value();
+    auto const cursor_top = editorRect().topLeft() + QPoint(qRound(cursorToX()), 0);
+    auto const cursor_bottom = cursor_top + QPoint(0, row_h - 1);
+    auto const contents_rect = contentsRect().translated(0, vscroll);
+    if (contents_rect.bottom() < cursor_bottom.y()) {
+        verticalScrollBar()->setValue(cursor_bottom.y() - row_h);
+    }
+    else if (cursor_top.y() < contents_rect.top()) {
+        verticalScrollBar()->setValue(cursor_top.y() - 1);
+    }
+}
+
+void TagWidget::ensureCursorIsVisibleH()
+{
+    if (!cursorVisible()) {
+        return;
+    }
+    auto const contents_rect = contentsRect().translated(horizontalScrollBar()->value(), 0);
+    auto const cursor_x = (editorRect() - pill_thickness).left() + qRound(cursorToX());
+    if (contents_rect.right() < cursor_x) {
+        horizontalScrollBar()->setValue(cursor_x - contents_rect.width());
+    }
+    else if (cursor_x < contents_rect.left()) {
+        horizontalScrollBar()->setValue(cursor_x - 1);
+    }
+}
+
+
 QSize TagWidget::sizeHint() const
 {
     return minimumSizeHint();
@@ -129,6 +382,134 @@ int TagWidget::heightForWidth(int w) const
     contents_rect = const_cast<TagWidget*>(this)->calcRects(contents_rect);
     contents_rect += contentsMargins() + viewport()->contentsMargins() + viewportMargins();
     return contents_rect.height();
+}
+
+void TagWidget::setTags(std::vector<QString> const& tags)
+{
+    Base::Console().log("setTags():\n");
+    for (auto tag : tags) {
+        Base::Console().log("\t%s\n", tag.toStdString().c_str());
+    }
+    _setTags(tags);
+    // impl->update1();
+}
+
+std::vector<QString> TagWidget::getTags() const
+{
+    std::vector<QString> ret(tags.size());
+    std::transform(tags.begin(), tags.end(), ret.begin(), [](Tag const& tag) {
+        return tag.text;
+    });
+    assert(!ret.empty());  // Invariant-1
+    if (ret[editing_index].isEmpty() || (unique && isCurrentTagADuplicate())) {
+        ret.erase(ret.begin() + static_cast<std::ptrdiff_t>(editing_index));
+    }
+    return ret;
+}
+
+void TagWidget::clear()
+{
+    // Set tags to an empty list
+    std::vector<QString> tags;
+    _setTags(tags);
+}
+
+void TagWidget::_setTags(std::vector<QString> const& tags)
+{
+    std::unordered_set<QString> unique_tags;
+    std::vector<Tag> t;
+    for (auto const& x : tags) {
+        if (/* Invariant-1 */ !x.isEmpty()
+            && /* Invariant-2 */ (!unique || unique_tags.insert(x).second)) {
+            t.emplace_back(x, QRect {});
+        }
+    }
+    this->tags = std::move(t);
+    this->tags.push_back(Tag {});
+    editing_index = this->tags.size() - 1;
+    moveCursor(0, false);
+}
+
+bool TagWidget::isCurrentTagADuplicate() const
+{
+    assert(editing_index < tags.size());
+    auto const mid = tags.begin() + static_cast<std::ptrdiff_t>(editing_index);
+    auto const text_eq = [this](const Tag& x) {
+        return x.text == editorText();
+    };
+    return std::find_if(tags.begin(), mid, text_eq) != mid
+        || std::find_if(mid + 1, tags.end(), text_eq) != tags.end();
+}
+
+qreal TagWidget::cursorToX()
+{
+    return text_layout.lineAt(0).cursorToX(cursor);
+}
+
+void TagWidget::moveCursor(int pos, bool mark)
+{
+    if (mark) {
+        auto e = select_start + select_size;
+        int anchor = select_size > 0 && cursor == select_start ? e
+            : select_size > 0 && cursor == e                   ? select_start
+                                                               : cursor;
+        select_start = qMin(anchor, pos);
+        select_size = qMax(anchor, pos) - select_start;
+    }
+    else {
+        deselectAll();
+    }
+    cursor = pos;
+}
+
+void TagWidget::deselectAll()
+{
+    select_start = 0;
+    select_size = 0;
+}
+
+bool TagWidget::hasSelection() const noexcept
+{
+    return select_size > 0;
+}
+
+void TagWidget::selectAll()
+{
+    select_start = 0;
+    select_size = editorText().size();
+}
+
+void TagWidget::removeSelection()
+{
+    assert(select_start + select_size <= editorText().size());
+    cursor = select_start;
+    editorText().remove(cursor, select_size);
+    deselectAll();
+}
+
+void TagWidget::drawEditor(QPainter& p, QPalette const& palette, QPoint const& offset) const
+{
+    auto const& r = editorRect();
+    auto const& txt_p = r.topLeft() + QPointF(pill_thickness.left(), pill_thickness.top());
+    auto const f = formatting(palette);
+    text_layout.draw(&p, txt_p - offset, f);
+    if (blink_status) {
+        text_layout.drawCursor(&p, txt_p - offset, cursor);
+    }
+}
+
+QVector<QTextLayout::FormatRange> TagWidget::formatting(QPalette const& palette) const
+{
+    if (select_size == 0) {
+        return {};
+    }
+
+    QTextLayout::FormatRange selection;
+    selection.start = select_start;
+    selection.length = select_size;
+    selection.format.setBackground(palette.brush(QPalette::Highlight));
+    selection.format.setForeground(palette.brush(QPalette::HighlightedText));
+    return {selection};
 }
 
 #include "moc_TagWidget.cpp"
