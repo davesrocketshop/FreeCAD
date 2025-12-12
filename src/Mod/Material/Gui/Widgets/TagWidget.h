@@ -43,6 +43,7 @@ struct Tag
 class TagWidget: public QAbstractScrollArea
 {
     Q_OBJECT
+    Q_PROPERTY(std::vector<QString> tags READ getTags WRITE setTags RESET clear)
 
 public:
     explicit TagWidget(QWidget* parent = nullptr);
@@ -62,7 +63,7 @@ public:
     void clear();
 
     /// Set list of completions
-    void completion(std::vector<QString> const& completions);
+    void setCompletions(std::vector<QString> const& completions);
 
 Q_SIGNALS:
     void tagsEdited();
@@ -79,52 +80,52 @@ protected:
     void mouseMoveEvent(QMouseEvent* event) override;
 
 private:
-    std::vector<Tag> tags {Tag {}};
-    size_t editing_index {0};
-    int blink_timer {0};
-    bool blink_status {true};
-    int cursor {0};
-    int select_start {0};
-    int select_size {0};
-    QTextLayout text_layout;
-    std::unique_ptr<QCompleter> completer {new QCompleter {}};
-    std::chrono::steady_clock::time_point focused_at {};
+    std::vector<Tag> _tags {Tag {}};
+    size_t _editingIndex {0};
+    int _blinkTimer {0};
+    bool _blinkStatus {true};
+    int _cursor {0};
+    int _selectStart {0};
+    int _selectSize {0};
+    QTextLayout _textLayout;
+    std::unique_ptr<QCompleter> _completer {new QCompleter {}};
+    std::chrono::steady_clock::time_point _focusedAt {};
 
     // Behaviour config
-    bool restore_cursor_position_on_focus_click = false;
-    bool read_only = false;
+    bool _restoreCursorPositionOnFocusClick = false;
+    bool _readOnly = false;
 
     /// Padding from the text to the the pill border
-    static QMargins pill_thickness;
+    static QMargins _pillThickness;
 
     /// Space between pills
-    static int pills_h_spacing;
+    static int _pillsHorizontalSpacing;
 
     /// Space between rows of pills (for multi line tags)
-    static int tag_v_spacing;
+    static int _tagVerticalSpacing;
 
     /// Size of cross side
-    static qreal tag_cross_size;
+    static qreal _tagCrossSize;
 
     /// Distance between text and the cross
-    static int tag_cross_spacing;
+    static int _tagCrossSpacing;
 
     /// Rounding of the pill
-    static qreal rounding_x_radius;
+    static qreal _roundingXRadius;
 
     /// Rounding of the pill
-    static qreal rounding_y_radius;
+    static qreal _roundingYRadius;
 
     /// Maintain only unique tags
-    static bool unique;
+    static bool _uniqueTagsOnly;
 
-    static QColor color;
+    static QColor _tagColor;
 
     /// Calculate the width that a tag would have with the given text width
-    static int pillWidth(int text_width, bool has_cross);
+    static int pillWidth(int textWidth, bool hasCross);
 
     /// Calculate the height that a tag would have with the given text height
-    static int pillHeight(int text_height);
+    static int pillHeight(int textHeight);
 
     void _setTags(std::vector<QString> const& tags);
     bool isCurrentTagADuplicate() const;
@@ -141,18 +142,18 @@ private:
     void removeDuplicates();
     void removeDuplicates(std::vector<Tag>& tags);
 
-    void calcRects(QRect r, QPoint& lt, QFontMetrics const& fm);
+    void calcRects(QRect r, QPoint& leftTop, QFontMetrics const& metrics);
     QRect calcRects(QRect r);
     QRect calcRects();
     void calcRectsUpdateScrollRanges();
     void updateVScrollRange();
     void updateHScrollRange();
     void updateDisplayText();
-    void setCursorVisible(bool visible, QObject* ifce);
+    void setCursorVisible(bool visible);
     void ensureCursorIsVisibleV();
     void ensureCursorIsVisibleH();
-    void update1(bool keep_cursor_visible = true);
-    void drawEditor(QPainter& p, QPalette const& palette, QPoint const& offset) const;
+    void updateTagDisplay(bool keep_cursor_visible = true);
+    void drawEditor(QPainter& painter, QPalette const& palette, QPoint const& offset) const;
     QVector<QTextLayout::FormatRange> formatting(QPalette const& palette) const;
     void setEditorIndex(size_t i);
     void editNewTag(size_t i);
@@ -163,9 +164,9 @@ private:
     bool isAcceptableInput(QKeyEvent const& event);
     void setEditorText(QString const& text);
 
-    void updateCursorBlinking(QObject* ifce)
+    void updateCursorBlinking()
     {
-        setCursorVisible(blink_timer, ifce);
+        setCursorVisible(_blinkTimer);
     }
 
     auto elapsed(std::chrono::steady_clock::time_point const& ts)
@@ -180,124 +181,124 @@ private:
 
     bool inCrossArea(size_t tag_index, QPoint const& point, QPoint const& offset) const
     {
-        return crossRect(tags[tag_index].rect).adjusted(-1, -1, 1, 1).translated(-offset).contains(point)
-            && (!cursorVisible() || tag_index != editing_index);
+        return crossRect(_tags[tag_index].rect).adjusted(-1, -1, 1, 1).translated(-offset).contains(point)
+            && (!cursorVisible() || tag_index != _editingIndex);
     }
 
     QRect const& editorRect() const
     {
-        return tags[editing_index].rect;
+        return _tags[_editingIndex].rect;
     }
 
     QString& editorText()
     {
-        return tags[editing_index].text;
+        return _tags[_editingIndex].text;
     }
 
     QString const& editorText() const
     {
-        return tags[editing_index].text;
+        return _tags[_editingIndex].text;
     }
 
     bool cursorVisible() const
     {
-        return blink_timer;
+        return _blinkTimer;
     }
 
     template<std::ranges::output_range<Tag> Range>
     static void calcRects(
-        QPoint& lt,
+        QPoint& leftTop,
         Range&& tags,
-        QFontMetrics const& fm,
+        QFontMetrics const& metrics,
         std::optional<QRect> const& fit,
-        bool has_cross
+        bool hasCross
     )
     {
         for (auto& tag : tags) {
-            auto const text_width = fm.horizontalAdvance(tag.text);
-            QRect rect(lt, QSize(pillWidth(text_width, has_cross), pillHeight(fm.height())));
+            auto const text_width = metrics.horizontalAdvance(tag.text);
+            QRect rect(leftTop, QSize(pillWidth(text_width, hasCross), pillHeight(metrics.height())));
 
             if (fit) {
                 if (
                     fit->right() < rect.right() &&  // doesn't fit in current line
                     rect.left() != fit->left()      // doesn't occupy entire line already
                 ) {
-                    rect.moveTo(fit->left(), rect.bottom() + tag_v_spacing);
-                    lt = rect.topLeft();
+                    rect.moveTo(fit->left(), rect.bottom() + _tagVerticalSpacing);
+                    leftTop = rect.topLeft();
                 }
             }
 
             tag.rect = rect;
-            lt.setX(rect.right() + pills_h_spacing);
+            leftTop.setX(rect.right() + _pillsHorizontalSpacing);
         }
     }
 
     template<std::ranges::output_range<Tag> Range>
     void calcRects(
-        QPoint& lt,
+        QPoint& leftTop,
         Range&& tags,
-        QFontMetrics const& fm,
+        QFontMetrics const& metrics,
         std::optional<QRect> const& fit = std::nullopt
     ) const
     {
-        calcRects(lt, tags, fm, fit, true);
+        calcRects(leftTop, tags, metrics, fit, true);
     }
 
     template<std::ranges::input_range Range>
     static void drawTags(
-        QPainter& p,
+        QPainter& painter,
         Range&& tags,
-        QFontMetrics const& fm,
+        QFontMetrics const& metrics,
         QPoint const& offset,
-        bool has_cross
+        bool hasCross
     )
     {
         for (auto const& tag : tags) {
             QRect const& i_r = tag.rect.translated(offset);
             auto const text_pos = i_r.topLeft()
-                + QPointF(pill_thickness.left(),
-                          fm.ascent() + ((i_r.height() - fm.height()) / 2));
+                + QPointF(_pillThickness.left(),
+                          metrics.ascent() + ((i_r.height() - metrics.height()) / 2));
 
             // draw tag rect
             QPainterPath path;
-            path.addRoundedRect(i_r, rounding_x_radius, rounding_y_radius);
-            p.fillPath(path, color);
+            path.addRoundedRect(i_r, _roundingXRadius, _roundingYRadius);
+            painter.fillPath(path, _tagColor);
 
             // draw text
-            p.drawText(text_pos, tag.text);
+            painter.drawText(text_pos, tag.text);
 
-            if (has_cross) {
-                auto const i_cross_r = crossRect(i_r, tag_cross_size);
+            if (hasCross) {
+                auto const i_cross_r = crossRect(i_r, _tagCrossSize);
 
-                QPen pen = p.pen();
+                QPen pen = painter.pen();
                 pen.setWidth(2);
 
-                p.save();
-                p.setPen(pen);
-                p.setRenderHint(QPainter::Antialiasing);
-                p.drawLine(QLineF(i_cross_r.topLeft(), i_cross_r.bottomRight()));
-                p.drawLine(QLineF(i_cross_r.bottomLeft(), i_cross_r.topRight()));
-                p.restore();
+                painter.save();
+                painter.setPen(pen);
+                painter.setRenderHint(QPainter::Antialiasing);
+                painter.drawLine(QLineF(i_cross_r.topLeft(), i_cross_r.bottomRight()));
+                painter.drawLine(QLineF(i_cross_r.bottomLeft(), i_cross_r.topRight()));
+                painter.restore();
             }
         }
     }
 
     template<std::ranges::input_range Range>
-    void drawTags(QPainter& p, Range range) const
+    void drawTags(QPainter& painter, Range range) const
     {
-        drawTags(p, range, fontMetrics(), -offset(), !read_only);
+        drawTags(painter, range, fontMetrics(), -offset(), !_readOnly);
     }
 
-    static QRectF crossRect(QRectF const& r, qreal cross_size)
+    static QRectF crossRect(QRectF const& rect, qreal crossSize)
     {
-        QRectF cross(QPointF {0, 0}, QSizeF {cross_size, cross_size});
-        cross.moveCenter(QPointF(r.right() - cross_size, r.center().y()));
+        QRectF cross(QPointF {0, 0}, QSizeF {crossSize, crossSize});
+        cross.moveCenter(QPointF(rect.right() - crossSize, rect.center().y()));
         return cross;
     }
 
-    QRectF crossRect(QRectF const& r) const
+    QRectF crossRect(QRectF const& rect) const
     {
-        return crossRect(r, tag_cross_size);
+        return crossRect(rect, _tagCrossSize);
     }
 };
 
