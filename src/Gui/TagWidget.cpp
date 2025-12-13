@@ -29,9 +29,9 @@
 
 #include "TagWidget.h"
 
-using namespace MatGui;
+using namespace Gui;
 
-/* TRANSLATOR MatGui::MaterialsEditor */
+/* TRANSLATOR Gui::TagWidget */
 
 // Initialize static variables
 QMargins TagWidget::_pillThickness = {7, 7, 8, 7};
@@ -47,7 +47,6 @@ QColor TagWidget::_tagColor {255, 164, 100, 100};
 TagWidget::TagWidget(QWidget* parent)
     : QAbstractScrollArea(parent)
 {
-    // ui->setupUi(this);
     QSizePolicy size_policy(QSizePolicy::Ignored, QSizePolicy::Preferred);
     size_policy.setHeightForWidth(true);
     setSizePolicy(size_policy);

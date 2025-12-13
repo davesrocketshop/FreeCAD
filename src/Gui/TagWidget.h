@@ -19,13 +19,16 @@
  *                                                                         *
  **************************************************************************/
 
-#ifndef MATGUI_TAGWIDGET_H
-#define MATGUI_TAGWIDGET_H
+#ifndef GUI_TAGWIDGET_H
+#define GUI_TAGWIDGET_H
+
+#include <FCGlobal.h>
+#include <memory>
 
 #include <QCompleter>
 #include <QWidget>
 
-namespace MatGui
+namespace Gui
 {
 
 struct Tag
@@ -40,7 +43,7 @@ struct Tag
 };
 // typedef std::ranges::output_range<Tag> TagRange;
 
-class TagWidget: public QAbstractScrollArea
+class GuiExport TagWidget: public QAbstractScrollArea
 {
     Q_OBJECT
     Q_PROPERTY(std::vector<QString> tags READ getTags WRITE setTags RESET clear)
@@ -302,6 +305,6 @@ private:
     }
 };
 
-}  // namespace MatGui
+}  // namespace Gui
 
-#endif  // MATGUI_TAGWIDGET_H
+#endif  // GUI_TAGWIDGET_H

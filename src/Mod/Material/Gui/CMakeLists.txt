@@ -137,8 +137,6 @@ SET(MatGui_SRCS
     Widgets/PropertiesWidget.cpp
     Widgets/PropertiesWidget.h
     Widgets/PropertiesWidget.ui
-    Widgets/TagWidget.cpp
-    Widgets/TagWidget.h
 )
 if(BUILD_MATERIAL_EXTERNAL)
     list(APPEND MatGui_SRCS

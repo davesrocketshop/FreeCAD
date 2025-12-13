@@ -142,7 +142,8 @@
           </widget>
          </item>
          <item row="6" column="2">
-          <widget class="TagWidget" name="editTags" native="true"/>
+          <widget class="Gui::TagWidget" name="editTags">
+          </widget>
          </item>
         </layout>
        </item>
@@ -251,10 +252,9 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>TagWidget</class>
-   <extends>QWidget</extends>
-   <header>Mod\Material\Gui\Widgets\TagWidget.h</header>
-   <container>1</container>
+   <class>Gui::TagWidget</class>
+   <extends>QAbstractScrollArea</extends>
+   <header>Gui/TagWidget.h</header>
   </customwidget>
  </customwidgets>
  <resources/>
