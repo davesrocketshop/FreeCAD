@@ -43,11 +43,14 @@ set(MatGui_UIC_SRCS
     DlgSettingsDefaultMaterial.ui
     DlgSettingsMaterial.ui
     ImageEdit.ui
+    LibraryType.ui
     ListEdit.ui
     MaterialSave.ui
     MaterialsEditor.ui
     ModelSelect.ui
     TextEdit.ui
+    Widgets/MaterialPropertiesWidget.ui
+    Widgets/PropertiesWidget.ui
 )
 if(BUILD_MATERIAL_EXTERNAL)
     list(APPEND MatGui_UIC_SRCS
@@ -97,6 +100,9 @@ SET(MatGui_SRCS
     ImageEdit.cpp
     ImageEdit.h
     ImageEdit.ui
+    LibraryType.cpp
+    LibraryType.h
+    LibraryType.ui
     ListDelegate.cpp
     ListDelegate.h
     ListEdit.cpp
@@ -125,6 +131,12 @@ SET(MatGui_SRCS
     Workbench.h
     WorkbenchManipulator.cpp
     WorkbenchManipulator.h
+    Widgets/MaterialPropertiesWidget.cpp
+    Widgets/MaterialPropertiesWidget.h
+    Widgets/MaterialPropertiesWidget.ui
+    Widgets/PropertiesWidget.cpp
+    Widgets/PropertiesWidget.h
+    Widgets/PropertiesWidget.ui
 )
 if(BUILD_MATERIAL_EXTERNAL)
     list(APPEND MatGui_SRCS
@@ -140,6 +152,7 @@ endif(BUILD_MATERIAL_EXTERNAL)
 SET(MatGuiIcon_SVG
     Resources/icons/list.svg
     Resources/icons/Material_Edit.svg
+    Resources/icons/Material_Library.svg
     Resources/icons/MaterialWorkbench.svg
     Resources/icons/multiline.svg
     Resources/icons/preferences-material.svg

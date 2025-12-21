@@ -921,6 +921,26 @@ private:
     QByteArray m_sPrefName;
     QByteArray m_sPrefGrp;
 };
+
+// ------------------------------------------------------------------------------
+
+class TagWidget: public QAbstractScrollArea
+{
+    Q_OBJECT
+
+    Q_PROPERTY(std::vector<QString> tags READ getTags WRITE setTags RESET clear)
+
+public:
+    TagWidget(QWidget* parent = 0);
+    virtual ~TagWidget();
+
+    void setTags(std::vector<QString> const& tags);
+    std::vector<QString> getTags() const;
+    void clear();
+
+private:
+    std::vector<QString> m_tags;
+};
 }  // namespace Gui
 
 #endif  // GUI_CUSTOMWIDGETS_H
