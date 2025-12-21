@@ -299,7 +299,7 @@ void MaterialsEditor::createActions()
     _actionNewLibrary.setIcon(_actionNewLocalLibraryIcon);
     _actionNewLibrary.setToolTip(tr("New library"));
 
-    #if defined(BUILD_MATERIAL_EXTERNAL)
+#if defined(BUILD_MATERIAL_EXTERNAL)
     _actionNewRemoteLibrary.setText(tr("New remote library"));
     _actionNewRemoteLibraryIcon = QIcon(QStringLiteral(":/icons/Material_Library.svg"));
     _actionNewRemoteLibrary.setIcon(_actionNewRemoteLibraryIcon);
@@ -350,6 +350,13 @@ void MaterialsEditor::createActions()
 
     _actionRename.setText(tr("Rename"));
     _actionDelete.setText(tr("Delete"));
+
+    _actionEnableDisable.setText(tr("Disable"));
+    // _actionEnableDisable = QIcon(QStringLiteral(":/icons/Material_Library.svg"));
+    // _actionEnableDisable.setIcon(_actionNewLocalLibraryIcon);
+    _actionEnableDisable.setToolTip(tr("Enable or disable a library"));
+    
+    _actionLibraryProperties.setText(tr("Properties..."));
 }
 
 void MaterialsEditor::updateMaterial()
@@ -1364,6 +1371,9 @@ void MaterialsEditor::libraryContextMenu(QMenu& contextMenu)
     contextMenu.addAction(&_actionChangeIcon);
     contextMenu.addSeparator();
     contextMenu.addAction(&_actionNewFolder);
+    contextMenu.addSeparator();
+    contextMenu.addAction(&_actionEnableDisable);
+    contextMenu.addAction(&_actionLibraryProperties);
 }
 
 void MaterialsEditor::folderContextMenu(QMenu& contextMenu)

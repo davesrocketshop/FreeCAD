@@ -187,6 +187,8 @@ private:
     QIcon _actionPasteIcon;
     QAction _actionRename;
     QAction _actionDelete;
+    QAction _actionEnableDisable;
+    QAction _actionLibraryProperties;
 
     void setup();
     void setupStackedWidgets();
