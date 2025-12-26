@@ -368,6 +368,7 @@ void ExternalManager::createLibrary(const QString& libraryName, const QByteArray
     }
     catch (Py::Exception& e) {
         Base::PyException e1;  // extract the Python error text
+        Base::Console().log("Python exception type %s", e1.getErrorType().c_str());
         throw CreationError(e1.what());
     }
 }

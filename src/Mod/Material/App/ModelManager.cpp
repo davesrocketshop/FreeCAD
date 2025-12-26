@@ -347,6 +347,7 @@ void ModelManager::migrateToExternal(const std::shared_ptr<Materials::ModelLibra
 void ModelManager::validateMigration(const std::shared_ptr<Materials::ModelLibrary>& library)
 {
     auto models = _localManager->libraryModels(library->getName());
+    _externalManager->resetCache();
     for (auto& it : *models) {
         auto uuid = it.getUUID();
         auto path = it.getPath();

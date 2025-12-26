@@ -639,6 +639,11 @@ void MaterialManager::dereference(std::shared_ptr<Material> material) const
 #if defined(BUILD_MATERIAL_EXTERNAL)
 void MaterialManager::migrateToExternal(const std::shared_ptr<Materials::MaterialLibrary>& library)
 {
+    if (!_useExternal) {
+        Base::Console().error("External interface not enabled\n");
+        throw ConnectionError("External interface not enabled");
+    }
+
     try {
         _externalManager->createLibrary(library->getName(),
                                         library->getIcon(),

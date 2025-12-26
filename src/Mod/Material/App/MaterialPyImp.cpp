@@ -646,6 +646,18 @@ Py::Dict MaterialPy::getPropertyObjects() const
     return dict;
 }
 
+PyObject* MaterialPy::addTag(PyObject* args)
+{
+    char* tag;
+    if (!PyArg_ParseTuple(args, "s", &tag)) {
+        return nullptr;
+    }
+
+    getMaterialPtr()->addTag(QString::fromStdString(tag));
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
 PyObject* MaterialPy::keys()
 {
     return Py::new_reference_to(this->getProperties().keys());
