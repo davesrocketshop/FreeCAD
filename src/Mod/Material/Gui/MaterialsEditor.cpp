@@ -50,11 +50,11 @@
 #include <Mod/Material/App/ModelManager.h>
 #include <Mod/Material/App/ModelUuids.h>
 
-#include "LibraryType.h"
 #include "MaterialDelegate.h"
 #include "MaterialSave.h"
 #include "MaterialsEditor.h"
 #include "ModelSelect.h"
+#include "NewLibrary.h"
 #include "ui_MaterialsEditor.h"
 
 #include "Widgets/MaterialPropertiesWidget.h"
@@ -1477,30 +1477,33 @@ void MaterialsEditor::onMenuNewLibrary(bool checked)
 
     Base::Console().log("onMenuNewLibrary()\n");
 
-    LibraryType dialog(this);
-    dialog.setModal(true);
-    if (dialog.exec() != QDialog::Accepted) {
-        return;
-    }
+    auto newLibraryDialog = new NewLibrary(this);
+    newLibraryDialog->open();
 
-    QString name(QStringLiteral("New Library"));
-    try {
-        auto library = getMaterialManager().getLibrary(name);
-        if (library) {
-            Base::Console().log("Unable to create library '%s': already exists\n", name.toStdString().c_str());
-            return;
-        }
-    }
-    catch (const Materials::LibraryNotFound &) {}
+    // LibraryType dialog(this);
+    // dialog.setModal(true);
+    // if (dialog.exec() != QDialog::Accepted) {
+    //     return;
+    // }
 
-    try {
-        getMaterialManager().createLibrary(name, QStringLiteral(":/icons/freecad.svg"), false);
-    }
-    catch (const Materials::CreationError& e) {
-        Base::Console().log("Unable to create library '%s': %s\n",
-                            name.toStdString().c_str(), e.what());
-    }
-    refreshMaterialTree();
+    // QString name(QStringLiteral("New Library"));
+    // try {
+    //     auto library = getMaterialManager().getLibrary(name);
+    //     if (library) {
+    //         Base::Console().log("Unable to create library '%s': already exists\n", name.toStdString().c_str());
+    //         return;
+    //     }
+    // }
+    // catch (const Materials::LibraryNotFound &) {}
+
+    // try {
+    //     getMaterialManager().createLibrary(name, QStringLiteral(":/icons/freecad.svg"), false);
+    // }
+    // catch (const Materials::CreationError& e) {
+    //     Base::Console().log("Unable to create library '%s': %s\n",
+    //                         name.toStdString().c_str(), e.what());
+    // }
+    // refreshMaterialTree();
 
     // Check if local or remote library
 

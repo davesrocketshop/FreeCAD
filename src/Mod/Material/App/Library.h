@@ -88,6 +88,14 @@ public:
     {
         _readOnly = readOnly;
     }
+    bool isDisabled() const
+    {
+        return _disabled;
+    }
+    void setDisabled(bool disabled)
+    {
+        _disabled = disabled;
+    }
 
     QString getDirectory() const
     {
@@ -121,6 +129,7 @@ private:
     QString _directory;
     QByteArray _icon;
     bool _readOnly;
+    bool _disabled;
 
     bool _local;
 

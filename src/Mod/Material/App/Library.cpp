@@ -37,6 +37,7 @@ Library::Library(const QString& libraryName, const QString& iconPath, bool readO
     : _name(libraryName)
     , _readOnly(readOnly)
     , _local(false)
+    , _disabled(false)
 {
     setIcon(iconPath);
 }
@@ -46,16 +47,15 @@ Library::Library(const QString& libraryName, const QByteArray& icon, bool readOn
     , _icon(icon)
     , _readOnly(readOnly)
     , _local(false)
+    , _disabled(false)
 {}
 
-Library::Library(const QString& libraryName,
-                 const QString& dir,
-                 const QString& iconPath,
-                 bool readOnly)
+Library::Library(const QString& libraryName, const QString& dir, const QString& iconPath, bool readOnly)
     : _name(libraryName)
     , _directory(QDir::cleanPath(dir))
     , _readOnly(readOnly)
     , _local(false)
+    , _disabled(false)
 {
     setIcon(iconPath);
 }

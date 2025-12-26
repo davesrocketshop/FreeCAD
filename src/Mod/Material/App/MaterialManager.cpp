@@ -222,7 +222,9 @@ QString MaterialManager::defaultMaterialUUID()
 //
 //=====
 
-std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>> MaterialManager::getLibraries()
+std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>> MaterialManager::getLibraries(
+    bool includeDisabled
+)
 {
     // External libraries take precedence over local libraries
     auto libMap = std::map<QString, std::shared_ptr<MaterialLibrary>>();
@@ -248,11 +250,24 @@ std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>> MaterialManager::ge
     return libraries;
 }
 
-std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>>
-MaterialManager::getLocalLibraries()
+std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>> MaterialManager::getLocalLibraries(
+    bool includeDisabled
+)
 {
     return _localManager->getLibraries();
 }
+
+#if defined(BUILD_MATERIAL_EXTERNAL)
+std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>> MaterialManager::getRemoteLibraries(
+    bool includeDisabled
+)
+{
+    if (_useExternal) {
+        return _externalManager->getLibraries();
+    }
+    return std::make_shared<std::list<std::shared_ptr<MaterialLibrary>>>();
+}
+#endif
 
 std::shared_ptr<MaterialLibrary> MaterialManager::getLibrary(const QString& name) const
 {
@@ -384,6 +399,17 @@ bool MaterialManager::isLocalLibrary(const QString& /*libraryName*/)
     return true;
 }
 #endif
+
+void MaterialManager::setDisabled(const QString& name, bool local)
+{
+    // TODO
+}
+
+bool MaterialManager::isDisabled(const QString& name, bool local)
+{
+    // TODO
+    return false;
+}
 
 //=====
 //

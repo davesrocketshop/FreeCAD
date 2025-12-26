@@ -72,8 +72,15 @@ public:
 
     // Library management
     bool useExternal() const { return _useExternal; }
-    std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>> getLibraries();
-    std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>> getLocalLibraries();
+    std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>> getLibraries(bool includeDisabled = false);
+    std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>> getLocalLibraries(
+        bool includeDisabled = false
+    );
+#if defined(BUILD_MATERIAL_EXTERNAL)
+    std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>> getRemoteLibraries(
+        bool includeDisabled = false
+    );
+#endif
     std::shared_ptr<MaterialLibrary> getLibrary(const QString& name) const;
     void createLibrary(const QString& libraryName,
                        const QString& iconPath,
@@ -93,6 +100,8 @@ public:
                      const MaterialFilterOptions& options,
                      bool local = false);
     bool isLocalLibrary(const QString& libraryName);
+    void setDisabled(const QString& libraryName, bool local);
+    bool isDisabled(const QString& name, bool local);
 
     // Folder management
     std::shared_ptr<std::list<QString>>

@@ -43,11 +43,11 @@ set(MatGui_UIC_SRCS
     DlgSettingsDefaultMaterial.ui
     DlgSettingsMaterial.ui
     ImageEdit.ui
-    LibraryType.ui
     ListEdit.ui
     MaterialSave.ui
     MaterialsEditor.ui
     ModelSelect.ui
+    NewLibrary.ui
     TextEdit.ui
     Widgets/MaterialPropertiesWidget.ui
     Widgets/PropertiesWidget.ui
@@ -100,9 +100,6 @@ SET(MatGui_SRCS
     ImageEdit.cpp
     ImageEdit.h
     ImageEdit.ui
-    LibraryType.cpp
-    LibraryType.h
-    LibraryType.ui
     ListDelegate.cpp
     ListDelegate.h
     ListEdit.cpp
@@ -123,6 +120,9 @@ SET(MatGui_SRCS
     ModelSelect.cpp
     ModelSelect.h
     ModelSelect.ui
+    NewLibrary.cpp
+    NewLibrary.h
+    NewLibrary.ui
     PreCompiled.h
     TextEdit.cpp
     TextEdit.h
