@@ -53,6 +53,9 @@ public:
     bool isLocal() const;
     void setLocal(bool local);
 
+    bool isModule() const;
+    void setModule(bool module);
+
     QString getName() const
     {
         return _name;
@@ -71,6 +74,10 @@ public:
         return _icon;
     }
     static QByteArray getIcon(const QString& iconPath);
+    QString getIconPath() const
+    {
+        return _iconPath;
+    }
     void setIcon(const QByteArray& icon)
     {
         _icon = icon;
@@ -103,7 +110,7 @@ public:
     }
     void setDirectory(const QString& directory)
     {
-        _directory = directory;
+        _directory = cleanPath(directory);
     }
     QString getDirectoryPath() const
     {
@@ -124,14 +131,19 @@ public:
     // Validate a remote library against this one (a local library)
     void validate(const Library& remote) const;
 
+    static std::string cleanPath(const std::string path);
+    static QString cleanPath(const QString& path);
+
 private:
     QString _name;
     QString _directory;
     QByteArray _icon;
+    QString _iconPath;
     bool _readOnly;
     bool _disabled;
 
     bool _local;
+    bool _module;
 
     QByteArray loadByteArrayFromFile(const QString& filePath) const;
 };

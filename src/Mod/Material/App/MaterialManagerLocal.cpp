@@ -61,6 +61,7 @@ MaterialManagerLocal::MaterialManagerLocal()
 void MaterialManagerLocal::initLibraries()
 {
     QMutexLocker locker(&_mutex);
+    convertConfiguration();
 
     if (_materialMap == nullptr) {
         // Load the models first
@@ -307,7 +308,7 @@ std::shared_ptr<Material> MaterialManagerLocal::getMaterial(const QString& uuid)
 
 std::shared_ptr<Material> MaterialManagerLocal::getMaterialByPath(const QString& path) const
 {
-    QString cleanPath = QDir::cleanPath(path);
+    QString cleanPath = Library::cleanPath(path);
 
     for (auto& library : *_libraryList) {
         if (library->isLocal()) {
@@ -502,84 +503,112 @@ MaterialManagerLocal::getConfiguredLibraries()
 {
     auto libraryList = std::make_shared<std::list<std::shared_ptr<MaterialLibrary>>>();
 
-    auto param = App::GetApplication().GetParameterGroupByPath(
-        "User parameter:BaseApp/Preferences/Mod/Material/Resources");
-    bool useBuiltInMaterials = param->GetBool("UseBuiltInMaterials", true);
-    bool useMatFromModules = param->GetBool("UseMaterialsFromWorkbenches", true);
-    bool useMatFromConfigDir = param->GetBool("UseMaterialsFromConfigDir", true);
-    bool useMatFromCustomDir = param->GetBool("UseMaterialsFromCustomDir", true);
+    auto localParam = App::GetApplication().GetParameterGroupByPath(
+        "User parameter:BaseApp/Preferences/Mod/Material/Resources/Local"
+    );
+    for (auto& group : localParam->GetGroups()) {
+        // auto module = moduleParam->GetGroup(group->GetGroupName());
+        auto libName = QString::fromStdString(group->GetGroupName());
+        auto libDir = QString::fromStdString(group->GetASCII("Directory", ""));
+        auto libIcon = QString::fromStdString(group->GetASCII("IconPath", ""));
+        auto libReadOnly = group->GetBool("ReadOnly", true);
+        auto libDisabled = group->GetBool("Disabled", false);
 
-    if (useBuiltInMaterials) {
-        QString resourceDir = QString::fromStdString(App::Application::getResourceDir()
-                                                     + "/Mod/Material/Resources/Materials");
-        auto libData =
-            std::make_shared<MaterialLibraryLocal>(QStringLiteral("System"),
-                                                   resourceDir,
-                                                   QStringLiteral(":/icons/freecad.svg"),
-                                                   true);
-        libraryList->push_back(libData);
-    }
-
-    if (useMatFromModules) {
-        auto moduleParam = App::GetApplication().GetParameterGroupByPath(
-            "User parameter:BaseApp/Preferences/Mod/Material/Resources/Modules");
-        for (auto& group : moduleParam->GetGroups()) {
-            // auto module = moduleParam->GetGroup(group->GetGroupName());
-            auto moduleName = QString::fromStdString(group->GetGroupName());
-            auto materialDir = QString::fromStdString(group->GetASCII("ModuleDir", ""));
-            auto materialIcon = QString::fromStdString(group->GetASCII("ModuleIcon", ""));
-            auto materialReadOnly = group->GetBool("ModuleReadOnly", true);
-
-            if (materialDir.length() > 0) {
-                QDir dir(materialDir);
-                if (dir.exists()) {
-                    auto libData = std::make_shared<MaterialLibraryLocal>(moduleName,
-                                                                          materialDir,
-                                                                          materialIcon,
-                                                                          materialReadOnly);
-                    libraryList->push_back(libData);
-                }
-            }
-        }
-    }
-
-    if (useMatFromConfigDir) {
-        QString resourceDir =
-            QString::fromStdString(App::Application::getUserAppDataDir() + "/Material");
-        if (!resourceDir.isEmpty()) {
-            QDir materialDir(resourceDir);
-            if (!materialDir.exists()) {
-                // Try creating the user dir if it doesn't exist
-                if (!materialDir.mkpath(resourceDir)) {
-                    Base::Console().log("Unable to create user library '%s'\n",
-                                        resourceDir.toStdString().c_str());
-                }
-            }
-            if (materialDir.exists()) {
-                auto libData = std::make_shared<MaterialLibraryLocal>(
-                    QStringLiteral("User"),
-                    resourceDir,
-                    QStringLiteral(":/icons/preferences-general.svg"),
-                    false);
+        if (libDir.length() > 0) {
+            QDir dir(libDir);
+            if (dir.exists()) {
+                auto libData
+                    = std::make_shared<MaterialLibraryLocal>(libName, libDir, libIcon, libReadOnly);
+                libData->setDisabled(libDisabled);
                 libraryList->push_back(libData);
             }
         }
     }
 
-    if (useMatFromCustomDir) {
-        QString resourceDir = QString::fromStdString(param->GetASCII("CustomMaterialsDir", ""));
-        if (!resourceDir.isEmpty()) {
-            QDir materialDir(resourceDir);
-            if (materialDir.exists()) {
-                auto libData = std::make_shared<MaterialLibraryLocal>(
-                    QStringLiteral("Custom"),
-                    resourceDir,
-                    QStringLiteral(":/icons/user.svg"),
-                    false);
+    auto moduleParam = App::GetApplication().GetParameterGroupByPath(
+        "User parameter:BaseApp/Preferences/Mod/Material/Resources/Modules");
+    for (auto& group : moduleParam->GetGroups()) {
+        auto moduleName = QString::fromStdString(group->GetGroupName());
+        auto materialDir = QString::fromStdString(Library::cleanPath(group->GetASCII("ModuleDir", "")));
+        auto materialIcon = QString::fromStdString(group->GetASCII("ModuleIcon", ""));
+        auto materialReadOnly = group->GetBool("ModuleReadOnly", true);
+        auto materialDisabled = group->GetBool("ModuleMaterialDisabled", false);
+
+        if (materialDir.length() > 0) {
+            QDir dir(materialDir);
+            if (dir.exists()) {
+                auto libData = std::make_shared<MaterialLibraryLocal>(moduleName,
+                                                                        materialDir,
+                                                                        materialIcon,
+                                                                        materialReadOnly);
+                libData->setModule(true);
+                libData->setDisabled(materialDisabled);
                 libraryList->push_back(libData);
             }
         }
     }
 
     return libraryList;
+}
+
+void MaterialManagerLocal::convertConfiguration()
+{
+    auto libraryList = std::make_shared<std::list<std::shared_ptr<MaterialLibrary>>>();
+
+    auto param = App::GetApplication().GetParameterGroupByPath(
+        "User parameter:BaseApp/Preferences/Mod/Material/Resources"
+    );
+    // if (param->HasGroup("Local")) {
+    //     Base::Console().log("Material configuration conversion already completed\n");
+    //     return;
+    // }
+    Base::Console().log("Material configuration conversion\n");
+    bool useBuiltInMaterials = param->GetBool("UseBuiltInMaterials", true);
+    bool useMatFromModules = param->GetBool("UseMaterialsFromWorkbenches", true);
+    bool useMatFromConfigDir = param->GetBool("UseMaterialsFromConfigDir", true);
+    bool useMatFromCustomDir = param->GetBool("UseMaterialsFromCustomDir", true);
+
+    // Write the new configuration
+    std::string materialRoot("User parameter:BaseApp/Preferences/Mod/Material/Resources/Local");
+    auto newParam = App::GetApplication().GetParameterGroupByPath(materialRoot.c_str());
+    newParam->Clear();
+
+    // Built in materials
+    std::string paramPath = materialRoot + "/System";
+    newParam = App::GetApplication().GetParameterGroupByPath(paramPath.c_str());
+    newParam->SetASCII(
+        "Directory",
+        Library::cleanPath(App::Application::getResourceDir() + "/Mod/Material/Resources/Materials").c_str()
+    );
+    newParam->SetASCII(
+        "ModelDirectory",
+        Library::cleanPath(App::Application::getResourceDir() + "/Mod/Material/Resources/Models").c_str()
+    );
+    newParam->SetASCII("IconPath", ":/icons/freecad.svg");
+    newParam->SetBool("ReadOnly", true);
+    newParam->SetBool("Disabled", !useBuiltInMaterials);
+
+    // User material directory
+    paramPath = materialRoot + "/User";
+    newParam = App::GetApplication().GetParameterGroupByPath(paramPath.c_str());
+    newParam->SetASCII(
+        "Directory",
+        Library::cleanPath(App::Application::getUserAppDataDir() + "/Material").c_str()
+    );
+    newParam->SetASCII("ModelDirectory", Library::cleanPath(App::Application::getUserAppDataDir() + "/Models").c_str());
+    newParam->SetASCII("IconPath", ":/icons/preferences-general.svg");
+    newParam->SetBool("ReadOnly", false);
+    newParam->SetBool("Disabled", !useMatFromConfigDir);
+
+    // Custom materials directory
+    if (useMatFromCustomDir) {
+        paramPath = materialRoot + "/Custom";
+        auto path = Library::cleanPath(param->GetASCII("CustomMaterialsDir", ""));
+        param = App::GetApplication().GetParameterGroupByPath(paramPath.c_str());
+        newParam->SetASCII("Directory", path.c_str());
+        newParam->SetASCII("ModelDirectory", path.c_str());
+        newParam->SetASCII("IconPath", ":/icons/preferences-general.svg");
+        newParam->SetBool("ReadOnly", false);
+        newParam->SetBool("Disabled", !useMatFromCustomDir);
+    }
 }

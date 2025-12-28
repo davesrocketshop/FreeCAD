@@ -117,6 +117,7 @@ public:
 
 protected:
     static std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>> getConfiguredLibraries();
+    static void convertConfiguration();
     bool passFilter(const Material& material,
                     const Materials::MaterialFilter& filter,
                     const Materials::MaterialFilterOptions& options) const;
