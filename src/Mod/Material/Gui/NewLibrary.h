@@ -29,6 +29,7 @@
 #include <QStandardItem>
 #include <QStandardItemModel>
 #include <QTreeView>
+#include <QDialog>
 
 #include <Gui/TaskView/TaskDialog.h>
 #include <Gui/TaskView/TaskView.h>

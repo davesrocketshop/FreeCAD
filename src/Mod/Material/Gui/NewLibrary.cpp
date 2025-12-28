@@ -22,6 +22,7 @@
  **************************************************************************/
 
 #include <QClipboard>
+#include <QMessageBox>
 #include <QStandardItem>
 #include <QStandardItemModel>
 #include <QTreeView>
