@@ -517,8 +517,13 @@ MaterialManagerLocal::getConfiguredLibraries()
         if (libDir.length() > 0) {
             QDir dir(libDir);
             if (dir.exists()) {
-                auto libData
-                    = std::make_shared<MaterialLibraryLocal>(libName, libDir, libIcon, libReadOnly);
+                // Use the canonical path to prevent issues with symbolic links
+                auto libData = std::make_shared<MaterialLibraryLocal>(
+                    libName,
+                    dir.canonicalPath(),
+                    libIcon,
+                    libReadOnly
+                );
                 libData->setDisabled(libDisabled);
                 libraryList->push_back(libData);
             }
@@ -537,10 +542,12 @@ MaterialManagerLocal::getConfiguredLibraries()
         if (materialDir.length() > 0) {
             QDir dir(materialDir);
             if (dir.exists()) {
-                auto libData = std::make_shared<MaterialLibraryLocal>(moduleName,
-                                                                        materialDir,
-                                                                        materialIcon,
-                                                                        materialReadOnly);
+                auto libData = std::make_shared<MaterialLibraryLocal>(
+                    moduleName,
+                    dir.canonicalPath(),
+                    materialIcon,
+                    materialReadOnly
+                );
                 libData->setModule(true);
                 libData->setDisabled(materialDisabled);
                 libraryList->push_back(libData);

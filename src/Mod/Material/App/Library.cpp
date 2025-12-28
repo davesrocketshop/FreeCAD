@@ -167,7 +167,7 @@ QString Library::getRelativePath(const QString& path) const
     }
 
     prefix = getDirectoryPath();
-    if (filePath.startsWith(prefix)) {
+    if (filePath.startsWith(prefix, Qt::CaseInsensitive)) {
         // Remove the library root from the path
         filePath = filePath.right(filePath.length() - prefix.length());
     }

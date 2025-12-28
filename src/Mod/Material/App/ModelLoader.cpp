@@ -394,8 +394,12 @@ void ModelLoader::getModelLibraries()
         if (libDir.length() > 0) {
             QDir dir(libDir);
             if (dir.exists()) {
-                auto libData
-                    = std::make_shared<ModelLibraryLocal>(libName, libDir, libIcon, libReadOnly);
+                auto libData = std::make_shared<ModelLibraryLocal>(
+                    libName,
+                    dir.canonicalPath(),
+                    libIcon,
+                    libReadOnly
+                );
                 libData->setDisabled(libDisabled);
                 _libraryList->push_back(libData);
             }
@@ -419,7 +423,7 @@ void ModelLoader::getModelLibraries()
             if (dir.exists()) {
                 auto libData = std::make_shared<ModelLibraryLocal>(
                     moduleName,
-                    materialDir,
+                    dir.canonicalPath(),
                     materialIcon,
                     materialReadOnly
                 );
