@@ -565,10 +565,10 @@ void MaterialManagerLocal::convertConfiguration()
     auto param = App::GetApplication().GetParameterGroupByPath(
         "User parameter:BaseApp/Preferences/Mod/Material/Resources"
     );
-    // if (param->HasGroup("Local")) {
-    //     Base::Console().log("Material configuration conversion already completed\n");
-    //     return;
-    // }
+    if (param->HasGroup("Local")) {
+        Base::Console().log("Material configuration conversion already completed\n");
+        return;
+    }
     Base::Console().log("Material configuration conversion\n");
     bool useBuiltInMaterials = param->GetBool("UseBuiltInMaterials", true);
     bool useMatFromModules = param->GetBool("UseMaterialsFromWorkbenches", true);
@@ -618,4 +618,11 @@ void MaterialManagerLocal::convertConfiguration()
         newParam->SetBool("ReadOnly", false);
         newParam->SetBool("Disabled", !useMatFromCustomDir);
     }
+
+    // Remove the old parameters
+    param->RemoveBool("UseBuiltInMaterials");
+    param->RemoveBool("UseMaterialsFromWorkbenches");
+    param->RemoveBool("UseMaterialsFromConfigDir");
+    param->RemoveBool("UseMaterialsFromCustomDir");
+    param->RemoveASCII("CustomMaterialsDir");
 }

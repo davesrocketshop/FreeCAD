@@ -37,11 +37,6 @@ DlgSettingsMaterial::DlgSettingsMaterial(QWidget* parent)
 
 void DlgSettingsMaterial::saveSettings()
 {
-    ui->cb_use_built_in_materials->onSave();
-    ui->cb_use_mat_from_workbenches->onSave();
-    ui->cb_use_mat_from_config_dir->onSave();
-    ui->cb_use_mat_from_custom_dir->onSave();
-    ui->fc_custom_mat_dir->onSave();
     ui->cb_delete_duplicates->onSave();
     ui->cb_sort_by_resources->onSave();
     ui->cb_show_favorites->onSave();
@@ -54,18 +49,10 @@ void DlgSettingsMaterial::saveSettings()
     ui->cb_show_empty_libraries_editor->onSave();
     ui->cb_show_empty_folders_editor->onSave();
     ui->cb_show_legacy_editor->onSave();
-
-    // Temporary for testing
-    // ui->cb_legacy_editor->onSave();
 }
 
 void DlgSettingsMaterial::loadSettings()
 {
-    ui->cb_use_built_in_materials->onRestore();
-    ui->cb_use_mat_from_workbenches->onRestore();
-    ui->cb_use_mat_from_config_dir->onRestore();
-    ui->cb_use_mat_from_custom_dir->onRestore();
-    ui->fc_custom_mat_dir->onRestore();
     ui->cb_delete_duplicates->onRestore();
     ui->cb_sort_by_resources->onRestore();
     ui->cb_show_favorites->onRestore();
@@ -78,9 +65,6 @@ void DlgSettingsMaterial::loadSettings()
     ui->cb_show_empty_libraries_editor->onRestore();
     ui->cb_show_empty_folders_editor->onRestore();
     ui->cb_show_legacy_editor->onRestore();
-
-    // Temporary for testing
-    // ui->cb_legacy_editor->onRestore();
 }
 
 /**
