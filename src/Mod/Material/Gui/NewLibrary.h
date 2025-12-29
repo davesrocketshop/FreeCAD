@@ -61,7 +61,9 @@ private:
     QString _icon;
 
     void onLocal(bool checked);
+#if defined(BUILD_MATERIAL_EXTERNAL)
     void onRemote(bool checked);
+#endif
     void onLocalFolder(const QString& filename);
     void onReadOnly(Qt::CheckState state);
     void onChangeIcon(bool checked);
@@ -72,13 +74,17 @@ private:
     void setDefaults();
     void setIcon(const QString& file);
     void setLocalList();
+#if defined(BUILD_MATERIAL_EXTERNAL)
     void setRemoteList();
+#endif
     void setLibraryList(
         const std::shared_ptr<std::list<std::shared_ptr<Materials::MaterialLibrary>>>& libraries
     );
 
     bool checkLocalName(const QString& name) const;
+#if defined(BUILD_MATERIAL_EXTERNAL)
     bool checkRemoteName(const QString& name) const;
+#endif
     bool checkLibraryName(
         const QString& name,
         const std::shared_ptr<std::list<std::shared_ptr<Materials::MaterialLibrary>>>& libraries,

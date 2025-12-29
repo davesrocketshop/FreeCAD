@@ -57,12 +57,17 @@ NewLibrary::NewLibrary(QWidget* parent)
     ui->labelImage->resize(64, 64);
     // This is to support multiple remote instances, so hide for now
     ui->comboRemote->setVisible(false);
+#if !defined(BUILD_MATERIAL_EXTERNAL)
+    ui->radioRemote->setVisible(false);
+#endif
 
     setDefaults();
 
     connect(ui->radioLocal, &QPushButton::clicked, this, &NewLibrary::onLocal);
     connect(ui->fileLocal, &Gui::FileChooser::fileNameSelected, this, &NewLibrary::onLocalFolder);
+#if defined(BUILD_MATERIAL_EXTERNAL)
     connect(ui->radioRemote, &QPushButton::clicked, this, &NewLibrary::onRemote);
+#endif
     // connect(ui->checkReadOnly, &QCheckBox::checkStateChanged, this, &NewLibrary::onReadOnly);
     connect(ui->buttonChangeIcon, &QPushButton::clicked, this, &NewLibrary::onChangeIcon);
 }
@@ -107,11 +112,13 @@ void NewLibrary::setLocalList()
     setLibraryList(libraries);
 }
 
+#if defined(BUILD_MATERIAL_EXTERNAL)
 void NewLibrary::setRemoteList()
 {
     auto libraries = getMaterialManager().getRemoteLibraries();
     setLibraryList(libraries);
 }
+#endif
 
 void NewLibrary::setLibraryList(
     const std::shared_ptr<std::list<std::shared_ptr<Materials::MaterialLibrary>>>& libraries
@@ -136,12 +143,14 @@ void NewLibrary::onLocal(bool checked)
     setLocalList();
 }
 
+#if defined(BUILD_MATERIAL_EXTERNAL)
 void NewLibrary::onRemote(bool checked)
 {
     Q_UNUSED(checked)
 
     setRemoteList();
 }
+#endif
 
 void NewLibrary::onLocalFolder(const QString& filename)
 {
@@ -180,11 +189,13 @@ bool NewLibrary::checkLocalName(const QString& name) const
     return checkLibraryName(name, libraries, tr("A local library with that name already exists."));
 }
 
+#if defined(BUILD_MATERIAL_EXTERNAL)
 bool NewLibrary::checkRemoteName(const QString& name) const
 {
     const auto& libraries = getMaterialManager().getRemoteLibraries();
     return checkLibraryName(name, libraries, tr("A remote library with that name already exists."));
 }
+#endif
 
 bool NewLibrary::checkLibraryName(
     const QString& name,
@@ -206,10 +217,12 @@ bool NewLibrary::checkLibraryName(
 bool NewLibrary::checkLibraryName(const QString& name) const
 {
 
-    if (isLocal()) {
-        return checkLocalName(name);
+#if defined(BUILD_MATERIAL_EXTERNAL)
+    if (!isLocal()) {
+        return checkRemoteName(name);
     }
-    return checkRemoteName(name);
+#endif
+    return checkLocalName(name);
 }
 
 bool NewLibrary::createLibrary(const QString& name)
