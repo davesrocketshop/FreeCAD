@@ -598,7 +598,7 @@ void MaterialLoader::loadLibraries(
 {
     if (libraryList) {
         for (auto& it : *libraryList) {
-            if (it->isLocal()) {
+            if (it->isLocal() && !it->isDisabled()) {
                 auto materialLibrary
                     = reinterpret_cast<const std::shared_ptr<Materials::MaterialLibraryLocal>&>(it);
                 loadLibrary(materialLibrary);

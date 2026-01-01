@@ -142,24 +142,26 @@ Py::List MaterialManagerPy::getMaterialLibraries() const
 
     for (auto it = libraries->begin(); it != libraries->end(); it++) {
         auto lib = *it;
-        Py::Tuple libTuple(3);
-        if (lib->isLocal()) {
-            auto materialLibrary =
-                reinterpret_cast<const std::shared_ptr<Materials::MaterialLibraryLocal>&>(lib);
-            libTuple.setItem(0, Py::String(materialLibrary->getName().toStdString()));
-            libTuple.setItem(1, Py::String(materialLibrary->getDirectoryPath().toStdString()));
-            libTuple.setItem(2,
-                             Py::Bytes(Py::Bytes(materialLibrary->getIcon().data(),
-                                                 materialLibrary->getIcon().size())));
-        }
-        else
-        {
-            libTuple.setItem(0, Py::String());
-            libTuple.setItem(1, Py::String());
-            libTuple.setItem(2, Py::Bytes());
-        }
+        if (!lib->isDisabled()) {
+            Py::Tuple libTuple(3);
+            if (lib->isLocal()) {
+                auto materialLibrary =
+                    reinterpret_cast<const std::shared_ptr<Materials::MaterialLibraryLocal>&>(lib);
+                libTuple.setItem(0, Py::String(materialLibrary->getName().toStdString()));
+                libTuple.setItem(1, Py::String(materialLibrary->getDirectoryPath().toStdString()));
+                libTuple.setItem(2,
+                                Py::Bytes(Py::Bytes(materialLibrary->getIcon().data(),
+                                                    materialLibrary->getIcon().size())));
+            }
+            else
+            {
+                libTuple.setItem(0, Py::String());
+                libTuple.setItem(1, Py::String());
+                libTuple.setItem(2, Py::Bytes());
+            }
 
-        list.append(libTuple);
+            list.append(libTuple);
+        }
     }
 
     return list;
