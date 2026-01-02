@@ -49,14 +49,31 @@ class MaterialTestCases(unittest.TestCase):
             # reconfigure appeared in 3.7, hope for the best...
             pass
 
-        self.ModelManager = Materials.ModelManager()
-        self.MaterialManager = Materials.MaterialManager()
-        self.uuids = Materials.UUIDs()
+        self._modelManager = Materials.ModelManager()
+        self._materialManager = Materials.MaterialManager()
+        self._uuids = Materials.UUIDs()
+
+        # Disable the external interface
+        paramExternal = FreeCAD.ParamGet("User parameter:BaseApp/Preferences/Mod/Material/ExternalInterface")
+        self._useExternal = paramExternal.GetBool("UseExternal", False)
+
+        paramExternal.SetBool("UseExternal", False)
+
+        self._materialManager.refresh()
+
+    def tearDown(self):
+        paramExternal = FreeCAD.ParamGet("User parameter:BaseApp/Preferences/Mod/Material/ExternalInterface")
+        paramExternal.SetBool("UseExternal", self._useExternal)
+
+        param = FreeCAD.ParamGet("User parameter:BaseApp/Preferences/Mod/Material/Resources/Local/__UnitTest")
+        param.SetBool("Disabled", True)
+
+        self._materialManager.refresh()
 
     def testMaterialManager(self):
         """ Ensure the MaterialManager has been initialized correctly """
-        self.assertIn("MaterialLibraries", dir(self.MaterialManager))
-        self.assertIn("Materials", dir(self.MaterialManager))
+        self.assertIn("MaterialLibraries", dir(self._materialManager))
+        self.assertIn("Materials", dir(self._materialManager))
 
     def getQuantity(self, value):
         quantity = parseQuantity(value)
@@ -72,22 +89,22 @@ class MaterialTestCases(unittest.TestCase):
         for testing as many of the properties and API access methods as possible.
         """
 
-        steel = self.MaterialManager.getMaterial("92589471-a6cb-4bbc-b748-d425a17dea7d")
+        steel = self._materialManager.getMaterial("92589471-a6cb-4bbc-b748-d425a17dea7d")
         self.assertIsNotNone(steel)
         self.assertEqual(steel.Name, "CalculiX-Steel")
         self.assertEqual(steel.UUID, "92589471-a6cb-4bbc-b748-d425a17dea7d")
 
-        self.assertTrue(steel.hasPhysicalModel(self.uuids.Density))
-        self.assertTrue(steel.hasPhysicalModel(self.uuids.IsotropicLinearElastic))
-        self.assertTrue(steel.hasPhysicalModel(self.uuids.Thermal))
-        self.assertFalse(steel.hasPhysicalModel(self.uuids.LinearElastic)) # Not in the model
-        self.assertTrue(steel.hasAppearanceModel(self.uuids.BasicRendering)) # inherited from Steel.FCMat
+        self.assertTrue(steel.hasPhysicalModel(self._uuids.Density))
+        self.assertTrue(steel.hasPhysicalModel(self._uuids.IsotropicLinearElastic))
+        self.assertTrue(steel.hasPhysicalModel(self._uuids.Thermal))
+        self.assertFalse(steel.hasPhysicalModel(self._uuids.LinearElastic)) # Not in the model
+        self.assertTrue(steel.hasAppearanceModel(self._uuids.BasicRendering)) # inherited from Steel.FCMat
 
-        self.assertTrue(steel.isPhysicalModelComplete(self.uuids.Density))
-        self.assertFalse(steel.isPhysicalModelComplete(self.uuids.IsotropicLinearElastic))
-        self.assertFalse(steel.isPhysicalModelComplete(self.uuids.Thermal))
-        self.assertFalse(steel.isPhysicalModelComplete(self.uuids.LinearElastic))
-        self.assertTrue(steel.isAppearanceModelComplete(self.uuids.BasicRendering))
+        self.assertTrue(steel.isPhysicalModelComplete(self._uuids.Density))
+        self.assertFalse(steel.isPhysicalModelComplete(self._uuids.IsotropicLinearElastic))
+        self.assertFalse(steel.isPhysicalModelComplete(self._uuids.Thermal))
+        self.assertFalse(steel.isPhysicalModelComplete(self._uuids.LinearElastic))
+        self.assertTrue(steel.isAppearanceModelComplete(self._uuids.BasicRendering))
 
         self.assertFalse(steel.hasLegacyProperties())
 
@@ -249,13 +266,13 @@ class MaterialTestCases(unittest.TestCase):
         Test functions that return a list of models supporting specific material models
         """
         # IsotropicLinearElastic
-        materials = self.MaterialManager.materialsWithModel('f6f9e48c-b116-4e82-ad7f-3659a9219c50')
-        materialsComplete = self.MaterialManager \
+        materials = self._materialManager.materialsWithModel('f6f9e48c-b116-4e82-ad7f-3659a9219c50')
+        materialsComplete = self._materialManager \
             .materialsWithModelComplete('f6f9e48c-b116-4e82-ad7f-3659a9219c50')
 
         self.assertTrue(len(materialsComplete) <= len(materials)) # Not all will be complete
 
-        materialsLinearElastic = self.MaterialManager \
+        materialsLinearElastic = self._materialManager \
             .materialsWithModel('7b561d1d-fb9b-44f6-9da9-56a4f74d7536') # LinearElastic
 
         # All LinearElastic models should be in IsotropicLinearElastic since it is inherited
@@ -269,19 +286,19 @@ class MaterialTestCases(unittest.TestCase):
 
         Valid models may have different prefixes
         """
-        steel = self.MaterialManager \
+        steel = self._materialManager \
             .getMaterialByPath('Standard/Metal/Steel/CalculiX-Steel.FCMat', 'System')
         self.assertIsNotNone(steel)
         self.assertEqual(steel.Name, "CalculiX-Steel")
         self.assertEqual(steel.UUID, "92589471-a6cb-4bbc-b748-d425a17dea7d")
 
-        steel2 = self.MaterialManager \
+        steel2 = self._materialManager \
             .getMaterialByPath('/Standard/Metal/Steel/CalculiX-Steel.FCMat', 'System')
         self.assertIsNotNone(steel2)
         self.assertEqual(steel2.Name, "CalculiX-Steel")
         self.assertEqual(steel2.UUID, "92589471-a6cb-4bbc-b748-d425a17dea7d")
 
-        steel3 = self.MaterialManager \
+        steel3 = self._materialManager \
             .getMaterialByPath('/System/Standard/Metal/Steel/CalculiX-Steel.FCMat', 'System')
         self.assertIsNotNone(steel3)
         self.assertEqual(steel3.Name, "CalculiX-Steel")
@@ -292,13 +309,13 @@ class MaterialTestCases(unittest.TestCase):
         Test API access to lists
         """
 
-        mat = self.MaterialManager.getMaterial("c6c64159-19c1-40b5-859c-10561f20f979")
+        mat = self._materialManager.getMaterial("c6c64159-19c1-40b5-859c-10561f20f979")
         self.assertIsNotNone(mat)
         self.assertEqual(mat.Name, "Test Material")
         self.assertEqual(mat.UUID, "c6c64159-19c1-40b5-859c-10561f20f979")
 
-        self.assertTrue(mat.hasPhysicalModel(self.uuids.TestModel))
-        self.assertFalse(mat.isPhysicalModelComplete(self.uuids.TestModel))
+        self.assertTrue(mat.hasPhysicalModel(self._uuids.TestModel))
+        self.assertFalse(mat.isPhysicalModelComplete(self._uuids.TestModel))
 
         self.assertTrue(mat.hasPhysicalProperty("TestList"))
 
@@ -321,13 +338,13 @@ class MaterialTestCases(unittest.TestCase):
         Test API access to 2D arrays
         """
 
-        mat = self.MaterialManager.getMaterial("c6c64159-19c1-40b5-859c-10561f20f979")
+        mat = self._materialManager.getMaterial("c6c64159-19c1-40b5-859c-10561f20f979")
         self.assertIsNotNone(mat)
         self.assertEqual(mat.Name, "Test Material")
         self.assertEqual(mat.UUID, "c6c64159-19c1-40b5-859c-10561f20f979")
 
-        self.assertTrue(mat.hasPhysicalModel(self.uuids.TestModel))
-        self.assertFalse(mat.isPhysicalModelComplete(self.uuids.TestModel))
+        self.assertTrue(mat.hasPhysicalModel(self._uuids.TestModel))
+        self.assertFalse(mat.isPhysicalModelComplete(self._uuids.TestModel))
 
         self.assertTrue(mat.hasPhysicalProperty("TestArray2D"))
 
@@ -416,13 +433,13 @@ class MaterialTestCases(unittest.TestCase):
         Test API access to 3D arrays
         """
 
-        mat = self.MaterialManager.getMaterial("c6c64159-19c1-40b5-859c-10561f20f979")
+        mat = self._materialManager.getMaterial("c6c64159-19c1-40b5-859c-10561f20f979")
         self.assertIsNotNone(mat)
         self.assertEqual(mat.Name, "Test Material")
         self.assertEqual(mat.UUID, "c6c64159-19c1-40b5-859c-10561f20f979")
 
-        self.assertTrue(mat.hasPhysicalModel(self.uuids.TestModel))
-        self.assertFalse(mat.isPhysicalModelComplete(self.uuids.TestModel))
+        self.assertTrue(mat.hasPhysicalModel(self._uuids.TestModel))
+        self.assertFalse(mat.isPhysicalModelComplete(self._uuids.TestModel))
 
         self.assertTrue(mat.hasPhysicalProperty("TestArray3D"))
 

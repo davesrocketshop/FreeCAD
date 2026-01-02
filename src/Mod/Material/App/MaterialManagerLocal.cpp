@@ -99,6 +99,7 @@ void MaterialManagerLocal::cleanup()
 void MaterialManagerLocal::refresh()
 {
     // This is very expensive and can be improved using observers?
+    ModelManager::getManager().refresh();
     cleanup();
     initLibraries();
 }
@@ -523,7 +524,9 @@ void MaterialManagerLocal::dereference(std::shared_ptr<Material> material) const
     MaterialLoader::dereference(_materialMap, material);
 }
 
-std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>> MaterialManagerLocal::getConfiguredLibraries()
+std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>> MaterialManagerLocal::getConfiguredLibraries(
+    bool includeDisabled
+)
 {
     auto libraryList = std::make_shared<std::list<std::shared_ptr<MaterialLibrary>>>();
 
@@ -541,15 +544,17 @@ std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>> MaterialManagerLoca
         if (libDir.length() > 0) {
             QDir dir(libDir);
             if (dir.exists()) {
-                // Use the canonical path to prevent issues with symbolic links
-                auto libData = std::make_shared<MaterialLibraryLocal>(
-                    libName,
-                    dir.canonicalPath(),
-                    libIcon,
-                    libReadOnly
-                );
-                libData->setDisabled(libDisabled);
-                libraryList->push_back(libData);
+                if (!libDisabled || includeDisabled) {
+                    // Use the canonical path to prevent issues with symbolic links
+                    auto libData = std::make_shared<MaterialLibraryLocal>(
+                        libName,
+                        dir.canonicalPath(),
+                        libIcon,
+                        libReadOnly
+                    );
+                    libData->setDisabled(libDisabled);
+                    libraryList->push_back(libData);
+                }
             }
         }
     }
@@ -567,15 +572,17 @@ std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>> MaterialManagerLoca
         if (materialDir.length() > 0) {
             QDir dir(materialDir);
             if (dir.exists()) {
-                auto libData = std::make_shared<MaterialLibraryLocal>(
-                    moduleName,
-                    dir.canonicalPath(),
-                    materialIcon,
-                    materialReadOnly
-                );
-                libData->setModule(true);
-                libData->setDisabled(materialDisabled);
-                libraryList->push_back(libData);
+                if (!materialDisabled || includeDisabled) {
+                    auto libData = std::make_shared<MaterialLibraryLocal>(
+                        moduleName,
+                        dir.canonicalPath(),
+                        materialIcon,
+                        materialReadOnly
+                    );
+                    libData->setModule(true);
+                    libData->setDisabled(materialDisabled);
+                    libraryList->push_back(libData);
+                }
             }
         }
     }

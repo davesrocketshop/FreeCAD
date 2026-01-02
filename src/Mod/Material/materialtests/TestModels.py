@@ -303,6 +303,24 @@ class ModelTestCases(unittest.TestCase):
         self.assertEqual(model.Name, "Linear Elastic")
         self.assertEqual(model.UUID, "7b561d1d-fb9b-44f6-9da9-56a4f74d7536")
         self.assertIn("Density", model.Properties)
+
+        # Non-inherited properties
+        prop = model.Properties["AngleOfFriction"]
+        self.assertFalse(prop.Inherited)
+        prop = model.Properties["CompressiveStrength"]
+        self.assertFalse(prop.Inherited)
+        prop = model.Properties["FractureToughness"]
+        self.assertFalse(prop.Inherited)
+        prop = model.Properties["UltimateStrain"]
+        self.assertFalse(prop.Inherited)
+        prop = model.Properties["UltimateTensileStrength"]
+        self.assertFalse(prop.Inherited)
+        prop = model.Properties["YieldStrength"]
+        self.assertFalse(prop.Inherited)
+        prop = model.Properties["Stiffness"]
+        self.assertFalse(prop.Inherited)
+
+        # Inherited properties
         prop = model.Properties["Density"]
         self.assertEqual(prop.Name, "Density")
         self.assertEqual(prop.Type, "Quantity")
@@ -342,24 +360,3 @@ class ModelTestCases(unittest.TestCase):
         self.assertEqual(prop.Units, "kPa")
         self.assertEqual(prop.Description, "Young's modulus (or E-Module) in [FreeCAD Pressure unit]")
         self.assertTrue(prop.Inherited)
-        prop = model.Properties["AngleOfFriction"]
-        self.assertEqual(prop.Name, "AngleOfFriction")
-        self.assertFalse(prop.Inherited)
-        prop = model.Properties["CompressiveStrength"]
-        self.assertEqual(prop.Name, "CompressiveStrength")
-        self.assertFalse(prop.Inherited)
-        prop = model.Properties["FractureToughness"]
-        self.assertEqual(prop.Name, "FractureToughness")
-        self.assertFalse(prop.Inherited)
-        prop = model.Properties["UltimateStrain"]
-        self.assertEqual(prop.Name, "UltimateStrain")
-        self.assertFalse(prop.Inherited)
-        prop = model.Properties["UltimateTensileStrength"]
-        self.assertEqual(prop.Name, "UltimateTensileStrength")
-        self.assertFalse(prop.Inherited)
-        prop = model.Properties["YieldStrength"]
-        self.assertEqual(prop.Name, "YieldStrength")
-        self.assertFalse(prop.Inherited)
-        prop = model.Properties["Stiffness"]
-        self.assertEqual(prop.Name, "Stiffness")
-        self.assertFalse(prop.Inherited)
