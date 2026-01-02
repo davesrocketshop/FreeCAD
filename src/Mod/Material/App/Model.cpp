@@ -29,6 +29,7 @@
 #include "Exceptions.h"
 #include "Model.h"
 #include "ModelLibrary.h"
+#include "ModelManager.h"
 
 
 using namespace Materials;
@@ -249,4 +250,85 @@ void Model::validate(Model& other) const
         auto& remote = other._properties[property.first];
         property.second.validate(remote);
     }
+}
+
+void Model::save(QTextStream& stream)
+{
+    stream << "---\n";
+    stream << "# File created by " << QString::fromStdString(App::Application::Config()["ExeName"])
+           << " " << QString::fromStdString(App::Application::Config()["ExeVersion"])
+           << " Revision: " << QString::fromStdString(App::Application::Config()["BuildRevision"])
+           << "\n";
+    saveGeneral(stream);
+    saveInherits(stream);
+    saveProperties(stream);
+}
+
+void Model::saveGeneral(QTextStream& stream) const
+{
+    stream << "General:\n";
+    stream << "  UUID: \"" << _uuid << "\"\n";
+    stream << "  Name: \"" << MaterialValue::escapeString(_name) << "\"\n";
+    if (!_description.isEmpty()) {
+        stream << "  Description: \"" << MaterialValue::escapeString(_description) << "\"\n";
+    }
+    if (!_url.isEmpty()) {
+        stream << "  URL: \"" << MaterialValue::escapeString(_url) << "\"\n";
+    }
+    if (!_doi.isEmpty()) {
+        stream << "  DOI: \"" << MaterialValue::escapeString(_doi) << "\"\n";
+    }
+}
+// QString _name;
+// QString _directory;
+// QString _filename;
+// QString _uuid;
+// QString _description;
+// QString _url;
+// QString _doi;
+// QStringList _inheritedUuids;
+// std::map<QString, ModelProperty> _properties;
+
+void Model::saveInherits(QTextStream& stream) const
+{
+    for (auto const& uuid : _inheritedUuids) {
+        auto model = ModelManager::getManager().getModel(uuid);
+        stream << "Inherits:\n";
+        stream << "  - " << model->getName() << ":\n";
+        stream << "    UUID: \"" << uuid << "\"\n";
+    }
+}
+
+void Model::saveProperties(QTextStream& stream) const
+{
+    for (auto& it : _properties) {
+        auto& name = it.first;
+        auto& property = it.second;
+        stream << property.getName() << ":\n";
+        if (!property.getDisplayName().isEmpty()) {
+            stream << "    DisplayName: \""
+                   << MaterialValue::escapeString(property.getDisplayName()) << "\"\n";
+        }
+        if (!property.getPropertyType().isEmpty()) {
+            stream << "    Type: \"" << MaterialValue::escapeString(property.getPropertyType())
+                   << "\"\n";
+        }
+        if (!property.getUnits().isEmpty()) {
+            stream << "    Units: \"" << MaterialValue::escapeString(property.getUnits()) << "\"\n";
+        }
+        if (!property.getURL().isEmpty()) {
+            stream << "    URL: \"" << MaterialValue::escapeString(property.getURL()) << "\"\n";
+        }
+        if (!property.getDescription().isEmpty()) {
+            stream << "    Description: \""
+                   << MaterialValue::escapeString(property.getDescription()) << "\"\n";
+        }
+    }
+    // QString _name;
+    // QString _displayName;
+    // QString _propertyType;
+    // QString _units;
+    // QString _url;
+    // QString _description;
+    // QString _inheritance;
 }

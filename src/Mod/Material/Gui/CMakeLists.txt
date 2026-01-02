@@ -39,6 +39,7 @@ set(MatGui_UIC_SRCS
     DlgDisplayProperties.ui
     DlgInspectAppearance.ui
     DlgInspectMaterial.ui
+    DlgInspectModels.ui
     DlgMaterial.ui
     DlgSettingsDefaultMaterial.ui
     DlgSettingsMaterial.ui
@@ -88,6 +89,9 @@ SET(MatGui_SRCS
     DlgInspectMaterial.cpp
     DlgInspectMaterial.h
     DlgInspectMaterial.ui
+    DlgInspectModels.cpp
+    DlgInspectModels.h
+    DlgInspectModels.ui
     DlgMaterialImp.cpp
     DlgMaterialImp.h
     DlgMaterial.ui

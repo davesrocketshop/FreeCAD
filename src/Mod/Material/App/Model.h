@@ -304,6 +304,7 @@ public:
     }
 
     void validate(Model& other) const;
+    void save(QTextStream& stream);
 
 private:
     std::shared_ptr<ModelLibrary> _library;
@@ -317,6 +318,10 @@ private:
     QString _doi;
     QStringList _inheritedUuids;
     std::map<QString, ModelProperty> _properties;
+
+    void saveGeneral(QTextStream& stream) const;
+    void saveInherits(QTextStream& stream) const;
+    void saveProperties(QTextStream& stream) const;
 };
 
 typedef FolderTreeNode<Model> ModelTreeNode;
