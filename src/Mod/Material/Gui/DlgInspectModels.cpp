@@ -89,7 +89,6 @@ void DlgInspectModels::onModel(int index)
 
     auto value = ui->comboModel->currentData();
     auto model = value.value<std::shared_ptr<Materials::Model>>();
-    // Base::Console().log("Model:  %s\n", model->getName().toStdString().c_str());
     resetClipboard();
     updateModelTree(*model);
     setupProperties(*model);
@@ -100,7 +99,6 @@ void DlgInspectModels::setupProperties(const Materials::Model& model)
     ui->comboProperty->clear();
     for (auto& it : model) {
         auto property = it.second;
-        Base::Console().log("Property:  %s\n", property.getName().toStdString().c_str());
         ui->comboProperty->addItem(property.getName(), QVariant::fromValue(property));
     }
 }
@@ -111,8 +109,6 @@ void DlgInspectModels::onProperty(int index)
     if (!value.isNull() && value.isValid())
     {
         auto property = value.value<Materials::ModelProperty>();
-        Base::Console()
-            .log("Property selected %d:  %s\n", index, property.getDisplayName().toStdString().c_str());
         resetClipboard();
         updatePropertyTree(property);
     }
@@ -132,8 +128,6 @@ void DlgInspectModels::addExpanded(QTreeView* tree, QStandardItem* parent, QStan
 
 void DlgInspectModels::updateModelTree(const Materials::Model& model)
 {
-    Base::Console().log("Model '%s'\n", model.getName().toStdString().c_str());
-
     auto tree = ui->treeModels;
     auto treeModel = qobject_cast<QStandardItemModel*>(tree->model());
     treeModel->clear();
@@ -150,6 +144,8 @@ void DlgInspectModels::addModel(QTreeView* tree, QStandardItemModel* parent, con
         auto item = clipItem(tr("Library: ") + model.getLibrary()->getName());
         addExpanded(tree, parent, item);
         item = clipItem(tr("Library directory: ") + model.getLibrary()->getDirectoryPath());
+        addExpanded(tree, parent, item);
+        item = clipItem(tr("Library Type: ") + (model.getLibrary()->isLocal() ? tr("Local") : tr("Remote")));
         addExpanded(tree, parent, item);
         item = clipItem(tr("Type: ") + model.getBase());
         addExpanded(tree, parent, item);
@@ -179,8 +175,6 @@ void DlgInspectModels::addModel(QTreeView* tree, QStandardItemModel* parent, con
 
 void DlgInspectModels::updatePropertyTree(const Materials::ModelProperty& property)
 {
-    Base::Console().log("Property '%s'\n", property.getName().toStdString().c_str());
-
     auto tree = ui->treeProperties;
     auto model = qobject_cast<QStandardItemModel*>(tree->model());
     model->clear();

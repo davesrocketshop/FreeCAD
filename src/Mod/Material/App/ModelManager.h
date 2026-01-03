@@ -88,6 +88,9 @@ public:
     std::shared_ptr<Model> getModelByPath(const QString& path) const;
     std::shared_ptr<Model> getModelByPath(const QString& path, const QString& lib) const;
 
+    static void dereference(Model& model);
+    static void dereference(const std::shared_ptr<Model>& model);
+
     static bool isModel(const QString& file);
     static bool passFilter(ModelFilter filter, Model::ModelType modelType);
 

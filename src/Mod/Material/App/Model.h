@@ -270,6 +270,7 @@ public:
         return !operator==(m);
     }
 
+    bool hasProperty(const QString& name) const;
     ModelProperty& operator[](const QString& key);
     void addProperty(ModelProperty& property)
     {
@@ -306,6 +307,32 @@ public:
     void validate(Model& other) const;
     void save(QTextStream& stream);
 
+    bool isDereferenced() const
+    {
+        return _dereferenced;
+    }
+    void markDereferenced()
+    {
+        _dereferenced = true;
+    }
+    void clearDereferenced()
+    {
+        _dereferenced = false;
+    }
+
+    bool isDereferencing() const
+    {
+        return _dereferencing;
+    }
+    void markDereferencing()
+    {
+        _dereferencing = true;
+    }
+    void clearDereferencing()
+    {
+        _dereferencing = false;
+    }
+
 private:
     std::shared_ptr<ModelLibrary> _library;
     ModelType _type;
@@ -318,6 +345,9 @@ private:
     QString _doi;
     QStringList _inheritedUuids;
     std::map<QString, ModelProperty> _properties;
+
+    bool _dereferenced;
+    bool _dereferencing;
 
     void saveGeneral(QTextStream& stream) const;
     void saveInherits(QTextStream& stream) const;

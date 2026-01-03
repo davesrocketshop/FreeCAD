@@ -148,16 +148,20 @@ void ModelProperty::validate(const ModelProperty& other) const
 TYPESYSTEM_SOURCE(Materials::Model, Base::BaseClass)
 
 Model::Model()
+    : _dereferenced(false)
+    , _dereferencing(false)
 {}
 
-Model::Model(std::shared_ptr<ModelLibrary> library,
-             ModelType type,
-             const QString& name,
-             const QString& directory,
-             const QString& uuid,
-             const QString& description,
-             const QString& url,
-             const QString& doi)
+Model::Model(
+    std::shared_ptr<ModelLibrary> library,
+    ModelType type,
+    const QString& name,
+    const QString& directory,
+    const QString& uuid,
+    const QString& description,
+    const QString& url,
+    const QString& doi
+)
     : _library(library)
     , _type(type)
     , _name(name)
@@ -166,6 +170,8 @@ Model::Model(std::shared_ptr<ModelLibrary> library,
     , _description(description)
     , _url(url)
     , _doi(doi)
+    , _dereferenced(false)
+    , _dereferencing(false)
 {}
 
 QString Model::getDirectory() const
@@ -191,6 +197,11 @@ void Model::setFilename(const QString& filename)
 QString Model::getFilePath() const
 {
     return QDir(_directory + QStringLiteral("/") + _filename).absolutePath();
+}
+
+bool Model::hasProperty(const QString& name) const
+{
+    return _properties.contains(name);
 }
 
 ModelProperty& Model::operator[](const QString& key)

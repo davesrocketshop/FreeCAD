@@ -28,6 +28,7 @@
 
 #include "Model.h"
 #include "ModelLoader.h"
+#include "ModelManager.h"
 #include "ModelManagerLocal.h"
 
 using namespace Materials;
@@ -177,7 +178,9 @@ std::shared_ptr<Model> ModelManagerLocal::getModel(const QString& uuid) const
             throw Uninitialized();
         }
 
-        return _modelMap->at(uuid);
+        auto& model = _modelMap->at(uuid);
+        ModelManager::dereference(model);
+        return model;
     }
     catch (std::out_of_range const&) {
         throw ModelNotFound();
@@ -192,7 +195,9 @@ std::shared_ptr<Model> ModelManagerLocal::getModelByPath(const QString& path) co
         if (library->isLocal()) {
             auto localLibrary = std::static_pointer_cast<Materials::ModelLibraryLocal> (library);
             if (cleanPath.startsWith(localLibrary->getDirectory())) {
-                return localLibrary->getModelByPath(cleanPath);
+                auto model = localLibrary->getModelByPath(cleanPath);
+                ModelManager::dereference(model);
+                return model;
             }
         }
     }
@@ -206,7 +211,9 @@ std::shared_ptr<Model> ModelManagerLocal::getModelByPath(const QString& path,
     auto library = getLibrary(lib);        // May throw LibraryNotFound
     if (library->isLocal()) {
         auto localLibrary = std::static_pointer_cast<Materials::ModelLibraryLocal>(library);
-        return localLibrary->getModelByPath(path);  // May throw ModelNotFound
+        auto model = localLibrary->getModelByPath(path);  // May throw ModelNotFound
+        ModelManager::dereference(model);
+        return model;
     }
 
     throw ModelNotFound();

@@ -75,15 +75,6 @@ public:
     {
         return &_model;
     }
-    bool getDereferenced() const
-    {
-        return _dereferenced;
-    }
-
-    void markDereferenced()
-    {
-        _dereferenced = true;
-    }
 
 private:
     ModelEntry();
@@ -94,7 +85,6 @@ private:
     QString _directory;
     QString _uuid;
     YAML::Node _model;
-    bool _dereferenced;
 };
 
 class ModelLoader
@@ -112,15 +102,8 @@ private:
     void getModelLibraries();
     QString
     yamlValue(const YAML::Node& node, const std::string& key, const std::string& defaultValue);
-    void addToTree(std::shared_ptr<ModelEntry> model,
-                   std::map<std::pair<QString, QString>, QString>* inheritances);
+    void addToTree(std::shared_ptr<ModelEntry> model);
     void showYaml(const YAML::Node& yaml) const;
-    void dereference(const QString& uuid,
-                     std::shared_ptr<ModelEntry> parent,
-                     std::shared_ptr<ModelEntry> child,
-                     std::map<std::pair<QString, QString>, QString>* inheritances);
-    void dereference(std::shared_ptr<ModelEntry> model,
-                     std::map<std::pair<QString, QString>, QString>* inheritances);
     std::shared_ptr<ModelEntry> getModelFromPath(std::shared_ptr<ModelLibrary> library,
                                                  const QString& path) const;
     void addLibrary(std::shared_ptr<ModelLibraryLocal> model);

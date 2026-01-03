@@ -52,7 +52,6 @@ ModelEntry::ModelEntry(
     , _directory(Library::cleanPath(dir))
     , _uuid(modelUuid)
     , _model(modelData)
-    , _dereferenced(false)
 {}
 
 std::unique_ptr<std::map<QString, std::shared_ptr<ModelEntry>>> ModelLoader::_modelEntryMap = nullptr;
@@ -147,78 +146,6 @@ void ModelLoader::showYaml(const YAML::Node& yaml) const
     Base::Console().log("%s\n", logData.c_str());
 }
 
-void ModelLoader::dereference(
-    const QString& uuid,
-    std::shared_ptr<ModelEntry> parent,
-    std::shared_ptr<ModelEntry> child,
-    std::map<std::pair<QString, QString>, QString>* inheritances
-)
-{
-    auto parentPtr = parent->getModelPtr();
-    auto parentBase = parent->getBase().toStdString();
-    auto childYaml = child->getModel();
-    auto childBase = child->getBase().toStdString();
-
-    std::set<QString> exclude;
-    exclude.insert(QStringLiteral("Name"));
-    exclude.insert(QStringLiteral("UUID"));
-    exclude.insert(QStringLiteral("URL"));
-    exclude.insert(QStringLiteral("Description"));
-    exclude.insert(QStringLiteral("DOI"));
-    exclude.insert(QStringLiteral("Inherits"));
-
-    auto parentProperties = (*parentPtr)[parentBase];
-    auto childProperties = childYaml[childBase];
-    for (auto it = childProperties.begin(); it != childProperties.end(); it++) {
-        std::string name = it->first.as<std::string>();
-        if (!exclude.contains(QString::fromStdString(name))) {
-            // showYaml(it->second);
-            if (!parentProperties[name]) {
-                parentProperties[name] = it->second;
-                // parentProperties[name]["Inherits"] = childYaml[childBase]["UUID"];
-                (*inheritances)[std::pair<QString, QString>(uuid, QString::fromStdString(name))]
-                    = yamlValue(childYaml[childBase], "UUID", "");
-            }
-        }
-    }
-    // showYaml(*parentPtr);
-}
-
-
-void ModelLoader::dereference(
-    std::shared_ptr<ModelEntry> model,
-    std::map<std::pair<QString, QString>, QString>* inheritances
-)
-{
-    // Avoid recursion
-    if (model->getDereferenced()) {
-        return;
-    }
-
-    auto yamlModel = model->getModel();
-    auto base = model->getBase().toStdString();
-    if (yamlModel[base]["Inherits"]) {
-        auto inherits = yamlModel[base]["Inherits"];
-        for (auto it = inherits.begin(); it != inherits.end(); it++) {
-            QString nodeName = QString::fromStdString((*it)["UUID"].as<std::string>());
-
-            // This requires that all models have already been loaded undereferenced
-            try {
-                std::shared_ptr<ModelEntry> child = (*_modelEntryMap)[nodeName];
-                dereference(model->getUUID(), model, child, inheritances);
-            }
-            catch (const std::out_of_range&) {
-                Base::Console().log(
-                    "Unable to find '%s' in model map\n",
-                    nodeName.toStdString().c_str()
-                );
-            }
-        }
-    }
-
-    model->markDereferenced();
-}
-
 QString ModelLoader::yamlValue(
     const YAML::Node& node,
     const std::string& key,
@@ -232,8 +159,7 @@ QString ModelLoader::yamlValue(
 }
 
 void ModelLoader::addToTree(
-    std::shared_ptr<ModelEntry> model,
-    std::map<std::pair<QString, QString>, QString>* inheritances
+    std::shared_ptr<ModelEntry> model
 )
 {
     std::set<QString> exclude;
@@ -297,12 +223,10 @@ void ModelLoader::addToTree(
             );
 
             if (propType == QStringLiteral("2DArray") || propType == QStringLiteral("3DArray")) {
-                // Base::Console().Log("Reading columns\n");
                 // Read the columns
                 auto cols = yamlProp["Columns"];
                 for (const auto& col : cols) {
                     std::string colName = col.first.as<std::string>();
-                    // Base::Console().Log("\tColumns '%s'\n", colName.c_str());
 
                     auto colProp = cols[colName];
                     auto colPropDisplayName = yamlValue(colProp, "DisplayName", "");
@@ -321,11 +245,6 @@ void ModelLoader::addToTree(
 
                     property.addColumn(colProperty);
                 }
-            }
-
-            auto key = std::pair<QString, QString>(uuid, QString::fromStdString(propName));
-            if (inheritances->contains(key)) {
-                property.setInheritance((*inheritances)[key]);
             }
 
             finalModel.addProperty(property);
@@ -359,14 +278,10 @@ void ModelLoader::loadLibrary(std::shared_ptr<ModelLibraryLocal> library)
         }
     }
 
-    std::map<std::pair<QString, QString>, QString> inheritances;
     for (auto it = _modelEntryMap->begin(); it != _modelEntryMap->end(); it++) {
-        dereference(it->second, &inheritances);
+        addToTree(it->second);
     }
-
-    for (auto it = _modelEntryMap->begin(); it != _modelEntryMap->end(); it++) {
-        addToTree(it->second, &inheritances);
-    }
+    _modelEntryMap->clear();
 }
 
 void ModelLoader::loadLibraries()

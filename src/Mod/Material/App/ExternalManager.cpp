@@ -271,7 +271,7 @@ std::shared_ptr<std::vector<std::shared_ptr<Library>>> ExternalManager::modelLib
             Py::Callable libraries(_managerObject.getAttr("modelLibraries"));
             Py::List list(libraries.apply());
             for (auto lib : list) {
-                auto library = libraryFromObject(Py::Tuple(lib));
+                auto library = libraryFromObject(Py::Object(lib));
                 libList->push_back(library);
             }
         }
@@ -300,7 +300,7 @@ std::shared_ptr<std::vector<std::shared_ptr<Library>>> ExternalManager::material
             Py::Callable libraries(_managerObject.getAttr("materialLibraries"));
             Py::List list(libraries.apply());
             for (auto lib : list) {
-                auto library = libraryFromObject(Py::Tuple(lib));
+                auto library = libraryFromObject(Py::Object(lib));
                 libList->push_back(library);
             }
         }

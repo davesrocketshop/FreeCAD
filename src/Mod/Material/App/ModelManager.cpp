@@ -253,12 +253,14 @@ std::shared_ptr<std::map<QString, std::shared_ptr<Model>>> ModelManager::getMode
     if (_useExternal) {
         auto remoteModels = _externalManager->getModels();
         for (auto& remote : *remoteModels) {
+            // dereference(remote.second); - Done by the external manager
             modelMap->try_emplace(remote.first, remote.second);
         }
     }
 #endif
     auto localModels = _localManager->getModels();
     for (auto& local : *localModels) {
+        dereference(local.second);
         modelMap->try_emplace(local.first, local.second);
     }
 
@@ -267,7 +269,12 @@ std::shared_ptr<std::map<QString, std::shared_ptr<Model>>> ModelManager::getMode
 
 std::shared_ptr<std::map<QString, std::shared_ptr<Model>>> ModelManager::getLocalModels()
 {
-    return _localManager->getModels();
+    auto localModels = _localManager->getModels();
+    for (auto& local : *localModels) {
+        dereference(local.second);
+    }
+
+    return localModels;
 }
 
 std::shared_ptr<Model> ModelManager::getModel(const QString& /*libraryName*/, const QString& uuid) const
@@ -314,6 +321,40 @@ bool ModelManager::passFilter(ModelFilter filter, Model::ModelType modelType)
     }
 
     return false;
+}
+
+void ModelManager::dereference(Model& model)
+{
+    if (model.isDereferenced()) {
+        // Nothing to do
+        return;
+    }
+
+    if (model.isDereferencing()) {
+        // We've got a circular inheritance
+        throw InvalidModel();
+    }
+    model.markDereferencing();
+
+    auto inherits = model.getInheritance();
+    for (auto& uuid : inherits) {
+        auto parent = getManager().getModel(uuid); // This will dereference it
+        for (auto& parentProperty : *parent) {
+            if (!model.hasProperty(parentProperty.second.getName())) {
+                ModelProperty inheritedProperty(parentProperty.second);
+                inheritedProperty.setInheritance(uuid);
+                model.addProperty(inheritedProperty);
+            }
+        }
+    }
+
+    model.markDereferenced();
+    model.clearDereferencing();
+}
+
+void ModelManager::dereference(const std::shared_ptr<Model>& model)
+{
+    dereference(*model);
 }
 
 #if defined(BUILD_MATERIAL_EXTERNAL)
