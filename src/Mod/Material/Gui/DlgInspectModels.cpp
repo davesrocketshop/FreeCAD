@@ -105,6 +105,8 @@ void DlgInspectModels::setupProperties(const Materials::Model& model)
 
 void DlgInspectModels::onProperty(int index)
 {
+    Q_UNUSED(index)
+
     auto value = ui->comboProperty->currentData();
     if (!value.isNull() && value.isValid())
     {

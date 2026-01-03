@@ -29,6 +29,7 @@
 #include <QDir>
 #include <QString>
 #include <QStringList>
+#include <QTextStream>
 
 #include <Base/BaseClass.h>
 #include <Base/Quantity.h>

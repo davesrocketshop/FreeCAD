@@ -20,6 +20,7 @@
  *   <https://www.gnu.org/licenses/>.                                      *
  *                                                                         *
  **************************************************************************/
+#include <QApplication>
 
 #include "ClipboardText.h"
 
