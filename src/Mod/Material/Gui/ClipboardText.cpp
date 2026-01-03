@@ -21,6 +21,7 @@
  *                                                                         *
  **************************************************************************/
 #include <QApplication>
+#include <QClipboard>
 
 #include "ClipboardText.h"
 
