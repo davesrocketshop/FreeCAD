@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: LGPL-2.1-or-later
 
 /***************************************************************************
- *   Copyright (c) 2024 David Carter <dcarter@david.carter.ca>             *
+ *   Copyright (c) 2026 David Carter <dcarter@david.carter.ca>             *
  *                                                                         *
  *   This file is part of FreeCAD.                                         *
  *                                                                         *
@@ -36,16 +36,13 @@
 #include <Mod/Material/App/MaterialManager.h>
 #include <Mod/Material/App/ModelManager.h>
 
-namespace Gui
-{
-class ViewProvider;
-}
+#include "ClipboardText.h"
 
 namespace MatGui
 {
 class Ui_DlgInspectModels;
 
-class DlgInspectModels: public QWidget, public Gui::SelectionSingleton::ObserverType
+class DlgInspectModels: public QWidget, public ClipboardText
 {
     Q_OBJECT
 
@@ -53,45 +50,31 @@ public:
     explicit DlgInspectModels(QWidget* parent = nullptr);
     ~DlgInspectModels() override;
 
-    bool accept();
-    void onClipboard(bool checked);
-
-    /// Observer message from the Selection
-    void OnChange(Gui::SelectionSingleton::SubjectType& rCaller,
-                  Gui::SelectionSingleton::MessageType Reason) override;
-
 private:
     std::unique_ptr<Ui_DlgInspectModels> ui;
-    QString clipboardText;
-    int clipboardIndent;
 
-    void appendClip(QString text);
-    QStandardItem* clipItem(QString text);
-    void indent();
-    void unindent();
+    void onModel(int index);
+    void onProperty(int index);
 
-    std::vector<Gui::ViewProvider*> getSelection() const;
-    void update(std::vector<Gui::ViewProvider*>& views);
-    void updateMaterialTree(const Materials::Material& material);
-    void
-    addMaterial(QTreeView* tree, QStandardItemModel* parent, const Materials::Material& material);
-    void addMaterial(QTreeView* tree, QStandardItem* parent, const Materials::Material& material);
-    void
-    addMaterialDetails(QTreeView* tree, QStandardItem* parent, const Materials::Material& material);
-    void addModels(QTreeView* tree, QStandardItem* parent, const QSet<QString>* models);
-    void addModelDetails(QTreeView* tree,
-                         QStandardItem* parent,
-                         std::shared_ptr<Materials::Model>& model);
-    void addProperties(
-        QTreeView* tree,
-        QStandardItem* parent,
-        const std::map<QString, std::shared_ptr<Materials::MaterialProperty>>& properties);
-    void addPropertyDetails(QTreeView* tree,
-                            QStandardItem* parent,
-                            const std::shared_ptr<Materials::MaterialProperty>& property);
+    void setupModels();
+    void setupProperties(const Materials::Model& model);
 
     void addExpanded(QTreeView* tree, QStandardItemModel* parent, QStandardItem* child);
     void addExpanded(QTreeView* tree, QStandardItem* parent, QStandardItem* child);
+    void updateModelTree(const Materials::Model& model);
+    void addModel(QTreeView* tree, QStandardItemModel* parent, const Materials::Model& model);
+    void updatePropertyTree(const Materials::ModelProperty& property);
+    void addProperty(
+        QTreeView* tree,
+        QStandardItemModel* parent,
+        const Materials::ModelProperty& property
+    );
+    void addProperty(QTreeView* tree, QStandardItem* parent, const Materials::ModelProperty& property);
+    void addPropertyDetails(
+        QTreeView* tree,
+        QStandardItem* parent,
+        const Materials::ModelProperty& property
+    );
 };
 
 
@@ -106,7 +89,6 @@ public:
 public:
     void open() override;
     bool accept() override;
-    // bool reject() override;
     void clicked(int) override;
 
     QDialogButtonBox::StandardButtons getStandardButtons() const override

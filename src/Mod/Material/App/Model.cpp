@@ -279,23 +279,16 @@ void Model::saveGeneral(QTextStream& stream) const
         stream << "  DOI: \"" << MaterialValue::escapeString(_doi) << "\"\n";
     }
 }
-// QString _name;
-// QString _directory;
-// QString _filename;
-// QString _uuid;
-// QString _description;
-// QString _url;
-// QString _doi;
-// QStringList _inheritedUuids;
-// std::map<QString, ModelProperty> _properties;
 
 void Model::saveInherits(QTextStream& stream) const
 {
-    for (auto const& uuid : _inheritedUuids) {
-        auto model = ModelManager::getManager().getModel(uuid);
+    if (!_inheritedUuids.empty()) {
         stream << "Inherits:\n";
-        stream << "  - " << model->getName() << ":\n";
-        stream << "    UUID: \"" << uuid << "\"\n";
+        for (auto const& uuid : _inheritedUuids) {
+            auto model = ModelManager::getManager().getModel(uuid);
+            stream << "  - " << model->getName() << ":\n";
+            stream << "    UUID: \"" << uuid << "\"\n";
+        }
     }
 }
 
@@ -324,11 +317,4 @@ void Model::saveProperties(QTextStream& stream) const
                    << MaterialValue::escapeString(property.getDescription()) << "\"\n";
         }
     }
-    // QString _name;
-    // QString _displayName;
-    // QString _propertyType;
-    // QString _units;
-    // QString _url;
-    // QString _description;
-    // QString _inheritance;
 }

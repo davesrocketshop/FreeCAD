@@ -21,7 +21,6 @@
  *                                                                         *
  **************************************************************************/
 
-#include <QClipboard>
 #include <QStandardItem>
 #include <QStandardItemModel>
 #include <QTreeView>
@@ -81,7 +80,7 @@ void DlgInspectMaterial::onClipboard(bool checked)
 {
     Q_UNUSED(checked)
 
-    QApplication::clipboard()->setText(clipboardText);
+    copyToClipboard();
 }
 
 std::vector<Gui::ViewProvider*> DlgInspectMaterial::getSelection() const
@@ -116,36 +115,9 @@ void DlgInspectMaterial::OnChange(Gui::SelectionSingleton::SubjectType& rCaller,
 }
 /// @endcond
 
-void DlgInspectMaterial::appendClip(QString text)
-{
-    // Need to add indent
-    QString indent(clipboardIndent * 4, QLatin1Char(' '));
-    clipboardText += indent + text + QStringLiteral("\n");
-}
-
-QStandardItem* DlgInspectMaterial::clipItem(QString text)
-{
-    appendClip(text);
-    auto item = new QStandardItem(text);
-    return item;
-}
-
-void DlgInspectMaterial::indent()
-{
-    clipboardIndent += 1;
-}
-
-void DlgInspectMaterial::unindent()
-{
-    if (clipboardIndent > 0) {
-        clipboardIndent -= 1;
-    }
-}
-
 void DlgInspectMaterial::update(std::vector<Gui::ViewProvider*>& views)
 {
-    clipboardText = QStringLiteral("");
-    clipboardIndent = 0;
+    resetClipboard();
     App::Document* doc = App::GetApplication().getActiveDocument();
     if (doc) {
         appendClip(tr("Document: ") + QString::fromUtf8(doc->Label.getValue()));
@@ -406,7 +378,7 @@ void DlgInspectMaterial::addExpanded(QTreeView* tree, QStandardItem* parent, QSt
 TaskInspectMaterial::TaskInspectMaterial()
 {
     widget = new DlgInspectMaterial();
-    addTaskBox(Gui::BitmapFactory().pixmap("Part_Loft"), widget);
+    addTaskBox(Gui::BitmapFactory().pixmap("Material_Edit"), widget);
 }
 
 TaskInspectMaterial::~TaskInspectMaterial() = default;

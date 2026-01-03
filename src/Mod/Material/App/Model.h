@@ -328,4 +328,8 @@ typedef FolderTreeNode<Model> ModelTreeNode;
 
 }  // namespace Materials
 
+Q_DECLARE_METATYPE(Materials::ModelProperty)
+Q_DECLARE_METATYPE(Materials::Model*)
+Q_DECLARE_METATYPE(std::shared_ptr<Materials::Model>)
+
 #endif  // MATERIAL_MODEL_H

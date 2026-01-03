@@ -36,6 +36,8 @@
 #include <Mod/Material/App/MaterialManager.h>
 #include <Mod/Material/App/ModelManager.h>
 
+#include "ClipboardText.h"
+
 namespace Gui
 {
 class ViewProvider;
@@ -45,7 +47,7 @@ namespace MatGui
 {
 class Ui_DlgInspectMaterial;
 
-class DlgInspectMaterial: public QWidget, public Gui::SelectionSingleton::ObserverType
+class DlgInspectMaterial: public QWidget, public Gui::SelectionSingleton::ObserverType, public ClipboardText
 {
     Q_OBJECT
 
@@ -62,13 +64,6 @@ public:
 
 private:
     std::unique_ptr<Ui_DlgInspectMaterial> ui;
-    QString clipboardText;
-    int clipboardIndent;
-
-    void appendClip(QString text);
-    QStandardItem* clipItem(QString text);
-    void indent();
-    void unindent();
 
     std::vector<Gui::ViewProvider*> getSelection() const;
     void update(std::vector<Gui::ViewProvider*>& views);

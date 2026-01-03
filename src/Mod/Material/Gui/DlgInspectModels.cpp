@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: LGPL-2.1-or-later
 
 /***************************************************************************
- *   Copyright (c) 2024 David Carter <dcarter@david.carter.ca>             *
+ *   Copyright (c) 2026 David Carter <dcarter@david.carter.ca>             *
  *                                                                         *
  *   This file is part of FreeCAD.                                         *
  *                                                                         *
@@ -30,12 +30,9 @@
 #include <App/Document.h>
 #include <Gui/Application.h>
 #include <Gui/BitmapFactory.h>
-#include <Gui/Document.h>
-#include <Gui/Selection/Selection.h>
-#include <Gui/ViewProvider.h>
-#include <Gui/ViewProviderDocumentObject.h>
 
 #include <Mod/Material/App/MaterialLibrary.h>
+#include <Mod/Material/App/ModelManager.h>
 #include <Mod/Material/App/PropertyMaterial.h>
 
 #include "DlgInspectModels.h"
@@ -64,13 +61,10 @@ DlgInspectModels::DlgInspectModels(QWidget* parent)
 
     tree->setHeaderHidden(true);
 
+    connect(ui->comboModel, &QComboBox::currentIndexChanged, this, &DlgInspectModels::onModel);
+    connect(ui->comboProperty, &QComboBox::currentIndexChanged, this, &DlgInspectModels::onProperty);
 
-    // std::vector<Gui::ViewProvider*> views = getSelection();
-    // update(views);
-
-    // connect(ui->buttonClipboard, &QPushButton::clicked, this, &DlgInspectModels::onClipboard);
-
-    // Gui::Selection().Attach(this);
+    setupModels();
 }
 
 DlgInspectModels::~DlgInspectModels()
@@ -78,341 +72,183 @@ DlgInspectModels::~DlgInspectModels()
     // Gui::Selection().Detach(this);
 }
 
-bool DlgInspectModels::accept()
+void DlgInspectModels::setupModels()
 {
-    return true;
-}
-
-void DlgInspectModels::onClipboard(bool checked)
-{
-    Q_UNUSED(checked)
-
-    QApplication::clipboard()->setText(clipboardText);
-}
-
-std::vector<Gui::ViewProvider*> DlgInspectModels::getSelection() const
-{
-    std::vector<Gui::ViewProvider*> views;
-
-    // get a single selection
-    std::vector<Gui::SelectionSingleton::SelObj> sel =
-        Gui::Selection().getSelection(nullptr, Gui::ResolveMode::OldStyleElement, true);
-    for (const auto& it : sel) {
-        Gui::ViewProvider* view =
-            Gui::Application::Instance->getDocument(it.pDoc)->getViewProvider(it.pObject);
-        views.push_back(view);
-    }
-
-    return views;
-}
-
-/// @cond DOXERR
-void DlgInspectModels::OnChange(Gui::SelectionSingleton::SubjectType& rCaller,
-                                  Gui::SelectionSingleton::MessageType Reason)
-{
-    Q_UNUSED(rCaller);
-
-    if (Reason.Type == Gui::SelectionChanges::AddSelection
-        || Reason.Type == Gui::SelectionChanges::RmvSelection
-        || Reason.Type == Gui::SelectionChanges::SetSelection
-        || Reason.Type == Gui::SelectionChanges::ClrSelection) {
-        std::vector<Gui::ViewProvider*> views = getSelection();
-        update(views);
-    }
-}
-/// @endcond
-
-void DlgInspectModels::appendClip(QString text)
-{
-    // Need to add indent
-    QString indent(clipboardIndent * 4, QLatin1Char(' '));
-    clipboardText += indent + text + QStringLiteral("\n");
-}
-
-QStandardItem* DlgInspectModels::clipItem(QString text)
-{
-    appendClip(text);
-    auto item = new QStandardItem(text);
-    return item;
-}
-
-void DlgInspectModels::indent()
-{
-    clipboardIndent += 1;
-}
-
-void DlgInspectModels::unindent()
-{
-    if (clipboardIndent > 0) {
-        clipboardIndent -= 1;
+    auto& manager = Materials::ModelManager::getManager();
+    auto models = manager.getModels();
+    ui->comboModel->clear();
+    for (auto& it : *models) {
+        auto model = it.second;
+        ui->comboModel->addItem(model->getName(), QVariant::fromValue(model));
     }
 }
 
-void DlgInspectModels::update(std::vector<Gui::ViewProvider*>& views)
+void DlgInspectModels::onModel(int index)
 {
-    // clipboardText = QStringLiteral("");
-    // clipboardIndent = 0;
-    // App::Document* doc = App::GetApplication().getActiveDocument();
-    // if (doc) {
-    //     appendClip(tr("Document: ") + QString::fromUtf8(doc->Label.getValue()));
-    //     ui->editDocument->setText(QString::fromUtf8(doc->Label.getValue()));
+    Q_UNUSED(index)
 
-    //     if (views.size() == 1) {
-    //         auto view = dynamic_cast<Gui::ViewProviderDocumentObject*>(views[0]);
-    //         if (!view) {
-    //             return;
-    //         }
-    //         auto* obj = view->getObject();
-    //         if (!obj) {
-    //             return;
-    //         }
-    //         auto* labelProp = dynamic_cast<App::PropertyString*>(obj->getPropertyByName("Label"));
-    //         if (labelProp) {
-    //             ui->editObjectLabel->setText(QString::fromUtf8(labelProp->getValue()));
-    //             appendClip(tr("Label: ") + QString::fromUtf8(labelProp->getValue()));
-    //         }
-    //         else {
-    //             ui->editObjectLabel->setText(QStringLiteral(""));
-    //         }
-    //         ui->editObjectName->setText(QLatin1String(obj->getNameInDocument()));
-    //         appendClip(tr("Internal name: ") + QString::fromUtf8(obj->getNameInDocument()));
-
-    //         auto subElement = Gui::Selection().getSelectionEx();
-    //         if (subElement.size() > 0) {
-    //             auto& subObject = subElement[0];
-    //             if (subObject.getSubNames().size() > 0) {
-    //                 ui->editSubShape->setText(QString::fromStdString(subObject.getSubNames()[0]));
-    //             }
-    //             else {
-    //                 ui->editSubShape->setText(QStringLiteral(""));
-    //             }
-    //         }
-    //         else {
-    //             ui->editSubShape->setText(QStringLiteral(""));
-    //         }
-
-    //         auto subShapeType = QString::fromUtf8(obj->getTypeId().getName());
-    //         subShapeType.remove(subShapeType.indexOf(QStringLiteral("::")), subShapeType.size());
-    //         appendClip(tr("Type: ") + subShapeType);
-    //         ui->editSubShapeType->setText(subShapeType);
-    //         appendClip(tr("TypeID: ") + QString::fromUtf8(obj->getTypeId().getName()));
-    //         ui->editShapeType->setText(QString::fromUtf8(obj->getTypeId().getName()));
-
-    //         if (labelProp && QString::fromUtf8(labelProp->getValue()).size() > 0) {
-    //             auto* prop = dynamic_cast<Materials::PropertyMaterial*>(
-    //                 obj->getPropertyByName("ShapeMaterial"));
-    //             if (prop) {
-    //                 updateMaterialTree(prop->getValue());
-    //             }
-    //         }
-    //     }
-    // }
+    auto value = ui->comboModel->currentData();
+    auto model = value.value<std::shared_ptr<Materials::Model>>();
+    // Base::Console().log("Model:  %s\n", model->getName().toStdString().c_str());
+    resetClipboard();
+    updateModelTree(*model);
+    setupProperties(*model);
 }
 
-void DlgInspectModels::updateMaterialTree(const Materials::Material& material)
+void DlgInspectModels::setupProperties(const Materials::Model& model)
 {
-    // Base::Console().log("Material '%s'\n", material.getName().toStdString().c_str());
-
-    // auto tree = ui->treeMaterials;
-    // auto model = qobject_cast<QStandardItemModel*>(tree->model());
-    // model->clear();
-
-    // addMaterial(tree, model, material);
+    ui->comboProperty->clear();
+    for (auto& it : model) {
+        auto property = it.second;
+        Base::Console().log("Property:  %s\n", property.getName().toStdString().c_str());
+        ui->comboProperty->addItem(property.getName(), QVariant::fromValue(property));
+    }
 }
 
-void DlgInspectModels::addMaterial(QTreeView* tree,
-                                     QStandardItemModel* parent,
-                                     const Materials::Material& material)
+void DlgInspectModels::onProperty(int index)
 {
-    // auto card = clipItem(tr("Name: ") + material.getName());
-    // addExpanded(tree, parent, card);
-
-    // indent();
-    // addMaterialDetails(tree, card, material);
-    // unindent();
+    auto value = ui->comboProperty->currentData();
+    if (!value.isNull() && value.isValid())
+    {
+        auto property = value.value<Materials::ModelProperty>();
+        Base::Console()
+            .log("Property selected %d:  %s\n", index, property.getDisplayName().toStdString().c_str());
+        resetClipboard();
+        updatePropertyTree(property);
+    }
 }
 
-void DlgInspectModels::addMaterial(QTreeView* tree,
-                                     QStandardItem* parent,
-                                     const Materials::Material& material)
+void DlgInspectModels::addExpanded(QTreeView* tree, QStandardItemModel* parent, QStandardItem* child)
 {
-    // auto card = clipItem(tr("Name: ") + material.getName());
-    // addExpanded(tree, parent, card);
-
-    // indent();
-    // addMaterialDetails(tree, card, material);
-    // unindent();
+    parent->appendRow(child);
+    tree->setExpanded(child->index(), true);
 }
 
-void DlgInspectModels::addModels(QTreeView* tree,
-                                   QStandardItem* parent,
-                                   const QSet<QString>* models)
+void DlgInspectModels::addExpanded(QTreeView* tree, QStandardItem* parent, QStandardItem* child)
 {
-    // if (models->isEmpty()) {
-    //     auto none = clipItem(tr("None"));
-    //     addExpanded(tree, parent, none);
-    // }
-    // else {
-    //     for (const QString& uuid : *models) {
-    //         auto model = Materials::ModelManager::getManager().getModel(uuid);
-    //         auto name = clipItem(tr("Name: ") + model->getName());
-    //         addExpanded(tree, parent, name);
-
-    //         indent();
-    //         addModelDetails(tree, name, model);
-    //         unindent();
-    //     }
-    // }
+    parent->appendRow(child);
+    tree->setExpanded(child->index(), true);
 }
 
-void DlgInspectModels::addModelDetails(QTreeView* tree,
-                                         QStandardItem* parent,
-                                         std::shared_ptr<Materials::Model>& model)
+void DlgInspectModels::updateModelTree(const Materials::Model& model)
 {
-    // auto uuid = clipItem(tr("UUID: ") + model->getUUID());
-    // addExpanded(tree, parent, uuid);
+    Base::Console().log("Model '%s'\n", model.getName().toStdString().c_str());
 
-    // auto library = clipItem(tr("Library: ") + model->getLibrary()->getName());
-    // addExpanded(tree, parent, library);
+    auto tree = ui->treeModels;
+    auto treeModel = qobject_cast<QStandardItemModel*>(tree->model());
+    treeModel->clear();
 
-    // auto libraryPath =
-    //     clipItem(tr("Library directory: ") + model->getLibrary()->getDirectoryPath());
-    // addExpanded(tree, parent, libraryPath);
-
-    // auto directory = clipItem(tr("Subdirectory: ") + model->getDirectory());
-    // addExpanded(tree, parent, directory);
-
-    // auto inherits = clipItem(tr("Inherits:"));
-    // addExpanded(tree, parent, inherits);
-
-    // auto& inheritedUuids = model->getInheritance();
-    // indent();
-    // if (inheritedUuids.isEmpty()) {
-    //     auto none = clipItem(tr("None"));
-    //     addExpanded(tree, inherits, none);
-    // }
-    // else {
-    //     for (const QString& inherited : inheritedUuids) {
-    //         auto inheritedModel = Materials::ModelManager::getManager().getModel(inherited);
-
-    //         auto name = clipItem(tr("Name: ") + inheritedModel->getName());
-    //         addExpanded(tree, inherits, name);
-
-    //         indent();
-    //         addModelDetails(tree, name, inheritedModel);
-    //         unindent();
-    //     }
-    // }
-    // unindent();
+    addModel(tree, treeModel, model);
 }
 
-void DlgInspectModels::addProperties(
+void DlgInspectModels::addModel(QTreeView* tree, QStandardItemModel* parent, const Materials::Model& model)
+{
+    auto card = clipItem(tr("Name: ") + model.getName());
+    addExpanded(tree, parent, card);
+
+    indent();
+        auto item = clipItem(tr("Library: ") + model.getLibrary()->getName());
+        addExpanded(tree, parent, item);
+        item = clipItem(tr("Library directory: ") + model.getLibrary()->getDirectoryPath());
+        addExpanded(tree, parent, item);
+        item = clipItem(tr("Type: ") + model.getBase());
+        addExpanded(tree, parent, item);
+        item = clipItem(tr("Directory: ") + model.getDirectory());
+        addExpanded(tree, parent, item);
+        item = clipItem(tr("Filename: ") + model.getFilename());
+        addExpanded(tree, parent, item);
+        item = clipItem(tr("UUID: ") + model.getUUID());
+        addExpanded(tree, parent, item);
+        item = clipItem(tr("Description: ") + model.getDescription());
+        addExpanded(tree, parent, item);
+        item = clipItem(tr("URL: ") + model.getURL());
+        addExpanded(tree, parent, item);
+        item = clipItem(tr("DOI: ") + model.getDOI());
+        addExpanded(tree, parent, item);
+        auto inherits = clipItem(tr("Inherits: "));
+        addExpanded(tree, parent, inherits);
+        indent();
+        for (auto const& uuid : model.getInheritance()) {
+            auto superModel = Materials::ModelManager::getManager().getModel(uuid);
+            item = clipItem(uuid + QStringLiteral(": ") + superModel->getName());
+            addExpanded(tree, inherits, item);
+        }
+        unindent();
+    unindent();
+}
+
+void DlgInspectModels::updatePropertyTree(const Materials::ModelProperty& property)
+{
+    Base::Console().log("Property '%s'\n", property.getName().toStdString().c_str());
+
+    auto tree = ui->treeProperties;
+    auto model = qobject_cast<QStandardItemModel*>(tree->model());
+    model->clear();
+
+    addProperty(tree, model, property);
+}
+
+void DlgInspectModels::addProperty(
+    QTreeView* tree,
+    QStandardItemModel* parent,
+    const Materials::ModelProperty& property
+)
+{
+    auto card = clipItem(tr("Name: ") + property.getName());
+    addExpanded(tree, parent, card);
+
+    indent();
+    addPropertyDetails(tree, card, property);
+    unindent();
+}
+
+void DlgInspectModels::addProperty(
     QTreeView* tree,
     QStandardItem* parent,
-    const std::map<QString, std::shared_ptr<Materials::MaterialProperty>>& properties)
+    const Materials::ModelProperty& property
+)
 {
-    // if (properties.empty()) {
-    //     auto none = clipItem(tr("None"));
-    //     addExpanded(tree, parent, none);
-    // }
-    // else {
-    //     for (auto& property : properties) {
-    //         auto name = clipItem(tr("Name: ") + property.second->getName());
-    //         addExpanded(tree, parent, name);
+    auto card = clipItem(tr("Name: ") + property.getName());
+    addExpanded(tree, parent, card);
 
-    //         indent();
-    //         addPropertyDetails(tree, name, property.second);
-    //         unindent();
-    //     }
-    // }
+    indent();
+    addPropertyDetails(tree, card, property);
+    unindent();
 }
 
 void DlgInspectModels::addPropertyDetails(
     QTreeView* tree,
     QStandardItem* parent,
-    const std::shared_ptr<Materials::MaterialProperty>& property)
+    const Materials::ModelProperty& property
+)
 {
-    // auto uuid = clipItem(tr("Model UUID: ") + property->getModelUUID());
-    // addExpanded(tree, parent, uuid);
-    // auto type = clipItem(tr("Type: ") + property->getPropertyType());
-    // addExpanded(tree, parent, type);
-    // auto hasValue = clipItem(tr("Has value: ") + (property->isNull() ? tr("No") : tr("Yes")));
-    // addExpanded(tree, parent, hasValue);
-}
-
-void DlgInspectModels::addMaterialDetails(QTreeView* tree,
-                                            QStandardItem* parent,
-                                            const Materials::Material& material)
-{
-    // auto uuid = clipItem(tr("UUID: ") + material.getUUID());
-    // addExpanded(tree, parent, uuid);
-    // auto library =
-    //     clipItem(tr("Library: ") + material.getLibrary()->getName());
-    // addExpanded(tree, parent, library);
-    // auto libraryPath = clipItem(tr("Library directory: ") + material.getLibrary()->getDirectoryPath());
-    // addExpanded(tree, parent, libraryPath);
-    // auto directory = clipItem(tr("Sub directory: ") + material.getDirectory());
-    // addExpanded(tree, parent, directory);
-    // auto inherits = clipItem(tr("Inherits:"));
-    // addExpanded(tree, parent, inherits);
-
-    // indent();
-    // auto parentUUID = material.getParentUUID();
-    // if (!parentUUID.isEmpty()) {
-    //     auto parentMaterial = Materials::MaterialManager::getManager().getMaterial(material.getParentUUID());
-    //     addMaterial(tree, inherits, *parentMaterial);
-    // }
-    // else {
-    //     auto none = clipItem(tr("None"));
-    //     addExpanded(tree, inherits, none);
-    // }
-    // unindent();
-
-    // auto appearance = clipItem(tr("Appearance models:"));
-    // addExpanded(tree, parent, appearance);
-    // indent();
-    // addModels(tree, appearance, material.getAppearanceModels());
-    // unindent();
-
-    // auto physical = clipItem(tr("Physical models:"));
-    // addExpanded(tree, parent, physical);
-    // indent();
-    // addModels(tree, physical, material.getPhysicalModels());
-    // unindent();
-
-    // auto appearanceProperties = clipItem(tr("Appearance properties:"));
-    // addExpanded(tree, parent, appearanceProperties);
-    // indent();
-    // addProperties(tree, appearanceProperties, material.getAppearanceProperties());
-    // unindent();
-
-    // auto physicalProperties = clipItem(tr("Physical properties:"));
-    // addExpanded(tree, parent, physicalProperties);
-    // indent();
-    // addProperties(tree, physicalProperties, material.getPhysicalProperties());
-    // unindent();
-}
-
-void DlgInspectModels::addExpanded(QTreeView* tree,
-                                     QStandardItemModel* parent,
-                                     QStandardItem* child)
-{
-    // parent->appendRow(child);
-    // tree->setExpanded(child->index(), true);
-}
-
-void DlgInspectModels::addExpanded(QTreeView* tree, QStandardItem* parent, QStandardItem* child)
-{
-    // parent->appendRow(child);
-    // tree->setExpanded(child->index(), true);
+    auto text = clipItem(tr("Display Name: ") + property.getDisplayName());
+    addExpanded(tree, parent, text);
+    text = clipItem(tr("Type: ") + property.getPropertyType());
+    addExpanded(tree, parent, text);
+    text = clipItem(tr("Units: ") + property.getUnits());
+    addExpanded(tree, parent, text);
+    text = clipItem(tr("URL: ") + property.getURL());
+    addExpanded(tree, parent, text);
+    text = clipItem(tr("Description: ") + property.getDescription());
+    addExpanded(tree, parent, text);
+    auto uuid = property.getInheritance();
+    text = clipItem(tr("Inheritance: ") + property.getInheritance());
+    addExpanded(tree, parent, text);
+    if (!uuid.isEmpty()) {
+        auto model = Materials::ModelManager::getManager().getModel(uuid);
+        text = clipItem(QStringLiteral("- ") + model->getName());
+        addExpanded(tree, parent, text);
+    }
+    // TODO: Column properties
 }
 
 /* TRANSLATOR MatGui::TaskInspectModels */
 
 TaskInspectModels::TaskInspectModels()
 {
-    // widget = new DlgInspectModels();
-    // addTaskBox(Gui::BitmapFactory().pixmap("Part_Loft"), widget);
+    widget = new DlgInspectModels();
+    addTaskBox(Gui::BitmapFactory().pixmap("Material_Edit"), widget);
 }
 
 TaskInspectModels::~TaskInspectModels() = default;
@@ -425,7 +261,8 @@ void TaskInspectModels::clicked(int)
 
 bool TaskInspectModels::accept()
 {
-    return widget->accept();
+    // return widget->accept();
+    return true;
 }
 
 #include "moc_DlgInspectModels.cpp"

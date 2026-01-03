@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Form</string>
+   <string>Inspect Model</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
@@ -39,7 +39,11 @@
            <widget class="QComboBox" name="comboModel"/>
           </item>
           <item>
-           <widget class="QTreeView" name="treeModels"/>
+           <widget class="QTreeView" name="treeModels">
+            <property name="selectionMode">
+             <enum>QAbstractItemView::SelectionMode::NoSelection</enum>
+            </property>
+           </widget>
           </item>
          </layout>
         </widget>
@@ -58,10 +62,10 @@
             <property name="horizontalScrollBarPolicy">
              <enum>Qt::ScrollBarPolicy::ScrollBarAsNeeded</enum>
             </property>
+            <property name="selectionMode">
+             <enum>QAbstractItemView::SelectionMode::NoSelection</enum>
+            </property>
            </widget>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout"/>
           </item>
          </layout>
         </widget>

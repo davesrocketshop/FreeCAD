@@ -80,6 +80,8 @@ SET(MatGui_SRCS
     BaseDelegate.cpp
     BaseDelegate.h
     Command.cpp
+    ClipboardText.cpp
+    ClipboardText.h
     DlgDisplayPropertiesImp.cpp
     DlgDisplayPropertiesImp.h
     DlgDisplayProperties.ui
