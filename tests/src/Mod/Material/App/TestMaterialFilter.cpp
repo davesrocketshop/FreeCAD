@@ -24,6 +24,7 @@
 
 #include <QMetaType>
 #include <QString>
+#include <QDir>
 
 #include <App/Application.h>
 #include <Base/Quantity.h>
@@ -50,54 +51,77 @@ protected:
         _modelManager = &(Materials::ModelManager::getManager());
         _materialManager = &(Materials::MaterialManager::getManager());
 
-        // Use our test files as a custom directory
-        ParameterGrp::handle hGrp =
-            App::GetApplication().GetParameterGroupByPath("User parameter:BaseApp/Preferences/Mod/Material/Resources");
+        // Disable the external interface
+        ParameterGrp::handle paramExternal =
+            App::GetApplication().GetParameterGroupByPath("User parameter:BaseApp/Preferences/Mod/Material/ExternalInterface");
 
-        _customDir = hGrp->GetASCII("CustomMaterialsDir", "");
-        _useBuiltInDir = hGrp->GetBool("UseBuiltInMaterials", true);
-        _useWorkbenchDir = hGrp->GetBool("UseMaterialsFromWorkbenches", true);
-        _useUserDir = hGrp->GetBool("UseMaterialsFromConfigDir", true);
-        _useCustomDir = hGrp->GetBool("UseMaterialsFromCustomDir", false);
+        _useExternal = paramExternal->GetBool("UseExternal", false);
 
+        paramExternal->SetBool("UseExternal", false);
+
+        // Create a custom library for our test files
+        ParameterGrp::handle param = App::GetApplication().GetParameterGroupByPath("User parameter:BaseApp/Preferences/Mod/Material/Resources/Local/__UnitTest");
+
+        // Ensure the directory exists
         std::string testPath = App::Application::getHomePath() + "/tests/Materials/";
-        hGrp->SetASCII("CustomMaterialsDir", testPath);
-        hGrp->SetBool("UseBuiltInMaterials", false);
-        hGrp->SetBool("UseMaterialsFromWorkbenches", false);
-        hGrp->SetBool("UseMaterialsFromConfigDir", false);
-        hGrp->SetBool("UseMaterialsFromCustomDir", true);
+        QDir directory(QString::fromStdString(testPath));
+        ASSERT_TRUE(directory.exists());
 
-        auto param = App::GetApplication().GetParameterGroupByPath(
-            "User parameter:BaseApp/Preferences/Mod/Material/Editor");
-        param->SetBool("ShowFavorites", true);
-        param->SetBool("ShowRecent", true);
-        param->SetBool("ShowEmptyFolders", false);
-        param->SetBool("ShowEmptyLibraries", true);
-        param->SetBool("ShowLegacy", false);
+        param->SetASCII("Directory", testPath);
+        param->SetASCII("ModelDirectory", testPath);
+        param->SetASCII("IconPath", ":/icons/preferences-general.svg");
+        param->SetBool("ReadOnly", false);
+        param->SetBool("Disabled", false);
+
+        // Disable other libraries
+        param = App::GetApplication().GetParameterGroupByPath("User parameter:BaseApp/Preferences/Mod/Material/Resources/Local");
+        auto groups = param->GetGroups();
+        for (auto group : groups) {
+            // auto group = param->GetGroup(groupName);
+            if (std::string(group->GetGroupName()) != "__UnitTest") {
+                _libraries.emplace(group->GetGroupName(), group->GetBool("Disabled", false));
+                group->SetBool("Disabled", true);
+            }
+        }
+        param = App::GetApplication().GetParameterGroupByPath("User parameter:BaseApp/Preferences/Mod/Material/Resources/Modules");
+        groups = param->GetGroups();
+        for (auto group : groups) {
+            // auto group = param->GetGroup(groupName);
+            if (std::string(group->GetGroupName()) != "__UnitTest") {
+                _libraries.emplace(group->GetGroupName(), group->GetBool("Disabled", false));
+                group->SetBool("Disabled", true);
+            }
+        }
 
         _materialManager->refresh();
 
-        _library = _materialManager->getLibrary(QStringLiteral("Custom"));
+        _library = _materialManager->getLibrary(QStringLiteral("__UnitTest"));
     }
 
     void TearDown() override {
-        ParameterGrp::handle hGrp =
-            App::GetApplication().GetParameterGroupByPath("User parameter:BaseApp/Preferences/Mod/Material/Resources");
+        ParameterGrp::handle paramExternal =
+            App::GetApplication().GetParameterGroupByPath("User parameter:BaseApp/Preferences/Mod/Material/ExternalInterface");
+        paramExternal->SetBool("UseExternal", _useExternal);
 
-        // Restore preferences
-        hGrp->SetASCII("CustomMaterialsDir", _customDir);
-        hGrp->SetBool("UseBuiltInMaterials", _useBuiltInDir);
-        hGrp->SetBool("UseMaterialsFromWorkbenches", _useWorkbenchDir);
-        hGrp->SetBool("UseMaterialsFromConfigDir", _useUserDir);
-        hGrp->SetBool("UseMaterialsFromCustomDir", _useCustomDir);
+        ParameterGrp::handle param = App::GetApplication().GetParameterGroupByPath("User parameter:BaseApp/Preferences/Mod/Material/Resources/Local/__UnitTest");
+        param->SetBool("Disabled", true);
 
-        hGrp = App::GetApplication().GetParameterGroupByPath(
-            "User parameter:BaseApp/Preferences/Mod/Material/Editor");
-        hGrp->SetBool("ShowFavorites", _includeFavorites);
-        hGrp->SetBool("ShowRecent", _includeRecent);
-        hGrp->SetBool("ShowEmptyFolders", _includeFolders);
-        hGrp->SetBool("ShowEmptyLibraries", _includeLibraries);
-        hGrp->SetBool("ShowLegacy", _includeLegacy);
+        // Restore other libraries
+        param = App::GetApplication().GetParameterGroupByPath("User parameter:BaseApp/Preferences/Mod/Material/Resources/Local");
+        auto groups = param->GetGroups();
+        for (auto group : groups) {
+            if (std::string(group->GetGroupName()) != "__UnitTest") {
+                group->SetBool("Disabled", _libraries[group->GetGroupName()]);
+            }
+        }
+
+        param = App::GetApplication().GetParameterGroupByPath("User parameter:BaseApp/Preferences/Mod/Material/Resources/Modules");
+        groups = param->GetGroups();
+        for (auto group : groups) {
+            if (std::string(group->GetGroupName()) != "__UnitTest") {
+                group->SetBool("Disabled", _libraries[group->GetGroupName()]);
+            }
+        }
 
         _materialManager->refresh();
     }
@@ -107,11 +131,8 @@ protected:
     std::shared_ptr<Materials::MaterialLibrary> _library;
     QString _testMaterialUUID;
 
-    std::string _customDir;
-    bool _useBuiltInDir {};
-    bool _useWorkbenchDir {};
-    bool _useUserDir {};
-    bool _useCustomDir {};
+    bool _useExternal {};
+    std::map<std::string, bool> _libraries;
 
     bool _includeFavorites {};
     bool _includeRecent {};
@@ -152,7 +173,7 @@ TEST_F(TestMaterialFilter, TestFilters)
     ASSERT_EQ(material->getUUID(), QString::fromLatin1(UUIDBrassAppearance));
 
     material = _materialManager->getMaterialByPath(QStringLiteral("TestAcrylicLegacy.FCMat"),
-        QStringLiteral("Custom"));
+        QStringLiteral("__UnitTest"));
     ASSERT_TRUE(material);
     ASSERT_EQ(material->getName(), QStringLiteral("TestAcrylicLegacy"));
     ASSERT_EQ(material->getUUID().size(), 36); // We don't know the UUID
