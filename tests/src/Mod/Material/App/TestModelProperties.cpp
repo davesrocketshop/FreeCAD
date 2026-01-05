@@ -36,9 +36,9 @@
 // clang-format off
 
 class TestModelProperties : public ::testing::Test {
- protected:
-  static void SetUpTestSuite() {
-  }
+protected:
+    static void SetUpTestSuite() {
+    }
 };
 
 TEST_F(TestModelProperties, TestEmpty)

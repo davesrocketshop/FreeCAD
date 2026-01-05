@@ -125,6 +125,15 @@ void ModelManager::refresh()
 //
 //=====
 
+void ModelManager::setUseExternal(bool useExternal)
+{
+    ParameterGrp::handle paramExternal = App::GetApplication().GetParameterGroupByPath(
+        "User parameter:BaseApp/Preferences/Mod/Material/ExternalInterface"
+    );
+
+    paramExternal->SetBool("UseExternal", useExternal);
+}
+
 std::shared_ptr<std::list<std::shared_ptr<ModelLibrary>>> ModelManager::getLibraries()
 {
     // External libraries take precedence over local libraries

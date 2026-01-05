@@ -34,19 +34,27 @@
 // clang-format off
 
 class TestModel : public ::testing::Test {
- protected:
-  static void SetUpTestSuite() {
-    if (App::Application::GetARGC() == 0) {
-        tests::initApplication();
+protected:
+    static void SetUpTestSuite() {
+        if (App::Application::GetARGC() == 0) {
+            tests::initApplication();
+        }
     }
-  }
 
-  void SetUp() override {
-    _modelManager = &(Materials::ModelManager::getManager());
-  }
+    void SetUp() override {
+        _modelManager = &(Materials::ModelManager::getManager());
 
-  // void TearDown() override {}
-  Materials::ModelManager* _modelManager;
+        // Disable the external interface
+        _useExternal = _modelManager->useExternal();
+        _modelManager->setUseExternal(false);
+    }
+
+    void TearDown() override {
+        _modelManager->setUseExternal(_useExternal);
+    }
+
+    Materials::ModelManager* _modelManager;
+    bool _useExternal {};
 };
 
 TEST_F(TestModel, TestApplication)

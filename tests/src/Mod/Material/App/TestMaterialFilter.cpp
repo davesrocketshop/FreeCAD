@@ -52,12 +52,8 @@ protected:
         _materialManager = &(Materials::MaterialManager::getManager());
 
         // Disable the external interface
-        ParameterGrp::handle paramExternal =
-            App::GetApplication().GetParameterGroupByPath("User parameter:BaseApp/Preferences/Mod/Material/ExternalInterface");
-
-        _useExternal = paramExternal->GetBool("UseExternal", false);
-
-        paramExternal->SetBool("UseExternal", false);
+        _useExternal = _materialManager->useExternal();
+        _materialManager->setUseExternal(false);
 
         // Create a custom library for our test files
         ParameterGrp::handle param = App::GetApplication().GetParameterGroupByPath("User parameter:BaseApp/Preferences/Mod/Material/Resources/Local/__UnitTest");
@@ -99,9 +95,7 @@ protected:
     }
 
     void TearDown() override {
-        ParameterGrp::handle paramExternal =
-            App::GetApplication().GetParameterGroupByPath("User parameter:BaseApp/Preferences/Mod/Material/ExternalInterface");
-        paramExternal->SetBool("UseExternal", _useExternal);
+        _materialManager->setUseExternal(_useExternal);
 
         ParameterGrp::handle param = App::GetApplication().GetParameterGroupByPath("User parameter:BaseApp/Preferences/Mod/Material/Resources/Local/__UnitTest");
         param->SetBool("Disabled", true);

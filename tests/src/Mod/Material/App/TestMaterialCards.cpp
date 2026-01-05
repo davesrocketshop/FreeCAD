@@ -48,6 +48,10 @@ protected:
     }
 
     void SetUp() override {
+        // Disable the external interface
+        _useExternal = _materialManager->useExternal();
+        _materialManager->setUseExternal(false);
+
         // Create a temporary library
         QString libPath = QDir::tempPath() + QStringLiteral("/TestMaterialCards");
         QDir libDir(libPath);
@@ -63,114 +67,126 @@ protected:
         _testMaterialUUID = QStringLiteral("c6c64159-19c1-40b5-859c-10561f20f979");
     }
 
-    // void TearDown() override {}
+    void TearDown() override {
+        _materialManager->setUseExternal(_useExternal);
+    }
+
     Materials::ModelManager* _modelManager;
     Materials::MaterialManager* _materialManager;
     std::shared_ptr<Materials::MaterialLibraryLocal> _library;
     QString _testMaterialUUID;
+    bool _useExternal {};
 };
 
 TEST_F(TestMaterialCards, TestCopy)
 {
-    ASSERT_NE(_modelManager, nullptr);
-    ASSERT_TRUE(_library);
-    // FAIL() << "Test library " << _library->getDirectoryPath().toStdString() << "\n";
+    try {
+        ASSERT_NE(_modelManager, nullptr);
+        ASSERT_TRUE(_library);
+        // FAIL() << "Test library " << _library->getDirectoryPath().toStdString() << "\n";
 
-    auto testMaterial = _materialManager->getMaterial(_testMaterialUUID);
-    auto newMaterial = std::make_shared<Materials::Material>(*testMaterial);
+        auto testMaterial = _materialManager->getMaterial(_testMaterialUUID);
+        auto newMaterial = std::make_shared<Materials::Material>(*testMaterial);
 
-    EXPECT_EQ(testMaterial->getUUID(), _testMaterialUUID);
-    EXPECT_EQ(newMaterial->getUUID(), _testMaterialUUID);
+        EXPECT_EQ(testMaterial->getUUID(), _testMaterialUUID);
+        EXPECT_EQ(newMaterial->getUUID(), _testMaterialUUID);
 
-    // Save the material
-    _materialManager->saveMaterial(_library,
-                      newMaterial,
-                      QStringLiteral("/Test Material2.FCMat"),
-                      false, // overwrite
-                      true,  // saveAsCopy
-                      false); // saveInherited
-    EXPECT_EQ(newMaterial->getUUID(), _testMaterialUUID);
-    EXPECT_EQ(newMaterial->getName(), QStringLiteral("Test Material2"));
+        // Save the material
+        _materialManager->saveMaterial(_library,
+                        newMaterial,
+                        QStringLiteral("/Test Material2.FCMat"),
+                        false, // overwrite
+                        true,  // saveAsCopy
+                        false); // saveInherited
+        EXPECT_EQ(newMaterial->getUUID(), _testMaterialUUID);
+        EXPECT_EQ(newMaterial->getName(), QStringLiteral("Test Material2"));
 
-    // Save it when it already exists throwing an error
-    EXPECT_THROW(_materialManager->saveMaterial(_library,
-                      newMaterial,
-                      QStringLiteral("/Test Material2.FCMat"),
-                      false, // overwrite
-                      true,  // saveAsCopy
-                      false) // saveInherited
-                      , Materials::MaterialExists);
-    EXPECT_EQ(newMaterial->getUUID(), _testMaterialUUID);
-    EXPECT_EQ(newMaterial->getName(), QStringLiteral("Test Material2"));
+        // Save it when it already exists throwing an error
+        EXPECT_THROW(_materialManager->saveMaterial(_library,
+                        newMaterial,
+                        QStringLiteral("/Test Material2.FCMat"),
+                        false, // overwrite
+                        true,  // saveAsCopy
+                        false) // saveInherited
+                        , Materials::MaterialExists);
+        EXPECT_EQ(newMaterial->getUUID(), _testMaterialUUID);
+        EXPECT_EQ(newMaterial->getName(), QStringLiteral("Test Material2"));
 
-    // Overwrite the existing file
-    _materialManager->saveMaterial(_library,
-                      newMaterial,
-                      QStringLiteral("/Test Material2.FCMat"),
-                      true,  // overwrite
-                      true,  // saveAsCopy
-                      false);// saveInherited
-    EXPECT_EQ(newMaterial->getUUID(), _testMaterialUUID);
-    EXPECT_EQ(newMaterial->getName(), QStringLiteral("Test Material2"));
+        // Overwrite the existing file
+        _materialManager->saveMaterial(_library,
+                        newMaterial,
+                        QStringLiteral("/Test Material2.FCMat"),
+                        true,  // overwrite
+                        true,  // saveAsCopy
+                        false);// saveInherited
+        EXPECT_EQ(newMaterial->getUUID(), _testMaterialUUID);
+        EXPECT_EQ(newMaterial->getName(), QStringLiteral("Test Material2"));
 
-    // Save to a new file, inheritance mode
-    _materialManager->saveMaterial(_library,
-                      newMaterial,
-                      QStringLiteral("/Test Material3.FCMat"),
-                      false,  // overwrite
-                      true,  // saveAsCopy
-                      true);// saveInherited
-    EXPECT_EQ(newMaterial->getUUID(), _testMaterialUUID);
-    EXPECT_EQ(newMaterial->getName(), QStringLiteral("Test Material3"));
+        // Save to a new file, inheritance mode
+        _materialManager->saveMaterial(_library,
+                        newMaterial,
+                        QStringLiteral("/Test Material3.FCMat"),
+                        false,  // overwrite
+                        true,  // saveAsCopy
+                        true);// saveInherited
+        EXPECT_EQ(newMaterial->getUUID(), _testMaterialUUID);
+        EXPECT_EQ(newMaterial->getName(), QStringLiteral("Test Material3"));
 
-    // Save to a new file, inheritance mode. no copy
-    _materialManager->saveMaterial(_library,
-                      newMaterial,
-                      QStringLiteral("/Test Material4.FCMat"),
-                      false,  // overwrite
-                      false,  // saveAsCopy
-                      true);// saveInherited
-    EXPECT_NE(newMaterial->getUUID(), _testMaterialUUID);
-    EXPECT_EQ(newMaterial->getName(), QStringLiteral("Test Material4"));
-    QString uuid1 = newMaterial->getUUID();
+        // Save to a new file, inheritance mode. no copy
+        _materialManager->saveMaterial(_library,
+                        newMaterial,
+                        QStringLiteral("/Test Material4.FCMat"),
+                        false,  // overwrite
+                        false,  // saveAsCopy
+                        true);// saveInherited
+        EXPECT_NE(newMaterial->getUUID(), _testMaterialUUID);
+        EXPECT_EQ(newMaterial->getName(), QStringLiteral("Test Material4"));
+        QString uuid1 = newMaterial->getUUID();
 
-    // Save to a new file, inheritance mode, testing overwrite, new copy
-    _materialManager->saveMaterial(_library,
-                      newMaterial,
-                      QStringLiteral("/Test Material5.FCMat"),
-                      false,  // overwrite
-                      true,  // saveAsCopy
-                      true);// saveInherited
-    EXPECT_EQ(newMaterial->getUUID(), uuid1);
-    EXPECT_EQ(newMaterial->getName(), QStringLiteral("Test Material5"));
+        // Save to a new file, inheritance mode, testing overwrite, new copy
+        _materialManager->saveMaterial(_library,
+                        newMaterial,
+                        QStringLiteral("/Test Material5.FCMat"),
+                        false,  // overwrite
+                        true,  // saveAsCopy
+                        true);// saveInherited
+        EXPECT_EQ(newMaterial->getUUID(), uuid1);
+        EXPECT_EQ(newMaterial->getName(), QStringLiteral("Test Material5"));
 
-    _materialManager->saveMaterial(_library,
-                      newMaterial,
-                      QStringLiteral("/Test Material5.FCMat"),
-                      true,  // overwrite
-                      true,  // saveAsCopy
-                      true);// saveInherited
-    EXPECT_EQ(newMaterial->getUUID(), uuid1);
-    EXPECT_EQ(newMaterial->getName(), QStringLiteral("Test Material5"));
+        _materialManager->saveMaterial(_library,
+                        newMaterial,
+                        QStringLiteral("/Test Material5.FCMat"),
+                        true,  // overwrite
+                        true,  // saveAsCopy
+                        true);// saveInherited
+        EXPECT_EQ(newMaterial->getUUID(), uuid1);
+        EXPECT_EQ(newMaterial->getName(), QStringLiteral("Test Material5"));
 
-    // Save to a new file, inheritance mode, testing overwrite as no copy, new copy
-    _materialManager->saveMaterial(_library,
-                      newMaterial,
-                      QStringLiteral("/Test Material6.FCMat"),
-                      false,  // overwrite
-                      true,  // saveAsCopy
-                      true);// saveInherited
-    EXPECT_EQ(newMaterial->getUUID(), uuid1);
-    EXPECT_EQ(newMaterial->getName(), QStringLiteral("Test Material6"));
+        // Save to a new file, inheritance mode, testing overwrite as no copy, new copy
+        _materialManager->saveMaterial(_library,
+                        newMaterial,
+                        QStringLiteral("/Test Material6.FCMat"),
+                        false,  // overwrite
+                        true,  // saveAsCopy
+                        true);// saveInherited
+        EXPECT_EQ(newMaterial->getUUID(), uuid1);
+        EXPECT_EQ(newMaterial->getName(), QStringLiteral("Test Material6"));
 
-    _materialManager->saveMaterial(_library,
-                      newMaterial,
-                      QStringLiteral("/Test Material6.FCMat"),
-                      true,  // overwrite
-                      false,  // saveAsCopy
-                      true);// saveInherited
-    EXPECT_EQ(newMaterial->getUUID(), uuid1);
-    EXPECT_EQ(newMaterial->getName(), QStringLiteral("Test Material6"));
+        _materialManager->saveMaterial(_library,
+                        newMaterial,
+                        QStringLiteral("/Test Material6.FCMat"),
+                        true,  // overwrite
+                        false,  // saveAsCopy
+                        true);// saveInherited
+        EXPECT_EQ(newMaterial->getUUID(), uuid1);
+        EXPECT_EQ(newMaterial->getName(), QStringLiteral("Test Material6"));
+    }
+    catch (const std::exception& e) {
+        FAIL() << e.what() << std::endl;
+    }
+    catch (...) {
+        FAIL() << "An unknown exception has occured\n";
+    }
 }
 
 TEST_F(TestMaterialCards, TestColumns)

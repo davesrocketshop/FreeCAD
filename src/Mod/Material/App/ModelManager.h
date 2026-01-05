@@ -54,6 +54,8 @@ public:
     void refresh();
 
     // Library management
+    bool useExternal() const { return _useExternal; }
+    void setUseExternal(bool useExternal);
     std::shared_ptr<std::list<std::shared_ptr<ModelLibrary>>> getLibraries();
     std::shared_ptr<std::list<std::shared_ptr<ModelLibrary>>> getLocalLibraries();
     std::shared_ptr<ModelLibrary> getLibrary(const QString& name) const;
