@@ -299,7 +299,17 @@ void ModelLoader::getModelLibraries()
     auto localParam = App::GetApplication().GetParameterGroupByPath(
         "User parameter:BaseApp/Preferences/Mod/Material/Resources/Local"
     );
-    for (auto& group : localParam->GetGroups()) {
+
+    // Ensure the builtin libraries have a configuration
+    if (!localParam->HasGroup("System")) {
+        ModelManager::createSystemLibraryConfig();
+    }
+    if (!localParam->HasGroup("User")) {
+        ModelManager::createUserLibraryConfig();
+    }
+
+    auto groups = localParam->GetGroups();
+    for (auto& group : groups) {
         auto libName = QString::fromStdString(group->GetGroupName());
         auto libDir = QString::fromStdString(group->GetASCII("ModelDirectory", ""));
         auto libIcon = QString::fromStdString(group->GetASCII("IconPath", ""));

@@ -107,6 +107,9 @@ public:
     static double modelHitRate();
 #endif
 
+    static void createSystemLibraryConfig();
+    static void createUserLibraryConfig();
+
 private:
     ModelManager();
 

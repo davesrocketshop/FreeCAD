@@ -533,6 +533,15 @@ std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>> MaterialManagerLoca
     auto localParam = App::GetApplication().GetParameterGroupByPath(
         "User parameter:BaseApp/Preferences/Mod/Material/Resources/Local"
     );
+
+    // Ensure the builtin libraries have a configuration
+    if (!localParam->HasGroup("System")) {
+        ModelManager::createSystemLibraryConfig();
+    }
+    if (!localParam->HasGroup("User")) {
+        ModelManager::createUserLibraryConfig();
+    }
+
     for (auto& group : localParam->GetGroups()) {
         // auto module = moduleParam->GetGroup(group->GetGroupName());
         auto libName = QString::fromStdString(group->GetGroupName());
