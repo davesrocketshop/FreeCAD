@@ -80,18 +80,25 @@ protected:
 
 TEST_F(TestMaterialCards, TestCopy)
 {
-    try {
-        ASSERT_NE(_modelManager, nullptr);
-        ASSERT_TRUE(_library);
-        // FAIL() << "Test library " << _library->getDirectoryPath().toStdString() << "\n";
+    ASSERT_NE(_modelManager, nullptr);
+    ASSERT_TRUE(_library);
+    // FAIL() << "Test library " << _library->getDirectoryPath().toStdString() << "\n";
 
+    std::shared_ptr<Materials::Material> newMaterial;
+
+    try {
         auto testMaterial = _materialManager->getMaterial(_testMaterialUUID);
-        auto newMaterial = std::make_shared<Materials::Material>(*testMaterial);
+        newMaterial = std::make_shared<Materials::Material>(*testMaterial);
 
         EXPECT_EQ(testMaterial->getUUID(), _testMaterialUUID);
         EXPECT_EQ(newMaterial->getUUID(), _testMaterialUUID);
+    }
+    catch (...) {
+        FAIL() << "An unknown exception has occured 1\n";
+    }
 
         // Save the material
+    try {
         _materialManager->saveMaterial(_library,
                         newMaterial,
                         QStringLiteral("/Test Material2.FCMat"),
@@ -100,8 +107,13 @@ TEST_F(TestMaterialCards, TestCopy)
                         false); // saveInherited
         EXPECT_EQ(newMaterial->getUUID(), _testMaterialUUID);
         EXPECT_EQ(newMaterial->getName(), QStringLiteral("Test Material2"));
+    }
+    catch (...) {
+        FAIL() << "An unknown exception has occured 2\n";
+    }
 
         // Save it when it already exists throwing an error
+    try {
         EXPECT_THROW(_materialManager->saveMaterial(_library,
                         newMaterial,
                         QStringLiteral("/Test Material2.FCMat"),
@@ -111,8 +123,13 @@ TEST_F(TestMaterialCards, TestCopy)
                         , Materials::MaterialExists);
         EXPECT_EQ(newMaterial->getUUID(), _testMaterialUUID);
         EXPECT_EQ(newMaterial->getName(), QStringLiteral("Test Material2"));
+    }
+    catch (...) {
+        FAIL() << "An unknown exception has occured 3\n";
+    }
 
         // Overwrite the existing file
+    try {
         _materialManager->saveMaterial(_library,
                         newMaterial,
                         QStringLiteral("/Test Material2.FCMat"),
@@ -121,8 +138,13 @@ TEST_F(TestMaterialCards, TestCopy)
                         false);// saveInherited
         EXPECT_EQ(newMaterial->getUUID(), _testMaterialUUID);
         EXPECT_EQ(newMaterial->getName(), QStringLiteral("Test Material2"));
+    }
+    catch (...) {
+        FAIL() << "An unknown exception has occured 4\n";
+    }
 
         // Save to a new file, inheritance mode
+    try {
         _materialManager->saveMaterial(_library,
                         newMaterial,
                         QStringLiteral("/Test Material3.FCMat"),
@@ -131,8 +153,14 @@ TEST_F(TestMaterialCards, TestCopy)
                         true);// saveInherited
         EXPECT_EQ(newMaterial->getUUID(), _testMaterialUUID);
         EXPECT_EQ(newMaterial->getName(), QStringLiteral("Test Material3"));
+    }
+    catch (...) {
+        FAIL() << "An unknown exception has occured 5\n";
+    }
 
         // Save to a new file, inheritance mode. no copy
+    QString uuid1;
+    try {
         _materialManager->saveMaterial(_library,
                         newMaterial,
                         QStringLiteral("/Test Material4.FCMat"),
@@ -141,9 +169,14 @@ TEST_F(TestMaterialCards, TestCopy)
                         true);// saveInherited
         EXPECT_NE(newMaterial->getUUID(), _testMaterialUUID);
         EXPECT_EQ(newMaterial->getName(), QStringLiteral("Test Material4"));
-        QString uuid1 = newMaterial->getUUID();
+        uuid1 = newMaterial->getUUID();
+    }
+    catch (...) {
+        FAIL() << "An unknown exception has occured 6\n";
+    }
 
         // Save to a new file, inheritance mode, testing overwrite, new copy
+    try {
         _materialManager->saveMaterial(_library,
                         newMaterial,
                         QStringLiteral("/Test Material5.FCMat"),
@@ -152,7 +185,12 @@ TEST_F(TestMaterialCards, TestCopy)
                         true);// saveInherited
         EXPECT_EQ(newMaterial->getUUID(), uuid1);
         EXPECT_EQ(newMaterial->getName(), QStringLiteral("Test Material5"));
+    }
+    catch (...) {
+        FAIL() << "An unknown exception has occured 7\n";
+    }
 
+    try {
         _materialManager->saveMaterial(_library,
                         newMaterial,
                         QStringLiteral("/Test Material5.FCMat"),
@@ -161,8 +199,13 @@ TEST_F(TestMaterialCards, TestCopy)
                         true);// saveInherited
         EXPECT_EQ(newMaterial->getUUID(), uuid1);
         EXPECT_EQ(newMaterial->getName(), QStringLiteral("Test Material5"));
+    }
+    catch (...) {
+        FAIL() << "An unknown exception has occured 8\n";
+    }
 
         // Save to a new file, inheritance mode, testing overwrite as no copy, new copy
+    try {
         _materialManager->saveMaterial(_library,
                         newMaterial,
                         QStringLiteral("/Test Material6.FCMat"),
@@ -171,7 +214,12 @@ TEST_F(TestMaterialCards, TestCopy)
                         true);// saveInherited
         EXPECT_EQ(newMaterial->getUUID(), uuid1);
         EXPECT_EQ(newMaterial->getName(), QStringLiteral("Test Material6"));
+    }
+    catch (...) {
+        FAIL() << "An unknown exception has occured 9\n";
+    }
 
+    try {
         _materialManager->saveMaterial(_library,
                         newMaterial,
                         QStringLiteral("/Test Material6.FCMat"),
@@ -181,11 +229,8 @@ TEST_F(TestMaterialCards, TestCopy)
         EXPECT_EQ(newMaterial->getUUID(), uuid1);
         EXPECT_EQ(newMaterial->getName(), QStringLiteral("Test Material6"));
     }
-    catch (const std::exception& e) {
-        FAIL() << e.what() << std::endl;
-    }
     catch (...) {
-        FAIL() << "An unknown exception has occured\n";
+        FAIL() << "An unknown exception has occured 10\n";
     }
 }
 
