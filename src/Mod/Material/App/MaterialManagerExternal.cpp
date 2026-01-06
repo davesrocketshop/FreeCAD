@@ -163,6 +163,54 @@ MaterialManagerExternal::libraryMaterials(const QString& libraryName,
     return ExternalManager::getManager()->libraryMaterials(libraryName, filter, options);
 }
 
+void MaterialManagerExternal::setDisabled(const QString& libraryName, bool disabled)
+{
+    if (!exists(libraryName)) {
+        throw LibraryNotFound();
+    }
+
+    ParameterGrp::handle param = App::GetApplication().GetParameterGroupByPath(
+        "User parameter:BaseApp/Preferences/Mod/Material/Resources/Remote"
+    );
+    auto group = param->GetGroup(libraryName.toStdString().c_str());
+        group->SetBool("Disabled", disabled);
+}
+
+bool MaterialManagerExternal::isDisabled(const QString& libraryName)
+{
+    if (!exists(libraryName)) {
+        throw LibraryNotFound();
+    }
+
+    ParameterGrp::handle param = App::GetApplication().GetParameterGroupByPath(
+        "User parameter:BaseApp/Preferences/Mod/Material/Resources/Remote"
+    );
+    auto groups = param->GetGroups();
+    for (auto group : groups) {
+        if (QString::fromStdString(group->GetGroupName()) == libraryName) {
+            return group->GetBool("Disabled", false);
+        }
+    }
+    // No entry means it isn't disabled
+    return false;
+}
+
+bool MaterialManagerExternal::exists(const QString& libraryName)
+{
+    try {
+        auto lib = ExternalManager::getManager()->getLibrary(libraryName);
+        return true;
+    }
+    catch (const LibraryNotFound& e) {
+    }
+    catch (const ConnectionError& e) {
+    }
+    catch (...) {
+    }
+
+    return false;
+}
+
 //=====
 //
 // Folder management

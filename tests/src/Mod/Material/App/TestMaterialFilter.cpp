@@ -73,7 +73,6 @@ protected:
         param = App::GetApplication().GetParameterGroupByPath("User parameter:BaseApp/Preferences/Mod/Material/Resources/Local");
         auto groups = param->GetGroups();
         for (auto group : groups) {
-            // auto group = param->GetGroup(groupName);
             if (std::string(group->GetGroupName()) != "__UnitTest") {
                 _libraries.emplace(group->GetGroupName(), group->GetBool("Disabled", false));
                 group->SetBool("Disabled", true);
@@ -82,7 +81,6 @@ protected:
         param = App::GetApplication().GetParameterGroupByPath("User parameter:BaseApp/Preferences/Mod/Material/Resources/Modules");
         groups = param->GetGroups();
         for (auto group : groups) {
-            // auto group = param->GetGroup(groupName);
             if (std::string(group->GetGroupName()) != "__UnitTest") {
                 _libraries.emplace(group->GetGroupName(), group->GetBool("Disabled", false));
                 group->SetBool("Disabled", true);

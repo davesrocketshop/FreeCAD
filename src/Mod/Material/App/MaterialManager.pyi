@@ -64,6 +64,18 @@ class MaterialManager(BaseClass):
         """
         ...
 
+    def setDisabled(self, **kwargs) -> None:
+        """
+        Enables or disables a material library
+        """
+        ...
+
+    def isDisabled(self, **kwargs) -> bool:
+        """
+        Gets the disabled state of a material library
+        """
+        ...
+
     def refresh(self) -> None:
         """
         Refreshes the material tree. Use sparingly as this is an expensive operation.

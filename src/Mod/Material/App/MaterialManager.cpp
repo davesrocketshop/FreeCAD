@@ -412,15 +412,38 @@ bool MaterialManager::isLocalLibrary(const QString& /*libraryName*/)
 }
 #endif
 
-void MaterialManager::setDisabled(const QString& name, bool local)
+void MaterialManager::setDisabled(const QString& libraryName, bool disabled, bool isLocal)
 {
-    // TODO
+#if defined(BUILD_MATERIAL_EXTERNAL)
+    if (isLocal) {
+        _localManager->setDisabled(libraryName, disabled);
+    } else {
+        if (_useExternal) {
+            _externalManager->setDisabled(libraryName, disabled);
+        }
+    }
+#else
+    _localManager->setDisabled(libraryName, disabled);
+#endif
 }
 
-bool MaterialManager::isDisabled(const QString& name, bool local)
+void MaterialManager::setDisabled(const MaterialLibrary& library, bool disabled)
+{
+    setDisabled(library.getName(), disabled, library.isLocal());
+}
+
+bool MaterialManager::isDisabled(const QString& libraryName, bool isLocal)
 {
     // TODO
+    if (isLocal) {
+        _localManager->isDisabled(libraryName);
+    }
     return false;
+}
+
+bool MaterialManager::isDisabled(const MaterialLibrary& library)
+{
+    return isDisabled(library.getName(), library.isLocal());
 }
 
 //=====

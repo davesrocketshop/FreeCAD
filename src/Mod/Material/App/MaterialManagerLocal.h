@@ -79,6 +79,9 @@ public:
     libraryMaterials(const QString& libraryName,
                      const MaterialFilter& filter,
                      const MaterialFilterOptions& options);
+    void setDisabled(const QString& libraryName, bool disabled);
+    bool isDisabled(const QString& libraryName);
+    bool exists(const QString& libraryName);
 
     // Folder management
     std::shared_ptr<std::list<QString>>

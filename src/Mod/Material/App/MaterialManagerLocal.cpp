@@ -69,7 +69,7 @@ void MaterialManagerLocal::initLibraries()
         _materialMap = std::make_shared<std::map<QString, std::shared_ptr<Material>>>();
 
         if (_libraryList == nullptr) {
-            _libraryList = getConfiguredLibraries();
+            _libraryList = getConfiguredLibraries(true); // Include disabled
         }
 
         // Load the libraries
@@ -200,7 +200,18 @@ void MaterialManagerLocal::removeLibrary(const QString& libraryName)
         if (library->isLocal() && library->isName(libraryName)) {
             _libraryList->remove(library);
 
+            // Persist
+            ParameterGrp::handle param = App::GetApplication().GetParameterGroupByPath(
+                "User parameter:BaseApp/Preferences/Mod/Material/Resources/Local"
+            );
+            param->RemoveGrp(libraryName.toStdString().c_str());
+
             // At this point we should rebuild the material map
+            for (auto& it : *_materialMap) {
+                if (it.second->getLibrary() == library) {
+                    _materialMap->erase(it.first);
+                }
+            }
             return;
         }
     }
@@ -263,6 +274,65 @@ std::shared_ptr<std::vector<LibraryObject>> MaterialManagerLocal::libraryMateria
     }
 
     return materials;
+}
+
+void MaterialManagerLocal::setDisabled(const QString& libraryName, bool disabled)
+{
+    ParameterGrp::handle param = App::GetApplication().GetParameterGroupByPath(
+        "User parameter:BaseApp/Preferences/Mod/Material/Resources/Local"
+    );
+    auto groups = param->GetGroups();
+    for (auto group : groups) {
+        if (QString::fromStdString(group->GetGroupName()) == libraryName) {
+            group->SetBool("Disabled", disabled);
+            return;
+        }
+    }
+    param = App::GetApplication().GetParameterGroupByPath(
+        "User parameter:BaseApp/Preferences/Mod/Material/Resources/Modules"
+    );
+    groups = param->GetGroups();
+    for (auto group : groups) {
+        if (QString::fromStdString(group->GetGroupName()) == libraryName) {
+            group->SetBool("Disabled", disabled);
+            return;
+        }
+    }
+    throw LibraryNotFound();
+}
+
+bool MaterialManagerLocal::isDisabled(const QString& libraryName)
+{
+    ParameterGrp::handle param = App::GetApplication().GetParameterGroupByPath(
+        "User parameter:BaseApp/Preferences/Mod/Material/Resources/Local"
+    );
+    auto groups = param->GetGroups();
+    for (auto group : groups) {
+        if (QString::fromStdString(group->GetGroupName()) == libraryName) {
+            return group->GetBool("Disabled", false);
+        }
+    }
+    param = App::GetApplication().GetParameterGroupByPath(
+        "User parameter:BaseApp/Preferences/Mod/Material/Resources/Modules"
+    );
+    groups = param->GetGroups();
+    for (auto group : groups) {
+        if (QString::fromStdString(group->GetGroupName()) == libraryName) {
+            return group->GetBool("Disabled", false);
+        }
+    }
+    throw LibraryNotFound();
+}
+
+bool MaterialManagerLocal::exists(const QString& libraryName)
+{
+    for (auto& library : *_libraryList) {
+        if (library->isLocal() && library->isName(libraryName)) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 //=====
@@ -332,7 +402,7 @@ std::shared_ptr<Material> MaterialManagerLocal::getMaterialByPath(const QString&
     QString cleanPath = Library::cleanPath(path);
 
     for (auto& library : *_libraryList) {
-        if (library->isLocal()) {
+        if (library->isLocal() && !library->isDisabled()) {
             auto materialLibrary
                 = reinterpret_cast<const std::shared_ptr<Materials::MaterialLibraryLocal>&>(library);
             if (cleanPath.startsWith(materialLibrary->getDirectory())) {
