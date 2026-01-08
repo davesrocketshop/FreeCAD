@@ -281,6 +281,7 @@ void MaterialManagerLocal::setDisabledOnLibraryList(const QString& libraryName, 
     for (auto& library : *_libraryList) {
         if (library->isLocal() && library->isName(libraryName)) {
             library->setDisabled(disabled);
+            ModelManager::getManager().setDisabled(*library, disabled);
             return;
         }
     }
@@ -306,7 +307,7 @@ void MaterialManagerLocal::setDisabled(const QString& libraryName, bool disabled
     groups = param->GetGroups();
     for (auto group : groups) {
         if (QString::fromStdString(group->GetGroupName()) == libraryName) {
-            group->SetBool("Disabled", disabled);
+            group->SetBool("ModuleMaterialDisabled", disabled);
             setDisabledOnLibraryList(libraryName, disabled);
             return;
         }
@@ -331,7 +332,7 @@ bool MaterialManagerLocal::isDisabled(const QString& libraryName)
     groups = param->GetGroups();
     for (auto group : groups) {
         if (QString::fromStdString(group->GetGroupName()) == libraryName) {
-            return group->GetBool("Disabled", false);
+            return group->GetBool("ModuleMaterialDisabled", false);
         }
     }
     throw LibraryNotFound();
@@ -745,6 +746,15 @@ void MaterialManagerLocal::convertConfiguration()
         newParam->SetASCII("IconPath", ":/icons/preferences-general.svg");
         newParam->SetBool("ReadOnly", false);
         newParam->SetBool("Disabled", !useMatFromCustomDir);
+    }
+
+    // Module directories
+    newParam = App::GetApplication().GetParameterGroupByPath(
+        "User parameter:BaseApp/Preferences/Mod/Material/Resources/Modules"
+    );
+    auto groups = newParam->GetGroups();
+    for (auto group : groups) {
+        group->SetBool("ModuleMaterialDisabled", useMatFromModules);
     }
 
     // Remove the old parameters

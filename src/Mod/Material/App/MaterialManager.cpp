@@ -238,13 +238,17 @@ std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>> MaterialManager::ge
     if (_useExternal) {
         auto remoteLibraries = _externalManager->getLibraries();
         for (auto& remote : *remoteLibraries) {
-            libMap.try_emplace(remote->getName(), remote);
+            if (includeDisabled || !remote->isDisabled()) {
+                libMap.try_emplace(remote->getName(), remote);
+            }
         }
     }
 #endif
     auto localLibraries = _localManager->getLibraries();
     for (auto& local : *localLibraries) {
-        libMap.try_emplace(local->getName(), local);
+        if (includeDisabled || !local->isDisabled()) {
+            libMap.try_emplace(local->getName(), local);
+        }
     }
 
     // Consolidate into a single list
@@ -423,6 +427,8 @@ void MaterialManager::setDisabled(const QString& libraryName, bool disabled, boo
         }
     }
 #else
+    Q_UNUSED(isLocal)
+    
     _localManager->setDisabled(libraryName, disabled);
 #endif
 }

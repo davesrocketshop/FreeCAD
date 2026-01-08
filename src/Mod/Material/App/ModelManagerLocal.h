@@ -60,10 +60,7 @@ public:
     std::shared_ptr<std::vector<LibraryObject>>
     libraryModels(const QString& libraryName);
 
-    std::shared_ptr<std::map<QString, std::shared_ptr<Model>>> getModels()
-    {
-        return _modelMap;
-    }
+    std::shared_ptr<std::map<QString, std::shared_ptr<Model>>> getModels();
     std::shared_ptr<std::map<QString, std::shared_ptr<ModelTreeNode>>>
     getModelTree(std::shared_ptr<ModelLibrary> library, ModelFilter filter = ModelFilter_None) const
     {
@@ -73,6 +70,7 @@ public:
     std::shared_ptr<Model> getModelByPath(const QString& path) const;
     std::shared_ptr<Model> getModelByPath(const QString& path, const QString& lib) const;
     std::shared_ptr<ModelLibrary> getLibrary(const QString& name) const;
+    void setDisabled(Library& library, bool disabled);
 
     static bool isModel(const QString& file);
 

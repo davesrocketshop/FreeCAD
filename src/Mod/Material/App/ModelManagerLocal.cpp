@@ -171,6 +171,30 @@ ModelManagerLocal::libraryModels(const QString& libraryName)
     return models;
 }
 
+std::shared_ptr<std::map<QString, std::shared_ptr<Model>>> ModelManagerLocal::getModels()
+{
+    auto localModels = std::make_shared<std::map<QString, std::shared_ptr<Model>>>();
+    for (auto& [name, model_ptr] : *_modelMap)
+    {
+        if (!model_ptr->isDisabled())
+        {
+            localModels->try_emplace(name, model_ptr);
+        }
+    }
+    return localModels;
+}
+
+void ModelManagerLocal::setDisabled(Library& library, bool disabled)
+{
+    for (auto& modelLibrary : *_libraryList) {
+        if (modelLibrary->isLocal() && modelLibrary->isName(library.getName())) {
+            modelLibrary->setDisabled(disabled);
+            return;
+        }
+    }
+    // throw LibraryNotFound(); - There may be no models in this library, hence no model library object
+}
+
 std::shared_ptr<Model> ModelManagerLocal::getModel(const QString& uuid) const
 {
     try {

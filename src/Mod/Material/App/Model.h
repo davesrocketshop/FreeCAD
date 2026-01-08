@@ -185,6 +185,7 @@ public:
     {
         return _library;
     }
+    bool isDisabled() const;
     QString getBase() const
     {
         return (_type == ModelType_Physical) ? QStringLiteral("Model")
