@@ -298,6 +298,7 @@ SET(MaterialModel_Files
 
 set(MaterialTest_Files
     materialtests/__init__.py
+    materialtests/TestLibraries.py
     materialtests/TestModels.py
     materialtests/TestMaterials.py
     materialtests/TestMaterialCreation.py

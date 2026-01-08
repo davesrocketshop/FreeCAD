@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from Base.Metadata import export
 from Base.BaseClass import BaseClass
+from MaterialLibrary import MaterialLibrary
 from typing import Final, List, Dict
 
 
@@ -22,6 +23,44 @@ class MaterialManager(BaseClass):
     Materials: Final[Dict] = ...
     """List of Materials."""
 
+    # Library management
+    def getLibraries(self, **kwargs) -> List:
+        """
+        Get a list of libraries. Unlike MaterialLibraries, this allows you to return local, remote, or 
+        disabled libraries as well.
+        """
+        ...
+
+    def getLibrary(self) -> MaterialLibrary:
+        ...
+    
+    def createLibrary(self, **kwargs) -> None:
+        ...
+
+    def renameLibrary(self) -> None:
+        ...
+
+    def changeIcon(self) -> None:
+        ...
+
+    def removeLibrary(self) -> None:
+        ...
+
+    def setDisabled(self, **kwargs) -> None:
+        """
+        Enables or disables a material library
+        """
+        ...
+
+    def isDisabled(self, **kwargs) -> bool:
+        """
+        Gets the disabled state of a material library
+        """
+        ...
+
+    # Folder management
+
+    # Material management
     def getMaterial(self) -> None:
         """
         Get a material object by specifying its UUID
@@ -61,18 +100,6 @@ class MaterialManager(BaseClass):
     def filterMaterials(self, **kwargs) -> None:
         """
         Returns a filtered material list
-        """
-        ...
-
-    def setDisabled(self, **kwargs) -> None:
-        """
-        Enables or disables a material library
-        """
-        ...
-
-    def isDisabled(self, **kwargs) -> bool:
-        """
-        Gets the disabled state of a material library
         """
         ...
 
