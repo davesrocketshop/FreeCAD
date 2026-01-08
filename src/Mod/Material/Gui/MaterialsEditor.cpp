@@ -836,9 +836,13 @@ void MaterialsEditor::saveMaterialTreeChildren(const Base::Reference<ParameterGr
                                                QStandardItem* item)
 {
     if (item->hasChildren()) {
-        param->SetBool(item->text().toStdString().c_str(), tree->isExpanded(item->index()));
+        auto text = item->data(TreeNameRole).toString();
+        if (text.isEmpty()) {
+            text = item->text();
+        }
+        param->SetBool(text.toStdString().c_str(), tree->isExpanded(item->index()));
 
-        auto treeParam = param->GetGroup(item->text().toStdString().c_str());
+        auto treeParam = param->GetGroup(text.toStdString().c_str());
         for (int i = 0; i < item->rowCount(); i++) {
             auto child = item->child(i);
 
@@ -926,7 +930,8 @@ void MaterialsEditor::addExpanded(QTreeView* tree,
     parent->appendRow(child);
 
     // Restore to any previous expansion state
-    auto expand = param->GetBool(child->text().toStdString().c_str(), true);
+    auto text = child->data(TreeNameRole).toString();
+    auto expand = param->GetBool(text.toStdString().c_str(), true);
     tree->setExpanded(child->index(), expand);
 }
 
@@ -944,7 +949,8 @@ void MaterialsEditor::addExpanded(QTreeView* tree,
     parent->appendRow(child);
 
     // Restore to any previous expansion state
-    auto expand = param->GetBool(child->text().toStdString().c_str(), true);
+    auto text = child->data(TreeNameRole).toString();
+    auto expand = param->GetBool(text.toStdString().c_str(), true);
     tree->setExpanded(child->index(), expand);
 }
 
@@ -1482,11 +1488,8 @@ void MaterialsEditor::onMenuEnableDisable(bool checked)
 {
     Q_UNUSED(checked)
 
-    Base::Console().log("onMenuEnableDisable()\n");
-
     auto item = getActionItem();
     if (item) {
-        Base::Console().log("\t- %s\n", item->text().toStdString().c_str());
         auto library = getActionLibrary();
 
         Gui::WaitCursor wc;
