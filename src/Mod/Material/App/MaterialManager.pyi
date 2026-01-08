@@ -24,27 +24,27 @@ class MaterialManager(BaseClass):
     """List of Materials."""
 
     # Library management
-    def getLibraries(self, **kwargs) -> List:
-        """
-        Get a list of libraries. Unlike MaterialLibraries, this allows you to return local, remote, or 
-        disabled libraries as well.
-        """
-        ...
+    # def getLibraries(self, **kwargs) -> List:
+    #     """
+    #     Get a list of libraries. Unlike MaterialLibraries, this allows you to return local, remote, or 
+    #     disabled libraries as well.
+    #     """
+    #     ...
 
-    def getLibrary(self) -> MaterialLibrary:
-        ...
+    # def getLibrary(self) -> MaterialLibrary:
+    #     ...
     
-    def createLibrary(self, **kwargs) -> None:
-        ...
+    # def createLibrary(self, **kwargs) -> None:
+    #     ...
 
-    def renameLibrary(self) -> None:
-        ...
+    # def renameLibrary(self) -> None:
+    #     ...
 
-    def changeIcon(self) -> None:
-        ...
+    # def changeIcon(self) -> None:
+    #     ...
 
-    def removeLibrary(self) -> None:
-        ...
+    # def removeLibrary(self) -> None:
+    #     ...
 
     def setDisabled(self, **kwargs) -> None:
         """
