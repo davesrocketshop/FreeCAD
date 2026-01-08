@@ -422,6 +422,9 @@ void MaterialManager::setDisabled(const QString& libraryName, bool disabled, boo
             _externalManager->setDisabled(libraryName, disabled);
         }
     }
+    if (_useExternal) {
+        _externalManager->resetCache();
+    }
 #else
     _localManager->setDisabled(libraryName, disabled);
 #endif
