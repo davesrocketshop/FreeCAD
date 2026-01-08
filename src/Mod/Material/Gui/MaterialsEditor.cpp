@@ -284,10 +284,7 @@ void MaterialsEditor::setupContextMenus()
 void MaterialsEditor::createActions()
 {
     connect(&_actionNewLibrary, &QAction::triggered, this, &MaterialsEditor::onMenuNewLibrary);
-#if defined(BUILD_MATERIAL_EXTERNAL)
-    connect(&_actionNewRemoteLibrary, &QAction::triggered, this, &MaterialsEditor::onMenuNewLibrary);
-#endif
-    connect(&_actionNewLocalLibrary, &QAction::triggered, this, &MaterialsEditor::onMenuNewLibrary);
+    connect(&_actionEnableDisable, &QAction::triggered, this, &MaterialsEditor::onMenuEnableDisable);
     connect(&_actionNewFolder, &QAction::triggered, this, &MaterialsEditor::onMenuNewFolder);
     connect(&_actionNewMaterial, &QAction::triggered, this, &MaterialsEditor::onMenuNewMaterial);
     connect(&_actionFavorite, &QAction::triggered, this, &MaterialsEditor::onFavourite);
@@ -295,20 +292,9 @@ void MaterialsEditor::createActions()
 
     // TODO: Add tooltips
     _actionNewLibrary.setText(tr("New library"));
-    _actionNewLocalLibraryIcon = QIcon(QStringLiteral(":/icons/Material_Library.svg"));
-    _actionNewLibrary.setIcon(_actionNewLocalLibraryIcon);
+    _actionNewLibraryIcon = QIcon(QStringLiteral(":/icons/Material_Library.svg"));
+    _actionNewLibrary.setIcon(_actionNewLibraryIcon);
     _actionNewLibrary.setToolTip(tr("New library"));
-
-#if defined(BUILD_MATERIAL_EXTERNAL)
-    _actionNewRemoteLibrary.setText(tr("New remote library"));
-    _actionNewRemoteLibraryIcon = QIcon(QStringLiteral(":/icons/Material_Library.svg"));
-    _actionNewRemoteLibrary.setIcon(_actionNewRemoteLibraryIcon);
-    _actionNewRemoteLibrary.setToolTip(tr("New remote library"));
-#endif
-    _actionNewLocalLibrary.setText(tr("New local library"));
-    // _actionNewLocalLibraryIcon = QIcon(QStringLiteral(":/icons/Material_Library.svg"));
-    _actionNewLocalLibrary.setIcon(_actionNewLocalLibraryIcon);
-    _actionNewLocalLibrary.setToolTip(tr("New Local library"));
 
     _actionNewFolder.setText(tr("New folder"));
     _actionNewFolderIcon = QIcon(QStringLiteral(":/icons/Group.svg"));
@@ -353,9 +339,9 @@ void MaterialsEditor::createActions()
 
     _actionEnableDisable.setText(tr("Disable"));
     // _actionEnableDisable = QIcon(QStringLiteral(":/icons/Material_Library.svg"));
-    // _actionEnableDisable.setIcon(_actionNewLocalLibraryIcon);
+    // _actionEnableDisable.setIcon(_actionNewLibraryIcon);
     _actionEnableDisable.setToolTip(tr("Enable or disable a library"));
-    
+
     _actionLibraryProperties.setText(tr("Properties..."));
 }
 
@@ -1063,7 +1049,17 @@ void MaterialsEditor::fillMaterialTree()
         }
 
         if (showLibraries) {
-            auto lib = new QStandardItem(library->getName());
+            QString title = library->getName();
+            if (library->isLocal()) {
+                title += tr(" - Local");
+            }
+            else {
+                title += tr(" - Remote");
+            }
+            if (library->isDisabled()) {
+                title += tr(", disabled");
+            }
+            auto lib = new QStandardItem(title);
             if (library->isReadOnly()) {
                 lib->setFlags(Qt::ItemIsEnabled);
             }
@@ -1071,6 +1067,7 @@ void MaterialsEditor::fillMaterialTree()
                 lib->setFlags(Qt::ItemIsEditable | Qt::ItemIsEnabled | Qt::ItemIsDragEnabled
                               | Qt::ItemIsDropEnabled);
             }
+            lib->setData(QVariant::fromValue(library), TreeDataRole);
             lib->setData(QVariant(TreeFunctionType::TreeFunctionLibrary), TreeFunctionRole);
             lib->setData(QVariant(library->getName()), TreeNameRole);
             addExpanded(tree, model, lib, param);
@@ -1078,7 +1075,9 @@ void MaterialsEditor::fillMaterialTree()
             QIcon icon = getIcon(library);
             QIcon folderIcon(QStringLiteral(":/icons/folder.svg"));
 
-            addMaterials(*lib, materialTree, folderIcon, icon, param);
+            if (!library->isDisabled()) {
+                addMaterials(*lib, materialTree, folderIcon, icon, param);
+            }
         }
     }
 }
@@ -1260,6 +1259,22 @@ TreeFunctionType MaterialsEditor::getActionFunction()
     return getActionFunction(getActionItem());
 }
 
+std::shared_ptr<Materials::MaterialLibrary> MaterialsEditor::getActionLibrary(
+    const QStandardItem* item
+) const
+{
+    if (item) {
+        auto typeVariant = item->data(TreeDataRole);
+        return typeVariant.value<std::shared_ptr<Materials::MaterialLibrary>>();
+    }
+    throw ActionError();
+}
+
+std::shared_ptr<Materials::MaterialLibrary> MaterialsEditor::getActionLibrary()
+{
+    return getActionLibrary(getActionItem());
+}
+
 void MaterialsEditor::onContextMenu(const QPoint& pos)
 {
     _actionIndex = ui->treeMaterials->indexAt(pos);
@@ -1321,12 +1336,7 @@ void MaterialsEditor::favoriteContextMenu(QMenu& contextMenu)
     Q_UNUSED(contextMenu);
 
     contextMenu.addAction(&_actionInheritMaterial);
-#if defined(BUILD_MATERIAL_EXTERNAL)
-    if (useExternal()) {
-        contextMenu.addAction(&_actionNewRemoteLibrary);
-    }
-#endif
-    contextMenu.addAction(&_actionNewLocalLibrary);
+    contextMenu.addAction(&_actionNewLibrary);
     contextMenu.addSeparator();
 
     auto item = getActionItem();
@@ -1339,12 +1349,7 @@ void MaterialsEditor::favoriteContextMenu(QMenu& contextMenu)
 void MaterialsEditor::recentContextMenu(QMenu& contextMenu)
 {
     contextMenu.addAction(&_actionInheritMaterial);
-#if defined(BUILD_MATERIAL_EXTERNAL)
-    if (useExternal()) {
-        contextMenu.addAction(&_actionNewRemoteLibrary);
-    }
-#endif
-    contextMenu.addAction(&_actionNewLocalLibrary);
+    contextMenu.addAction(&_actionNewLibrary);
     contextMenu.addSeparator();
     auto item = getActionItem();
     if (item->text() != tr("Recent")) {
@@ -1361,17 +1366,19 @@ void MaterialsEditor::recentContextMenu(QMenu& contextMenu)
 
 void MaterialsEditor::libraryContextMenu(QMenu& contextMenu)
 {
+    auto library = getActionLibrary();
     contextMenu.addAction(&_actionNewMaterial);
-#if defined(BUILD_MATERIAL_EXTERNAL)
-    if (useExternal()) {
-        contextMenu.addAction(&_actionNewRemoteLibrary);
-    }
-#endif
-    contextMenu.addAction(&_actionNewLocalLibrary);
+    contextMenu.addAction(&_actionNewLibrary);
     contextMenu.addAction(&_actionChangeIcon);
     contextMenu.addSeparator();
     contextMenu.addAction(&_actionNewFolder);
     contextMenu.addSeparator();
+    if (library->isDisabled()) {
+        _actionEnableDisable.setText(tr("Enable"));
+    }
+    else {
+        _actionEnableDisable.setText(tr("Disable"));
+    }
     contextMenu.addAction(&_actionEnableDisable);
     contextMenu.addAction(&_actionLibraryProperties);
 }
@@ -1379,12 +1386,7 @@ void MaterialsEditor::libraryContextMenu(QMenu& contextMenu)
 void MaterialsEditor::folderContextMenu(QMenu& contextMenu)
 {
     contextMenu.addAction(&_actionNewMaterial);
-#if defined(BUILD_MATERIAL_EXTERNAL)
-    if (useExternal()) {
-        contextMenu.addAction(&_actionNewRemoteLibrary);
-    }
-#endif
-    contextMenu.addAction(&_actionNewLocalLibrary);
+    contextMenu.addAction(&_actionNewLibrary);
     contextMenu.addSeparator();
     contextMenu.addAction(&_actionNewFolder);
     contextMenu.addSeparator();
@@ -1400,12 +1402,7 @@ void MaterialsEditor::materialContextMenu(QMenu& contextMenu)
 {
     contextMenu.addAction(&_actionNewMaterial);
     contextMenu.addAction(&_actionInheritMaterial);
-#if defined(BUILD_MATERIAL_EXTERNAL)
-    if (useExternal()) {
-        contextMenu.addAction(&_actionNewRemoteLibrary);
-    }
-#endif
-    contextMenu.addAction(&_actionNewLocalLibrary);
+    contextMenu.addAction(&_actionNewLibrary);
     contextMenu.addSeparator();
     contextMenu.addAction(&_actionNewFolder);
     contextMenu.addSeparator();
@@ -1475,41 +1472,28 @@ void MaterialsEditor::onMenuNewLibrary(bool checked)
 {
     Q_UNUSED(checked)
 
-    Base::Console().log("onMenuNewLibrary()\n");
-
     auto newLibraryDialog = new NewLibrary(this);
     newLibraryDialog->open();
 
-    // LibraryType dialog(this);
-    // dialog.setModal(true);
-    // if (dialog.exec() != QDialog::Accepted) {
-    //     return;
-    // }
+    refreshMaterialTree();
+}
 
-    // QString name(QStringLiteral("New Library"));
-    // try {
-    //     auto library = getMaterialManager().getLibrary(name);
-    //     if (library) {
-    //         Base::Console().log("Unable to create library '%s': already exists\n", name.toStdString().c_str());
-    //         return;
-    //     }
-    // }
-    // catch (const Materials::LibraryNotFound &) {}
+void MaterialsEditor::onMenuEnableDisable(bool checked)
+{
+    Q_UNUSED(checked)
 
-    // try {
-    //     getMaterialManager().createLibrary(name, QStringLiteral(":/icons/freecad.svg"), false);
-    // }
-    // catch (const Materials::CreationError& e) {
-    //     Base::Console().log("Unable to create library '%s': %s\n",
-    //                         name.toStdString().c_str(), e.what());
-    // }
-    // refreshMaterialTree();
+    Base::Console().log("onMenuEnableDisable()\n");
 
-    // Check if local or remote library
+    auto item = getActionItem();
+    if (item) {
+        Base::Console().log("\t- %s\n", item->text().toStdString().c_str());
+        auto library = getActionLibrary();
 
-    // Check if library exists
-
-    // If local get path
+        Gui::WaitCursor wc;
+        getMaterialManager().setDisabled(*library, !library->isDisabled());
+        getMaterialManager().refresh();
+        refreshMaterialTree();
+    }
 }
 
 void MaterialsEditor::onMenuNewFolder(bool checked)

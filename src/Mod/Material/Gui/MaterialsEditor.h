@@ -164,12 +164,7 @@ private:
     // Actions
     QModelIndex _actionIndex;
     QAction _actionNewLibrary;
-#if defined(BUILD_MATERIAL_EXTERNAL)
-    QAction _actionNewRemoteLibrary;
-    QIcon _actionNewRemoteLibraryIcon;
-#endif
-    QAction _actionNewLocalLibrary;
-    QIcon _actionNewLocalLibraryIcon;
+    QIcon _actionNewLibraryIcon;
     QAction _actionNewFolder;
     QIcon _actionNewFolderIcon;
     QAction _actionNewMaterial;
@@ -232,6 +227,8 @@ private:
     QStandardItem* getActionItem();
     TreeFunctionType getActionFunction(const QStandardItem* item) const;
     TreeFunctionType getActionFunction();
+    std::shared_ptr<Materials::MaterialLibrary> getActionLibrary(const QStandardItem* item) const;
+    std::shared_ptr<Materials::MaterialLibrary> getActionLibrary();
 
     void favoriteContextMenu(QMenu& contextMenu);
     void recentContextMenu(QMenu& contextMenu);
@@ -244,6 +241,7 @@ private:
     QString getLibraryName(const QStandardItem* item) const;
 
     void onMenuNewLibrary(bool checked);
+    void onMenuEnableDisable(bool checked);
     void onMenuNewFolder(bool checked);
     void onMenuNewMaterial(bool checked);
     void onMenuChangeIcon(bool checked);

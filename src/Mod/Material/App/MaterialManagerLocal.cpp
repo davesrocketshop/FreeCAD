@@ -276,6 +276,17 @@ std::shared_ptr<std::vector<LibraryObject>> MaterialManagerLocal::libraryMateria
     return materials;
 }
 
+void MaterialManagerLocal::setDisabledOnLibraryList(const QString& libraryName, bool disabled)
+{
+    for (auto& library : *_libraryList) {
+        if (library->isLocal() && library->isName(libraryName)) {
+            library->setDisabled(disabled);
+            return;
+        }
+    }
+    throw LibraryNotFound();
+}
+
 void MaterialManagerLocal::setDisabled(const QString& libraryName, bool disabled)
 {
     ParameterGrp::handle param = App::GetApplication().GetParameterGroupByPath(
@@ -285,6 +296,7 @@ void MaterialManagerLocal::setDisabled(const QString& libraryName, bool disabled
     for (auto group : groups) {
         if (QString::fromStdString(group->GetGroupName()) == libraryName) {
             group->SetBool("Disabled", disabled);
+            setDisabledOnLibraryList(libraryName, disabled);
             return;
         }
     }
@@ -295,6 +307,7 @@ void MaterialManagerLocal::setDisabled(const QString& libraryName, bool disabled
     for (auto group : groups) {
         if (QString::fromStdString(group->GetGroupName()) == libraryName) {
             group->SetBool("Disabled", disabled);
+            setDisabledOnLibraryList(libraryName, disabled);
             return;
         }
     }

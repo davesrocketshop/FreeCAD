@@ -131,6 +131,7 @@ private:
     static QMutex _mutex;
 
     static void initLibraries();
+    void setDisabledOnLibraryList(const QString& libraryName, bool disabled);
 };
 
 }  // namespace Materials
