@@ -40,6 +40,7 @@ namespace Materials
 {
 class ModelManagerLocal;
 class ModelManagerExternal;
+class MaterialManagerLocal;
 
 class MaterialsExport ModelManager: public Base::BaseClass, ParameterGrp::ObserverType
 {
@@ -56,8 +57,8 @@ public:
     // Library management
     bool useExternal() const { return _useExternal; }
     void setUseExternal(bool useExternal);
-    std::shared_ptr<std::list<std::shared_ptr<ModelLibrary>>> getLibraries();
-    std::shared_ptr<std::list<std::shared_ptr<ModelLibrary>>> getLocalLibraries();
+    std::shared_ptr<std::list<std::shared_ptr<ModelLibrary>>> getLibraries(bool includeDisabled = false);
+    std::shared_ptr<std::list<std::shared_ptr<ModelLibrary>>> getLocalLibraries(bool includeDisabled = false);
     std::shared_ptr<ModelLibrary> getLibrary(const QString& name) const;
     void createLibrary(const QString& libraryName,
                        const QString& iconPath,
@@ -109,6 +110,11 @@ public:
 
     static void createSystemLibraryConfig();
     static void createUserLibraryConfig();
+
+protected:
+    void setDisabled(Library &library, bool disabled);
+
+    friend class MaterialManagerLocal;
 
 private:
     ModelManager();

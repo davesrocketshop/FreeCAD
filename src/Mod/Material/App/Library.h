@@ -35,6 +35,10 @@
 namespace Materials
 {
 
+class ModelLoader;
+class ModelManagerLocal;
+class MaterialManagerLocal;
+
 class MaterialsExport Library: public Base::BaseClass
 {
     TYPESYSTEM_HEADER_WITH_OVERRIDE();
@@ -99,10 +103,6 @@ public:
     {
         return _disabled;
     }
-    void setDisabled(bool disabled)
-    {
-        _disabled = disabled;
-    }
 
     QString getDirectory() const
     {
@@ -133,6 +133,17 @@ public:
 
     static std::string cleanPath(const std::string path);
     static QString cleanPath(const QString& path);
+
+protected:
+    // This should only be done through the MaterialManager or one of its subbordinates
+    void setDisabled(bool disabled)
+    {
+        _disabled = disabled;
+    }
+
+    friend class ModelLoader;
+    friend class ModelManagerLocal;
+    friend class MaterialManagerLocal;
 
 private:
     QString _name;

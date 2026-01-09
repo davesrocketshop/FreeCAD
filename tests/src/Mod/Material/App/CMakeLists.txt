@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
 
 add_executable(Material_tests_run
+        TestLibraries.cpp
         TestMaterialCards.cpp
         TestMaterialFilter.cpp
         TestMaterialProperties.cpp

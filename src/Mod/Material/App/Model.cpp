@@ -174,6 +174,11 @@ Model::Model(
     , _dereferencing(false)
 {}
 
+bool Model::isDisabled() const
+{
+    return _library->isDisabled();
+}
+
 QString Model::getDirectory() const
 {
     return _directory;
@@ -306,7 +311,7 @@ void Model::saveInherits(QTextStream& stream) const
 void Model::saveProperties(QTextStream& stream) const
 {
     for (auto& it : _properties) {
-        auto& name = it.first;
+        // auto& name = it.first;
         auto& property = it.second;
         stream << property.getName() << ":\n";
         if (!property.getDisplayName().isEmpty()) {

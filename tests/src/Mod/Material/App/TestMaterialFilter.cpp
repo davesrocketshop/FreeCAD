@@ -56,34 +56,23 @@ protected:
         _materialManager->setUseExternal(false);
 
         // Create a custom library for our test files
-        ParameterGrp::handle param = App::GetApplication().GetParameterGroupByPath("User parameter:BaseApp/Preferences/Mod/Material/Resources/Local/__UnitTest");
-
         // Ensure the directory exists
         std::string testPath = App::Application::getHomePath() + "/tests/Materials/";
         QDir directory(QString::fromStdString(testPath));
         ASSERT_TRUE(directory.exists());
 
-        param->SetASCII("Directory", testPath);
-        param->SetASCII("ModelDirectory", testPath);
-        param->SetASCII("IconPath", ":/icons/preferences-general.svg");
-        param->SetBool("ReadOnly", false);
-        param->SetBool("Disabled", false);
+        _materialManager->createLocalLibrary(QStringLiteral("__UnitTest"),
+                            QString::fromStdString(testPath),
+                            QStringLiteral(":/icons/preferences-general.svg"),
+                            false);
 
         // Disable other libraries
-        param = App::GetApplication().GetParameterGroupByPath("User parameter:BaseApp/Preferences/Mod/Material/Resources/Local");
-        auto groups = param->GetGroups();
-        for (auto group : groups) {
-            if (std::string(group->GetGroupName()) != "__UnitTest") {
-                _libraries.emplace(group->GetGroupName(), group->GetBool("Disabled", false));
-                group->SetBool("Disabled", true);
-            }
-        }
-        param = App::GetApplication().GetParameterGroupByPath("User parameter:BaseApp/Preferences/Mod/Material/Resources/Modules");
-        groups = param->GetGroups();
-        for (auto group : groups) {
-            if (std::string(group->GetGroupName()) != "__UnitTest") {
-                _libraries.emplace(group->GetGroupName(), group->GetBool("Disabled", false));
-                group->SetBool("Disabled", true);
+        auto libraries = _materialManager->getLibraries(true);
+        _libraries.clear();
+        for (auto& library : *libraries) {
+            if (library->getName() != QStringLiteral("__UnitTest")) {
+                _libraries.emplace(library->getName(), library->isDisabled());
+                _materialManager->setDisabled(*library, true);
             }
         }
 
@@ -93,27 +82,13 @@ protected:
     }
 
     void TearDown() override {
-        _materialManager->setUseExternal(_useExternal);
-
-        ParameterGrp::handle param = App::GetApplication().GetParameterGroupByPath("User parameter:BaseApp/Preferences/Mod/Material/Resources/Local/__UnitTest");
-        param->SetBool("Disabled", true);
-
         // Restore other libraries
-        param = App::GetApplication().GetParameterGroupByPath("User parameter:BaseApp/Preferences/Mod/Material/Resources/Local");
-        auto groups = param->GetGroups();
-        for (auto group : groups) {
-            if (std::string(group->GetGroupName()) != "__UnitTest") {
-                group->SetBool("Disabled", _libraries[group->GetGroupName()]);
-            }
+        for (auto& [name, disabled] : _libraries) {
+            _materialManager->setDisabled(name, disabled, true);
         }
 
-        param = App::GetApplication().GetParameterGroupByPath("User parameter:BaseApp/Preferences/Mod/Material/Resources/Modules");
-        groups = param->GetGroups();
-        for (auto group : groups) {
-            if (std::string(group->GetGroupName()) != "__UnitTest") {
-                group->SetBool("Disabled", _libraries[group->GetGroupName()]);
-            }
-        }
+        // Restore the external interface AFTER the local libraries
+        _materialManager->setUseExternal(_useExternal);
 
         _materialManager->refresh();
     }
@@ -124,7 +99,7 @@ protected:
     QString _testMaterialUUID;
 
     bool _useExternal {};
-    std::map<std::string, bool> _libraries;
+    std::map<QString, bool> _libraries;
 
     bool _includeFavorites {};
     bool _includeRecent {};

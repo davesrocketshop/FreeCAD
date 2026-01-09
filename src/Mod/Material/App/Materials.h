@@ -195,6 +195,7 @@ public:
     {
         return _library;
     }
+    bool isDisabled() const;
     QString getDirectory() const;
     QString getFilename() const;
     QString getFilePath() const;

@@ -135,7 +135,9 @@ void ModelManager::setUseExternal(bool useExternal)
     paramExternal->SetBool("UseExternal", useExternal);
 }
 
-std::shared_ptr<std::list<std::shared_ptr<ModelLibrary>>> ModelManager::getLibraries()
+std::shared_ptr<std::list<std::shared_ptr<ModelLibrary>>> ModelManager::getLibraries(
+    bool includeDisabled
+)
 {
     // External libraries take precedence over local libraries
     auto libMap = std::map<QString, std::shared_ptr<ModelLibrary>>();
@@ -143,13 +145,17 @@ std::shared_ptr<std::list<std::shared_ptr<ModelLibrary>>> ModelManager::getLibra
     if (_useExternal) {
         auto remoteLibraries = _externalManager->getLibraries();
         for (auto& remote : *remoteLibraries) {
-            libMap.try_emplace(remote->getName(), remote);
+            if (includeDisabled || !remote->isDisabled()) {
+                libMap.try_emplace(remote->getName(), remote);
+            }
         }
     }
 #endif
     auto localLibraries = _localManager->getLibraries();
     for (auto& local : *localLibraries) {
-        libMap.try_emplace(local->getName(), local);
+        if (includeDisabled || !local->isDisabled()) {
+            libMap.try_emplace(local->getName(), local);
+        }
     }
 
     // Consolidate into a single list
@@ -161,7 +167,9 @@ std::shared_ptr<std::list<std::shared_ptr<ModelLibrary>>> ModelManager::getLibra
     return libraries;
 }
 
-std::shared_ptr<std::list<std::shared_ptr<ModelLibrary>>> ModelManager::getLocalLibraries()
+std::shared_ptr<std::list<std::shared_ptr<ModelLibrary>>> ModelManager::getLocalLibraries(
+    bool includeDisabled
+)
 {
     return _localManager->getLibraries();
 }
@@ -250,6 +258,13 @@ bool ModelManager::isLocalLibrary([[maybe_unused]] const QString& libraryName)
     }
 #endif
     return true;
+}
+
+void ModelManager::setDisabled(Library& library, bool disabled)
+{
+    if (library.isLocal()) {
+        _localManager->setDisabled(library, disabled);
+    }
 }
 
 //=====

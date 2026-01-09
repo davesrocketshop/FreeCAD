@@ -552,6 +552,11 @@ Material::Material(const Material& other)
     }
 }
 
+bool Material::isDisabled() const
+{
+    return _library->isDisabled();
+}
+
 QString Material::getDirectory() const
 {
     return _directory;
