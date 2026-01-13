@@ -29,6 +29,7 @@
 #include <Gui/MetaTypes.h>
 
 #include "MaterialLibrary.h"
+#include "MaterialManager.h"
 
 #include "MaterialLibraryPy.h"
 
@@ -98,7 +99,11 @@ Py::String MaterialLibraryPy::getDirectory() const
 
 void MaterialLibraryPy::setDirectory(const Py::String value)
 {
-    getMaterialLibraryPtr()->setDirectory(QString::fromStdString(value));
+    // getMaterialLibraryPtr()->setDirectory(QString::fromStdString(value));
+    MaterialManager::getManager().updateLocalLibraryDirectory(
+        *getMaterialLibraryPtr(),
+        QString::fromStdString(value)
+    );
 }
 
 Py::Boolean MaterialLibraryPy::getReadOnly() const

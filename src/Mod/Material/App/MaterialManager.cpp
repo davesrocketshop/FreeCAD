@@ -352,6 +352,44 @@ void MaterialManager::removeLibrary(const QString& libraryName)
     _localManager->removeLibrary(libraryName);
 }
 
+void MaterialManager::updateLocalLibraryDirectories(
+    const QString& libraryName,
+    const QString& materialDirectory,
+    const QString& modelDirectory
+)
+{
+    auto library = getLibrary(libraryName);
+    if (library) {
+        updateLocalLibraryDirectories(*library, materialDirectory, modelDirectory);
+    }
+}
+
+void MaterialManager::updateLocalLibraryDirectories(
+    const Library& library,
+    const QString& materialDirectory,
+    const QString& modelDirectory
+)
+{}
+
+void MaterialManager::updateLocalLibraryDirectory(
+    const QString& libraryName,
+    const QString& materialDirectory
+)
+{
+    auto library = getLibrary(libraryName);
+    if (library) {
+        updateLocalLibraryDirectory(*library, materialDirectory);
+    }
+}
+
+void MaterialManager::updateLocalLibraryDirectory(
+    const MaterialLibrary& library,
+    const QString& materialDirectory
+)
+{
+    updateLocalLibraryDirectories(library, materialDirectory, QString());
+}
+
 std::shared_ptr<std::vector<LibraryObject>> MaterialManager::libraryMaterials(
     const QString& libraryName,
     [[maybe_unused]] bool local
@@ -431,7 +469,7 @@ void MaterialManager::setDisabled(const QString& libraryName, bool disabled, boo
     }
 #else
     Q_UNUSED(isLocal)
-    
+
     _localManager->setDisabled(libraryName, disabled);
 #endif
 }

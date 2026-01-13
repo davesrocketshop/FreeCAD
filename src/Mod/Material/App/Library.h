@@ -108,10 +108,6 @@ public:
     {
         return _directory;
     }
-    void setDirectory(const QString& directory)
-    {
-        _directory = cleanPath(directory);
-    }
     QString getDirectoryPath() const
     {
         return QDir(_directory).absolutePath();
@@ -135,10 +131,14 @@ public:
     static QString cleanPath(const QString& path);
 
 protected:
-    // This should only be done through the MaterialManager or one of its subbordinates
+    // These should only be done through the MaterialManager or one of its subbordinates
     void setDisabled(bool disabled)
     {
         _disabled = disabled;
+    }
+    void setDirectory(const QString& directory)
+    {
+        _directory = cleanPath(directory);
     }
 
     friend class ModelLoader;
