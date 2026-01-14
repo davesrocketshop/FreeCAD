@@ -46,10 +46,8 @@ class MaterialCreationTestCases(unittest.TestCase):
         self._uuids = Materials.UUIDs()
 
         # Disable the external interface
-        paramExternal = FreeCAD.ParamGet("User parameter:BaseApp/Preferences/Mod/Material/ExternalInterface")
-        self._useExternal = paramExternal.GetBool("UseExternal", False)
-
-        paramExternal.SetBool("UseExternal", False)
+        self._useExternal = self._materialManager.UseExternal
+        self._materialManager.UseExternal = False
 
         self._materialManager.refresh()
 
@@ -64,11 +62,9 @@ class MaterialCreationTestCases(unittest.TestCase):
                 pass
         except LookupError:
             pass
-        paramExternal = FreeCAD.ParamGet("User parameter:BaseApp/Preferences/Mod/Material/ExternalInterface")
-        paramExternal.SetBool("UseExternal", self._useExternal)
 
-        param = FreeCAD.ParamGet("User parameter:BaseApp/Preferences/Mod/Material/Resources/Local/__UnitTest")
-        param.SetBool("Disabled", True)
+        # Restore the external interface
+        self._materialManager.UseExternal = self._useExternal
 
         self._materialManager.refresh()
 

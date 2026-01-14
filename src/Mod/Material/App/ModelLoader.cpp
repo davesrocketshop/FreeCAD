@@ -57,7 +57,7 @@ ModelEntry::ModelEntry(
 std::unique_ptr<std::map<QString, std::shared_ptr<ModelEntry>>> ModelLoader::_modelEntryMap = nullptr;
 
 ModelLoader::ModelLoader(
-    std::shared_ptr<std::map<QString, std::shared_ptr<Model>>> modelMap,
+    std::shared_ptr<std::multimap<QString, std::shared_ptr<Model>>> modelMap,
     std::shared_ptr<std::list<std::shared_ptr<ModelLibraryLocal>>> libraryList
 )
     : _modelMap(modelMap)
@@ -158,9 +158,7 @@ QString ModelLoader::yamlValue(
     return QString::fromStdString(defaultValue);
 }
 
-void ModelLoader::addToTree(
-    std::shared_ptr<ModelEntry> model
-)
+void ModelLoader::addToTree(std::shared_ptr<ModelEntry> model)
 {
     std::set<QString> exclude;
     exclude.insert(QStringLiteral("Name"));
@@ -251,7 +249,8 @@ void ModelLoader::addToTree(
         }
     }
 
-    (*_modelMap)[uuid] = library->addModel(finalModel, directory);
+    auto sharedModel = library->addModel(finalModel, directory);
+    _modelMap->insert({uuid, sharedModel});
 }
 
 void ModelLoader::loadLibrary(std::shared_ptr<ModelLibraryLocal> library)
@@ -336,15 +335,15 @@ void ModelLoader::getModelLibraries()
     );
     for (auto& group : moduleParam->GetGroups()) {
         auto moduleName = QString::fromStdString(group->GetGroupName());
-        auto materialDir = QString::fromStdString(
+        auto modelDir = QString::fromStdString(
             Library::cleanPath(group->GetASCII("ModuleModelDir", ""))
         );
         auto materialIcon = QString::fromStdString(group->GetASCII("ModuleIcon", ""));
         auto materialReadOnly = group->GetBool("ModuleReadOnly", true);
         auto materialDisabled = group->GetBool("ModuleMaterialDisabled", false);
 
-        if (materialDir.length() > 0) {
-            QDir dir(materialDir);
+        if (modelDir.length() > 0) {
+            QDir dir(modelDir);
             if (dir.exists()) {
                 auto libData = std::make_shared<ModelLibraryLocal>(
                     moduleName,

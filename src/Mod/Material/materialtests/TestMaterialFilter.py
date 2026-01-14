@@ -60,11 +60,33 @@ class MaterialFilterTestCases(unittest.TestCase):
         self._materialManager.UseExternal = False
 
         # Create a custom library for our test files
-        try:
-            self._materialManager.removeLibrary("__UnitTest")
-        except LookupError as ex:
-            # Library may not exist
-            pass
+        self.createTestLibrary()
+
+        # Disable other libraries
+        self._libraryDisabled = {}
+        for library in self._materialManager.getLibraries(True):
+            # name = library[0]
+            if library.Name != "__UnitTest":
+                self._libraryDisabled[library.Name] = library.Disabled
+                self._materialManager.setDisabled(library, True)
+
+        self._materialManager.refresh()
+
+    def tearDown(self):
+        self.removeTestLibrary()
+
+        # Restore other libraries
+        for name, disabled in self._libraryDisabled.items():
+             self._materialManager.setDisabled(name, disabled)
+
+        # Restore the external interface
+        self._materialManager.UseExternal = self._useExternal
+
+        self._materialManager.refresh()
+
+    def createTestLibrary(self):
+        # Create a custom library for our test files
+        self.removeTestLibrary()
 
         filePath = os.path.dirname(__file__) + os.sep
         materialPath = filePath + "Materials"
@@ -78,32 +100,12 @@ class MaterialFilterTestCases(unittest.TestCase):
         )
         self._materialManager.setDisabled(self.library, False)
 
-        # Disable other libraries
-        self._libraryDisabled = {}
-        for library in self._materialManager.MaterialLibraries:
-            # name = library[0]
-            if library.Name != "__UnitTest":
-                self._libraryDisabled[library.Name] = library.Disabled
-                self._materialManager.setDisabled(library, True)
-
-        self._materialManager.refresh()
-
-    def tearDown(self):
+    def removeTestLibrary(self):
         try:
             self._materialManager.removeLibrary("__UnitTest")
         except LookupError as ex:
             # Library may not exist
             pass
-
-        # Restore other libraries
-        print(self._libraryDisabled)
-        for name, disabled in self._libraryDisabled.items():
-             self._materialManager.setDisabled(name, disabled)
-
-        # Restore the external interface
-        self._materialManager.UseExternal = self._useExternal
-
-        self._materialManager.refresh()
 
     def testModelLoading(self):
         model = self._modelManager.getModel(UUIDBasicRendering)

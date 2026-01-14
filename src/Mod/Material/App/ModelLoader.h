@@ -90,7 +90,7 @@ private:
 class ModelLoader
 {
 public:
-    ModelLoader(std::shared_ptr<std::map<QString, std::shared_ptr<Model>>> modelMap,
+    ModelLoader(std::shared_ptr<std::multimap<QString, std::shared_ptr<Model>>> modelMap,
                 std::shared_ptr<std::list<std::shared_ptr<ModelLibraryLocal>>> libraryList);
     virtual ~ModelLoader() = default;
 
@@ -111,7 +111,7 @@ private:
     void loadLibraries();
 
     static std::unique_ptr<std::map<QString, std::shared_ptr<ModelEntry>>> _modelEntryMap;
-    std::shared_ptr<std::map<QString, std::shared_ptr<Model>>> _modelMap;
+    std::shared_ptr<std::multimap<QString, std::shared_ptr<Model>>> _modelMap;
     std::shared_ptr<std::list<std::shared_ptr<ModelLibraryLocal>>> _libraryList;
 };
 

@@ -93,7 +93,7 @@ class MaterialManager(BaseClass):
         """
         ...
 
-    def isDisabled(self, **kwargs) -> bool:
+    def isDisabled(self) -> bool:
         """
         Gets the disabled state of a material library
         """
@@ -102,5 +102,11 @@ class MaterialManager(BaseClass):
     def refresh(self) -> None:
         """
         Refreshes the material tree. Use sparingly as this is an expensive operation.
+        """
+        ...
+
+    def getLibraries(self) -> List[MaterialLibrary]:
+        """
+        Return a list of material libaries, optionally including disabled libraries
         """
         ...

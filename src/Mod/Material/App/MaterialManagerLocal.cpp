@@ -69,7 +69,7 @@ void MaterialManagerLocal::initLibraries()
         _materialMap = std::make_shared<std::map<QString, std::shared_ptr<Material>>>();
 
         if (_libraryList == nullptr) {
-            _libraryList = getConfiguredLibraries(true); // Include disabled
+            _libraryList = getConfiguredLibraries(true);  // Include disabled
         }
 
         // Load the libraries
@@ -224,7 +224,7 @@ void MaterialManagerLocal::updateLocalLibraryDirectories(
                 throw CreationError("Unable to create library path");
             }
         }
-        libPtr->setDirectory(materialPath); // This will only work for the materials, not models
+        libPtr->setDirectory(materialPath);  // This will only work for the materials, not models
     }
     if (!modelPath.isEmpty()) {
         if (!dir.exists(modelPath)) {
@@ -279,7 +279,7 @@ void MaterialManagerLocal::removeLibrary(const QString& libraryName, bool keepDa
             // }
             _materialMap->clear();
             MaterialLoader loader(_materialMap, _libraryList);
-           return;
+            return;
         }
     }
 
@@ -694,7 +694,6 @@ std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>> MaterialManagerLoca
     }
 
     for (auto& group : localParam->GetGroups()) {
-        // auto module = moduleParam->GetGroup(group->GetGroupName());
         auto libName = QString::fromStdString(group->GetGroupName());
         auto libDir = QString::fromStdString(group->GetASCII("Directory", ""));
         auto libIcon = QString::fromStdString(group->GetASCII("IconPath", ""));
@@ -715,6 +714,12 @@ std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>> MaterialManagerLoca
                     libData->setDisabled(libDisabled);
                     libraryList->push_back(libData);
                 }
+            }
+            else {
+                std::string name = libDir.toStdString();
+                std::string missing = libDir.toStdString();
+                Base::Console()
+                    .log("Missing dir '%s' for library '%s'\n", missing.c_str(), name.c_str());
             }
         }
     }
