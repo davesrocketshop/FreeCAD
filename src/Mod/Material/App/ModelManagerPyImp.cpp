@@ -61,7 +61,7 @@ PyObject* ModelManagerPy::getModel(PyObject* args)
     }
 
     try {
-        auto model = getModelManagerPtr()->getModel(QString::fromStdString(uuid));
+        auto model = getModelManagerPtr()->getModel(QString::fromUtf8(uuid));
         return new ModelPy(new Model(*model));
     }
     catch (ModelNotFound const&) {
@@ -73,7 +73,7 @@ PyObject* ModelManagerPy::getModel(PyObject* args)
                 + QStringLiteral("] = '") + itp->second->getName()
                 + QStringLiteral("'\n");
         }
-        error += QStringLiteral("\tuuid = '") + QString::fromStdString(uuid)
+        error += QStringLiteral("\tuuid = '") + QString::fromUtf8(uuid)
             + QStringLiteral("'\n");
         PyErr_SetString(PyExc_LookupError, error.toStdString().c_str());
         return nullptr;

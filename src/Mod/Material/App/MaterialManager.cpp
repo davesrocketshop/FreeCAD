@@ -297,7 +297,7 @@ std::shared_ptr<MaterialLibrary> MaterialManager::getLibrary(const QString& name
     return _localManager->getLibrary(name);
 }
 
-void MaterialManager::createLibrary(
+std::shared_ptr<MaterialLibrary> MaterialManager::createLibrary(
     [[maybe_unused]] const QString& libraryName,
     [[maybe_unused]] const QString& iconPath,
     [[maybe_unused]] bool readOnly
@@ -306,21 +306,21 @@ void MaterialManager::createLibrary(
 #if defined(BUILD_MATERIAL_EXTERNAL)
     if (_useExternal) {
         auto icon = Materials::Library::getIcon(iconPath);
-        _externalManager->createLibrary(libraryName, icon, readOnly);
-        return;
+        return _externalManager->createLibrary(libraryName, icon, readOnly);
     }
 #endif
     throw CreationError("Local library requires a path");
 }
 
-void MaterialManager::createLocalLibrary(
-    const QString& libraryName,
+std::shared_ptr<MaterialLibrary> MaterialManager::createLocalLibrary(
+    const QString& materialDirectory,
+    const QString& modelDirectory,
     const QString& directory,
     const QString& iconPath,
     bool readOnly
 )
 {
-    _localManager->createLibrary(libraryName, directory, iconPath, readOnly);
+    return _localManager->createLibrary(materialDirectory, modelDirectory, directory, iconPath, readOnly);
 }
 
 void MaterialManager::renameLibrary(const QString& libraryName, const QString& newName)
@@ -347,47 +347,9 @@ void MaterialManager::changeIcon(const QString& libraryName, const QString& icon
     _localManager->changeIcon(libraryName, icon);
 }
 
-void MaterialManager::removeLibrary(const QString& libraryName)
+void MaterialManager::removeLibrary(const QString& libraryName, bool keepData)
 {
-    _localManager->removeLibrary(libraryName);
-}
-
-void MaterialManager::updateLocalLibraryDirectories(
-    const QString& libraryName,
-    const QString& materialDirectory,
-    const QString& modelDirectory
-)
-{
-    auto library = getLibrary(libraryName);
-    if (library) {
-        updateLocalLibraryDirectories(*library, materialDirectory, modelDirectory);
-    }
-}
-
-void MaterialManager::updateLocalLibraryDirectories(
-    const Library& library,
-    const QString& materialDirectory,
-    const QString& modelDirectory
-)
-{}
-
-void MaterialManager::updateLocalLibraryDirectory(
-    const QString& libraryName,
-    const QString& materialDirectory
-)
-{
-    auto library = getLibrary(libraryName);
-    if (library) {
-        updateLocalLibraryDirectory(*library, materialDirectory);
-    }
-}
-
-void MaterialManager::updateLocalLibraryDirectory(
-    const MaterialLibrary& library,
-    const QString& materialDirectory
-)
-{
-    updateLocalLibraryDirectories(library, materialDirectory, QString());
+    _localManager->removeLibrary(libraryName, keepData);
 }
 
 std::shared_ptr<std::vector<LibraryObject>> MaterialManager::libraryMaterials(
@@ -465,7 +427,9 @@ void MaterialManager::setDisabled(const QString& libraryName, bool disabled, boo
         }
     }
     if (_useExternal) {
+        // Reset caches for both materials and models
         _externalManager->resetCache();
+        ModelManager::resetCache();
     }
 #else
     Q_UNUSED(isLocal)

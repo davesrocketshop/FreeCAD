@@ -316,7 +316,7 @@ std::shared_ptr<Model> ModelManager::getModel(const QString& uuid) const
 #if defined(BUILD_MATERIAL_EXTERNAL)
     if (_useExternal) {
         auto model = _externalManager->getModel(uuid);
-        if (model) {
+        if (model && !model->isDisabled()) {
             return model;
         }
     }
@@ -435,6 +435,12 @@ void ModelManager::validateMigration(const std::shared_ptr<Materials::ModelLibra
 }
 
 // Cache stats
+void ModelManager::resetCache()
+{
+    initManagers();
+    _externalManager->resetCache();
+}
+
 double ModelManager::modelHitRate()
 {
     initManagers();

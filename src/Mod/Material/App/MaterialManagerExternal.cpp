@@ -127,11 +127,12 @@ std::shared_ptr<MaterialLibrary> MaterialManagerExternal::getLibrary(const QStri
     }
 }
 
-void MaterialManagerExternal::createLibrary(const QString& libraryName,
+std::shared_ptr<MaterialLibrary> MaterialManagerExternal::createLibrary(const QString& libraryName,
                                             const QByteArray& icon,
                                             bool readOnly)
 {
     ExternalManager::getManager()->createLibrary(libraryName, icon, readOnly);
+    return getLibrary(libraryName);
 }
 
 void MaterialManagerExternal::renameLibrary(const QString& libraryName, const QString& newName)

@@ -45,6 +45,7 @@ class Material;
 namespace Materials
 {
 
+class Library;
 class LibraryObject;
 class MaterialLibrary;
 class MaterialLibraryLocal;
@@ -66,30 +67,41 @@ public:
     std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>> getLibraries();
     std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>> getMaterialLibraries();
     std::shared_ptr<MaterialLibrary> getLibrary(const QString& name) const;
-    void createLibrary(const QString& libraryName,
-                       const QString& directory,
-                       const QString& iconPath,
-                       bool readOnly = true);
+    std::shared_ptr<MaterialLibrary> createLibrary(
+        const QString& libraryName,
+        const QString& materialDirectory,
+        const QString& modelDirectory,
+        const QString& iconPath,
+        bool readOnly = true
+    );
     void renameLibrary(const QString& libraryName, const QString& newName);
     void changeIcon(const QString& libraryName, const QByteArray& icon);
-    void removeLibrary(const QString& libraryName);
-    std::shared_ptr<std::vector<LibraryObject>>
-    libraryMaterials(const QString& libraryName);
-    std::shared_ptr<std::vector<LibraryObject>>
-    libraryMaterials(const QString& libraryName,
-                     const MaterialFilter& filter,
-                     const MaterialFilterOptions& options);
+    void updateLocalLibraryDirectories(
+        const Library& library,
+        const QString& materialDirectory,
+        const QString& modelDirectory
+    );
+    void removeLibrary(const QString& libraryName, bool keepData);
+    std::shared_ptr<std::vector<LibraryObject>> libraryMaterials(const QString& libraryName);
+    std::shared_ptr<std::vector<LibraryObject>> libraryMaterials(
+        const QString& libraryName,
+        const MaterialFilter& filter,
+        const MaterialFilterOptions& options
+    );
     void setDisabled(const QString& libraryName, bool disabled);
     bool isDisabled(const QString& libraryName);
     bool exists(const QString& libraryName);
 
     // Folder management
-    std::shared_ptr<std::list<QString>>
-    getMaterialFolders(const std::shared_ptr<MaterialLibraryLocal>& library) const;
+    std::shared_ptr<std::list<QString>> getMaterialFolders(
+        const std::shared_ptr<MaterialLibraryLocal>& library
+    ) const;
     void createFolder(const std::shared_ptr<MaterialLibraryLocal>& library, const QString& path);
-    void renameFolder(const std::shared_ptr<MaterialLibraryLocal>& library,
-                      const QString& oldPath,
-                      const QString& newPath);
+    void renameFolder(
+        const std::shared_ptr<MaterialLibraryLocal>& library,
+        const QString& oldPath,
+        const QString& newPath
+    );
     void deleteRecursive(const std::shared_ptr<MaterialLibraryLocal>& library, const QString& path);
 
     // Material management
@@ -101,29 +113,37 @@ public:
     bool exists(const MaterialLibrary& library, const QString& uuid) const;
     void remove(const QString& uuid);
 
-    void saveMaterial(const std::shared_ptr<MaterialLibraryLocal>& library,
-                      const std::shared_ptr<Material>& material,
-                      const QString& path,
-                      bool overwrite,
-                      bool saveAsCopy,
-                      bool saveInherited) const;
+    void saveMaterial(
+        const std::shared_ptr<MaterialLibraryLocal>& library,
+        const std::shared_ptr<Material>& material,
+        const QString& path,
+        bool overwrite,
+        bool saveAsCopy,
+        bool saveInherited
+    ) const;
 
     bool isMaterial(const fs::path& p) const;
     bool isMaterial(const QFileInfo& file) const;
 
-    std::shared_ptr<std::map<QString, std::shared_ptr<Material>>>
-    materialsWithModel(const QString& uuid) const;
-    std::shared_ptr<std::map<QString, std::shared_ptr<Material>>>
-    materialsWithModelComplete(const QString& uuid) const;
+    std::shared_ptr<std::map<QString, std::shared_ptr<Material>>> materialsWithModel(
+        const QString& uuid
+    ) const;
+    std::shared_ptr<std::map<QString, std::shared_ptr<Material>>> materialsWithModelComplete(
+        const QString& uuid
+    ) const;
     void dereference(std::shared_ptr<Material> material) const;
     void dereference() const;
 
 protected:
-    static std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>> getConfiguredLibraries(bool includeDisabled = false);
+    static std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>> getConfiguredLibraries(
+        bool includeDisabled = false
+    );
     static void convertConfiguration();
-    bool passFilter(const Material& material,
-                    const Materials::MaterialFilter& filter,
-                    const Materials::MaterialFilterOptions& options) const;
+    bool passFilter(
+        const Material& material,
+        const Materials::MaterialFilter& filter,
+        const Materials::MaterialFilterOptions& options
+    ) const;
 
 private:
     static std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>> _libraryList;

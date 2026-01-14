@@ -31,6 +31,7 @@
 #include <Gui/MetaTypes.h>
 #include <src/App/InitApplication.h>
 
+#include <Mod/Material/App/Exceptions.h>
 #include <Mod/Material/App/MaterialLibrary.h>
 #include <Mod/Material/App/MaterialManager.h>
 #include <Mod/Material/App/MaterialValue.h>
@@ -60,9 +61,21 @@ protected:
         std::string testPath = App::Application::getHomePath() + "/tests/Materials/";
         QDir directory(QString::fromStdString(testPath));
         ASSERT_TRUE(directory.exists());
+        std::string modelPath = App::Application::getResourceDir() + "/Mod/Material/Resources/Models";
+        QDir modelDirectory(QString::fromStdString(modelPath));
+        ASSERT_TRUE(modelDirectory.exists());
+
+        // Remove the library if it exists
+        try {
+            _materialManager->removeLibrary(QStringLiteral("__UnitTest"));
+        }
+        catch (const Materials::LibraryNotFound&) {
+            // ignore
+        }
 
         _materialManager->createLocalLibrary(QStringLiteral("__UnitTest"),
                             QString::fromStdString(testPath),
+                            QString::fromStdString(modelPath),
                             QStringLiteral(":/icons/preferences-general.svg"),
                             false);
 

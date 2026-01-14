@@ -119,8 +119,9 @@ TEST_F(TestLibraries, TestDisabledModels)
     auto objects = _modelManager->libraryModels(library->getName());
     ASSERT_GT(objects->size(), 0);
     for (auto modelObject : *objects) {
-        auto model = _modelManager->getModel(modelObject.getUUID());
-        ASSERT_TRUE(model->isDisabled());
+        EXPECT_THROW(_modelManager->getModel(modelObject.getUUID()), Materials::ModelNotFound);
+        // auto model = _modelManager->getModel(modelObject.getUUID());
+        // ASSERT_TRUE(model->isDisabled());
     }
 
     auto models = _modelManager->getModels();

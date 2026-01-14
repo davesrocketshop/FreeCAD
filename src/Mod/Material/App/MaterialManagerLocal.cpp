@@ -137,21 +137,29 @@ std::shared_ptr<MaterialLibrary> MaterialManagerLocal::getLibrary(const QString&
     throw LibraryNotFound();
 }
 
-void MaterialManagerLocal::createLibrary(
+std::shared_ptr<MaterialLibrary> MaterialManagerLocal::createLibrary(
     const QString& libraryName,
-    const QString& directory,
+    const QString& materialDirectory,
+    const QString& modelDirectory,
     const QString& iconPath,
     bool readOnly
 )
 {
     QDir dir;
-    if (!dir.exists(directory)) {
-        if (!dir.mkpath(directory)) {
+    if (!dir.exists(materialDirectory)) {
+        if (!dir.mkpath(materialDirectory)) {
             throw CreationError("Unable to create library path");
         }
     }
+    if (!modelDirectory.isEmpty()) {
+        if (!dir.exists(modelDirectory)) {
+            if (!dir.mkpath(modelDirectory)) {
+                throw CreationError("Unable to create library model path");
+            }
+        }
+    }
 
-    auto path = Library::cleanPath(directory);
+    auto path = Library::cleanPath(materialDirectory);
     auto library = std::make_shared<MaterialLibraryLocal>(libraryName, path, iconPath, readOnly);
     _libraryList->push_back(library);
 
@@ -161,9 +169,14 @@ void MaterialManagerLocal::createLibrary(
 
     auto newParam = App::GetApplication().GetParameterGroupByPath(libRoot.c_str());
     newParam->SetASCII("Directory", path.toStdString().c_str());
+    if (!modelDirectory.isEmpty()) {
+        newParam->SetASCII("ModelDirectory", Library::cleanPath(modelDirectory).toStdString().c_str());
+    }
     newParam->SetASCII("IconPath", iconPath.toStdString().c_str());
     newParam->SetBool("ReadOnly", readOnly);
     newParam->SetBool("Disabled", false);
+
+    return library;
 }
 
 void MaterialManagerLocal::renameLibrary(const QString& libraryName, const QString& newName)
@@ -193,8 +206,57 @@ void MaterialManagerLocal::changeIcon(const QString& libraryName, const QByteArr
 
     throw LibraryNotFound();
 }
+void MaterialManagerLocal::updateLocalLibraryDirectories(
+    const Library& library,
+    const QString& materialDirectory,
+    const QString& modelDirectory
+)
+{
+    // Get the pointer
+    auto libPtr = getLibrary(library.getName());
+    auto materialPath = Library::cleanPath(materialDirectory);
+    auto modelPath = Library::cleanPath(modelDirectory);
 
-void MaterialManagerLocal::removeLibrary(const QString& libraryName)
+    QDir dir;
+    if (!materialPath.isEmpty()) {
+        if (!dir.exists(materialPath)) {
+            if (!dir.mkpath(materialPath)) {
+                throw CreationError("Unable to create library path");
+            }
+        }
+        libPtr->setDirectory(materialPath); // This will only work for the materials, not models
+    }
+    if (!modelPath.isEmpty()) {
+        if (!dir.exists(modelPath)) {
+            if (!dir.mkpath(modelPath)) {
+                throw CreationError("Unable to create library model path");
+            }
+        }
+    }
+
+    // Persist
+    std::string libRoot("User parameter:BaseApp/Preferences/Mod/Material/Resources/Local/");
+    libRoot += library.getName().toStdString();
+
+    auto newParam = App::GetApplication().GetParameterGroupByPath(libRoot.c_str());
+    if (!materialPath.isEmpty()) {
+        newParam->SetASCII("Directory", materialPath.toStdString().c_str());
+    }
+    if (!modelPath.isEmpty()) {
+        newParam->SetASCII("ModelDirectory", modelPath.toStdString().c_str());
+    }
+
+    // Rescan the library
+    for (auto& it : *_materialMap) {
+        if (*it.second->getLibrary() == library) {
+            _materialMap->erase(it.first);
+        }
+    }
+
+    MaterialLoader loader(_materialMap, _libraryList);
+}
+
+void MaterialManagerLocal::removeLibrary(const QString& libraryName, bool keepData)
 {
     for (auto& library : *_libraryList) {
         if (library->isLocal() && library->isName(libraryName)) {
@@ -207,12 +269,17 @@ void MaterialManagerLocal::removeLibrary(const QString& libraryName)
             param->RemoveGrp(libraryName.toStdString().c_str());
 
             // At this point we should rebuild the material map
-            for (auto& it : *_materialMap) {
-                if (it.second->getLibrary() == library) {
-                    _materialMap->erase(it.first);
-                }
-            }
-            return;
+            // for (auto it = _materialMap->begin(); it != _materialMap->end();) {
+            //     if (it->second->getLibrary()->isName(libraryName)) {
+            //         _materialMap->erase(it);
+            //     }
+            //     else {
+            //         it++;
+            //     }
+            // }
+            _materialMap->clear();
+            MaterialLoader loader(_materialMap, _libraryList);
+           return;
         }
     }
 

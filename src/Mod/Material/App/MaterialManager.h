@@ -83,32 +83,26 @@ public:
     );
 #endif
     std::shared_ptr<MaterialLibrary> getLibrary(const QString& name) const;
-    void createLibrary(const QString& libraryName,
+    std::shared_ptr<MaterialLibrary> createLibrary(const QString& libraryName,
                        const QString& iconPath,
                        bool readOnly = true);
-    void createLocalLibrary(const QString& libraryName,
-                            const QString& directory,
+    std::shared_ptr<MaterialLibrary> createLocalLibrary(const QString& libraryName,
+                            const QString& materialDirectory,
+                            const QString& modelDirectory,
                             const QString& iconPath,
                             bool readOnly = true);
+    std::shared_ptr<MaterialLibrary> createLocalLibrary(const QString& libraryName,
+                            const QString& materialDirectory,
+                            const QString& iconPath,
+                            bool readOnly = true)
+    {
+        return createLocalLibrary(libraryName, materialDirectory, QString(), iconPath, readOnly);
+    }
     void renameLibrary(const QString& libraryName, const QString& newName);
     void changeIcon(const QString& libraryName, const QString& iconPath);
-    void removeLibrary(const QString& libraryName);
-    void updateLocalLibraryDirectories(
-        const QString& libraryName,
-        const QString& materialDirectory,
-        const QString& modelDirectory
-    );
-    void updateLocalLibraryDirectories(
-        const Library& library,
-        const QString& materialDirectory,
-        const QString& modelDirectory
-    );
-    void updateLocalLibraryDirectory(const QString& libraryName, const QString& materialDirectory);
-    void updateLocalLibraryDirectory(const MaterialLibrary& library, const QString& materialDirectory);
-    std::shared_ptr<std::vector<LibraryObject>> libraryMaterials(
-        const QString& libraryName,
-        bool local = false
-    );
+    void removeLibrary(const QString& libraryName, bool keepData = true);
+    std::shared_ptr<std::vector<LibraryObject>>
+    libraryMaterials(const QString& libraryName, bool local = false);
     std::shared_ptr<std::vector<LibraryObject>>
     libraryMaterials(const QString& libraryName,
                      const MaterialFilter& filter,

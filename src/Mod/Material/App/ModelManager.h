@@ -105,6 +105,7 @@ public:
     void validateMigration(const std::shared_ptr<Materials::ModelLibrary>& library);
 
     // Cache functions
+    static void resetCache();
     static double modelHitRate();
 #endif
 

@@ -39,6 +39,8 @@ UUIDAluminumMixed = "5f546608-fcbb-40db-98d7-d8e104eb33ce"
 UUIDAluminumPhysical = "a8e60089-550d-4370-8e7e-1734db12a3a9"
 UUIDBrassAppearance = "fff3d5c8-98c3-4ee2-8fe5-7e17403c48fcc"
 
+UUIDBasicRendering = "f006c7e4-35b7-43d5-bbf9-c5d572309e6e"
+
 
 class MaterialFilterTestCases(unittest.TestCase):
     """
@@ -54,68 +56,58 @@ class MaterialFilterTestCases(unittest.TestCase):
         self._uuids = Materials.UUIDs()
 
         # Disable the external interface
-        paramExternal = FreeCAD.ParamGet("User parameter:BaseApp/Preferences/Mod/Material/ExternalInterface")
-        self.useExternal = paramExternal.GetBool("UseExternal", False)
-
-        paramExternal.SetBool("UseExternal", False)
+        self._useExternal = self._materialManager.UseExternal
+        self._materialManager.UseExternal = False
 
         # Create a custom library for our test files
-        param = FreeCAD.ParamGet("User parameter:BaseApp/Preferences/Mod/Material/Resources/Local/__UnitTest")
+        try:
+            self._materialManager.removeLibrary("__UnitTest")
+        except LookupError as ex:
+            # Library may not exist
+            pass
 
         filePath = os.path.dirname(__file__) + os.sep
-        testPath = filePath + "Materials"
-        param.SetString("Directory", testPath)
-        param.SetString("ModelDirectory", testPath)
-        param.SetString("IconPath", ":/icons/preferences-general.svg")
-        param.SetBool("ReadOnly", False)
-        param.SetBool("Disabled", False)
+        materialPath = filePath + "Materials"
+        modelPath = filePath + "Models"
+        print(f"materialPath {materialPath}")
+        self.library = self._materialManager.createLocalLibrary("__UnitTest", 
+            ":/icons/preferences-general.svg",
+            materialPath,
+            modelPath,
+            False
+        )
+        self._materialManager.setDisabled(self.library, False)
 
         # Disable other libraries
-        param = FreeCAD.ParamGet("User parameter:BaseApp/Preferences/Mod/Material/Resources/Local")
-        groups = param.GetGroups()
-        for groupName in groups:
-            group = param.GetGroup(groupName)
-            if groupName != '__UnitTest':
-                print(f"Disable {groupName} disabled: {group.GetBool('Disabled', False)}")
-                self._libraries[groupName] = group.GetBool('Disabled', False)
-                group.SetBool('Disabled', True)
-
-        param = FreeCAD.ParamGet("User parameter:BaseApp/Preferences/Mod/Material/Resources/Modules")
-        groups = param.GetGroups()
-        for groupName in groups:
-            group = param.GetGroup(groupName)
-            if groupName != '__UnitTest':
-                print(f"Disable {groupName} disabled: {group.GetBool('ModuleMaterialDisabled', False)}")
-                self._libraries[groupName] = group.GetBool('ModuleMaterialDisabled', False)
-                group.SetBool('ModuleMaterialDisabled', True)
+        self._libraryDisabled = {}
+        for library in self._materialManager.MaterialLibraries:
+            # name = library[0]
+            if library.Name != "__UnitTest":
+                self._libraryDisabled[library.Name] = library.Disabled
+                self._materialManager.setDisabled(library, True)
 
         self._materialManager.refresh()
 
     def tearDown(self):
-        paramExternal = FreeCAD.ParamGet("User parameter:BaseApp/Preferences/Mod/Material/ExternalInterface")
-        paramExternal.SetBool("UseExternal", self.useExternal)
-
-        param = FreeCAD.ParamGet("User parameter:BaseApp/Preferences/Mod/Material/Resources/Local/__UnitTest")
-        param.SetBool("Disabled", True)
+        try:
+            self._materialManager.removeLibrary("__UnitTest")
+        except LookupError as ex:
+            # Library may not exist
+            pass
 
         # Restore other libraries
-        param = FreeCAD.ParamGet("User parameter:BaseApp/Preferences/Mod/Material/Resources/Local")
-        groups = param.GetGroups()
-        for groupName in groups:
-            group = param.GetGroup(groupName)
-            if group.GetGroupName() in self._libraries:
-                print(f"Restore {groupName} disabled: {self._libraries[groupName]}")
-                group.SetBool('Disabled', self._libraries[groupName])
+        print(self._libraryDisabled)
+        for name, disabled in self._libraryDisabled.items():
+             self._materialManager.setDisabled(name, disabled)
 
-        param = FreeCAD.ParamGet("User parameter:BaseApp/Preferences/Mod/Material/Resources/Modules")
-        groups = param.GetGroups()
-        for groupName in groups:
-            group = param.GetGroup(groupName)
-            if group.GetGroupName() in self._libraries:
-                print(f"Restore {groupName} disabled: {self._libraries[groupName]}")
-                group.SetBool('ModuleMaterialDisabled', self._libraries[groupName])
+        # Restore the external interface
+        self._materialManager.UseExternal = self._useExternal
 
         self._materialManager.refresh()
+
+    def testModelLoading(self):
+        model = self._modelManager.getModel(UUIDBasicRendering)
+        self.assertIsNotNone(model)
 
     def testFilter(self):
         """Test that our filter returns the correct materials"""

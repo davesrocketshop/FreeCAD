@@ -6,6 +6,7 @@ from Base.Metadata import export
 from Base.BaseClass import BaseClass
 from typing import Final, List, Dict
 
+from Materials import MaterialLibrary
 
 @export(Include="Mod/Material/App/MaterialManager.h", Namespace="Materials", Constructor=True)
 class MaterialManager(BaseClass):
@@ -22,6 +23,28 @@ class MaterialManager(BaseClass):
     Materials: Final[Dict] = ...
     """List of Materials."""
 
+    # Library management
+    UseExternal: bool = ...
+    """Indicates wether the external interface is enabled."""
+
+    def createLibrary(self) -> MaterialLibrary:
+        """
+        Create a material library
+        """
+        ...
+
+    def createLocalLibrary(self) -> MaterialLibrary:
+        """
+        Create a local material library
+        """
+        ...
+
+    def removeLibrary(self) -> None:
+        """
+        Remove the library
+        """
+
+    # Material management
     def getMaterial(self) -> None:
         """
         Get a material object by specifying its UUID
@@ -64,7 +87,7 @@ class MaterialManager(BaseClass):
         """
         ...
 
-    def setDisabled(self, **kwargs) -> None:
+    def setDisabled(self) -> None:
         """
         Enables or disables a material library
         """

@@ -89,7 +89,7 @@ void ModelManagerLocal::cleanup()
 void ModelManagerLocal::refresh()
 {
     _modelMap->clear();
-    _libraryList->clear();
+    _libraryList->clear(); // This list will be regenerated
 
     // Load the libraries
     ModelLoader loader(_modelMap, _libraryList);
@@ -203,8 +203,11 @@ std::shared_ptr<Model> ModelManagerLocal::getModel(const QString& uuid) const
         }
 
         auto& model = _modelMap->at(uuid);
-        ModelManager::dereference(model);
-        return model;
+        if (!model->isDisabled()) {
+            ModelManager::dereference(model);
+            return model;
+        }
+        throw ModelNotFound();
     }
     catch (std::out_of_range const&) {
         throw ModelNotFound();

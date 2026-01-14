@@ -48,34 +48,48 @@ protected:
     }
 
     void SetUp() override {
+        _modelManager = &(Materials::ModelManager::getManager());
+        _materialManager = &(Materials::MaterialManager::getManager());
+
         // Disable the external interface
         _useExternal = _materialManager->useExternal();
         _materialManager->setUseExternal(false);
 
+        _systemDisabled = _materialManager->isDisabled(QStringLiteral("System"), true);
+        _materialManager->setDisabled(QStringLiteral("System"), false, true);
+        if (_materialManager->isDisabled(QStringLiteral("System"), true)) {
+            FAIL() << "System is disabled";
+        }
+
         // Create a temporary library
         QString libPath = QDir::tempPath() + QStringLiteral("/TestMaterialCards");
         QDir libDir(libPath);
-        libDir.removeRecursively(); // Clear old run data
+        libDir.removeRecursively(); // Clear any old run data
         libDir.mkdir(libPath);
-        _library = std::make_shared<Materials::MaterialLibraryLocal>(QStringLiteral("Testing"),
-                        libPath,
-                        QStringLiteral(":/icons/preferences-general.svg"),
-                        false);
-        _modelManager = &(Materials::ModelManager::getManager());
-        _materialManager = &(Materials::MaterialManager::getManager());
 
+        _library = _materialManager->createLocalLibrary(QStringLiteral("TestMaterialCards"),
+                            libPath,
+                            QStringLiteral(":/icons/preferences-general.svg"),
+                            false);
+
+        // Test Material.FCMat
         _testMaterialUUID = QStringLiteral("c6c64159-19c1-40b5-859c-10561f20f979");
+        _materialManager->refresh();
     }
 
     void TearDown() override {
+        _materialManager->removeLibrary(QStringLiteral("TestMaterialCards"), false); // Remove the library
+        _materialManager->setDisabled(QStringLiteral("System"), _systemDisabled, true);
         _materialManager->setUseExternal(_useExternal);
+        _materialManager->refresh();
     }
 
     Materials::ModelManager* _modelManager;
     Materials::MaterialManager* _materialManager;
-    std::shared_ptr<Materials::MaterialLibraryLocal> _library;
+    std::shared_ptr<Materials::MaterialLibrary> _library;
     QString _testMaterialUUID;
     bool _useExternal {};
+    bool _systemDisabled {};
 };
 
 TEST_F(TestMaterialCards, TestCopy)
@@ -83,6 +97,7 @@ TEST_F(TestMaterialCards, TestCopy)
     ASSERT_NE(_modelManager, nullptr);
     ASSERT_TRUE(_library);
     // FAIL() << "Test library " << _library->getDirectoryPath().toStdString() << "\n";
+    ASSERT_GT(_materialManager->getLocalMaterials()->size(), 0);
 
     std::shared_ptr<Materials::Material> newMaterial;
 
@@ -92,6 +107,12 @@ TEST_F(TestMaterialCards, TestCopy)
 
         EXPECT_EQ(testMaterial->getUUID(), _testMaterialUUID);
         EXPECT_EQ(newMaterial->getUUID(), _testMaterialUUID);
+    }
+    catch (const Materials::MaterialReadError&) {
+        FAIL() << "Material read error 1\n";
+    }
+    catch (const Materials::MaterialNotFound&) {
+        FAIL() << "Material not found error 1\n";
     }
     catch (...) {
         FAIL() << "An unknown exception has occured 1\n";
