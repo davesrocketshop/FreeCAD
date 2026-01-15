@@ -229,9 +229,14 @@ void MaterialManager::setUseExternal(bool useExternal)
 }
 
 std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>> MaterialManager::getLibraries(
-    bool includeDisabled
+    bool includeDisabled,
+    bool includeMasked
 )
 {
+    if (includeMasked) {
+        return getLibrariesMasked(includeDisabled);
+    }
+    
     // External libraries take precedence over local libraries
     auto libMap = std::map<QString, std::shared_ptr<MaterialLibrary>>();
 #if defined(BUILD_MATERIAL_EXTERNAL)
@@ -252,6 +257,38 @@ std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>> MaterialManager::ge
     }
 
     // Consolidate into a single list
+    auto libraries = std::make_shared<std::list<std::shared_ptr<MaterialLibrary>>>();
+    for (auto libEntry : libMap) {
+        libraries->push_back(libEntry.second);
+    }
+
+    return libraries;
+}
+
+std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>> MaterialManager::getLibrariesMasked(
+    bool includeDisabled
+)
+{
+    // External libraries take precedence over local libraries
+    auto libMap = std::multimap<QString, std::shared_ptr<MaterialLibrary>>();
+#if defined(BUILD_MATERIAL_EXTERNAL)
+    if (_useExternal) {
+        auto remoteLibraries = _externalManager->getLibraries();
+        for (auto& remote : *remoteLibraries) {
+            if (includeDisabled || !remote->isDisabled()) {
+                libMap.insert({remote->getName(), remote});
+            }
+        }
+    }
+#endif
+    auto localLibraries = _localManager->getLibraries();
+    for (auto& local : *localLibraries) {
+        if (includeDisabled || !local->isDisabled()) {
+            libMap.insert({local->getName(), local});
+        }
+    }
+
+    // Consolidate into a single sorted list
     auto libraries = std::make_shared<std::list<std::shared_ptr<MaterialLibrary>>>();
     for (auto libEntry : libMap) {
         libraries->push_back(libEntry.second);

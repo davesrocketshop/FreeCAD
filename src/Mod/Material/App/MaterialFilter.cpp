@@ -43,6 +43,7 @@ MaterialFilterOptions::MaterialFilterOptions()
     _includeLibraries = param->GetBool("ShowEmptyLibraries", true);
     _includeLegacy = param->GetBool("ShowLegacy", false);
     _includeDisabled = param->GetBool("ShowDisabled", false);
+    _includeMasked = param->GetBool("ShowMasked", false);
 }
 
 void MaterialFilterOptions::save() const
@@ -56,6 +57,7 @@ void MaterialFilterOptions::save() const
     param->SetBool("ShowEmptyLibraries", _includeLibraries);
     param->SetBool("ShowLegacy", _includeLegacy);
     param->SetBool("ShowDisabled", _includeDisabled);
+    param->SetBool("ShowMasked", _includeMasked);
 }
 
 MaterialFilterTreeWidgetOptions::MaterialFilterTreeWidgetOptions()

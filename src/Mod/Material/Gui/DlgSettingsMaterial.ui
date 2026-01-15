@@ -73,6 +73,9 @@ If unchecked, they will be sorted by their name.</string>
      <layout class="QVBoxLayout" name="verticalLayout_5">
       <item>
        <widget class="Gui::PrefCheckBox" name="cb_show_favorites">
+        <property name="toolTip">
+         <string>Show materials marked as favourite</string>
+        </property>
         <property name="text">
          <string>Show favorites</string>
         </property>
@@ -89,6 +92,9 @@ If unchecked, they will be sorted by their name.</string>
       </item>
       <item>
        <widget class="Gui::PrefCheckBox" name="cb_show_recent">
+        <property name="toolTip">
+         <string>Show recently used materials</string>
+        </property>
         <property name="text">
          <string>Show recent</string>
         </property>
@@ -105,6 +111,9 @@ If unchecked, they will be sorted by their name.</string>
       </item>
       <item>
        <widget class="Gui::PrefCheckBox" name="cb_show_empty_libraries">
+        <property name="toolTip">
+         <string>Show empty libraries</string>
+        </property>
         <property name="text">
          <string>Show empty libraries</string>
         </property>
@@ -121,6 +130,9 @@ If unchecked, they will be sorted by their name.</string>
       </item>
       <item>
        <widget class="Gui::PrefCheckBox" name="cb_show_empty_folders">
+        <property name="toolTip">
+         <string>Show empty folders</string>
+        </property>
         <property name="text">
          <string>Show empty folders</string>
         </property>
@@ -134,6 +146,9 @@ If unchecked, they will be sorted by their name.</string>
       </item>
       <item>
        <widget class="Gui::PrefCheckBox" name="cb_show_legacy">
+        <property name="toolTip">
+         <string>Show materials in the pre-1.0 format</string>
+        </property>
         <property name="text">
          <string>Show legacy files</string>
         </property>
@@ -156,6 +171,9 @@ If unchecked, they will be sorted by their name.</string>
      <layout class="QVBoxLayout" name="verticalLayout_4">
       <item>
        <widget class="Gui::PrefCheckBox" name="cb_show_favorites_editor">
+        <property name="toolTip">
+         <string>Show materials marked as favourite</string>
+        </property>
         <property name="text">
          <string>Show favorites</string>
         </property>
@@ -172,6 +190,9 @@ If unchecked, they will be sorted by their name.</string>
       </item>
       <item>
        <widget class="Gui::PrefCheckBox" name="cb_show_recent_editor">
+        <property name="toolTip">
+         <string>Show recently used materials</string>
+        </property>
         <property name="text">
          <string>Show recent</string>
         </property>
@@ -188,6 +209,9 @@ If unchecked, they will be sorted by their name.</string>
       </item>
       <item>
        <widget class="Gui::PrefCheckBox" name="cb_show_empty_libraries_editor">
+        <property name="toolTip">
+         <string>Show empty libraries</string>
+        </property>
         <property name="text">
          <string>Show empty libraries</string>
         </property>
@@ -204,6 +228,9 @@ If unchecked, they will be sorted by their name.</string>
       </item>
       <item>
        <widget class="Gui::PrefCheckBox" name="cb_show_empty_folders_editor">
+        <property name="toolTip">
+         <string>Show empty folders</string>
+        </property>
         <property name="text">
          <string>Show empty folders</string>
         </property>
@@ -217,6 +244,9 @@ If unchecked, they will be sorted by their name.</string>
       </item>
       <item>
        <widget class="Gui::PrefCheckBox" name="cb_show_legacy_editor">
+        <property name="toolTip">
+         <string>Show materials in the pre-1.0 format</string>
+        </property>
         <property name="text">
          <string>Show legacy files</string>
         </property>
@@ -233,11 +263,30 @@ If unchecked, they will be sorted by their name.</string>
       </item>
       <item>
        <widget class="Gui::PrefCheckBox" name="cb_show_disabled_editor">
+        <property name="toolTip">
+         <string>Show disabled libraries</string>
+        </property>
         <property name="text">
          <string>Show disabled libraries</string>
         </property>
         <property name="prefEntry" stdset="0">
          <cstring>ShowDisabled</cstring>
+        </property>
+        <property name="prefPath" stdset="0">
+         <cstring>Mod/Material/Editor</cstring>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="Gui::PrefCheckBox" name="cb_show_masked_editor">
+        <property name="toolTip">
+         <string>Show local libraries libraries that have been masked by  remote library with the same name</string>
+        </property>
+        <property name="text">
+         <string>Show masked libraries</string>
+        </property>
+        <property name="prefEntry" stdset="0">
+         <cstring>ShowMasked</cstring>
         </property>
         <property name="prefPath" stdset="0">
          <cstring>Mod/Material/Editor</cstring>

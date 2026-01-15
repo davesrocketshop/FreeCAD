@@ -368,6 +368,11 @@ void MaterialsEditor::createActions()
     _actionViewDisabled.setChecked(includeDisabled());
     _actionViewDisabled.setToolTip(tr("Show disabled libraries"));
 
+    _actionViewMasked.setText(tr("Masked libraries"));
+    _actionViewMasked.setCheckable(true);
+    _actionViewMasked.setChecked(includeMasked());
+    _actionViewMasked.setToolTip(tr("Show local libraries libraries that have been masked by a remote library with the same name"));
+
     connect(&_actionNewLibrary, &QAction::triggered, this, &MaterialsEditor::onMenuNewLibrary);
     connect(&_actionEnableDisable, &QAction::triggered, this, &MaterialsEditor::onMenuEnableDisable);
     connect(&_actionDeleteLibrary, &QAction::triggered, this, &MaterialsEditor::onMenuDeleteLibrary);
@@ -382,6 +387,7 @@ void MaterialsEditor::createActions()
     connect(&_actionViewLibraries, &QAction::toggled, this, &MaterialsEditor::onMenuViewLibraries);
     connect(&_actionViewLegacy, &QAction::toggled, this, &MaterialsEditor::onMenuViewLegacy);
     connect(&_actionViewDisabled, &QAction::toggled, this, &MaterialsEditor::onMenuViewDisabled);
+    connect(&_actionViewMasked, &QAction::toggled, this, &MaterialsEditor::onMenuViewMasked);
 }
 
 void MaterialsEditor::updateMaterial()
@@ -1084,7 +1090,7 @@ void MaterialsEditor::fillMaterialTree()
         addRecents(lib);
     }
 
-    auto libraries = getMaterialManager().getLibraries(includeDisabled());
+    auto libraries = getMaterialManager().getLibraries(includeDisabled(), includeMasked());
     for (const auto& library : *libraries) {
         auto materialTree = getMaterialManager().getMaterialTree(*library);
 
@@ -1095,16 +1101,16 @@ void MaterialsEditor::fillMaterialTree()
 
         if (showLibraries) {
             QString title = library->getName();
-            if (library->isLocal()) {
-                title += tr(" - Local");
-            }
-            else {
-                title += tr(" - Remote");
+            auto lib = new QStandardItem(title);
+            if (!library->isLocal()) {
+                QIcon icon(QStringLiteral(":/icons/Material_Remote.svg"));
+                lib->setIcon(icon);
             }
             if (library->isDisabled()) {
-                title += tr(", disabled");
+                auto font = lib->font();
+                font.setStrikeOut(true);
+                lib->setFont(font);
             }
-            auto lib = new QStandardItem(title);
             if (library->isReadOnly()) {
                 lib->setFlags(Qt::ItemIsEnabled);
             }
@@ -1151,6 +1157,7 @@ void MaterialsEditor::createMaterialTree()
 
 void MaterialsEditor::refreshMaterialTree()
 {
+    Gui::WaitCursor wc;
     auto tree = ui->treeMaterials;
     auto model = qobject_cast<QStandardItemModel*>(tree->model());
     model->clear();
@@ -1495,6 +1502,7 @@ void MaterialsEditor::addViewMenu(QMenu& contextMenu)
     viewMenu->addAction(&_actionViewLibraries);
     viewMenu->addAction(&_actionViewLegacy);
     viewMenu->addAction(&_actionViewDisabled);
+    viewMenu->addAction(&_actionViewMasked);
 
     contextMenu.addMenu(viewMenu);
 }
@@ -1718,6 +1726,12 @@ void MaterialsEditor::onMenuViewLegacy(bool checked)
 void MaterialsEditor::onMenuViewDisabled(bool checked)
 {
     setIncludeDisabled(checked);
+    refreshMaterialTree();
+}
+
+void MaterialsEditor::onMenuViewMasked(bool checked)
+{
+    setIncludeMasked(checked);
     refreshMaterialTree();
 }
 

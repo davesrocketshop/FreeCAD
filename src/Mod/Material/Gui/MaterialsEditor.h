@@ -193,6 +193,7 @@ private:
     QAction _actionViewLibraries;
     QAction _actionViewLegacy;
     QAction _actionViewDisabled;
+    QAction _actionViewMasked;
 
     void setup();
     void setupStackedWidgets();
@@ -266,6 +267,7 @@ private:
     void onMenuViewLibraries(bool checked);
     void onMenuViewLegacy(bool checked);
     void onMenuViewDisabled(bool checked);
+    void onMenuViewMasked(bool checked);
 
     void setMaterialDefaults();
     static QString getColorHash(const QString& colorString, int colorRange = 255);
@@ -367,6 +369,15 @@ private:
     void setIncludeDisabled(bool disabled)
     {
         _filterOptions.setIncludeDisabled(disabled);
+        _filterOptions.save();
+    }
+    bool includeMasked() const
+    {
+        return _filterOptions.includeMasked();
+    }
+    void setIncludeMasked(bool masked)
+    {
+        _filterOptions.setIncludeMasked(masked);
         _filterOptions.save();
     }
 
