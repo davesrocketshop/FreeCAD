@@ -1319,7 +1319,7 @@ void MaterialsEditor::onContextMenu(const QPoint& pos)
         }
     }
     catch (ActionError e) {
-        Base::Console().log("MaterialsEditor::onContextMenu(): No action to handle.\n");
+        defaultContextMenu(contextMenu);
     }
 
     // QAction actionInheritFrom(tr("Inherit from"), this);
@@ -1408,7 +1408,7 @@ void MaterialsEditor::folderContextMenu(QMenu& contextMenu)
     contextMenu.addAction(&_actionPaste);
     contextMenu.addSeparator();
     contextMenu.addAction(&_actionRename);
-    contextMenu.addAction(&_actionDelete);
+    contextMenu.addAction(&_actionDeleteFolder);
 }
 
 void MaterialsEditor::materialContextMenu(QMenu& contextMenu)
@@ -1434,6 +1434,11 @@ void MaterialsEditor::materialContextMenu(QMenu& contextMenu)
     contextMenu.addSeparator();
     contextMenu.addAction(&_actionRename);
     contextMenu.addAction(&_actionDelete);
+}
+
+void MaterialsEditor::defaultContextMenu(QMenu& contextMenu)
+{
+    contextMenu.addAction(&_actionNewLibrary);
 }
 
 QString MaterialsEditor::getPath(const QStandardItem* item, const QString& path) const

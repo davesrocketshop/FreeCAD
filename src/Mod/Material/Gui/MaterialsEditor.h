@@ -237,6 +237,7 @@ private:
     void libraryContextMenu(QMenu& contextMenu);
     void folderContextMenu(QMenu& contextMenu);
     void materialContextMenu(QMenu& contextMenu);
+    void defaultContextMenu(QMenu& contextMenu);
 
     QString getPath(const QStandardItem* item, const QString& path) const;
     QString getParentPath(const QStandardItem* item) const;
