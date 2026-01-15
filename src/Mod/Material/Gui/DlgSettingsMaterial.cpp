@@ -49,6 +49,7 @@ void DlgSettingsMaterial::saveSettings()
     ui->cb_show_empty_libraries_editor->onSave();
     ui->cb_show_empty_folders_editor->onSave();
     ui->cb_show_legacy_editor->onSave();
+    ui->cb_show_disabled_editor->onSave();
 }
 
 void DlgSettingsMaterial::loadSettings()
@@ -65,6 +66,7 @@ void DlgSettingsMaterial::loadSettings()
     ui->cb_show_empty_libraries_editor->onRestore();
     ui->cb_show_empty_folders_editor->onRestore();
     ui->cb_show_legacy_editor->onRestore();
+    ui->cb_show_disabled_editor->onRestore();
 }
 
 /**

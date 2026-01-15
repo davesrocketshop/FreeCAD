@@ -283,15 +283,6 @@ void MaterialsEditor::setupContextMenus()
 
 void MaterialsEditor::createActions()
 {
-    connect(&_actionNewLibrary, &QAction::triggered, this, &MaterialsEditor::onMenuNewLibrary);
-    connect(&_actionEnableDisable, &QAction::triggered, this, &MaterialsEditor::onMenuEnableDisable);
-    connect(&_actionDeleteLibrary, &QAction::triggered, this, &MaterialsEditor::onMenuDeleteLibrary);
-    connect(&_actionNewFolder, &QAction::triggered, this, &MaterialsEditor::onMenuNewFolder);
-    connect(&_actionNewMaterial, &QAction::triggered, this, &MaterialsEditor::onMenuNewMaterial);
-    connect(&_actionFavorite, &QAction::triggered, this, &MaterialsEditor::onFavourite);
-    connect(&_actionChangeIcon, &QAction::triggered, this, &MaterialsEditor::onMenuChangeIcon);
-
-    // TODO: Add tooltips
     _actionNewLibrary.setText(tr("New library"));
     _actionNewLibraryIcon = QIcon(QStringLiteral(":/icons/Material_Library.svg"));
     _actionNewLibrary.setIcon(_actionNewLibraryIcon);
@@ -336,19 +327,61 @@ void MaterialsEditor::createActions()
     _actionPaste.setToolTip(tr("Paste"));
 
     _actionRename.setText(tr("Rename"));
-    _actionDelete.setText(tr("Delete"));
+    _actionDeleteFolder.setText(tr("Delete Folder"));
+    _actionDeleteMaterial.setText(tr("Delete Material"));
 
     _actionEnableDisable.setText(tr("Disable"));
-    // _actionEnableDisable = QIcon(QStringLiteral(":/icons/Material_Library.svg"));
-    // _actionEnableDisable.setIcon(_actionNewLibraryIcon);
     _actionEnableDisable.setToolTip(tr("Enable or disable a library"));
 
     _actionDeleteLibrary.setText(tr("Delete"));
-    // _actionDeleteLibrary = QIcon(QStringLiteral(":/icons/Material_Library.svg"));
-    // _actionDeleteLibrary.setIcon(_actionNewLibraryIcon);
     _actionDeleteLibrary.setToolTip(tr("Delete the selected library"));
 
     _actionLibraryProperties.setText(tr("Properties..."));
+
+    _actionViewFavorites.setText(tr("Favorites"));
+    _actionViewFavorites.setCheckable(true);
+    _actionViewFavorites.setChecked(includeFavorites());
+    _actionViewFavorites.setToolTip(tr("Show materials marked as favourite"));
+
+    _actionViewRecent.setText(tr("Recent"));
+    _actionViewRecent.setCheckable(true);
+    _actionViewRecent.setChecked(includeRecent());
+    _actionViewRecent.setToolTip(tr("Show recently used materials"));
+
+    _actionViewFolders.setText(tr("Empty folders"));
+    _actionViewFolders.setCheckable(true);
+    _actionViewFolders.setChecked(includeEmptyFolders());
+    _actionViewFolders.setToolTip(tr("Show empty folders"));
+
+    _actionViewLibraries.setText(tr("Empty libraries"));
+    _actionViewLibraries.setCheckable(true);
+    _actionViewLibraries.setChecked(includeEmptyLibraries());
+    _actionViewLibraries.setToolTip(tr("Show empty libraries"));
+
+    _actionViewLegacy.setText(tr("Legacy files"));
+    _actionViewLegacy.setCheckable(true);
+    _actionViewLegacy.setChecked(includeLegacy());
+    _actionViewLegacy.setToolTip(tr("Show materials in the pre-1.0 format"));
+
+    _actionViewDisabled.setText(tr("Disabled libraries"));
+    _actionViewDisabled.setCheckable(true);
+    _actionViewDisabled.setChecked(includeDisabled());
+    _actionViewDisabled.setToolTip(tr("Show disabled libraries"));
+
+    connect(&_actionNewLibrary, &QAction::triggered, this, &MaterialsEditor::onMenuNewLibrary);
+    connect(&_actionEnableDisable, &QAction::triggered, this, &MaterialsEditor::onMenuEnableDisable);
+    connect(&_actionDeleteLibrary, &QAction::triggered, this, &MaterialsEditor::onMenuDeleteLibrary);
+    connect(&_actionNewFolder, &QAction::triggered, this, &MaterialsEditor::onMenuNewFolder);
+    connect(&_actionNewMaterial, &QAction::triggered, this, &MaterialsEditor::onMenuNewMaterial);
+    connect(&_actionFavorite, &QAction::triggered, this, &MaterialsEditor::onFavourite);
+    connect(&_actionChangeIcon, &QAction::triggered, this, &MaterialsEditor::onMenuChangeIcon);
+
+    connect(&_actionViewFavorites, &QAction::toggled, this, &MaterialsEditor::onMenuViewFavorites);
+    connect(&_actionViewRecent, &QAction::toggled, this, &MaterialsEditor::onMenuViewRecent);
+    connect(&_actionViewFolders, &QAction::toggled, this, &MaterialsEditor::onMenuViewFolders);
+    connect(&_actionViewLibraries, &QAction::toggled, this, &MaterialsEditor::onMenuViewLibraries);
+    connect(&_actionViewLegacy, &QAction::toggled, this, &MaterialsEditor::onMenuViewLegacy);
+    connect(&_actionViewDisabled, &QAction::toggled, this, &MaterialsEditor::onMenuViewDisabled);
 }
 
 void MaterialsEditor::updateMaterial()
@@ -1051,7 +1084,7 @@ void MaterialsEditor::fillMaterialTree()
         addRecents(lib);
     }
 
-    auto libraries = getMaterialManager().getLibraries();
+    auto libraries = getMaterialManager().getLibraries(includeDisabled());
     for (const auto& library : *libraries) {
         auto materialTree = getMaterialManager().getMaterialTree(*library);
 
@@ -1356,6 +1389,8 @@ void MaterialsEditor::favoriteContextMenu(QMenu& contextMenu)
         favoriteActionRemove();
         contextMenu.addAction(&_actionFavorite);
     }
+
+    addViewMenu(contextMenu);
 }
 
 void MaterialsEditor::recentContextMenu(QMenu& contextMenu)
@@ -1374,6 +1409,8 @@ void MaterialsEditor::recentContextMenu(QMenu& contextMenu)
         }
         contextMenu.addAction(&_actionFavorite);
     }
+
+    addViewMenu(contextMenu);
 }
 
 void MaterialsEditor::libraryContextMenu(QMenu& contextMenu)
@@ -1394,6 +1431,8 @@ void MaterialsEditor::libraryContextMenu(QMenu& contextMenu)
     contextMenu.addAction(&_actionEnableDisable);
     contextMenu.addAction(&_actionDeleteLibrary);
     contextMenu.addAction(&_actionLibraryProperties);
+
+    addViewMenu(contextMenu);
 }
 
 void MaterialsEditor::folderContextMenu(QMenu& contextMenu)
@@ -1409,6 +1448,8 @@ void MaterialsEditor::folderContextMenu(QMenu& contextMenu)
     contextMenu.addSeparator();
     contextMenu.addAction(&_actionRename);
     contextMenu.addAction(&_actionDeleteFolder);
+
+    addViewMenu(contextMenu);
 }
 
 void MaterialsEditor::materialContextMenu(QMenu& contextMenu)
@@ -1433,12 +1474,29 @@ void MaterialsEditor::materialContextMenu(QMenu& contextMenu)
     contextMenu.addAction(&_actionPaste);
     contextMenu.addSeparator();
     contextMenu.addAction(&_actionRename);
-    contextMenu.addAction(&_actionDelete);
+    contextMenu.addAction(&_actionDeleteMaterial);
+
+    addViewMenu(contextMenu);
 }
 
 void MaterialsEditor::defaultContextMenu(QMenu& contextMenu)
 {
     contextMenu.addAction(&_actionNewLibrary);
+
+    addViewMenu(contextMenu);
+}
+
+void MaterialsEditor::addViewMenu(QMenu& contextMenu)
+{
+    auto viewMenu = new QMenu(tr("View"), this);
+    viewMenu->addAction(&_actionViewFavorites);
+    viewMenu->addAction(&_actionViewRecent);
+    viewMenu->addAction(&_actionViewFolders);
+    viewMenu->addAction(&_actionViewLibraries);
+    viewMenu->addAction(&_actionViewLegacy);
+    viewMenu->addAction(&_actionViewDisabled);
+
+    contextMenu.addMenu(viewMenu);
 }
 
 QString MaterialsEditor::getPath(const QStandardItem* item, const QString& path) const
@@ -1625,6 +1683,42 @@ void MaterialsEditor::onInherit(bool checked)
 void MaterialsEditor::onInheritNew(bool checked)
 {
     Q_UNUSED(checked)
+}
+
+void MaterialsEditor::onMenuViewFavorites(bool checked)
+{
+    setIncludeFavorites(checked);
+    refreshMaterialTree();
+}
+
+void MaterialsEditor::onMenuViewRecent(bool checked)
+{
+    setIncludeRecent(checked);
+    refreshMaterialTree();
+}
+
+void MaterialsEditor::onMenuViewFolders(bool checked)
+{
+    setIncludeEmptyFolders(checked);
+    refreshMaterialTree();
+}
+
+void MaterialsEditor::onMenuViewLibraries(bool checked)
+{
+    setIncludeEmptyLibraries(checked);
+    refreshMaterialTree();
+}
+
+void MaterialsEditor::onMenuViewLegacy(bool checked)
+{
+    setIncludeLegacy(checked);
+    refreshMaterialTree();
+}
+
+void MaterialsEditor::onMenuViewDisabled(bool checked)
+{
+    setIncludeDisabled(checked);
+    refreshMaterialTree();
 }
 
 void MaterialsEditor::discardIfNew()

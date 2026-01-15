@@ -231,6 +231,19 @@ If unchecked, they will be sorted by their name.</string>
         </property>
        </widget>
       </item>
+      <item>
+       <widget class="Gui::PrefCheckBox" name="cb_show_disabled_editor">
+        <property name="text">
+         <string>Show disabled libraries</string>
+        </property>
+        <property name="prefEntry" stdset="0">
+         <cstring>ShowDisabled</cstring>
+        </property>
+        <property name="prefPath" stdset="0">
+         <cstring>Mod/Material/Editor</cstring>
+        </property>
+       </widget>
+      </item>
      </layout>
     </widget>
    </item>

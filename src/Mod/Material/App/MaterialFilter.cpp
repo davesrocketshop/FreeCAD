@@ -42,6 +42,20 @@ MaterialFilterOptions::MaterialFilterOptions()
     _includeFolders = param->GetBool("ShowEmptyFolders", false);
     _includeLibraries = param->GetBool("ShowEmptyLibraries", true);
     _includeLegacy = param->GetBool("ShowLegacy", false);
+    _includeDisabled = param->GetBool("ShowDisabled", false);
+}
+
+void MaterialFilterOptions::save() const
+{
+    auto param = App::GetApplication().GetParameterGroupByPath(
+        "User parameter:BaseApp/Preferences/Mod/Material/Editor"
+    );
+    param->SetBool("ShowFavorites", _includeFavorites);
+    param->SetBool("ShowRecent", _includeRecent);
+    param->SetBool("ShowEmptyFolders", _includeFolders);
+    param->SetBool("ShowEmptyLibraries", _includeLibraries);
+    param->SetBool("ShowLegacy", _includeLegacy);
+    param->SetBool("ShowDisabled", _includeDisabled);
 }
 
 MaterialFilterTreeWidgetOptions::MaterialFilterTreeWidgetOptions()

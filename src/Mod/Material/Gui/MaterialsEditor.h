@@ -181,11 +181,18 @@ private:
     QAction _actionPaste;
     QIcon _actionPasteIcon;
     QAction _actionRename;
-    QAction _actionDelete;
+    QAction _actionDeleteMaterial;
     QAction _actionDeleteFolder;
     QAction _actionDeleteLibrary;
     QAction _actionEnableDisable;
     QAction _actionLibraryProperties;
+
+    QAction _actionViewFavorites;
+    QAction _actionViewRecent;
+    QAction _actionViewFolders;
+    QAction _actionViewLibraries;
+    QAction _actionViewLegacy;
+    QAction _actionViewDisabled;
 
     void setup();
     void setupStackedWidgets();
@@ -238,6 +245,7 @@ private:
     void folderContextMenu(QMenu& contextMenu);
     void materialContextMenu(QMenu& contextMenu);
     void defaultContextMenu(QMenu& contextMenu);
+    void addViewMenu(QMenu& contextMenu);
 
     QString getPath(const QStandardItem* item, const QString& path) const;
     QString getParentPath(const QStandardItem* item) const;
@@ -251,6 +259,13 @@ private:
     void onMenuChangeIcon(bool checked);
     void onInherit(bool checked);
     void onInheritNew(bool checked);
+
+    void onMenuViewFavorites(bool checked);
+    void onMenuViewRecent(bool checked);
+    void onMenuViewFolders(bool checked);
+    void onMenuViewLibraries(bool checked);
+    void onMenuViewLegacy(bool checked);
+    void onMenuViewDisabled(bool checked);
 
     void setMaterialDefaults();
     static QString getColorHash(const QString& colorString, int colorRange = 255);
@@ -293,6 +308,7 @@ private:
     void setIncludeFavorites(bool value)
     {
         _filterOptions.setIncludeFavorites(value);
+        _filterOptions.save();
     }
 
     /* Indicates if we should show recent materials
@@ -304,6 +320,7 @@ private:
     void setIncludeRecent(bool value)
     {
         _filterOptions.setIncludeRecent(value);
+        _filterOptions.save();
     }
 
     /* Indicates if we should include empty folders
@@ -315,6 +332,7 @@ private:
     void setIncludeEmptyFolders(bool value)
     {
         _filterOptions.setIncludeEmptyFolders(value);
+        _filterOptions.save();
     }
 
     /* Indicates if we should include empty libraries
@@ -325,8 +343,8 @@ private:
     }
     void setIncludeEmptyLibraries(bool value)
     {
-        Base::Console().log("setIncludeEmptyLibraries(%s)\n", (value ? "true" : "false"));
         _filterOptions.setIncludeEmptyLibraries(value);
+        _filterOptions.save();
     }
 
     /* Indicates if we should include materials in the older format
@@ -338,6 +356,18 @@ private:
     void setIncludeLegacy(bool legacy)
     {
         _filterOptions.setIncludeLegacy(legacy);
+        _filterOptions.save();
+    }
+
+    bool includeDisabled() const
+    {
+        return _filterOptions.includeDisabled();
+    }
+
+    void setIncludeDisabled(bool disabled)
+    {
+        _filterOptions.setIncludeDisabled(disabled);
+        _filterOptions.save();
     }
 
     void updateMaterial();

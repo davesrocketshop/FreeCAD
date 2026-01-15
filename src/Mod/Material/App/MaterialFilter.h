@@ -116,12 +116,30 @@ public:
         _includeLegacy = legacy;
     }
 
+    /* Indicates if we should include materials from disabled libraries
+     *
+     * Default is not to include disabled materials
+     */
+    bool includeDisabled() const
+    {
+        return _includeDisabled;
+    }
+    void setIncludeDisabled(bool disabled)
+    {
+        _includeDisabled = disabled;
+    }
+
+    /* Save the options
+     */
+    void save() const;
+
 protected:
     bool _includeFavorites;
     bool _includeRecent;
     bool _includeFolders;
     bool _includeLibraries;
     bool _includeLegacy;
+    bool _includeDisabled;
 };
 
 /*
@@ -134,6 +152,9 @@ class MaterialsExport MaterialFilterTreeWidgetOptions: public MaterialFilterOpti
 public:
     MaterialFilterTreeWidgetOptions();
     ~MaterialFilterTreeWidgetOptions() override = default;
+
+    void save() const = delete;
+
 };
 
 /*
