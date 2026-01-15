@@ -69,8 +69,11 @@ NewLibrary::NewLibrary(QWidget* parent)
 #if defined(BUILD_MATERIAL_EXTERNAL)
     connect(ui->radioRemote, &QPushButton::clicked, this, &NewLibrary::onRemote);
 #endif
+    connect(ui->editName, &QLineEdit::textEdited, this, &NewLibrary::onNameEdited);
     // connect(ui->checkReadOnly, &QCheckBox::checkStateChanged, this, &NewLibrary::onReadOnly);
     connect(ui->buttonChangeIcon, &QPushButton::clicked, this, &NewLibrary::onChangeIcon);
+
+    validateOk();
 }
 
 NewLibrary::~NewLibrary()
@@ -142,6 +145,8 @@ void NewLibrary::onLocal(bool checked)
     Q_UNUSED(checked)
 
     setLocalList();
+
+    validateOk();
 }
 
 #if defined(BUILD_MATERIAL_EXTERNAL)
@@ -150,12 +155,23 @@ void NewLibrary::onRemote(bool checked)
     Q_UNUSED(checked)
 
     setRemoteList();
+
+    validateOk();
 }
 #endif
 
 void NewLibrary::onLocalFolder(const QString& filename)
 {
     Q_UNUSED(filename)
+
+    validateOk();
+}
+
+void NewLibrary::onNameEdited(const QString& text)
+{
+    Q_UNUSED(text)
+
+    validateOk();
 }
 
 void NewLibrary::onReadOnly(Qt::CheckState state)
@@ -303,6 +319,74 @@ void NewLibrary::accept()
     createLibrary(name);
 
     QDialog::accept();
+}
+
+void NewLibrary::setOkEnabled(bool enabled)
+{
+    auto ok = ui->standardButtons->button(QDialogButtonBox::Ok);
+    ok->setEnabled(enabled);
+}
+
+void NewLibrary::enableOk()
+{
+    setOkEnabled(true);
+
+}
+
+void NewLibrary::disableOk()
+{
+    setOkEnabled(false);
+}
+
+void NewLibrary::validateOk()
+{
+    // Ensure our name is unique
+    Base::Console().log("validateOk()\n");
+    auto name = ui->editName->text();
+    if (name.isEmpty()) {
+        Base::Console().log("name is empty\n");
+        disableOk();
+        return;
+    }
+
+    if (isLocal()) {
+        auto directory = ui->fileLocal->fileName();
+        if (directory.isEmpty()) {
+            Base::Console().log("directory is empty\n");
+            disableOk();
+            return;
+        }
+        QDir dir(directory);
+        if (!dir.exists()) {
+            Base::Console().log("directory doesn't exist\n");
+            disableOk();
+            return;
+        }
+
+        auto libraries = getMaterialManager().getLocalLibraries();
+        for (auto library : *libraries) {
+            if (library->getName() == name) {
+                Base::Console().log("library name already exists\n");
+                disableOk();
+                return;
+            }
+        }
+    }
+#if defined(BUILD_MATERIAL_EXTERNAL)
+    else {
+        auto libraries = getMaterialManager().getRemoteLibraries();
+        for (auto library : *libraries) {
+            if (library->getName() == name) {
+                Base::Console().log("remote library name already exists\n");
+                disableOk();
+                return;
+            }
+        }
+    }
+#endif
+
+    Base::Console().log("Enable\n");
+    enableOk();
 }
 
 #include "moc_NewLibrary.cpp"

@@ -65,6 +65,7 @@ private:
     void onRemote(bool checked);
 #endif
     void onLocalFolder(const QString& filename);
+    void onNameEdited(const QString& text);
     void onReadOnly(Qt::CheckState state);
     void onChangeIcon(bool checked);
 
@@ -95,6 +96,11 @@ private:
     bool createLibrary(const QString& name);
     bool createLocalLibrary(const QString& name);
     bool createRemoteLibrary(const QString& name);
+
+    void setOkEnabled(bool enabled);
+    void enableOk();
+    void disableOk();
+    void validateOk();
 
     Materials::MaterialManager& getMaterialManager() const
     {
