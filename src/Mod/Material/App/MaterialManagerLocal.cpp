@@ -717,7 +717,7 @@ std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>> MaterialManagerLoca
             }
             else {
                 std::string name = libDir.toStdString();
-                std::string missing = libDir.toStdString();
+                std::string missing = libName.toStdString();
                 Base::Console()
                     .log("Missing dir '%s' for library '%s'\n", missing.c_str(), name.c_str());
             }
@@ -763,7 +763,7 @@ void MaterialManagerLocal::convertConfiguration()
         "User parameter:BaseApp/Preferences/Mod/Material/Resources"
     );
     if (param->HasGroup("Local")) {
-        Base::Console().log("Material configuration conversion already completed\n");
+        // Material configuration conversion already completed
         return;
     }
     Base::Console().log("Material configuration conversion\n");

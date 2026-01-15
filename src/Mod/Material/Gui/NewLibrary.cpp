@@ -35,6 +35,7 @@
 #include <Gui/Selection/Selection.h>
 #include <Gui/ViewProvider.h>
 #include <Gui/ViewProviderDocumentObject.h>
+#include <Gui/WaitCursor.h>
 
 #include <Mod/Material/App/MaterialLibrary.h>
 #include <Mod/Material/App/PropertyMaterial.h>
@@ -245,8 +246,10 @@ bool NewLibrary::createLibrary(const QString& name)
 bool NewLibrary::createLocalLibrary(const QString& name)
 {
     try {
+        Gui::WaitCursor wc;
         auto directory = ui->fileLocal->fileName();
         getMaterialManager().createLocalLibrary(name, directory, _icon, isReadOnly());
+        getMaterialManager().refresh();
     }
     catch (const Materials::CreationError& e) {
         QMessageBox msgBox;
@@ -260,7 +263,9 @@ bool NewLibrary::createLocalLibrary(const QString& name)
 bool NewLibrary::createRemoteLibrary(const QString& name)
 {
     try {
+        Gui::WaitCursor wc;
         getMaterialManager().createLibrary(name, _icon, isReadOnly());
+        getMaterialManager().refresh();
     }
     catch (const Materials::CreationError& e) {
         QMessageBox msgBox;

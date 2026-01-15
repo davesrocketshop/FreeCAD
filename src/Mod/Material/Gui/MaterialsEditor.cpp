@@ -285,6 +285,7 @@ void MaterialsEditor::createActions()
 {
     connect(&_actionNewLibrary, &QAction::triggered, this, &MaterialsEditor::onMenuNewLibrary);
     connect(&_actionEnableDisable, &QAction::triggered, this, &MaterialsEditor::onMenuEnableDisable);
+    connect(&_actionDeleteLibrary, &QAction::triggered, this, &MaterialsEditor::onMenuDeleteLibrary);
     connect(&_actionNewFolder, &QAction::triggered, this, &MaterialsEditor::onMenuNewFolder);
     connect(&_actionNewMaterial, &QAction::triggered, this, &MaterialsEditor::onMenuNewMaterial);
     connect(&_actionFavorite, &QAction::triggered, this, &MaterialsEditor::onFavourite);
@@ -341,6 +342,11 @@ void MaterialsEditor::createActions()
     // _actionEnableDisable = QIcon(QStringLiteral(":/icons/Material_Library.svg"));
     // _actionEnableDisable.setIcon(_actionNewLibraryIcon);
     _actionEnableDisable.setToolTip(tr("Enable or disable a library"));
+
+    _actionDeleteLibrary.setText(tr("Delete"));
+    // _actionDeleteLibrary = QIcon(QStringLiteral(":/icons/Material_Library.svg"));
+    // _actionDeleteLibrary.setIcon(_actionNewLibraryIcon);
+    _actionDeleteLibrary.setToolTip(tr("Delete the selected library"));
 
     _actionLibraryProperties.setText(tr("Properties..."));
 }
@@ -1386,6 +1392,7 @@ void MaterialsEditor::libraryContextMenu(QMenu& contextMenu)
         _actionEnableDisable.setText(tr("Disable"));
     }
     contextMenu.addAction(&_actionEnableDisable);
+    contextMenu.addAction(&_actionDeleteLibrary);
     contextMenu.addAction(&_actionLibraryProperties);
 }
 
@@ -1479,7 +1486,9 @@ void MaterialsEditor::onMenuNewLibrary(bool checked)
     Q_UNUSED(checked)
 
     auto newLibraryDialog = new NewLibrary(this);
-    newLibraryDialog->open();
+
+    // Must be a blocking call to ensure the tree refresh has the new library
+    newLibraryDialog->exec();
 
     refreshMaterialTree();
 }
@@ -1496,6 +1505,31 @@ void MaterialsEditor::onMenuEnableDisable(bool checked)
         getMaterialManager().setDisabled(*library, !library->isDisabled());
         getMaterialManager().refresh();
         refreshMaterialTree();
+    }
+}
+
+void MaterialsEditor::onMenuDeleteLibrary(bool checked)
+{
+    Q_UNUSED(checked)
+
+    auto item = getActionItem();
+    if (item) {
+        auto library = getActionLibrary();
+        int ret = QMessageBox::warning(
+            this,
+            tr("Delete Library"),
+            tr("Deleting the library is immediate and permanent.\n"
+               "Are you sure?"),
+            QMessageBox::Yes | QMessageBox::No,
+            QMessageBox::No
+        );
+        if (ret == QMessageBox::Yes) {
+            Gui::WaitCursor wc;
+
+            getMaterialManager().removeLibrary(library->getName());
+            getMaterialManager().refresh();
+            refreshMaterialTree();
+        }
     }
 }
 

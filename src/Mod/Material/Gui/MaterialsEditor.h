@@ -182,6 +182,8 @@ private:
     QIcon _actionPasteIcon;
     QAction _actionRename;
     QAction _actionDelete;
+    QAction _actionDeleteFolder;
+    QAction _actionDeleteLibrary;
     QAction _actionEnableDisable;
     QAction _actionLibraryProperties;
 
@@ -242,6 +244,7 @@ private:
 
     void onMenuNewLibrary(bool checked);
     void onMenuEnableDisable(bool checked);
+    void onMenuDeleteLibrary(bool checked);
     void onMenuNewFolder(bool checked);
     void onMenuNewMaterial(bool checked);
     void onMenuChangeIcon(bool checked);
