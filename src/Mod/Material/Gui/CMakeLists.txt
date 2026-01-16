@@ -159,6 +159,7 @@ SET(MatGuiIcon_SVG
     Resources/icons/list.svg
     Resources/icons/Material_Edit.svg
     Resources/icons/Material_Library.svg
+    Resources/icons/Material_Remote.svg
     Resources/icons/MaterialWorkbench.svg
     Resources/icons/multiline.svg
     Resources/icons/preferences-material.svg
