@@ -288,10 +288,16 @@ void MaterialsEditor::createActions()
     _actionNewLibrary.setIcon(_actionNewLibraryIcon);
     _actionNewLibrary.setToolTip(tr("New library"));
 
+    _actionDeleteLibrary.setText(tr("Delete"));
+    _actionDeleteLibrary.setToolTip(tr("Delete the selected library"));
+
     _actionNewFolder.setText(tr("New folder"));
     _actionNewFolderIcon = QIcon(QStringLiteral(":/icons/Group.svg"));
     _actionNewFolder.setIcon(_actionNewFolderIcon);
     _actionNewFolder.setToolTip(tr("New folder"));
+
+    _actionDeleteFolder.setText(tr("Delete"));
+    _actionDeleteFolder.setToolTip(tr("Delete the selected folder"));
 
     _actionNewMaterial.setText(tr("New material"));
     _actionNewMaterialIcon = QIcon(QStringLiteral(":/icons/Material_Edit.svg"));
@@ -332,9 +338,6 @@ void MaterialsEditor::createActions()
 
     _actionEnableDisable.setText(tr("Disable"));
     _actionEnableDisable.setToolTip(tr("Enable or disable a library"));
-
-    _actionDeleteLibrary.setText(tr("Delete"));
-    _actionDeleteLibrary.setToolTip(tr("Delete the selected library"));
 
     _actionLibraryProperties.setText(tr("Properties..."));
 
@@ -377,6 +380,7 @@ void MaterialsEditor::createActions()
     connect(&_actionEnableDisable, &QAction::triggered, this, &MaterialsEditor::onMenuEnableDisable);
     connect(&_actionDeleteLibrary, &QAction::triggered, this, &MaterialsEditor::onMenuDeleteLibrary);
     connect(&_actionNewFolder, &QAction::triggered, this, &MaterialsEditor::onMenuNewFolder);
+    connect(&_actionDeleteFolder, &QAction::triggered, this, &MaterialsEditor::onMenuDeleteFolder);
     connect(&_actionNewMaterial, &QAction::triggered, this, &MaterialsEditor::onMenuNewMaterial);
     connect(&_actionFavorite, &QAction::triggered, this, &MaterialsEditor::onFavourite);
     connect(&_actionChangeIcon, &QAction::triggered, this, &MaterialsEditor::onMenuChangeIcon);
@@ -1423,6 +1427,21 @@ void MaterialsEditor::recentContextMenu(QMenu& contextMenu)
 void MaterialsEditor::libraryContextMenu(QMenu& contextMenu)
 {
     auto library = getActionLibrary();
+    bool enabled = !library->isReadOnly();
+
+    _actionNewMaterial.setEnabled(enabled);
+    _actionChangeIcon.setEnabled(enabled);
+    _actionNewFolder.setEnabled(enabled);
+    _actionCut.setEnabled(enabled);
+    _actionPaste.setEnabled(enabled);
+    if (library->isLocal() && library->getName() == QStringLiteral("User")) {
+        // We can't delete the user library
+        _actionDeleteLibrary.setEnabled(false);
+    }
+    else {
+        _actionDeleteLibrary.setEnabled(enabled);
+    }
+
     contextMenu.addAction(&_actionNewMaterial);
     contextMenu.addAction(&_actionNewLibrary);
     contextMenu.addAction(&_actionChangeIcon);
@@ -1444,6 +1463,19 @@ void MaterialsEditor::libraryContextMenu(QMenu& contextMenu)
 
 void MaterialsEditor::folderContextMenu(QMenu& contextMenu)
 {
+    auto item = getActionItem();
+    auto path = getPath(item, QString());
+    auto libraryName = getLibraryName(item);
+    auto library = getMaterialManager().getLibrary(libraryName);
+    bool enabled = !library->isReadOnly();
+
+    _actionNewMaterial.setEnabled(enabled);
+    _actionNewFolder.setEnabled(enabled);
+    _actionCut.setEnabled(enabled);
+    _actionPaste.setEnabled(enabled);
+    _actionRename.setEnabled(enabled);
+    _actionDeleteFolder.setEnabled(enabled);
+
     contextMenu.addAction(&_actionNewMaterial);
     contextMenu.addAction(&_actionNewLibrary);
     contextMenu.addSeparator();
@@ -1461,6 +1493,18 @@ void MaterialsEditor::folderContextMenu(QMenu& contextMenu)
 
 void MaterialsEditor::materialContextMenu(QMenu& contextMenu)
 {
+    auto item = getActionItem();
+    auto libraryName = getLibraryName(item);
+    auto library = getMaterialManager().getLibrary(libraryName);
+    bool enabled = !library->isReadOnly();
+
+    _actionNewMaterial.setEnabled(enabled);
+    _actionNewFolder.setEnabled(enabled);
+    _actionCut.setEnabled(enabled);
+    _actionPaste.setEnabled(enabled);
+    _actionRename.setEnabled(enabled);
+    _actionDeleteMaterial.setEnabled(enabled);
+
     contextMenu.addAction(&_actionNewMaterial);
     contextMenu.addAction(&_actionInheritMaterial);
     contextMenu.addAction(&_actionNewLibrary);
@@ -1630,6 +1674,42 @@ void MaterialsEditor::onMenuNewFolder(bool checked)
     node->setData(QVariant(name), TreeNameRole);
 
     addExpanded(ui->treeMaterials, item, node);
+}
+
+void MaterialsEditor::onMenuDeleteFolder(bool checked)
+{
+    Q_UNUSED(checked)
+
+    auto item = getActionItem();
+    if (item) {
+        auto item = getActionItem();
+        auto path = getPath(item, QString());
+        auto libraryName = getLibraryName(item);
+
+        Base::Console().log("Delete folder '%s' from '%s'\n",
+            path.toStdString().c_str(),
+            libraryName.toStdString().c_str()
+        );
+        auto library = getMaterialManager().getLibrary(libraryName);
+
+        if (item->hasChildren()) {
+            int ret = QMessageBox::warning(
+                this,
+                tr("Delete Folder"),
+                tr("Deleting the folder will also delete its contents. This is immediate and permanent.\n"
+                "Are you sure?"),
+                QMessageBox::Yes | QMessageBox::No,
+                QMessageBox::No
+            );
+            if (ret != QMessageBox::Yes) {
+                return;
+            }
+        }
+
+        Gui::WaitCursor wc;
+        getMaterialManager().deleteRecursive(library, path);
+        refreshMaterialTree();
+    }
 }
 
 void MaterialsEditor::onMenuNewMaterial(bool checked)
