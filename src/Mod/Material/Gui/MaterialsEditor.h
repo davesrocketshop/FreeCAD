@@ -251,6 +251,7 @@ private:
     QString getPath(const QStandardItem* item, const QString& path) const;
     QString getParentPath(const QStandardItem* item) const;
     QString getLibraryName(const QStandardItem* item) const;
+    QString getUniqueName(const QStandardItem* parent, const QString& name, TreeFunctionType function) const;
 
     void onMenuNewLibrary(bool checked);
     void onMenuEnableDisable(bool checked);

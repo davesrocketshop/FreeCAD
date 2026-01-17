@@ -38,6 +38,7 @@
 #include <App/License.h>
 #include <Base/Interpreter.h>
 #include <Base/Quantity.h>
+#include <Base/UniqueNameManager.h>
 #include <Gui/Application.h>
 #include <Gui/Command.h>
 #include <Gui/InputField.h>
@@ -1596,6 +1597,21 @@ QString MaterialsEditor::getLibraryName(const QStandardItem* item) const
     throw Materials::LibraryNotFound();
 }
 
+QString MaterialsEditor::getUniqueName(const QStandardItem* parent, const QString& name, TreeFunctionType function) const
+{
+    Base::UniqueNameManager manager;
+    for (int row = 0; row < parent->rowCount(); row++) {
+        auto child = parent->child(row);
+        if (child != nullptr) {
+            if (getActionFunction(parent) == function) {
+                manager.addExactName(child->text().toStdString());
+            }
+        }
+    }
+    auto uniqueName = manager.makeUniqueName(name.toStdString(), 1);
+    return QString::fromStdString(uniqueName);
+}
+
 void MaterialsEditor::onMenuNewLibrary(bool checked)
 {
     Q_UNUSED(checked)
@@ -1657,7 +1673,7 @@ void MaterialsEditor::onMenuNewFolder(bool checked)
     auto path = getPath(item, QString());
     auto libraryName = getLibraryName(item);
     auto library = getMaterialManager().getLibrary(libraryName);
-    auto name = tr("New Folder");
+    auto name = getUniqueName(item, tr("New Folder"), TreeFunctionFolder);
 
     Base::Console().log("path(%s)\n", path.toStdString().c_str());
     Base::Console().log("library(%s)\n", libraryName.toStdString().c_str());
@@ -1726,11 +1742,12 @@ void MaterialsEditor::onMenuNewMaterial(bool checked)
     Base::Console().log("library(%s)\n", libraryName.toStdString().c_str());
 
     // Create a new material
+    auto uniqueName = getUniqueName(item, tr("New Material"), TreeFunctionMaterial);
     _material = std::make_shared<Materials::Material>();
     _material->setEditStateAlter();
     setMaterialDefaults();
     _material->setLibrary(library);
-    _material->setName(tr("New Material"));
+    _material->setName(uniqueName);
     _material->setDirectory(path);
     Base::Console().log("uuid(%s)\n", _material->getUUID().toStdString().c_str());
 
