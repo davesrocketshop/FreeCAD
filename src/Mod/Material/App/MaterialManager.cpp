@@ -687,6 +687,7 @@ void MaterialManager::saveMaterial(
         library
     );
     _localManager->saveMaterial(materialLibrary, material, path, overwrite, saveAsCopy, saveInherited);
+    material->resetEditState();
 }
 
 bool MaterialManager::isMaterial(const fs::path& p) const

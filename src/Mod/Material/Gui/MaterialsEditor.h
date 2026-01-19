@@ -257,6 +257,7 @@ private:
     QString getParentPath(const QStandardItem* item) const;
     QString getLibraryName(const QStandardItem* item) const;
     QString getUniqueName(const QStandardItem* parent, const QString& name, TreeFunctionType function) const;
+    QString stripLeadingSeparator(const QString& filePath) const;
 
     void onMenuNewLibrary(bool checked);
     void onMenuEnableDisable(bool checked);

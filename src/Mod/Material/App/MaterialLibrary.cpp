@@ -179,6 +179,11 @@ void MaterialLibraryLocal::renameFolder(const QString& oldPath, const QString& n
         }
     }
 
+    Base::Console().log(
+        "updatePaths('%s', '%s)\n",
+        oldPath.toStdString().c_str(),
+        newPath.toStdString().c_str()
+    );
     updatePaths(oldPath, newPath);
 }
 
@@ -272,7 +277,11 @@ void MaterialLibraryLocal::updatePaths(const QString& oldPath, const QString& ne
         if (path.startsWith(op)) {
             path = np + path.remove(0, op.size());
         }
-        itp.second->setDirectory(path);
+
+        // Don't include the filename
+        QFileInfo filepath(path);
+        itp.second->setDirectory(filepath.path());
+
         (*pathMap)[path] = itp.second;
     }
 
@@ -315,7 +324,7 @@ MaterialLibraryLocal::saveMaterial(const std::shared_ptr<Material>& material,
         // Write the contents
         material->setName(info.fileName().remove(QStringLiteral(".FCMat"), Qt::CaseInsensitive));
         material->setLibrary(getptr());
-        material->setDirectory(getRelativePath(path));
+        material->setDirectory(getRelativePath(info.path()));
         material->save(stream, overwrite, saveAsCopy, saveInherited);
     }
 

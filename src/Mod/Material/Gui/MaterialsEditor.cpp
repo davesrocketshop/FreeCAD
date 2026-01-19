@@ -847,20 +847,23 @@ void MaterialsEditor::onSave(bool checked)
 
 void MaterialsEditor::saveMaterial()
 {
-    if (_material->getEditState() != Materials::Material::ModelEdit_Alter) {
-        MaterialSave dialog(_material, this);
-        dialog.setModal(true);
-        if (dialog.exec() != QDialog::Accepted) {
-            return;
+    Base::Console().log("Material path %s\n", _material->getDirectory().toStdString().c_str());
+    if (_material->getEditState() != Materials::Material::ModelEdit_None) {
+        auto library = _material->getLibrary();
+        QFileInfo filepath(_material->getDirectory() + QStringLiteral("/") + _material->getName() + QStringLiteral(".FCMat"));
+        if (!library || library->isReadOnly()) {
+            Base::Console().log("No library assigned\n");
+            library = getMaterialManager().getLibrary(QStringLiteral("User"));
+            filepath = QFileInfo(_material->getName() + QStringLiteral(".FCMat"));
         }
-    } else {
-        // Materials::MaterialManager::getManager()
-        //     .saveMaterial(_material->getLibrary(), _material, filepath.filePath(), true, false, true);
+        Base::Console().log("Using library '%s'\n", library->getName().toStdString().c_str());
+        Base::Console().log("\tPath '%s'\n", filepath.filePath().toStdString().c_str());
+        getMaterialManager()
+            .saveMaterial(_material->getLibrary(), _material, filepath.filePath(), true, false, true);
     }
-    updateMaterial();
-    _material->resetEditState();
-    refreshMaterialTree();
-    setMaterialSelected(true);
+    else {
+        Base::Console().log("Nothing to save\n");
+    }
 }
 
 void MaterialsEditor::accept()
@@ -2048,8 +2051,27 @@ void MaterialsEditor::renameFolder(QStandardItem* item)
                             newPath.toStdString().c_str());
         getMaterialManager().renameFolder(library, oldPath, newPath);
         item->setData(QVariant(newName), TreeNameRole);
+
+        // Update the current material
+        QString currentPath = _material->getDirectory();
+        oldPath = stripLeadingSeparator(oldPath);
+        newPath = stripLeadingSeparator(newPath);
+        if (currentPath.startsWith(oldPath)) {
+            currentPath = newPath + currentPath.remove(0, oldPath.size());
+            _material->setDirectory(currentPath);
+        }
     }
 }
+
+QString MaterialsEditor::stripLeadingSeparator(const QString& filePath) const
+{
+    auto path = filePath;
+    if (path.startsWith(QStringLiteral("/"))) {
+        path.remove(0, 1);
+    }
+    return path;
+}
+
 
 void MaterialsEditor::renameMaterial(QStandardItem* item)
 {
