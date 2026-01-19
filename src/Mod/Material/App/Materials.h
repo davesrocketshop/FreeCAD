@@ -179,6 +179,7 @@ public:
     enum ModelEdit
     {
         ModelEdit_None,   // No change
+        ModelEdit_New,    // New unsaved material
         ModelEdit_Alter,  // Existing values are changed
         ModelEdit_Extend  // New values added
     };
@@ -277,6 +278,10 @@ public:
     void setEditStateExtend()
     {
         setEditState(ModelEdit_Extend);
+    }
+    void setEditStateNew()
+    {
+        setEditState(ModelEdit_New);
     }
     void setPropertyEditState(const QString& name);
     void setPhysicalEditState(const QString& name);

@@ -689,12 +689,15 @@ void Material::setReference(const QString& reference)
 
 void Material::setEditState(ModelEdit newState)
 {
+    if (_editState == ModelEdit_New) {
+        return;
+    }
     if (newState == ModelEdit_Extend) {
         if (_editState != ModelEdit_Alter) {
             _editState = newState;
         }
     }
-    else if (newState == ModelEdit_Alter) {
+    else if (newState == ModelEdit_Alter || newState == ModelEdit_New) {
         _editState = newState;
     }
 }

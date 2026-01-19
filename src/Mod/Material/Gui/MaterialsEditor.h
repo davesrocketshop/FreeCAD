@@ -234,11 +234,16 @@ private:
     bool isRecent(const QString& uuid) const;
 
     const QStandardItemModel* getActionModel() const;
-    QStandardItem* getActionItem();
-    TreeFunctionType getActionFunction(const QStandardItem* item) const;
-    TreeFunctionType getActionFunction();
+    QStandardItem* getActionItem() const;
+    TreeFunctionType getItemFunction(const QStandardItem* item) const;
+    TreeFunctionType getActionFunction() const;
     std::shared_ptr<Materials::MaterialLibrary> getActionLibrary(const QStandardItem* item) const;
-    std::shared_ptr<Materials::MaterialLibrary> getActionLibrary();
+    std::shared_ptr<Materials::MaterialLibrary> getActionLibrary() const;
+    QStandardItem* getItemFromRoot(TreeFunctionType function) const;
+    QStandardItem* getFavoritesItem() const;
+    QStandardItem* getRecentsItem() const;
+    QStandardItem* getItemFromLibrary(const Materials::Library library) const;
+    QStandardItem* getItemFromMaterial(const Materials::Material& material) const;
 
     void favoriteContextMenu(QMenu& contextMenu);
     void recentContextMenu(QMenu& contextMenu);
@@ -300,6 +305,12 @@ private:
     void renameLibrary(QStandardItem* item);
     void renameFolder(QStandardItem* item);
     void renameMaterial(QStandardItem* item);
+    void updateMaterialTreeName(const QString& name);
+    void updateFavoritesRecentsName(const QStandardItem* parent, const QString& uuid, const QString& name);
+    void updateRecentsName(const QString& uuid, const QString& name);
+    void updateRecentsName();
+    void updateFavoritesName(const QString& uuid, const QString& name);
+    void updateFavoritesName();
     void discardIfNew();
 
 

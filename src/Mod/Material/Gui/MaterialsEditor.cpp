@@ -73,6 +73,7 @@ MaterialsEditor::MaterialsEditor(Materials::MaterialFilter filter, QWidget* pare
     , _recentMax(0)
     , _filter(filter)
 {
+    _material->setEditStateNew();
     setup();
 }
 
@@ -82,6 +83,7 @@ MaterialsEditor::MaterialsEditor(QWidget* parent)
     , _material(std::make_shared<Materials::Material>())
     , _recentMax(0)
 {
+    _material->setEditStateNew();
     setup();
 }
 
@@ -585,7 +587,10 @@ void MaterialsEditor::onTreeItemChanged(QStandardItem* item)
 
 void MaterialsEditor::onName(const QString& name)
 {
-    _material->setName(name);
+    Base::Console().log("onName(%s)\n", name.toStdString().c_str());
+    updateMaterialTreeName(name);
+    updateFavoritesName();
+    updateRecentsName();
 }
 
 void MaterialsEditor::onAuthor(const QString& author)
@@ -762,7 +767,8 @@ void MaterialsEditor::onNewMaterial(bool checked)
     Q_UNUSED(checked)
 
     // Ensure data is saved (or discarded) before changing materials
-    if (_material->getEditState() != Materials::Material::ModelEdit_None) {
+    if (_material->getEditState() != Materials::Material::ModelEdit_None
+        && _material->getEditState() != Materials::Material::ModelEdit_New) {
         // Prompt the user to save or discard changes
         int res = confirmSave(this);
         if (res == QMessageBox::Cancel) {
@@ -775,6 +781,7 @@ void MaterialsEditor::onNewMaterial(bool checked)
 
     // Create a new material
     _material = std::make_shared<Materials::Material>();
+    _material->setEditStateNew();
     setMaterialDefaults();
     setMaterialSelected(false);
 }
@@ -800,6 +807,7 @@ void MaterialsEditor::onInheritNewMaterial(bool checked)
 
     // Create a new material
     _material = std::make_shared<Materials::Material>();
+    _material->setEditStateNew();
     _material->setParentUUID(parent);
     setMaterialDefaults();
 }
@@ -839,14 +847,20 @@ void MaterialsEditor::onSave(bool checked)
 
 void MaterialsEditor::saveMaterial()
 {
-    MaterialSave dialog(_material, this);
-    dialog.setModal(true);
-    if (dialog.exec() == QDialog::Accepted) {
-        updateMaterial();
-        _material->resetEditState();
-        refreshMaterialTree();
-        setMaterialSelected(true);
+    if (_material->getEditState() != Materials::Material::ModelEdit_Alter) {
+        MaterialSave dialog(_material, this);
+        dialog.setModal(true);
+        if (dialog.exec() != QDialog::Accepted) {
+            return;
+        }
+    } else {
+        // Materials::MaterialManager::getManager()
+        //     .saveMaterial(_material->getLibrary(), _material, filepath.filePath(), true, false, true);
     }
+    updateMaterial();
+    _material->resetEditState();
+    refreshMaterialTree();
+    setMaterialSelected(true);
 }
 
 void MaterialsEditor::accept()
@@ -1206,10 +1220,17 @@ QString MaterialsEditor::libraryPath(const std::shared_ptr<Materials::Material>&
     QString path;
     auto library = material->getLibrary();
     if (library) {
-        path = QStringLiteral("/%1/%2/%3")
-                   .arg(library->getName())
-                   .arg(material->getDirectory())
-                   .arg(material->getName());
+        if (!material->getDirectory().isEmpty()) {
+            path = QStringLiteral("/%1/%2/%3")
+                       .arg(library->getName())
+                       .arg(material->getDirectory())
+                       .arg(material->getName());
+        }
+        else {
+            path = QStringLiteral("/%1/%2")
+                       .arg(library->getName())
+                       .arg(material->getName());
+        }
         return path;
     }
 
@@ -1230,7 +1251,7 @@ void MaterialsEditor::onSelectMaterial(const QItemSelection& selected,
         QStandardItem* item = model->itemFromIndex(*it);
 
         if (item) {
-            auto fun = getActionFunction(item);
+            auto fun = getItemFunction(item);
             if (fun == TreeFunctionLibrary) {
                 setLibraryPropertyState();
                 return;
@@ -1281,6 +1302,7 @@ void MaterialsEditor::onSelectMaterial(const QItemSelection& selected,
     catch (Materials::ModelNotFound const&) {
         Base::Console().log("*** Unable to load material '%s'\n", uuid.toStdString().c_str());
         _material = std::make_shared<Materials::Material>();
+        // _material->setEditStateNew();
         setMaterialSelected(true);
         updateMaterial();
         _material->resetEditState();
@@ -1292,7 +1314,7 @@ const QStandardItemModel* MaterialsEditor::getActionModel() const
     return qobject_cast<const QStandardItemModel*>(_actionIndex.model());
 }
 
-QStandardItem* MaterialsEditor::getActionItem()
+QStandardItem* MaterialsEditor::getActionItem() const
 {
     // auto model = const_cast<QStandardItemModel*>(getActionModel());
     auto model = qobject_cast<QStandardItemModel*>(ui->treeMaterials->model());
@@ -1302,7 +1324,7 @@ QStandardItem* MaterialsEditor::getActionItem()
     return nullptr;
 }
 
-TreeFunctionType MaterialsEditor::getActionFunction(const QStandardItem* item) const
+TreeFunctionType MaterialsEditor::getItemFunction(const QStandardItem* item) const
 {
     if (item) {
         auto typeVariant = item->data(TreeFunctionRole);
@@ -1311,9 +1333,9 @@ TreeFunctionType MaterialsEditor::getActionFunction(const QStandardItem* item) c
     throw ActionError();
 }
 
-TreeFunctionType MaterialsEditor::getActionFunction()
+TreeFunctionType MaterialsEditor::getActionFunction() const
 {
-    return getActionFunction(getActionItem());
+    return getItemFunction(getActionItem());
 }
 
 std::shared_ptr<Materials::MaterialLibrary> MaterialsEditor::getActionLibrary(
@@ -1327,9 +1349,113 @@ std::shared_ptr<Materials::MaterialLibrary> MaterialsEditor::getActionLibrary(
     throw ActionError();
 }
 
-std::shared_ptr<Materials::MaterialLibrary> MaterialsEditor::getActionLibrary()
+std::shared_ptr<Materials::MaterialLibrary> MaterialsEditor::getActionLibrary() const
 {
     return getActionLibrary(getActionItem());
+}
+
+QStandardItem* MaterialsEditor::getItemFromRoot(TreeFunctionType function) const
+{
+    auto model = qobject_cast<QStandardItemModel*>(ui->treeMaterials->model());
+    if (model) {
+        auto root = model->invisibleRootItem();
+        for (auto row = 0; row < root->rowCount(); row++) {
+            auto item = root->child(row);
+            if (item) {
+                if (getItemFunction(item) == function) {
+                    return item;
+                }
+            }
+        }
+    }
+    return nullptr;
+}
+
+QStandardItem* MaterialsEditor::getFavoritesItem() const
+{
+    return getItemFromRoot(TreeFunctionFavorites);
+}
+
+QStandardItem* MaterialsEditor::getRecentsItem() const
+{
+    return getItemFromRoot(TreeFunctionRecents);
+}
+
+QStandardItem* MaterialsEditor::getItemFromLibrary(const Materials::Library library) const
+{
+    auto model = qobject_cast<QStandardItemModel*>(ui->treeMaterials->model());
+    if (model) {
+        auto root = model->invisibleRootItem();
+        for (auto row = 0; row < root->rowCount(); row++) {
+            auto item = root->child(row);
+            if (item) {
+                if (getItemFunction(item) == TreeFunctionLibrary) {
+                    auto typeVariant = item->data(TreeDataRole);
+                    auto treeLibrary = typeVariant.value<std::shared_ptr<Materials::MaterialLibrary>>();
+                    if (*treeLibrary == library) {
+                        Base::Console().log(
+                            "Found library '%s'\n",
+                            treeLibrary->getName().toStdString().c_str()
+                        );
+                        return item;
+                    }
+                }
+            }
+        }
+    }
+    return nullptr;
+}
+
+QStandardItem* MaterialsEditor::getItemFromMaterial(const Materials::Material& material) const
+{
+    auto libraryItem = getItemFromLibrary(*material.getLibrary());
+    if (libraryItem) {
+        QStandardItem* folderItem = libraryItem;
+        auto directory = material.getDirectory();
+        if (directory.isEmpty()) {
+            folderItem = libraryItem;
+        }
+        else {
+            auto path = directory.split(QStringLiteral("/"));
+            for (auto folder : path) {
+                int row = 0;
+                auto item = folderItem->child(row);
+                while (item) {
+                    if (getItemFunction(item) == TreeFunctionFolder) {
+                        auto folderName = item->data(TreeNameRole).toString();
+                        if (folderName == folder) {
+                            Base::Console().log("Folder '%s'\n", folderName.toStdString().c_str());
+                            folderItem = item;
+                            break;
+                        }
+                    }
+                    row++;
+                    item = folderItem->child(row);
+                }
+                Base::Console().log(
+                    "Folder '%s'\n",
+                    folderItem->data(TreeNameRole).toString().toStdString().c_str()
+                );
+                row = 0;
+                item = folderItem->child(row);
+                while (item) {
+                    if (getItemFunction(item) == TreeFunctionMaterial) {
+                        auto uuid = item->data(TreeDataRole).toString();
+                        if (uuid == material.getUUID()) {
+                            Base::Console().log(
+                                "Material '%s'\n",
+                                material.getName().toStdString().c_str()
+                            );
+                            return item;
+                        }
+                    }
+                    row++;
+                    item = folderItem->child(row);
+                }
+            }
+        }
+    }
+    return nullptr;
 }
 
 void MaterialsEditor::onContextMenu(const QPoint& pos)
@@ -1554,7 +1680,7 @@ void MaterialsEditor::addViewMenu(QMenu& contextMenu)
 
 QString MaterialsEditor::getPath(const QStandardItem* item, const QString& path) const
 {
-    auto function = getActionFunction(item);
+    auto function = getItemFunction(item);
     QString newPath;
     if (function == TreeFunctionLibrary) {
         return QStringLiteral("/") + path;
@@ -1584,7 +1710,7 @@ QString MaterialsEditor::getParentPath(const QStandardItem* item) const
 
 QString MaterialsEditor::getLibraryName(const QStandardItem* item) const
 {
-    auto function = getActionFunction(item);
+    auto function = getItemFunction(item);
     if (function == TreeFunctionLibrary) {
         return item->text();
     }
@@ -1603,7 +1729,7 @@ QString MaterialsEditor::getUniqueName(const QStandardItem* parent, const QStrin
     for (int row = 0; row < parent->rowCount(); row++) {
         auto child = parent->child(row);
         if (child != nullptr) {
-            if (getActionFunction(parent) == function) {
+            if (getItemFunction(parent) == function) {
                 manager.addExactName(child->text().toStdString());
             }
         }
@@ -1744,7 +1870,8 @@ void MaterialsEditor::onMenuNewMaterial(bool checked)
     // Create a new material
     auto uniqueName = getUniqueName(item, tr("New Material"), TreeFunctionMaterial);
     _material = std::make_shared<Materials::Material>();
-    _material->setEditStateAlter();
+    _material->setEditStateNew();
+    // _material->setEditStateAlter();
     setMaterialDefaults();
     _material->setLibrary(library);
     _material->setName(uniqueName);
@@ -1941,7 +2068,65 @@ void MaterialsEditor::renameMaterial(QStandardItem* item)
                             newPath.toStdString().c_str());
         _material->setName(newName);
         item->setData(QVariant(newName), TreeNameRole);
+        updateMaterial();
+
+        updateFavoritesName();
+        updateRecentsName();
     }
+}
+
+void MaterialsEditor::updateMaterialTreeName(const QString& name)
+{
+    auto item = getItemFromMaterial(*_material);
+    if (item) {
+        if (_material->getName() != name) {
+            _material->setName(name);
+        }
+        if (item->text() != name) {
+            item->setText(name);
+            item->setData(QVariant(name), TreeNameRole);
+        }
+    }
+}
+
+void MaterialsEditor::updateFavoritesRecentsName(const QStandardItem* parent, const QString& uuid, const QString& name)
+{
+    if (parent) {
+        int row = 0;
+        auto item = parent->child(row);
+        while (item) {
+            auto modelUuid = item->data(TreeDataRole).toString();
+            if (modelUuid == uuid) {
+                if (item->text() != name) {
+                    item->setText(name);
+                    item->setData(QVariant(name), TreeNameRole);
+                }
+                return;
+            }
+            row++;
+            item = parent->child(row);
+        }
+    }
+}
+
+void MaterialsEditor::updateRecentsName(const QString& uuid, const QString& name)
+{
+    updateFavoritesRecentsName(getRecentsItem(), uuid, name);
+}
+
+void MaterialsEditor::updateRecentsName()
+{
+    updateRecentsName(_material->getUUID(), libraryPath(_material));
+}
+
+void MaterialsEditor::updateFavoritesName(const QString& uuid, const QString& name)
+{
+    updateFavoritesRecentsName(getFavoritesItem(), uuid, name);
+}
+
+void MaterialsEditor::updateFavoritesName()
+{
+    updateFavoritesName(_material->getUUID(), libraryPath(_material));
 }
 
 #include "moc_MaterialsEditor.cpp"
