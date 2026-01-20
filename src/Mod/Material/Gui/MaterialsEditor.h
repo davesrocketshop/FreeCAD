@@ -68,6 +68,14 @@ typedef enum
     TreeFunctionMaterial
 } TreeFunctionType;
 
+typedef enum
+{
+    MaterialSave_Cancel,
+    MaterialSave_Overwrite,
+    MaterialSave_New,
+    MaterialSave_Inherit
+} MaterialSaveResult;
+
 class ActionError: public Base::Exception
 {
 public:
@@ -313,6 +321,8 @@ private:
     void updateFavoritesName(const QString& uuid, const QString& name);
     void updateFavoritesName();
     void discardIfNew();
+
+    MaterialSaveResult overwriteOrCopy();
 
 
     /* Indicates if we should show favourite materials

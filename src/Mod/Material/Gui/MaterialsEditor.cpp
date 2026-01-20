@@ -845,10 +845,81 @@ void MaterialsEditor::onSave(bool checked)
     saveMaterial();
 }
 
+MaterialSaveResult MaterialsEditor::overwriteOrCopy()
+{
+    QMessageBox box(this);
+    box.setIcon(QMessageBox::Question);
+    box.setWindowTitle(tr("Confirm Overwrite"));
+
+    QString prompt = tr("Overwrite material");
+    box.setText(prompt);
+
+    box.setInformativeText(
+        tr("Material changes can break existing documents. "
+           "It is recommended to save as a new material.")
+    );
+
+    QCheckBox* setAsParent = new QCheckBox(tr("Set as parent"));
+    setAsParent->setChecked(false);
+    box.setCheckBox(setAsParent);
+
+    QPushButton* newButton = box.addButton(tr("Save As New"), QMessageBox::AcceptRole);
+    QPushButton* overwiteButton = box.addButton(tr("Save"), QMessageBox::ActionRole);
+    QPushButton* cancelButton = box.addButton(QMessageBox::Cancel);
+
+    box.setDefaultButton(cancelButton);
+    box.setEscapeButton(cancelButton);
+
+    box.adjustSize();  // Silence warnings from Qt on Windows
+    box.exec();
+
+    MaterialSaveResult res = MaterialSave_Cancel;
+    if (box.clickedButton() == overwiteButton) {
+        res = MaterialSave_Overwrite;
+    }
+    else if (box.clickedButton() == newButton) {
+        if (box.checkBox()->isChecked()) {
+            res = MaterialSave_Inherit;
+        }
+        else {
+            res = MaterialSave_New;
+        }
+    }
+
+    return res;
+}
+
 void MaterialsEditor::saveMaterial()
 {
     Base::Console().log("Material path %s\n", _material->getDirectory().toStdString().c_str());
+    bool overwrite = true;
+    bool saveAsCopy = false;
+    bool saveInherited = true;
     if (_material->getEditState() != Materials::Material::ModelEdit_None) {
+        if (_material->getEditState() == Materials::Material::ModelEdit_Alter) {
+            MaterialSaveResult ret = overwriteOrCopy();
+            if (ret == MaterialSave_Cancel) {
+                return;
+            }
+            else if (ret == MaterialSave_New || ret == MaterialSave_Inherit) {
+                // Save as copy
+                auto item = getItemFromMaterial(*_material);
+                if (!item) {
+                    Base::Console().log("Material not found in tree\n");
+                    return;
+                }
+                auto uniqueName = getUniqueName(item->parent(), _material->getName(), TreeFunctionMaterial);
+                Base::Console().log("Unique name '%s'\n", uniqueName.toStdString().c_str());
+                _material->setName(uniqueName);
+                _material->newUuid();
+                updateMaterial();
+
+                // We then fall through and save with the new name
+                bool overwrite = false;
+                // bool saveAsCopy = true;
+            }
+        }
+
         auto library = _material->getLibrary();
         QFileInfo filepath(_material->getDirectory() + QStringLiteral("/") + _material->getName() + QStringLiteral(".FCMat"));
         if (!library || library->isReadOnly()) {
@@ -858,12 +929,19 @@ void MaterialsEditor::saveMaterial()
         }
         Base::Console().log("Using library '%s'\n", library->getName().toStdString().c_str());
         Base::Console().log("\tPath '%s'\n", filepath.filePath().toStdString().c_str());
-        getMaterialManager()
-            .saveMaterial(_material->getLibrary(), _material, filepath.filePath(), true, false, true);
+        getMaterialManager().saveMaterial(
+            _material->getLibrary(),
+            _material,
+            filepath.filePath(),
+            overwrite,
+            saveAsCopy,
+            saveInherited
+        );
     }
     else {
         Base::Console().log("Nothing to save\n");
     }
+    refreshMaterialTree();
 }
 
 void MaterialsEditor::accept()
@@ -1732,7 +1810,7 @@ QString MaterialsEditor::getUniqueName(const QStandardItem* parent, const QStrin
     for (int row = 0; row < parent->rowCount(); row++) {
         auto child = parent->child(row);
         if (child != nullptr) {
-            if (getItemFunction(parent) == function) {
+            if (getItemFunction(child) == function) {
                 manager.addExactName(child->text().toStdString());
             }
         }
