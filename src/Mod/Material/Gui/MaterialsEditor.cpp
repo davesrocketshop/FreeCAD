@@ -386,6 +386,7 @@ void MaterialsEditor::createActions()
     connect(&_actionDeleteFolder, &QAction::triggered, this, &MaterialsEditor::onMenuDeleteFolder);
     connect(&_actionNewMaterial, &QAction::triggered, this, &MaterialsEditor::onMenuNewMaterial);
     connect(&_actionInheritMaterial, &QAction::triggered, this, &MaterialsEditor::onMenuInheritMaterial);
+    connect(&_actionDeleteMaterial, &QAction::triggered, this, &MaterialsEditor::onMenuDeleteMaterial);
     connect(&_actionFavorite, &QAction::triggered, this, &MaterialsEditor::onFavourite);
     connect(&_actionChangeIcon, &QAction::triggered, this, &MaterialsEditor::onMenuChangeIcon);
 
@@ -2046,6 +2047,23 @@ void MaterialsEditor::onMenuInheritMaterial(bool checked)
         selectionModel->select(index, QItemSelectionModel::SelectCurrent);
         ui->treeMaterials->scrollTo(index);
     }
+}
+
+void MaterialsEditor::onMenuDeleteMaterial(bool checked)
+{
+    Q_UNUSED(checked)
+
+    auto original = getActionMaterial();
+    auto uuid = original->getUUID();
+    getMaterialManager().remove(uuid);
+    if (_material->getUUID() == uuid) {
+        // Only if the deleted material is the current material
+        _material = std::make_shared<Materials::Material>();
+        _material->resetEditState();
+        updateMaterial();
+    }
+
+    refreshMaterialTree();
 }
 
 void MaterialsEditor::onMenuChangeIcon(bool checked)

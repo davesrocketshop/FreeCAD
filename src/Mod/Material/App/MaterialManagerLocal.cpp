@@ -575,6 +575,14 @@ bool MaterialManagerLocal::exists(const MaterialLibrary& library, const QString&
 
 void MaterialManagerLocal::remove(const QString& uuid)
 {
+    auto material = getMaterial(uuid);
+    auto path = material->getLibrary()->getDirectory() + QStringLiteral("/")
+        + material->getDirectory() + QStringLiteral("/") + material->getName()
+        + QStringLiteral(".FCMat");
+
+    if (!QFile::remove(path)) {
+        Base::Console().log("Unable to remove '%s'\n", path.toStdString().c_str());
+    }
     _materialMap->erase(uuid);
 }
 

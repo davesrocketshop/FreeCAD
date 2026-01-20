@@ -276,6 +276,7 @@ private:
     void onMenuDeleteFolder(bool checked);
     void onMenuNewMaterial(bool checked);
     void onMenuInheritMaterial(bool checked);
+    void onMenuDeleteMaterial(bool checked);
     void onMenuChangeIcon(bool checked);
     void onInherit(bool checked);
     void onInheritNew(bool checked);
