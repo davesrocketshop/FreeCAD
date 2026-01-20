@@ -247,10 +247,12 @@ private:
     TreeFunctionType getActionFunction() const;
     std::shared_ptr<Materials::MaterialLibrary> getActionLibrary(const QStandardItem* item) const;
     std::shared_ptr<Materials::MaterialLibrary> getActionLibrary() const;
+    std::shared_ptr<Materials::Material> getActionMaterial(const QStandardItem* item) const;
+    std::shared_ptr<Materials::Material> getActionMaterial() const;
     QStandardItem* getItemFromRoot(TreeFunctionType function) const;
     QStandardItem* getFavoritesItem() const;
     QStandardItem* getRecentsItem() const;
-    QStandardItem* getItemFromLibrary(const Materials::Library library) const;
+    QStandardItem* getItemFromLibrary(const Materials::Library& library) const;
     QStandardItem* getItemFromMaterial(const Materials::Material& material) const;
 
     void favoriteContextMenu(QMenu& contextMenu);
@@ -273,6 +275,7 @@ private:
     void onMenuNewFolder(bool checked);
     void onMenuDeleteFolder(bool checked);
     void onMenuNewMaterial(bool checked);
+    void onMenuInheritMaterial(bool checked);
     void onMenuChangeIcon(bool checked);
     void onInherit(bool checked);
     void onInheritNew(bool checked);

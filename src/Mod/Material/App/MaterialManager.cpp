@@ -236,7 +236,7 @@ std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>> MaterialManager::ge
     if (includeMasked) {
         return getLibrariesMasked(includeDisabled);
     }
-    
+
     // External libraries take precedence over local libraries
     auto libMap = std::map<QString, std::shared_ptr<MaterialLibrary>>();
 #if defined(BUILD_MATERIAL_EXTERNAL)
@@ -654,6 +654,26 @@ std::shared_ptr<Material> MaterialManager::getParent(const std::shared_ptr<Mater
     }
 
     return getMaterial(material->getParentUUID());
+}
+
+std::shared_ptr<Material> MaterialManager::copyNew(const Material& original, const QString& name) const
+{
+    auto newMaterial = std::make_shared<Material>(original);
+    newMaterial->newUuid();
+    newMaterial->setName(name);
+
+    return newMaterial;
+}
+
+std::shared_ptr<Material> MaterialManager::copyInherited(
+    const Material& original,
+    const QString& name
+) const
+{
+    auto newMaterial = copyNew(original, name);
+    newMaterial->setParentUUID(original.getUUID());
+
+    return newMaterial;
 }
 
 bool MaterialManager::exists(const QString& uuid) const

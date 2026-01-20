@@ -141,6 +141,8 @@ public:
     std::shared_ptr<Material> getMaterialByPath(const QString& path) const;
     std::shared_ptr<Material> getMaterialByPath(const QString& path, const QString& library) const;
     std::shared_ptr<Material> getParent(const std::shared_ptr<Material>& material) const;
+    std::shared_ptr<Material> copyNew(const Material& original, const QString& name) const;
+    std::shared_ptr<Material> copyInherited(const Material& original, const QString& name) const;
     bool exists(const QString& uuid) const;
     bool exists(const MaterialLibrary& library, const QString& uuid) const;
     void remove(const QString& uuid) const;
