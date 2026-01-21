@@ -137,6 +137,8 @@ SET(MatGui_SRCS
     Workbench.h
     WorkbenchManipulator.cpp
     WorkbenchManipulator.h
+    Widgets/MaterialTreeItem.cpp
+    Widgets/MaterialTreeItem.h
     Widgets/MaterialPropertiesWidget.cpp
     Widgets/MaterialPropertiesWidget.h
     Widgets/MaterialPropertiesWidget.ui

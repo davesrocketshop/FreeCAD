@@ -45,6 +45,7 @@
 #include <Mod/Material/App/MaterialManager.h>
 #include <Mod/Material/App/Materials.h>
 #include <Mod/Material/App/ModelManager.h>
+#include <Mod/Material/Gui/Widgets/MaterialTreeItem.h>
 
 #include "AppearancePreview.h"
 
@@ -54,19 +55,6 @@ namespace MatGui
 class Ui_MaterialsEditor;
 class MaterialPropertiesWidget;
 class PropertiesWidget;
-
-const int TreeDataRole = Qt::UserRole;
-const int TreeFunctionRole = Qt::UserRole + 1;
-const int TreeNameRole = Qt::UserRole + 2;
-
-typedef enum
-{
-    TreeFunctionFavorites,
-    TreeFunctionRecents,
-    TreeFunctionLibrary,
-    TreeFunctionFolder,
-    TreeFunctionMaterial
-} TreeFunctionType;
 
 typedef enum
 {
@@ -167,7 +155,7 @@ private:
     QIcon _warningIcon;
     Materials::MaterialFilter _filter;
     Materials::MaterialFilterOptions _filterOptions;
-    QStandardItem* _newItem;
+    MaterialTreeItem* _newItem;
 
     // Actions
     QModelIndex _actionIndex;
@@ -223,7 +211,7 @@ private:
     void saveMaterialTreeChildren(const Base::Reference<ParameterGrp>& param,
                                   QTreeView* tree,
                                   QStandardItemModel* model,
-                                  QStandardItem* item);
+                                  MaterialTreeItem* item);
     void saveMaterialTree(const Base::Reference<ParameterGrp>& param);
 
     void oldFormatError();
@@ -242,18 +230,17 @@ private:
     bool isRecent(const QString& uuid) const;
 
     const QStandardItemModel* getActionModel() const;
-    QStandardItem* getActionItem() const;
-    TreeFunctionType getItemFunction(const QStandardItem* item) const;
+    MaterialTreeItem* getActionItem() const;
     TreeFunctionType getActionFunction() const;
-    std::shared_ptr<Materials::MaterialLibrary> getActionLibrary(const QStandardItem* item) const;
+    std::shared_ptr<Materials::MaterialLibrary> getActionLibrary(const MaterialTreeItem* item) const;
     std::shared_ptr<Materials::MaterialLibrary> getActionLibrary() const;
-    std::shared_ptr<Materials::Material> getActionMaterial(const QStandardItem* item) const;
+    std::shared_ptr<Materials::Material> getActionMaterial(const MaterialTreeItem* item) const;
     std::shared_ptr<Materials::Material> getActionMaterial() const;
-    QStandardItem* getItemFromRoot(TreeFunctionType function) const;
-    QStandardItem* getFavoritesItem() const;
-    QStandardItem* getRecentsItem() const;
-    QStandardItem* getItemFromLibrary(const Materials::Library& library) const;
-    QStandardItem* getItemFromMaterial(const Materials::Material& material) const;
+    MaterialTreeItem* getItemFromRoot(TreeFunctionType function) const;
+    MaterialTreeItem* getFavoritesItem() const;
+    MaterialTreeItem* getRecentsItem() const;
+    MaterialTreeItem* getItemFromLibrary(const Materials::Library& library) const;
+    MaterialTreeItem* getItemFromMaterial(const Materials::Material& material) const;
 
     void favoriteContextMenu(QMenu& contextMenu);
     void recentContextMenu(QMenu& contextMenu);
@@ -263,10 +250,9 @@ private:
     void defaultContextMenu(QMenu& contextMenu);
     void addViewMenu(QMenu& contextMenu);
 
-    QString getPath(const QStandardItem* item, const QString& path) const;
-    QString getParentPath(const QStandardItem* item) const;
-    QString getLibraryName(const QStandardItem* item) const;
-    QString getUniqueName(const QStandardItem* parent, const QString& name, TreeFunctionType function) const;
+    QString getPath(const MaterialTreeItem* item, const QString& path) const;
+    QString getParentPath(const MaterialTreeItem* item) const;
+    QString getLibraryName(const MaterialTreeItem* item) const;
     QString stripLeadingSeparator(const QString& filePath) const;
 
     void onMenuNewLibrary(bool checked);
@@ -292,34 +278,34 @@ private:
     void setMaterialDefaults();
     static QString getColorHash(const QString& colorString, int colorRange = 255);
 
-    static void addExpanded(QTreeView* tree, QStandardItem* parent, QStandardItem* child);
+    static void addExpanded(QTreeView* tree, MaterialTreeItem* parent, MaterialTreeItem* child);
     static void addExpanded(QTreeView* tree,
-                            QStandardItem* parent,
-                            QStandardItem* child,
+                            MaterialTreeItem* parent,
+                            MaterialTreeItem* child,
                             const Base::Reference<ParameterGrp>& param);
-    static void addExpanded(QTreeView* tree, QStandardItemModel* parent, QStandardItem* child);
+    static void addExpanded(QTreeView* tree, QStandardItemModel* parent, MaterialTreeItem* child);
     static void addExpanded(QTreeView* tree,
                             QStandardItemModel* parent,
-                            QStandardItem* child,
+                            MaterialTreeItem* child,
                             const Base::Reference<ParameterGrp>& param);
-    void addRecents(QStandardItem* parent);
-    void addFavorites(QStandardItem* parent);
+    void addRecents(MaterialTreeItem* parent);
+    void addFavorites(MaterialTreeItem* parent);
     void createMaterialTree();
     void fillMaterialTree();
     void refreshMaterialTree();
     void addMaterials(
-        QStandardItem& parent,
+        MaterialTreeItem& parent,
         const std::shared_ptr<std::map<QString, std::shared_ptr<Materials::MaterialTreeNode>>>
             modelTree,
         const QIcon& folderIcon,
         const QIcon& icon,
         const Base::Reference<ParameterGrp>& param);
 
-    void renameLibrary(QStandardItem* item);
-    void renameFolder(QStandardItem* item);
-    void renameMaterial(QStandardItem* item);
+    void renameLibrary(MaterialTreeItem* item);
+    void renameFolder(MaterialTreeItem* item);
+    void renameMaterial(MaterialTreeItem* item);
     void updateMaterialTreeName(const QString& name);
-    void updateFavoritesRecentsName(const QStandardItem* parent, const QString& uuid, const QString& name);
+    void updateFavoritesRecentsName(MaterialTreeItem* parent, const QString& uuid, const QString& name);
     void updateRecentsName(const QString& uuid, const QString& name);
     void updateRecentsName();
     void updateFavoritesName(const QString& uuid, const QString& name);
