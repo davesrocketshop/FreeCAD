@@ -32,6 +32,8 @@ namespace MatGui
 {
 
 const int TreeDataRole = Qt::UserRole;
+const int TreeFunctionRole = Qt::UserRole + 1;
+const int TreeNameRole = Qt::UserRole + 2;
 
 typedef enum
 {
@@ -59,14 +61,13 @@ public:
         return static_cast<MaterialTreeItem*>(QStandardItem::child(row, column));
     }
 
-    virtual TreeFunctionType getItemFunction() const = 0;
+    TreeFunctionType getItemFunction() const;
     QString getUniqueName(const QString& name, TreeFunctionType function) const;
 
     QString originalName() const;
     void setOriginalName(const QString& name);
 
 private:
-    QString _originalName;
 
 };
 
@@ -77,8 +78,6 @@ public:
     explicit MaterialTreeLibraryItem(const QString& text);
     explicit MaterialTreeLibraryItem(const QIcon& icon, const QString& text);
     ~MaterialTreeLibraryItem() override;
-
-    TreeFunctionType getItemFunction() const override;
 
     std::shared_ptr<Materials::MaterialLibrary> getLibrary() const;
     void setLibrary(const std::shared_ptr<Materials::MaterialLibrary>& library);
@@ -91,8 +90,6 @@ public:
     explicit MaterialTreeFolderItem(const QString& text);
     explicit MaterialTreeFolderItem(const QIcon& icon, const QString& text);
     ~MaterialTreeFolderItem() override;
-
-    TreeFunctionType getItemFunction() const override;
 };
 
 class MaterialTreeMaterialItem: public MaterialTreeItem
@@ -103,13 +100,8 @@ public:
     explicit MaterialTreeMaterialItem(const QIcon& icon, const QString& text, const QString& uuid);
     ~MaterialTreeMaterialItem() override;
 
-    TreeFunctionType getItemFunction() const override;
-
     QString getUUID() const;
     void setUUID(const QString& uuid);
-
-private:
-    QString _uuid;
 };
 
 class MaterialTreeFavoriteItem: public MaterialTreeMaterialItem
@@ -119,8 +111,6 @@ public:
     explicit MaterialTreeFavoriteItem(const QString& text);
     explicit MaterialTreeFavoriteItem(const QIcon& icon, const QString& text, const QString& uuid);
     ~MaterialTreeFavoriteItem() override;
-
-    TreeFunctionType getItemFunction() const override;
 };
 
 class MaterialTreeRecentItem: public MaterialTreeMaterialItem
@@ -130,8 +120,6 @@ public:
     explicit MaterialTreeRecentItem(const QString& text);
     explicit MaterialTreeRecentItem(const QIcon& icon, const QString& text, const QString& uuid);
     ~MaterialTreeRecentItem() override;
-
-    TreeFunctionType getItemFunction() const override;
 };
 
 }  // namespace MatGui

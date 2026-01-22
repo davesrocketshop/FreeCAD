@@ -39,13 +39,15 @@ MaterialTreeItem::MaterialTreeItem()
 
 MaterialTreeItem::MaterialTreeItem(const QString& text)
     : QStandardItem(text)
-    , _originalName(text)
-{}
+{
+    setOriginalName(text);
+}
 
 MaterialTreeItem::MaterialTreeItem(const QIcon& icon, const QString& text)
     : QStandardItem(icon, text)
-    , _originalName(text)
-{}
+{
+    setOriginalName(text);
+}
 
 /*
  *  Destroys the object and frees any allocated resources
@@ -56,14 +58,20 @@ MaterialTreeItem::~MaterialTreeItem()
     // but we can't use default as Ui_PropertiesWidget is undefined
 }
 
+TreeFunctionType MaterialTreeItem::getItemFunction() const
+{
+    auto typeVariant = data(TreeFunctionRole);
+    return typeVariant.value<TreeFunctionType>();
+}
+
 QString MaterialTreeItem::originalName() const
 {
-    return _originalName;
+    return data(TreeNameRole).toString();
 }
 
 void MaterialTreeItem::setOriginalName(const QString& name)
 {
-    _originalName = name;
+    setData(QVariant(name), TreeNameRole);
 }
 
 QString MaterialTreeItem::getUniqueName(const QString& name, TreeFunctionType function) const
@@ -91,12 +99,14 @@ MaterialTreeLibraryItem::MaterialTreeLibraryItem()
     : MaterialTreeItem()
 {
     setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsDropEnabled);
+    setData(QVariant(TreeFunctionType::TreeFunctionLibrary), TreeFunctionRole);
 }
 
 MaterialTreeLibraryItem::MaterialTreeLibraryItem(const QString& text)
     : MaterialTreeItem(text)
 {
     setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsDropEnabled);
+    setData(QVariant(TreeFunctionType::TreeFunctionLibrary), TreeFunctionRole);
 }
 
 MaterialTreeLibraryItem::MaterialTreeLibraryItem(
@@ -106,15 +116,11 @@ MaterialTreeLibraryItem::MaterialTreeLibraryItem(
     : MaterialTreeItem(icon, text)
 {
     setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsDropEnabled);
+    setData(QVariant(TreeFunctionType::TreeFunctionLibrary), TreeFunctionRole);
 }
 
 MaterialTreeLibraryItem::~MaterialTreeLibraryItem()
 {}
-
-TreeFunctionType MaterialTreeLibraryItem::getItemFunction() const
-{
-    return TreeFunctionType::TreeFunctionLibrary;
-}
 
 std::shared_ptr<Materials::MaterialLibrary> MaterialTreeLibraryItem::getLibrary() const
 {
@@ -124,7 +130,7 @@ std::shared_ptr<Materials::MaterialLibrary> MaterialTreeLibraryItem::getLibrary(
 void MaterialTreeLibraryItem::setLibrary(const std::shared_ptr<Materials::MaterialLibrary>& library)
 {
     setData(QVariant::fromValue(library), TreeDataRole);
-    setOriginalName(library->getName());
+    setData(QVariant(library->getName()), TreeNameRole);
 }
 
 //===
@@ -137,27 +143,25 @@ MaterialTreeFolderItem::MaterialTreeFolderItem()
     : MaterialTreeItem()
 {
     setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsDropEnabled);
+    setData(QVariant(TreeFunctionType::TreeFunctionFolder), TreeFunctionRole);
 }
 
 MaterialTreeFolderItem::MaterialTreeFolderItem(const QString& text)
     : MaterialTreeItem(text)
 {
     setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsDropEnabled);
+    setData(QVariant(TreeFunctionType::TreeFunctionFolder), TreeFunctionRole);
 }
 
 MaterialTreeFolderItem::MaterialTreeFolderItem(const QIcon& icon, const QString& text)
     : MaterialTreeItem(icon, text)
 {
     setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsDropEnabled);
+    setData(QVariant(TreeFunctionType::TreeFunctionFolder), TreeFunctionRole);
 }
 
 MaterialTreeFolderItem::~MaterialTreeFolderItem()
 {}
-
-TreeFunctionType MaterialTreeFolderItem::getItemFunction() const
-{
-    return TreeFunctionType::TreeFunctionFolder;
-}
 
 //===
 //
@@ -170,8 +174,9 @@ MaterialTreeMaterialItem::MaterialTreeMaterialItem()
 {
     setFlags(
         Qt::ItemIsEditable | Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsDragEnabled
-        | Qt::ItemIsDropEnabled | Qt::ItemNeverHasChildren
+        | Qt::ItemIsDropEnabled
     );
+    setData(QVariant(TreeFunctionType::TreeFunctionMaterial), TreeFunctionRole);
 }
 
 MaterialTreeMaterialItem::MaterialTreeMaterialItem(const QString& text)
@@ -181,6 +186,7 @@ MaterialTreeMaterialItem::MaterialTreeMaterialItem(const QString& text)
         Qt::ItemIsEditable | Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsDragEnabled
         | Qt::ItemIsDropEnabled | Qt::ItemNeverHasChildren
     );
+    setData(QVariant(TreeFunctionType::TreeFunctionMaterial), TreeFunctionRole);
 }
 
 MaterialTreeMaterialItem::MaterialTreeMaterialItem(
@@ -189,30 +195,26 @@ MaterialTreeMaterialItem::MaterialTreeMaterialItem(
     const QString& uuid
 )
     : MaterialTreeItem(icon, text)
-    , _uuid(uuid)
 {
     setFlags(
         Qt::ItemIsEditable | Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsDragEnabled
         | Qt::ItemIsDropEnabled | Qt::ItemNeverHasChildren
     );
+    setData(QVariant(TreeFunctionType::TreeFunctionMaterial), TreeFunctionRole);
+    setData(QVariant(uuid), TreeDataRole);
 }
 
 MaterialTreeMaterialItem::~MaterialTreeMaterialItem()
 {}
 
-TreeFunctionType MaterialTreeMaterialItem::getItemFunction() const
-{
-    return TreeFunctionType::TreeFunctionMaterial;
-}
-
 QString MaterialTreeMaterialItem::getUUID() const
 {
-    return _uuid;
+    return data(TreeDataRole).toString();
 }
 
 void MaterialTreeMaterialItem::setUUID(const QString& uuid)
 {
-    _uuid = uuid;
+    setData(QVariant(uuid), TreeDataRole);
 }
 
 //===
@@ -225,12 +227,14 @@ MaterialTreeFavoriteItem::MaterialTreeFavoriteItem()
     : MaterialTreeMaterialItem()
 {
     setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
+    setData(QVariant(TreeFunctionType::TreeFunctionFavorites), TreeFunctionRole);
 }
 
 MaterialTreeFavoriteItem::MaterialTreeFavoriteItem(const QString& text)
     : MaterialTreeMaterialItem(text)
 {
     setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
+    setData(QVariant(TreeFunctionType::TreeFunctionFavorites), TreeFunctionRole);
 }
 
 MaterialTreeFavoriteItem::MaterialTreeFavoriteItem(
@@ -241,15 +245,11 @@ MaterialTreeFavoriteItem::MaterialTreeFavoriteItem(
     : MaterialTreeMaterialItem(icon, text, uuid)
 {
     setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
+    setData(QVariant(TreeFunctionType::TreeFunctionFavorites), TreeFunctionRole);
 }
 
 MaterialTreeFavoriteItem::~MaterialTreeFavoriteItem()
 {}
-
-TreeFunctionType MaterialTreeFavoriteItem::getItemFunction() const
-{
-    return TreeFunctionType::TreeFunctionFavorites;
-}
 
 //===
 //
@@ -261,24 +261,22 @@ MaterialTreeRecentItem::MaterialTreeRecentItem()
     : MaterialTreeMaterialItem()
 {
     setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
+    setData(QVariant(TreeFunctionType::TreeFunctionRecents), TreeFunctionRole);
 }
 
 MaterialTreeRecentItem::MaterialTreeRecentItem(const QString& text)
     : MaterialTreeMaterialItem(text)
 {
     setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
+    setData(QVariant(TreeFunctionType::TreeFunctionRecents), TreeFunctionRole);
 }
 
 MaterialTreeRecentItem::MaterialTreeRecentItem(const QIcon& icon, const QString& text, const QString& uuid)
     : MaterialTreeMaterialItem(icon, text, uuid)
 {
     setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
+    setData(QVariant(TreeFunctionType::TreeFunctionRecents), TreeFunctionRole);
 }
 
 MaterialTreeRecentItem::~MaterialTreeRecentItem()
 {}
-
-TreeFunctionType MaterialTreeRecentItem::getItemFunction() const
-{
-    return TreeFunctionType::TreeFunctionRecents;
-}
