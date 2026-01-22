@@ -269,7 +269,8 @@ void MaterialsEditor::setupSelectionCallbacks()
 void MaterialsEditor::setupModelCallbacks()
 {
     auto tree = ui->treeMaterials;
-    auto model = qobject_cast<QStandardItemModel*>(tree->model());
+    auto model = tree->model();
+    model->invisibleRootItem()->setFlags(Qt::NoItemFlags);
     connect(model, &QStandardItemModel::itemChanged, this, &MaterialsEditor::onTreeItemChanged);
 }
 
@@ -633,23 +634,9 @@ void MaterialsEditor::onPhysicalAdd()
 
 void MaterialsEditor::onPhysicalRemove(const QString& propertyName)
 {
-    // QItemSelectionModel* selectionModel = ui->treePhysicalProperties->selectionModel();
-    // if (selectionModel->hasSelection()) {
-    //     auto index = selectionModel->currentIndex().siblingAtColumn(0);
-
-    //     auto treeModel = dynamic_cast<const QStandardItemModel*>(index.model());
-
-    //     // Check we're the material model root.
-    //     auto item = treeModel->itemFromIndex(index);
-    //     auto group = item->parent();
-    //     if (!group) {
-    //         QString propertyName = index.data().toString();
-
     QString uuid = _material->getModelByName(propertyName);
     _material->removePhysical(uuid);
     updateMaterial();
-    //     }
-    // }
 }
 
 void MaterialsEditor::onAppearanceAdd()
@@ -675,23 +662,9 @@ void MaterialsEditor::onAppearanceAdd()
 
 void MaterialsEditor::onAppearanceRemove(const QString& propertyName)
 {
-    // QItemSelectionModel* selectionModel = ui->treeAppearance->selectionModel();
-    // if (selectionModel->hasSelection()) {
-    //     auto index = selectionModel->currentIndex().siblingAtColumn(0);
-
-    //     auto treeModel = dynamic_cast<const QStandardItemModel*>(index.model());
-
-    //     // Check we're the material model root.
-    //     auto item = treeModel->itemFromIndex(index);
-    //     auto group = item->parent();
-    //     if (!group) {
-    //         QString propertyName = index.data().toString();
-
     QString uuid = _material->getModelByName(propertyName);
     _material->removeAppearance(uuid);
     updateMaterial();
-    //     }
-    // }
 }
 
 void MaterialsEditor::onFavourite(bool checked)
@@ -979,7 +952,7 @@ void MaterialsEditor::reject()
 }
 
 void MaterialsEditor::saveMaterialTreeChildren(const Base::Reference<ParameterGrp>& param,
-                                               QTreeView* tree,
+                                               MaterialTreeView* tree,
                                                QStandardItemModel* model,
                                                MaterialTreeItem* item)
 {
@@ -1005,13 +978,11 @@ void MaterialsEditor::saveMaterialTree(const Base::Reference<ParameterGrp>& para
     treeParam->Clear();
 
     auto tree = ui->treeMaterials;
-    auto model = qobject_cast<QStandardItemModel*>(tree->model());
+    auto model = tree->model();
 
     auto root = model->invisibleRootItem();
     for (int i = 0; i < root->rowCount(); i++) {
         auto child = static_cast<MaterialTreeItem*>(root->child(i));
-        // treeParam->SetBool(child->text().toStdString().c_str(),
-        // tree->isExpanded(child->index()));
 
         saveMaterialTreeChildren(treeParam, tree, model, child);
     }
@@ -1059,13 +1030,13 @@ void MaterialsEditor::addMaterials(
     }
 }
 
-void MaterialsEditor::addExpanded(QTreeView* tree, MaterialTreeItem* parent, MaterialTreeItem* child)
+void MaterialsEditor::addExpanded(MaterialTreeView* tree, MaterialTreeItem* parent, MaterialTreeItem* child)
 {
     parent->appendRow(child);
     tree->setExpanded(child->index(), true);
 }
 
-void MaterialsEditor::addExpanded(QTreeView* tree,
+void MaterialsEditor::addExpanded(MaterialTreeView* tree,
                                   MaterialTreeItem* parent,
                                   MaterialTreeItem* child,
                                   const Base::Reference<ParameterGrp>& param)
@@ -1078,13 +1049,13 @@ void MaterialsEditor::addExpanded(QTreeView* tree,
     tree->setExpanded(child->index(), expand);
 }
 
-void MaterialsEditor::addExpanded(QTreeView* tree, QStandardItemModel* parent, MaterialTreeItem* child)
+void MaterialsEditor::addExpanded(MaterialTreeView* tree, QStandardItemModel* parent, MaterialTreeItem* child)
 {
     parent->appendRow(child);
     tree->setExpanded(child->index(), true);
 }
 
-void MaterialsEditor::addExpanded(QTreeView* tree,
+void MaterialsEditor::addExpanded(MaterialTreeView* tree,
                                   QStandardItemModel* parent,
                                   MaterialTreeItem* child,
                                   const Base::Reference<ParameterGrp>& param)
@@ -1162,7 +1133,7 @@ void MaterialsEditor::fillMaterialTree()
         "User parameter:BaseApp/Preferences/Mod/Material/Editor/MaterialTree");
 
     auto tree = ui->treeMaterials;
-    auto model = qobject_cast<QStandardItemModel*>(tree->model());
+    auto model = tree->model();
 
     if (_filterOptions.includeFavorites()) {
         auto lib = new MaterialTreeFavoriteItem(tr("Favorites"));
@@ -1244,7 +1215,7 @@ void MaterialsEditor::refreshMaterialTree()
 {
     Gui::WaitCursor wc;
     auto tree = ui->treeMaterials;
-    auto model = qobject_cast<QStandardItemModel*>(tree->model());
+    auto model = tree->model();
     model->clear();
 
     fillMaterialTree();
@@ -1311,7 +1282,7 @@ void MaterialsEditor::onSelectMaterial(const QItemSelection& selected,
 
     // Get the UUID before changing the underlying data model
     QString uuid;
-    auto model = qobject_cast<QStandardItemModel*>(ui->treeMaterials->model());
+    auto model = ui->treeMaterials->model();
     QModelIndexList indexes = selected.indexes();
     for (auto it = indexes.begin(); it != indexes.end(); it++) {
         MaterialTreeItem* item = static_cast<MaterialTreeItem*>(model->itemFromIndex(*it));
@@ -1331,10 +1302,8 @@ void MaterialsEditor::onSelectMaterial(const QItemSelection& selected,
                 case TreeFunctionRecents:
                 case TreeFunctionMaterial:
                     {
-                        auto materialItem = dynamic_cast<MaterialTreeMaterialItem*>(item);
-                        if (materialItem) {
-                            uuid = materialItem->getUUID();
-                        }
+                        auto materialItem = static_cast<MaterialTreeMaterialItem*>(item);
+                        uuid = materialItem->getUUID();
                     }
                     break;
             }
@@ -1392,8 +1361,7 @@ const QStandardItemModel* MaterialsEditor::getActionModel() const
 
 MaterialTreeItem* MaterialsEditor::getActionItem() const
 {
-    // auto model = const_cast<QStandardItemModel*>(getActionModel());
-    auto model = static_cast<QStandardItemModel*>(ui->treeMaterials->model());
+    auto model = ui->treeMaterials->model();
     if (model) {
         return static_cast<MaterialTreeItem*>(model->itemFromIndex(_actionIndex));
     }
@@ -1405,12 +1373,12 @@ TreeFunctionType MaterialsEditor::getActionFunction() const
     return getActionItem()->getItemFunction();
 }
 
-std::shared_ptr<Materials::MaterialLibrary> MaterialsEditor::getActionLibrary(
+std::shared_ptr<Materials::MaterialLibrary> MaterialsEditor::getItemAsLibrary(
     const MaterialTreeItem* item
 ) const
 {
-    auto libraryItem = dynamic_cast<const MaterialTreeLibraryItem *>(item);
-    if (libraryItem) {
+    if (item && item->getItemFunction() == TreeFunctionLibrary) {
+        auto libraryItem = static_cast<const MaterialTreeLibraryItem*>(item);
         return libraryItem->getLibrary();
     }
     throw ActionError();
@@ -1418,13 +1386,13 @@ std::shared_ptr<Materials::MaterialLibrary> MaterialsEditor::getActionLibrary(
 
 std::shared_ptr<Materials::MaterialLibrary> MaterialsEditor::getActionLibrary() const
 {
-    return getActionLibrary(getActionItem());
+    return getItemAsLibrary(getActionItem());
 }
 
-std::shared_ptr<Materials::Material> MaterialsEditor::getActionMaterial(const MaterialTreeItem* item) const
+std::shared_ptr<Materials::Material> MaterialsEditor::getItemAsMaterial(const MaterialTreeItem* item) const
 {
-    auto material = dynamic_cast<const MaterialTreeMaterialItem *>(item);
-    if (material) {
+    if (item && item->getItemFunction() == TreeFunctionMaterial) {
+        auto material = static_cast<const MaterialTreeMaterialItem*>(item);
         auto uuid = material->getUUID();
         return getMaterialManager().getMaterial(uuid);
     }
@@ -1433,12 +1401,12 @@ std::shared_ptr<Materials::Material> MaterialsEditor::getActionMaterial(const Ma
 
 std::shared_ptr<Materials::Material> MaterialsEditor::getActionMaterial() const
 {
-    return getActionMaterial(getActionItem());
+    return getItemAsMaterial(getActionItem());
 }
 
 MaterialTreeItem* MaterialsEditor::getItemFromRoot(TreeFunctionType function) const
 {
-    auto model = qobject_cast<QStandardItemModel*>(ui->treeMaterials->model());
+    auto model = ui->treeMaterials->model();
     if (model) {
         auto root = model->invisibleRootItem();
         for (auto row = 0; row < root->rowCount(); row++) {
@@ -1465,13 +1433,13 @@ MaterialTreeItem* MaterialsEditor::getRecentsItem() const
 
 MaterialTreeItem* MaterialsEditor::getItemFromLibrary(const Materials::Library& library) const
 {
-    auto model = qobject_cast<QStandardItemModel*>(ui->treeMaterials->model());
+    auto model = ui->treeMaterials->model();
     if (model) {
         auto root = model->invisibleRootItem();
         for (auto row = 0; row < root->rowCount(); row++) {
-            auto item = dynamic_cast<MaterialTreeLibraryItem*>(root->child(row));
-            if (item) {
-                auto treeLibrary = item->getLibrary();
+            auto item = static_cast<MaterialTreeItem*>(root->child(row));
+            if (item->getItemFunction() == TreeFunctionLibrary) {
+                auto treeLibrary = static_cast<MaterialTreeLibraryItem*>(item)->getLibrary();
                 if (*treeLibrary == library) {
                     Base::Console().log(
                         "Found library '%s'\n",
@@ -1522,8 +1490,8 @@ MaterialTreeItem* MaterialsEditor::getItemFromMaterial(const Materials::Material
                         row = 0;
                         item = folderItem->child(row);
                         while (item) {
-                            auto materialItem = dynamic_cast<MaterialTreeMaterialItem*>(item);
-                            if (materialItem) {
+                            if (item->getItemFunction() == TreeFunctionFolder) {
+                                auto materialItem = static_cast<MaterialTreeMaterialItem*>(item);
                                 auto uuid = materialItem->getUUID();
                                 if (uuid == material.getUUID()) {
                                     Base::Console().log(
@@ -1539,6 +1507,22 @@ MaterialTreeItem* MaterialsEditor::getItemFromMaterial(const Materials::Material
                     }
         }
     }
+    return nullptr;
+}
+
+std::shared_ptr<Materials::MaterialLibrary> MaterialsEditor::getLibraryForItem(
+    const MaterialTreeItem* item
+) const
+{
+    auto parent = item->parent();
+    while (parent) {
+        if (parent->getItemFunction() == TreeFunctionLibrary) {
+            return getItemAsLibrary(parent);
+        }
+        parent = parent->parent();
+    }
+
+    // Not found
     return nullptr;
 }
 
@@ -1576,14 +1560,6 @@ void MaterialsEditor::onContextMenu(const QPoint& pos)
     catch (ActionError e) {
         defaultContextMenu(contextMenu);
     }
-
-    // QAction actionInheritFrom(tr("Inherit from"), this);
-    // connect(&actionInheritFrom, &QAction::triggered, this, &MaterialsEditor::onInherit);
-    // contextMenu.addAction(&actionInheritFrom);
-
-    // QAction actionInheritNew(tr("Inherit new material"), this);
-    // connect(&actionInheritNew, &QAction::triggered, this, &MaterialsEditor::onInheritNew);
-    // contextMenu.addAction(&actionInheritNew);
 
     contextMenu.exec(ui->treeMaterials->mapToGlobal(pos));
 }
@@ -1970,7 +1946,7 @@ void MaterialsEditor::onMenuInheritMaterial(bool checked)
     // Find the library and path where we are
     auto item = getActionItem();
     auto parent = item->parent();
-    auto original = getActionMaterial(item);
+    auto original = getItemAsMaterial(item);
 
     // Create a new material
     auto uniqueName = parent->getUniqueName(original->getName(), TreeFunctionMaterial);
@@ -2192,22 +2168,35 @@ void MaterialsEditor::renameMaterial(MaterialTreeItem* item)
     auto originalName = item->originalName();
     auto newName = item->text();
     auto path = getParentPath(item);
-    auto oldPath = path + originalName;
-    auto newPath = path + newName;
 
     if (originalName != newName) {
-        Base::Console().log("Material edited '%s'->'%s'\n",
-                            originalName.toStdString().c_str(),
-                            newName.toStdString().c_str());
-        Base::Console().log("\t path '%s'->'%s'\n",
-                            oldPath.toStdString().c_str(),
-                            newPath.toStdString().c_str());
+        auto oldPath = path + originalName;
+        auto newPath = path + newName;
         _material->setName(newName);
         item->setOriginalName(newName);
         updateMaterial();
 
         updateFavoritesName();
         updateRecentsName();
+    }
+    else {
+        auto material = getItemAsMaterial(item);
+        auto library = getLibraryForItem(item);
+        if (library) {
+            Base::Console().log(
+                "Library '%s' -> '%s'\n",
+                material->getLibrary()->getName().toStdString().c_str(),
+                library->getName().toStdString().c_str()
+            );
+            Base::Console().log(
+                "Path '%s' -> '%s'\n",
+                material->getDirectory().toStdString().c_str(),
+                path.toStdString().c_str()
+            );
+        }
+        else {
+            Base::Console().log("No library\n");
+        }
     }
 }
 
@@ -2229,8 +2218,8 @@ void MaterialsEditor::updateFavoritesRecentsName(MaterialTreeItem* parent, const
 {
     if (parent) {
         int row = 0;
-        auto item = dynamic_cast<MaterialTreeMaterialItem*>(parent->child(row));
-        while (item) {
+        auto item = static_cast<MaterialTreeMaterialItem*>(parent->child(row));
+        while (item && item->getItemFunction() == TreeFunctionMaterial) {
             auto modelUuid = item->getUUID();
             if (modelUuid == uuid) {
                 if (item->text() != name) {
@@ -2240,7 +2229,7 @@ void MaterialsEditor::updateFavoritesRecentsName(MaterialTreeItem* parent, const
                 return;
             }
             row++;
-            item = dynamic_cast<MaterialTreeMaterialItem*>(parent->child(row));
+            item = static_cast<MaterialTreeMaterialItem*>(parent->child(row));
         }
     }
 }

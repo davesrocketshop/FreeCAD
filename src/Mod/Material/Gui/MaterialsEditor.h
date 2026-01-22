@@ -46,6 +46,7 @@
 #include <Mod/Material/App/Materials.h>
 #include <Mod/Material/App/ModelManager.h>
 #include <Mod/Material/Gui/Widgets/MaterialTreeItem.h>
+#include <Mod/Material/Gui/Widgets/MaterialTreeView.h>
 
 #include "AppearancePreview.h"
 
@@ -209,7 +210,7 @@ private:
 
     void saveState();
     void saveMaterialTreeChildren(const Base::Reference<ParameterGrp>& param,
-                                  QTreeView* tree,
+                                  MaterialTreeView* tree,
                                   QStandardItemModel* model,
                                   MaterialTreeItem* item);
     void saveMaterialTree(const Base::Reference<ParameterGrp>& param);
@@ -232,15 +233,16 @@ private:
     const QStandardItemModel* getActionModel() const;
     MaterialTreeItem* getActionItem() const;
     TreeFunctionType getActionFunction() const;
-    std::shared_ptr<Materials::MaterialLibrary> getActionLibrary(const MaterialTreeItem* item) const;
+    std::shared_ptr<Materials::MaterialLibrary> getItemAsLibrary(const MaterialTreeItem* item) const;
     std::shared_ptr<Materials::MaterialLibrary> getActionLibrary() const;
-    std::shared_ptr<Materials::Material> getActionMaterial(const MaterialTreeItem* item) const;
+    std::shared_ptr<Materials::Material> getItemAsMaterial(const MaterialTreeItem* item) const;
     std::shared_ptr<Materials::Material> getActionMaterial() const;
     MaterialTreeItem* getItemFromRoot(TreeFunctionType function) const;
     MaterialTreeItem* getFavoritesItem() const;
     MaterialTreeItem* getRecentsItem() const;
     MaterialTreeItem* getItemFromLibrary(const Materials::Library& library) const;
     MaterialTreeItem* getItemFromMaterial(const Materials::Material& material) const;
+    std::shared_ptr<Materials::MaterialLibrary> getLibraryForItem(const MaterialTreeItem* item) const;
 
     void favoriteContextMenu(QMenu& contextMenu);
     void recentContextMenu(QMenu& contextMenu);
@@ -278,13 +280,13 @@ private:
     void setMaterialDefaults();
     static QString getColorHash(const QString& colorString, int colorRange = 255);
 
-    static void addExpanded(QTreeView* tree, MaterialTreeItem* parent, MaterialTreeItem* child);
-    static void addExpanded(QTreeView* tree,
+    static void addExpanded(MaterialTreeView* tree, MaterialTreeItem* parent, MaterialTreeItem* child);
+    static void addExpanded(MaterialTreeView* tree,
                             MaterialTreeItem* parent,
                             MaterialTreeItem* child,
                             const Base::Reference<ParameterGrp>& param);
-    static void addExpanded(QTreeView* tree, QStandardItemModel* parent, MaterialTreeItem* child);
-    static void addExpanded(QTreeView* tree,
+    static void addExpanded(MaterialTreeView* tree, QStandardItemModel* parent, MaterialTreeItem* child);
+    static void addExpanded(MaterialTreeView* tree,
                             QStandardItemModel* parent,
                             MaterialTreeItem* child,
                             const Base::Reference<ParameterGrp>& param);

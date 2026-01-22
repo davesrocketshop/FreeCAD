@@ -49,9 +49,15 @@
         <widget class="QToolBar" name="treeToolBar"/>
        </item>
        <item>
-        <widget class="QTreeView" name="treeMaterials">
+        <widget class="MaterialTreeView" name="treeMaterials">
          <property name="acceptDrops">
-          <bool>false</bool>
+          <bool>true</bool>
+         </property>
+         <property name="dragEnabled">
+          <bool>true</bool>
+         </property>
+         <property name="dragDropMode">
+          <enum>QAbstractItemView::DragDropMode::DragDrop</enum>
          </property>
          <property name="selectionBehavior">
           <enum>QAbstractItemView::SelectionBehavior::SelectItems</enum>
@@ -199,6 +205,11 @@
    <extends>QWidget</extends>
    <header>Mod/Material/Gui/Widgets/PropertiesWidget.h</header>
    <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>MaterialTreeView</class>
+   <extends>QTreeView</extends>
+   <header>Mod/Material/Gui/Widgets/MaterialTreeView.h</header>
   </customwidget>
  </customwidgets>
  <tabstops>
