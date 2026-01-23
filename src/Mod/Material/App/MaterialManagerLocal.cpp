@@ -786,46 +786,33 @@ void MaterialManagerLocal::convertConfiguration()
     newParam->Clear();
 
     // Built in materials
-    std::string paramPath = materialRoot + "/System";
-    newParam = App::GetApplication().GetParameterGroupByPath(paramPath.c_str());
-    newParam->SetASCII(
-        "Directory",
-        Library::cleanPath(App::Application::getResourceDir() + "/Mod/Material/Resources/Materials")
-            .c_str()
-    );
-    newParam->SetASCII(
-        "ModelDirectory",
-        Library::cleanPath(App::Application::getResourceDir() + "/Mod/Material/Resources/Models").c_str()
-    );
-    newParam->SetASCII("IconPath", ":/icons/freecad.svg");
-    newParam->SetBool("ReadOnly", true);
-    newParam->SetBool("Disabled", !useBuiltInMaterials);
+    ModelManager::createSystemLibraryConfig();
+    if (!useBuiltInMaterials) {
+        std::string paramPath = materialRoot + "/System";
+        newParam = App::GetApplication().GetParameterGroupByPath(paramPath.c_str());
+        newParam->SetBool("Disabled", !useBuiltInMaterials);
+    }
 
     // User material directory
-    paramPath = materialRoot + "/User";
-    newParam = App::GetApplication().GetParameterGroupByPath(paramPath.c_str());
-    newParam->SetASCII(
-        "Directory",
-        Library::cleanPath(App::Application::getUserAppDataDir() + "/Material").c_str()
-    );
-    newParam->SetASCII(
-        "ModelDirectory",
-        Library::cleanPath(App::Application::getUserAppDataDir() + "/Models").c_str()
-    );
-    newParam->SetASCII("IconPath", ":/icons/preferences-general.svg");
-    newParam->SetBool("ReadOnly", false);
-    newParam->SetBool("Disabled", !useMatFromConfigDir);
+    ModelManager::createUserLibraryConfig();
+    if (!useMatFromConfigDir) {
+        std::string paramPath = materialRoot + "/User";
+        newParam = App::GetApplication().GetParameterGroupByPath(paramPath.c_str());
+        newParam->SetBool("Disabled", !useMatFromConfigDir);
+    }
 
     // Custom materials directory
     if (useMatFromCustomDir) {
-        paramPath = materialRoot + "/Custom";
+        std::string paramPath = materialRoot + "/Custom";
         auto path = Library::cleanPath(param->GetASCII("CustomMaterialsDir", ""));
-        param = App::GetApplication().GetParameterGroupByPath(paramPath.c_str());
-        newParam->SetASCII("Directory", path.c_str());
-        newParam->SetASCII("ModelDirectory", path.c_str());
-        newParam->SetASCII("IconPath", ":/icons/preferences-general.svg");
-        newParam->SetBool("ReadOnly", false);
-        newParam->SetBool("Disabled", !useMatFromCustomDir);
+        if (!path.empty()) {
+            newParam = App::GetApplication().GetParameterGroupByPath(paramPath.c_str());
+            newParam->SetASCII("Directory", path.c_str());
+            newParam->SetASCII("ModelDirectory", path.c_str());
+            newParam->SetASCII("IconPath", ":/icons/preferences-general.svg");
+            newParam->SetBool("ReadOnly", false);
+            newParam->SetBool("Disabled", !useMatFromCustomDir);
+        }
     }
 
     // Module directories

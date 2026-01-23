@@ -1370,7 +1370,11 @@ MaterialTreeItem* MaterialsEditor::getActionItem() const
 
 TreeFunctionType MaterialsEditor::getActionFunction() const
 {
-    return getActionItem()->getItemFunction();
+    auto item = getActionItem();
+    if (item) {
+        return getActionItem()->getItemFunction();
+    }
+    throw ActionError();
 }
 
 std::shared_ptr<Materials::MaterialLibrary> MaterialsEditor::getItemAsLibrary(
