@@ -75,8 +75,6 @@ SET(MatGui_SRCS
     Array3D.ui
     ArrayDelegate.cpp
     ArrayDelegate.h
-    ArrayModel.cpp
-    ArrayModel.h
     BaseDelegate.cpp
     BaseDelegate.h
     Command.cpp
@@ -111,8 +109,6 @@ SET(MatGui_SRCS
     ListEdit.cpp
     ListEdit.h
     ListEdit.ui
-    ListModel.cpp
-    ListModel.h
     MaterialDelegate.cpp
     MaterialDelegate.h
     MaterialSave.cpp
@@ -137,6 +133,10 @@ SET(MatGui_SRCS
     Workbench.h
     WorkbenchManipulator.cpp
     WorkbenchManipulator.h
+    Models/ArrayModel.cpp
+    Models/ArrayModel.h
+    Models/ListModel.cpp
+    Models/ListModel.h
     Widgets/MaterialTreeItem.cpp
     Widgets/MaterialTreeItem.h
     Widgets/MaterialTreeView.cpp

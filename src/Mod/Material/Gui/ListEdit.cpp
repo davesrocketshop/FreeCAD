@@ -29,11 +29,11 @@
 
 #include <Mod/Material/App/Exceptions.h>
 #include <Mod/Material/App/Materials.h>
+#include <Mod/Material/Gui/Models/ArrayModel.h>
+#include <Mod/Material/Gui/Models/ListModel.h>
 
-#include "ArrayModel.h"
 #include "ListDelegate.h"
 #include "ListEdit.h"
-#include "ListModel.h"
 #include "ui_ListEdit.h"
 
 

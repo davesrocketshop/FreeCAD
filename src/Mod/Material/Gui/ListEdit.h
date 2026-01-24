@@ -35,8 +35,7 @@
 #include <QStandardItemModel>
 
 #include <Mod/Material/App/Model.h>
-
-#include "ListModel.h"
+#include <Mod/Material/Gui/Models/ListModel.h>
 
 namespace MatGui
 {

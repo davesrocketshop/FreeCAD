@@ -29,10 +29,10 @@
 #include <Gui/MainWindow.h>
 
 #include <Mod/Material/App/Exceptions.h>
+#include <Mod/Material/Gui/Models/ArrayModel.h>
 
 #include "Array3D.h"
 #include "ArrayDelegate.h"
-#include "ArrayModel.h"
 #include "ui_Array3D.h"
 
 

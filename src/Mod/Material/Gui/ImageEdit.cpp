@@ -37,11 +37,11 @@
 
 #include <Mod/Material/App/Exceptions.h>
 #include <Mod/Material/App/Materials.h>
+#include <Mod/Material/Gui/Models/ArrayModel.h>
+#include <Mod/Material/Gui/Models/ListModel.h>
 
 #include "ArrayDelegate.h"
-#include "ArrayModel.h"
 #include "ImageEdit.h"
-#include "ListModel.h"
 #include "ui_ImageEdit.h"
 
 

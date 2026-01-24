@@ -35,7 +35,6 @@
 
 #include "Array2D.h"
 #include "ArrayDelegate.h"
-#include "ArrayModel.h"
 #include "ui_Array2D.h"
 
 
