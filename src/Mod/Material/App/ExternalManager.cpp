@@ -171,7 +171,7 @@ bool ExternalManager::checkMaterialLibraryType(const Py::Object& entry)
     return entry.hasAttr("name") && entry.hasAttr("icon") && entry.hasAttr("readOnly");
 }
 
-std::shared_ptr<Library>
+std::shared_ptr<ManagedLibrary>
 ExternalManager::libraryFromObject(const Py::Object& entry)
 {
     if (!checkMaterialLibraryType(entry)) {
@@ -196,7 +196,7 @@ ExternalManager::libraryFromObject(const Py::Object& entry)
 
     bool readOnly = pyReadOnly.as_bool();
 
-    auto library = std::make_shared<Library>(libraryName, icon, readOnly);
+    auto library = std::make_shared<ManagedLibrary>(libraryName, icon, readOnly);
     return library;
 }
 
@@ -228,10 +228,10 @@ LibraryObject ExternalManager::materialLibraryObjectTypeFromObject(const Py::Obj
     return LibraryObject(uuid, path, name);
 }
 
-std::shared_ptr<std::vector<std::shared_ptr<Library>>>
+std::shared_ptr<std::vector<std::shared_ptr<ManagedLibrary>>>
 ExternalManager::libraries()
 {
-    auto libList = std::make_shared<std::vector<std::shared_ptr<Library>>>();
+    auto libList = std::make_shared<std::vector<std::shared_ptr<ManagedLibrary>>>();
 
     connect();
 
@@ -259,9 +259,9 @@ ExternalManager::libraries()
     return libList;
 }
 
-std::shared_ptr<std::vector<std::shared_ptr<Library>>> ExternalManager::modelLibraries()
+std::shared_ptr<std::vector<std::shared_ptr<ModelLibrary>>> ExternalManager::modelLibraries()
 {
-    auto libList = std::make_shared<std::vector<std::shared_ptr<Library>>>();
+    auto libList = std::make_shared<std::vector<std::shared_ptr<ModelLibrary>>>();
 
     connect();
 
@@ -271,7 +271,7 @@ std::shared_ptr<std::vector<std::shared_ptr<Library>>> ExternalManager::modelLib
             Py::Callable libraries(_managerObject.getAttr("modelLibraries"));
             Py::List list(libraries.apply());
             for (auto lib : list) {
-                auto library = libraryFromObject(Py::Object(lib));
+                auto library = std::make_shared<ModelLibrary>(libraryFromObject(Py::Object(lib)));
                 libList->push_back(library);
             }
         }
@@ -288,9 +288,9 @@ std::shared_ptr<std::vector<std::shared_ptr<Library>>> ExternalManager::modelLib
     return libList;
 }
 
-std::shared_ptr<std::vector<std::shared_ptr<Library>>> ExternalManager::materialLibraries()
+std::shared_ptr<std::vector<std::shared_ptr<MaterialLibrary>>> ExternalManager::materialLibraries()
 {
-    auto libList = std::make_shared<std::vector<std::shared_ptr<Library>>>();
+    auto libList = std::make_shared<std::vector<std::shared_ptr<MaterialLibrary>>>();
 
     connect();
 
@@ -300,7 +300,7 @@ std::shared_ptr<std::vector<std::shared_ptr<Library>>> ExternalManager::material
             Py::Callable libraries(_managerObject.getAttr("materialLibraries"));
             Py::List list(libraries.apply());
             for (auto lib : list) {
-                auto library = libraryFromObject(Py::Object(lib));
+                auto library = std::make_shared<MaterialLibrary>(libraryFromObject(Py::Object(lib)));
                 libList->push_back(library);
             }
         }
@@ -317,9 +317,8 @@ std::shared_ptr<std::vector<std::shared_ptr<Library>>> ExternalManager::material
     return libList;
 }
 
-std::shared_ptr<Library> ExternalManager::getLibrary(const QString& name)
+std::shared_ptr<ManagedLibrary> ExternalManager::getLibrary(const QString& name)
 {
-    // throw LibraryNotFound("Not yet implemented");
     connect();
 
     Base::PyGILStateLocker lock;
@@ -331,7 +330,7 @@ std::shared_ptr<Library> ExternalManager::getLibrary(const QString& name)
             Py::Object result(libraries.apply(args));
 
             auto lib = libraryFromObject(result);
-            return std::make_shared<Library>(*lib);
+            return std::make_shared<ManagedLibrary>(*lib);
         }
         else {
             Base::Console().log("\tgetLibrary() not found\n");

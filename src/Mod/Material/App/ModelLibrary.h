@@ -48,6 +48,7 @@ class MaterialsExport ModelLibrary: public Library,
 
 public:
     ModelLibrary();
+    ModelLibrary(const std::shared_ptr<ManagedLibrary>& library);
     ModelLibrary(const Library& library);
     ModelLibrary(const QString& libraryName,
                  const QString& dir,
@@ -55,6 +56,17 @@ public:
                  bool readOnly = true);
     ModelLibrary(const ModelLibrary& other) = delete;
     ~ModelLibrary() override = default;
+
+    bool isRoot(const QString& path) const override;
+    QString getDirectory() const
+    {
+        return getModelDirectory();
+    }
+    QString getDirectoryPath() const
+    {
+        return getModelDirectoryPath();
+    }
+    QString getLocalPath(const QString& path) const;
 
     std::shared_ptr<std::map<QString, std::shared_ptr<ModelTreeNode>>>
     getModelTree(ModelFilter filter) const;
@@ -72,6 +84,7 @@ class MaterialsExport ModelLibraryLocal: public ModelLibrary
 
 public:
     ModelLibraryLocal();
+    ModelLibraryLocal(const std::shared_ptr<ManagedLibrary>& library);
     ModelLibraryLocal(const Library& other);
     ModelLibraryLocal(const QString& libraryName,
                       const QString& dir,

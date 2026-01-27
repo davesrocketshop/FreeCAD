@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: LGPL-2.1-or-later
 
 /***************************************************************************
- *   Copyright (c) 2023 David Carter <dcarter@david.carter.ca>             *
+ *   Copyright (c) 2026 David Carter <dcarter@david.carter.ca>             *
  *                                                                         *
  *   This file is part of FreeCAD.                                         *
  *                                                                         *
@@ -26,21 +26,15 @@
 #include <App/Application.h>
 
 #include "Exceptions.h"
-#include "SharedLibrary.h"
+#include "ManagedLibrary.h"
 
 
 using namespace Materials;
 
-TYPESYSTEM_SOURCE(Materials::SharedLibrary, Base::BaseClass)
+TYPESYSTEM_SOURCE(Materials::ManagedLibrary, Base::BaseClass)
 
-SharedLibrary::SharedLibrary(
-    const QString& repositoryName,
-    const QString& libraryName,
-    const QString& iconPath,
-    bool readOnly
-)
-    : _repository(repositoryName)
-    , _name(libraryName)
+ManagedLibrary::ManagedLibrary(const QString& libraryName, const QString& iconPath, bool readOnly)
+    : _libraryName(libraryName)
     , _readOnly(readOnly)
     , _disabled(false)
     , _local(false)
@@ -49,14 +43,8 @@ SharedLibrary::SharedLibrary(
     setIcon(iconPath);
 }
 
-SharedLibrary::SharedLibrary(
-    const QString& repositoryName,
-    const QString& libraryName,
-    const QByteArray& icon,
-    bool readOnly
-)
-    : _repository(repositoryName)
-    , _name(libraryName)
+ManagedLibrary::ManagedLibrary(const QString& libraryName, const QByteArray& icon, bool readOnly)
+    : _libraryName(libraryName)
     , _icon(icon)
     , _readOnly(readOnly)
     , _disabled(false)
@@ -64,16 +52,9 @@ SharedLibrary::SharedLibrary(
     , _module(false)
 {}
 
-SharedLibrary::SharedLibrary(
-    const QString& repositoryName,
-    const QString& libraryName,
-    const QString& dir,
-    const QString& iconPath,
-    bool readOnly
-)
-    : _repository(repositoryName)
-    , _name(libraryName)
-    , _directory(cleanPath(dir))
+ManagedLibrary::ManagedLibrary(const QString& libraryName, const QString& dir, const QString& iconPath, bool readOnly)
+    : _libraryName(libraryName)
+    , _materialDirectory(cleanPath(dir))
     , _readOnly(readOnly)
     , _disabled(false)
     , _local(false)
@@ -82,7 +63,7 @@ SharedLibrary::SharedLibrary(
     setIcon(iconPath);
 }
 
-QByteArray SharedLibrary::getIcon(const QString& iconPath)
+QByteArray ManagedLibrary::getIcon(const QString& iconPath)
 {
     QFile file(iconPath);
     if (!file.open(QIODevice::ReadOnly)) {
@@ -95,40 +76,43 @@ QByteArray SharedLibrary::getIcon(const QString& iconPath)
     return data;
 }
 
-void SharedLibrary::setIcon(const QString& iconPath)
+void ManagedLibrary::setIcon(const QString& iconPath)
 {
     _iconPath = iconPath;
     _icon = getIcon(iconPath);
 }
 
-bool SharedLibrary::isLocal() const
+bool ManagedLibrary::isLocal() const
 {
     return _local;
 }
 
-void SharedLibrary::setLocal(bool local)
+void ManagedLibrary::setLocal(bool local)
 {
     _local = local;
 }
 
-bool SharedLibrary::isModule() const
+bool ManagedLibrary::isModule() const
 {
     return _module;
 }
 
-void SharedLibrary::setModule(bool module)
+void ManagedLibrary::setModule(bool module)
 {
     _module = module;
 }
 
-bool SharedLibrary::operator==(const SharedLibrary& library) const
+bool ManagedLibrary::operator==(const ManagedLibrary& library) const
 {
-    return (getName() == library.getName()) && (_directory == library._directory);
+    return (isRepositoryName(library.getRepositoryName()))
+        && (isLibraryName(library.getLibraryName()))
+        && (_materialDirectory == library._materialDirectory)
+        && (_modelDirectory == library._modelDirectory);
 }
 
-void SharedLibrary::validate(const SharedLibrary& remote) const
+void ManagedLibrary::validate(const ManagedLibrary& remote) const
 {
-    if (getName() != remote.getName()) {
+    if (!isLibraryName(remote.getLibraryName())) {
         throw InvalidLibrary("Library names don't match");
     }
     if (getIcon() != remote.getIcon()) {
@@ -136,8 +120,13 @@ void SharedLibrary::validate(const SharedLibrary& remote) const
     }
 
     // Local and remote paths will differ
-    if (!remote.getDirectory().isEmpty()) {
-        throw InvalidLibrary("Remote library should not have a path");
+    if (!remote.getMaterialDirectory().isEmpty()) {
+        throw InvalidLibrary("Remote library should not have a material path");
+    }
+
+    // Local and remote paths will differ
+    if (!remote.getModelDirectory().isEmpty()) {
+        throw InvalidLibrary("Remote library should not have a model path");
     }
 
     if (isReadOnly() != remote.isReadOnly()) {
@@ -145,15 +134,15 @@ void SharedLibrary::validate(const SharedLibrary& remote) const
     }
 }
 
-QString SharedLibrary::getLocalPath(const QString& path) const
+QString ManagedLibrary::getLocalPath(const QString& path) const
 {
-    QString filePath = getDirectoryPath();
+    QString filePath = getMaterialDirectoryPath();
     if (!(filePath.endsWith(QStringLiteral("/")) || filePath.endsWith(QStringLiteral("\\")))) {
         filePath += QStringLiteral("/");
     }
 
     QString clean = cleanPath(path);
-    QString prefix = QStringLiteral("/") + getName();
+    QString prefix = QStringLiteral("/") + getLibraryName();
     if (clean.startsWith(prefix)) {
         // Remove the library name from the path
         filePath += clean.right(clean.length() - prefix.length());
@@ -165,18 +154,18 @@ QString SharedLibrary::getLocalPath(const QString& path) const
     return filePath;
 }
 
-bool SharedLibrary::isRoot(const QString& path) const
+bool ManagedLibrary::isRoot(const QString& path) const
 {
     QString localPath = getLocalPath(cleanPath(path));
     QString clean = getLocalPath(QStringLiteral(""));
     return (clean == localPath);
 }
 
-QString SharedLibrary::getRelativePath(const QString& path) const
+QString ManagedLibrary::getRelativePath(const QString& path) const
 {
     QString filePath;
     QString clean = cleanPath(path);
-    QString prefix = QStringLiteral("/") + getName();
+    QString prefix = QStringLiteral("/") + getLibraryName();
     if (clean.startsWith(prefix)) {
         // Remove the library name from the path
         filePath = clean.right(clean.length() - prefix.length());
@@ -185,7 +174,7 @@ QString SharedLibrary::getRelativePath(const QString& path) const
         filePath = clean;
     }
 
-    prefix = getDirectoryPath();
+    prefix = getMaterialDirectoryPath();
     if (filePath.startsWith(prefix, Qt::CaseInsensitive)) {
         // Remove the library root from the path
         filePath = filePath.right(filePath.length() - prefix.length());
@@ -199,7 +188,7 @@ QString SharedLibrary::getRelativePath(const QString& path) const
     return filePath;
 }
 
-QString SharedLibrary::getLibraryPath(const QString& path, const QString& filename) const
+QString ManagedLibrary::getLibraryPath(const QString& path, const QString& filename) const
 {
     QString filePath(cleanPath(path));
     if (filePath.endsWith(filename)) {
@@ -212,13 +201,13 @@ QString SharedLibrary::getLibraryPath(const QString& path, const QString& filena
     return filePath;
 }
 
-std::string SharedLibrary::cleanPath(const std::string path)
+std::string ManagedLibrary::cleanPath(const std::string path)
 {
     QString clean = QDir::cleanPath(QString::fromStdString(path));
     return clean.toStdString();
 }
 
-QString SharedLibrary::cleanPath(const QString& path)
+QString ManagedLibrary::cleanPath(const QString& path)
 {
     QString clean = QDir::cleanPath(path);
     return clean;

@@ -38,7 +38,9 @@ TYPESYSTEM_SOURCE(Materials::LibraryManager, Base::BaseClass)
 QMutex LibraryManager::_mutex;
 bool LibraryManager::_useExternal = false;
 LibraryManager* LibraryManager::_manager = nullptr;
-std::shared_ptr<std::list<std::shared_ptr<SharedLibrary>>> LibraryManager::_libraryList = nullptr;
+std::shared_ptr<std::list<std::shared_ptr<ManagedLibrary>>> LibraryManager::_libraryList = nullptr;
+std::shared_ptr<std::multimap<QString, std::shared_ptr<ManagedLibrary>>> LibraryManager::_libraryMap
+    = nullptr;
 
 LibraryManager::LibraryManager()
 {
@@ -73,8 +75,17 @@ void LibraryManager::initManagers()
         _manager = new LibraryManager();
     }
 
+    if (_libraryMap == nullptr) {
+        _libraryMap = std::make_shared<std::multimap<QString, std::shared_ptr<ManagedLibrary>>>();
+    }
+
     if (_libraryList == nullptr) {
         _libraryList = getConfiguredLibraries(true);  // Include disabled
+    }
+
+    _libraryMap->clear();
+    for (auto library : *_libraryList) {
+        _libraryMap->insert({library->getLibraryName(), library});
     }
 }
 
@@ -110,44 +121,100 @@ void LibraryManager::setUseExternal(bool useExternal)
     paramExternal->SetBool("UseExternal", useExternal);
 }
 
-std::shared_ptr<std::list<std::shared_ptr<ModelLibrary>>> LibraryManager::getLibraries(
+std::shared_ptr<std::list<std::shared_ptr<ManagedLibrary>>> LibraryManager::getLibraries(
     bool includeDisabled
 )
 {
-//     // External libraries take precedence over local libraries
-//     auto libMap = std::map<QString, std::shared_ptr<ModelLibrary>>();
-// #if defined(BUILD_MATERIAL_EXTERNAL)
-//     if (_useExternal) {
-//         auto remoteLibraries = _externalManager->getLibraries();
-//         for (auto& remote : *remoteLibraries) {
-//             if (includeDisabled || !remote->isDisabled()) {
-//                 libMap.try_emplace(remote->getName(), remote);
-//             }
-//         }
-//     }
-// #endif
-//     auto localLibraries = _localManager->getLibraries();
-//     for (auto& local : *localLibraries) {
-//         if (includeDisabled || !local->isDisabled()) {
-//             libMap.try_emplace(local->getName(), local);
-//         }
-//     }
+    //     // External libraries take precedence over local libraries
+    //     auto libMap = std::map<QString, std::shared_ptr<ModelLibrary>>();
+    // #if defined(BUILD_MATERIAL_EXTERNAL)
+    //     if (_useExternal) {
+    //         auto remoteLibraries = _externalManager->getLibraries();
+    //         for (auto& remote : *remoteLibraries) {
+    //             if (includeDisabled || !remote->isDisabled()) {
+    //                 libMap.try_emplace(remote->getName(), remote);
+    //             }
+    //         }
+    //     }
+    // #endif
+    //     auto localLibraries = _localManager->getLibraries();
+    //     for (auto& local : *localLibraries) {
+    //         if (includeDisabled || !local->isDisabled()) {
+    //             libMap.try_emplace(local->getName(), local);
+    //         }
+    //     }
 
     // Consolidate into a single list
-    auto libraries = std::make_shared<std::list<std::shared_ptr<ModelLibrary>>>();
-    // for (auto libEntry : libMap) {
-    //     libraries->push_back(libEntry.second);
-    // }
+    auto libraries = std::make_shared<std::list<std::shared_ptr<ManagedLibrary>>>();
+    for (auto libEntry : *_libraryList) {
+        libraries->push_back(libEntry);
+    }
 
     return libraries;
 }
 
-std::shared_ptr<std::list<std::shared_ptr<ModelLibrary>>> LibraryManager::getLocalLibraries(
+std::shared_ptr<std::list<std::shared_ptr<ModelLibrary>>> LibraryManager::getModelLibraries(
+    bool includeDisabled
+)
+{
+    auto libraries = std::make_shared<std::list<std::shared_ptr<ModelLibrary>>>();
+    for (auto libEntry : *_libraryList) {
+        if (!libEntry->getModelDirectory().isEmpty()) {
+            libraries->push_back(std::make_shared<ModelLibrary>(libEntry));
+        }
+    }
+
+    return libraries;
+}
+
+std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>> LibraryManager::getMaterialLibraries(
+    bool includeDisabled
+)
+{
+    auto libraries = std::make_shared<std::list<std::shared_ptr<MaterialLibrary>>>();
+    for (auto libEntry : *_libraryList) {
+        if (!libEntry->getMaterialDirectory().isEmpty()) {
+            libraries->push_back(std::make_shared<MaterialLibrary>(libEntry));
+        }
+    }
+
+    return libraries;
+}
+
+std::shared_ptr<std::list<std::shared_ptr<ManagedLibrary>>> LibraryManager::getLocalLibraries(
     bool includeDisabled
 )
 {
     // return _localManager->getLibraries();
     return getLibraries();
+}
+
+std::shared_ptr<std::list<std::shared_ptr<ModelLibraryLocal>>> LibraryManager::getLocalModelLibraries(
+    bool includeDisabled
+)
+{
+    auto libraries = std::make_shared<std::list<std::shared_ptr<ModelLibraryLocal>>>();
+    for (auto libEntry : *_libraryList) {
+        if (!libEntry->getModelDirectory().isEmpty()) {
+            libraries->push_back(std::make_shared<ModelLibraryLocal>(libEntry));
+        }
+    }
+
+    return libraries;
+}
+
+std::shared_ptr<std::list<std::shared_ptr<MaterialLibraryLocal>>> LibraryManager::getLocalMaterialLibraries(
+    bool includeDisabled
+)
+{
+    auto libraries = std::make_shared<std::list<std::shared_ptr<MaterialLibraryLocal>>>();
+    for (auto libEntry : *_libraryList) {
+        if (!libEntry->getMaterialDirectory().isEmpty()) {
+            libraries->push_back(std::make_shared<MaterialLibraryLocal>(libEntry));
+        }
+    }
+
+    return libraries;
 }
 
 std::shared_ptr<ModelLibrary> LibraryManager::getModelLibrary(const QString& repositoryName, const QString& name) const
@@ -259,11 +326,11 @@ void LibraryManager::createUserLibraryConfig()
     }
 }
 
-std::shared_ptr<std::list<std::shared_ptr<SharedLibrary>>> LibraryManager::getConfiguredLibraries(
+std::shared_ptr<std::list<std::shared_ptr<ManagedLibrary>>> LibraryManager::getConfiguredLibraries(
     bool includeDisabled
 )
 {
-    auto libraryList = std::make_shared<std::list<std::shared_ptr<SharedLibrary>>>();
+    auto libraryList = std::make_shared<std::list<std::shared_ptr<ManagedLibrary>>>();
 
     auto localParam = App::GetApplication().GetParameterGroupByPath(
         "User parameter:BaseApp/Preferences/Mod/Material/Resources/Local"
@@ -289,7 +356,7 @@ std::shared_ptr<std::list<std::shared_ptr<SharedLibrary>>> LibraryManager::getCo
             if (dir.exists()) {
                 if (!libDisabled || includeDisabled) {
                     // Use the canonical path to prevent issues with symbolic links
-                    auto libData = std::make_shared<SharedLibrary>(
+                    auto libData = std::make_shared<ManagedLibrary>(
                         libName,
                         dir.canonicalPath(),
                         libIcon,
@@ -322,7 +389,7 @@ std::shared_ptr<std::list<std::shared_ptr<SharedLibrary>>> LibraryManager::getCo
             QDir dir(materialDir);
             if (dir.exists()) {
                 if (!materialDisabled || includeDisabled) {
-                    auto libData = std::make_shared<SharedLibrary>(
+                    auto libData = std::make_shared<ManagedLibrary>(
                         moduleName,
                         dir.canonicalPath(),
                         materialIcon,

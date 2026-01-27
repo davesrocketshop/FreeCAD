@@ -124,7 +124,7 @@ Py::List ModelManagerPy::getModelLibraries() const
         auto lib = *it;
         Py::Tuple libTuple(3);
         libTuple.setItem(0, Py::String(lib->getName().toStdString()));
-        libTuple.setItem(1, Py::String(lib->getDirectoryPath().toStdString()));
+        libTuple.setItem(1, Py::String(lib->getModelDirectoryPath().toStdString()));
         libTuple.setItem(2, Py::Bytes(lib->getIcon().data(), lib->getIcon().size()));
         libTuple.setItem(3, Py::Boolean(lib->isReadOnly()));
 
@@ -143,7 +143,7 @@ Py::List ModelManagerPy::getLocalModelLibraries() const
         auto lib = *it;
         Py::Tuple libTuple(3);
         libTuple.setItem(0, Py::String(lib->getName().toStdString()));
-        libTuple.setItem(1, Py::String(lib->getDirectoryPath().toStdString()));
+        libTuple.setItem(1, Py::String(lib->getModelDirectoryPath().toStdString()));
         libTuple.setItem(2, Py::Bytes(lib->getIcon().data(), lib->getIcon().size()));
         libTuple.setItem(3, Py::Boolean(lib->isReadOnly()));
 

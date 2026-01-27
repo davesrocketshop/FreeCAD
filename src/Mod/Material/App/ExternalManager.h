@@ -36,7 +36,9 @@ class QByteArray;
 namespace Materials
 {
 
-class Library;
+class ManagedLibrary;
+class ModelLibrary;
+class MaterialLibrary;
 class LibraryObject;
 class Material;
 class Model;
@@ -53,10 +55,10 @@ public:
     void OnChange(ParameterGrp::SubjectType& rCaller, ParameterGrp::MessageType Reason) override;
 
     // Library management
-    std::shared_ptr<std::vector<std::shared_ptr<Library>>> libraries();
-    std::shared_ptr<std::vector<std::shared_ptr<Library>>> modelLibraries();
-    std::shared_ptr<std::vector<std::shared_ptr<Library>>> materialLibraries();
-    std::shared_ptr<Library> getLibrary(const QString& name);
+    std::shared_ptr<std::vector<std::shared_ptr<ManagedLibrary>>> libraries();
+    std::shared_ptr<std::vector<std::shared_ptr<ModelLibrary>>> modelLibraries();
+    std::shared_ptr<std::vector<std::shared_ptr<MaterialLibrary>>> materialLibraries();
+    std::shared_ptr<ManagedLibrary> getLibrary(const QString& name);
     void createLibrary(const QString& libraryName,
                        const QByteArray& icon,
                        bool readOnly = true);
@@ -117,7 +119,7 @@ private:
     void instantiate();
     void connect();
     bool checkMaterialLibraryType(const Py::Object& entry);
-    std::shared_ptr<Library> libraryFromObject(const Py::Object& entry);
+    std::shared_ptr<ManagedLibrary> libraryFromObject(const Py::Object& entry);
     bool checkMaterialLibraryObjectType(const Py::Object& entry);
     LibraryObject materialLibraryObjectTypeFromObject(const Py::Object& entry);
     bool checkModelObjectType(const Py::Object& entry);

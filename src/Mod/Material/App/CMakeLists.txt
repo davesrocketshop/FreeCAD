@@ -90,6 +90,8 @@ SET(Materials_SRCS
     Library.h
     LibraryManager.cpp
     LibraryManager.h
+    ManagedLibrary.cpp
+    ManagedLibrary.h
     MaterialConfigLoader.cpp
     MaterialConfigLoader.h
     MaterialFilter.cpp
@@ -123,8 +125,6 @@ SET(Materials_SRCS
     PropertyMaterial.h
     PyVariants.cpp
     PyVariants.h
-    SharedLibrary.cpp
-    SharedLibrary.h
     trim.h
 )
 

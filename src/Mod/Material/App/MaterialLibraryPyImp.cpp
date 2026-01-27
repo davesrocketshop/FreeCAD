@@ -93,7 +93,7 @@ void MaterialLibraryPy::setIcon(const Py::Object value)
 
 Py::String MaterialLibraryPy::getDirectory() const
 {
-    auto path = getMaterialLibraryPtr()->getDirectory();
+    auto path = getMaterialLibraryPtr()->getMaterialDirectory();
     return {path.toStdString()};
 }
 

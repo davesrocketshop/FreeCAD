@@ -34,9 +34,9 @@
 #include "Exceptions.h"
 #include "FolderTree.h"
 #include "Model.h"
+#include "ManagedLibrary.h"
 #include "MaterialLibrary.h"
 #include "ModelLibrary.h"
-#include "SharedLibrary.h"
 
 namespace Materials
 {
@@ -63,10 +63,22 @@ public:
     }
     void setUseExternal(bool useExternal);
 
-    std::shared_ptr<std::list<std::shared_ptr<ModelLibrary>>> getLibraries(
+    std::shared_ptr<std::list<std::shared_ptr<ManagedLibrary>>> getLibraries(
         bool includeDisabled = false
     );
-    std::shared_ptr<std::list<std::shared_ptr<ModelLibrary>>> getLocalLibraries(
+    std::shared_ptr<std::list<std::shared_ptr<ModelLibrary>>> getModelLibraries(
+        bool includeDisabled = false
+    );
+    std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>> getMaterialLibraries(
+        bool includeDisabled = false
+    );
+    std::shared_ptr<std::list<std::shared_ptr<ManagedLibrary>>> getLocalLibraries(
+        bool includeDisabled = false
+    );
+    std::shared_ptr<std::list<std::shared_ptr<ModelLibraryLocal>>> getLocalModelLibraries(
+        bool includeDisabled = false
+    );
+    std::shared_ptr<std::list<std::shared_ptr<MaterialLibraryLocal>>> getLocalMaterialLibraries(
         bool includeDisabled = false
     );
     std::shared_ptr<ModelLibrary> getModelLibrary(
@@ -99,11 +111,12 @@ public:
         const QString& icon,
         bool readOnly,
         bool disabled
-    ) {}
-    void unregisterLibrary(
-        const QString& repositoryName,
-        const QString& libraryName
-    ) {}
+    )
+    {}
+    void registerLibrary(const std::shared_ptr<ManagedLibrary>& library)
+    {}
+    void unregisterLibrary(const QString& repositoryName, const QString& libraryName)
+    {}
 
     void renameLibrary(const QString& repositoryName, const QString& libraryName, const QString& newName);
     void changeIcon(const QString& repositoryName, const QString& libraryName, const QString& icon);
@@ -115,7 +128,7 @@ public:
 
     static void createSystemLibraryConfig();
     static void createUserLibraryConfig();
-    static std::shared_ptr<std::list<std::shared_ptr<SharedLibrary>>> getConfiguredLibraries(
+    static std::shared_ptr<std::list<std::shared_ptr<ManagedLibrary>>> getConfiguredLibraries(
         bool includeDisabled = false
     );
 
@@ -135,7 +148,8 @@ private:
     static LibraryManager* _manager;
     static QMutex _mutex;
     static bool _useExternal;
-    static std::shared_ptr<std::list<std::shared_ptr<SharedLibrary>>> _libraryList;
+    static std::shared_ptr<std::list<std::shared_ptr<ManagedLibrary>>> _libraryList;
+    static std::shared_ptr<std::multimap<QString, std::shared_ptr<ManagedLibrary>>> _libraryMap;
 
     ParameterGrp::handle _hGrp;
 };

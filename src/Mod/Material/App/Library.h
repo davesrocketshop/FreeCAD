@@ -24,6 +24,8 @@
 #ifndef MATERIAL_LIBRARY_H
 #define MATERIAL_LIBRARY_H
 
+#include <memory>
+
 #include <QDir>
 #include <QByteArray>
 #include <QString>
@@ -31,6 +33,8 @@
 #include <Base/BaseClass.h>
 
 #include <Mod/Material/MaterialGlobal.h>
+
+#include"ManagedLibrary.h"
 
 namespace Materials
 {
@@ -44,8 +48,9 @@ class MaterialsExport Library: public Base::BaseClass
     TYPESYSTEM_HEADER_WITH_OVERRIDE();
 
 public:
-    Library() = default;
+    Library();
     Library(const Library &other) = default;
+    Library(const std::shared_ptr<ManagedLibrary>& library);
     Library(const QString& libraryName, const QString& icon, bool readOnly = true);
     Library(const QString& libraryName, const QByteArray& icon, bool readOnly);
     Library(const QString& libraryName,
@@ -62,55 +67,62 @@ public:
 
     QString getName() const
     {
-        return _name;
+        return _managedLibrary->getLibraryName();
     }
     void setName(const QString& newName)
     {
-        _name = newName;
+        _managedLibrary->setLibraryName(newName);
     }
     bool isName(const QString& name)
     {
-        return (_name == name);
+        return _managedLibrary->isLibraryName(name);
     }
 
     QByteArray getIcon() const
     {
-        return _icon;
-    }
-    static QByteArray getIcon(const QString& iconPath);
-    QString getIconPath() const
-    {
-        return _iconPath;
+        return _managedLibrary->getIcon();
     }
     void setIcon(const QByteArray& icon)
     {
-        _icon = icon;
+        _managedLibrary->setIcon(icon);
     }
     void setIcon(const QString& iconPath);
     bool hasIcon() const
     {
-        return !_icon.isEmpty();
+        return _managedLibrary->hasIcon();
     }
     bool isReadOnly() const
     {
-        return _readOnly;
+        return _managedLibrary->isReadOnly();
     }
     void setReadOnly(bool readOnly)
     {
-        _readOnly = readOnly;
+        _managedLibrary->setReadOnly(readOnly);
     }
     bool isDisabled() const
     {
-        return _disabled;
+        return _managedLibrary->isDisabled();
     }
 
-    QString getDirectory() const
+    virtual QString getDirectory() const = 0;
+    virtual QString getDirectoryPath() const = 0;
+
+    QString getMaterialDirectory() const
     {
-        return _directory;
+        return _managedLibrary->getMaterialDirectory();
     }
-    QString getDirectoryPath() const
+    QString getMaterialDirectoryPath() const
     {
-        return QDir(_directory).absolutePath();
+        return QDir(_managedLibrary->getMaterialDirectory()).absolutePath();
+    }
+
+    QString getModelDirectory() const
+    {
+        return _managedLibrary->getModelDirectory();
+    }
+    QString getModelDirectoryPath() const
+    {
+        return QDir(_managedLibrary->getModelDirectory()).absolutePath();
     }
 
     bool operator==(const Library& library) const;
@@ -119,10 +131,9 @@ public:
         return !operator==(library);
     }
 
-    QString getLocalPath(const QString& path) const;
     QString getRelativePath(const QString& path) const;
     QString getLibraryPath(const QString& path, const QString& filename) const;
-    bool isRoot(const QString& path) const;
+    virtual bool isRoot(const QString& path) const = 0;
 
     // Validate a remote library against this one (a local library)
     void validate(const Library& remote) const;
@@ -134,27 +145,25 @@ protected:
     // These should only be done through the MaterialManager or one of its subbordinates
     void setDisabled(bool disabled)
     {
-        _disabled = disabled;
+        _managedLibrary->setDisabled(disabled);
     }
     void setDirectory(const QString& directory)
     {
-        _directory = cleanPath(directory);
+        _managedLibrary->setMaterialDirectory(cleanPath(directory));
     }
 
     friend class ModelLoader;
     friend class ModelManagerLocal;
     friend class MaterialManagerLocal;
 
-private:
-    QString _name;
-    QString _directory;
-    QByteArray _icon;
-    QString _iconPath;
-    bool _readOnly;
-    bool _disabled;
+    std::shared_ptr<ManagedLibrary> proxy() const {
+        return _managedLibrary;
+    }
 
-    bool _local;
-    bool _module;
+    QString getLocalPath(const QString& directory, const QString& path) const;
+
+private:
+    std::shared_ptr<ManagedLibrary> _managedLibrary;
 
     QByteArray loadByteArrayFromFile(const QString& filePath) const;
 };

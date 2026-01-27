@@ -78,7 +78,7 @@ std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>> MaterialManagerExte
     try {
         auto externalLibraries = ExternalManager::getManager()->libraries();
         for (auto& entry : *externalLibraries) {
-            auto library = std::make_shared<MaterialLibrary>(*entry);
+            auto library = std::make_shared<MaterialLibrary>(entry);
             libraryList->push_back(library);
         }
     }
@@ -97,8 +97,7 @@ MaterialManagerExternal::getMaterialLibraries()
     try {
         auto externalLibraries = ExternalManager::getManager()->materialLibraries();
         for (auto& entry : *externalLibraries) {
-            auto library = std::make_shared<MaterialLibrary>(*entry);
-            libraryList->push_back(library);
+            libraryList->push_back(entry);
         }
     }
     catch (const LibraryNotFound& e) {
@@ -113,7 +112,7 @@ std::shared_ptr<MaterialLibrary> MaterialManagerExternal::getLibrary(const QStri
 {
     try {
         auto lib = ExternalManager::getManager()->getLibrary(name);
-        auto library = std::make_shared<MaterialLibrary>(*lib);
+        auto library = std::make_shared<MaterialLibrary>(lib);
         return library;
     }
     catch (const LibraryNotFound& e) {

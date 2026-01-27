@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: LGPL-2.1-or-later
 
 /***************************************************************************
- *   Copyright (c) 2023 David Carter <dcarter@david.carter.ca>             *
+ *   Copyright (c) 2026 David Carter <dcarter@david.carter.ca>             *
  *                                                                         *
  *   This file is part of FreeCAD.                                         *
  *                                                                         *
@@ -21,16 +21,16 @@
  *                                                                         *
  **************************************************************************/
 
-#ifndef MATERIAL_SHAREDLIBRARY_H
-#define MATERIAL_SHAREDLIBRARY_H
+#ifndef MATERIAL_MANAGEDLIBRARY_H
+#define MATERIAL_MANAGEDLIBRARY_H
 
-#include <QDir>
-#include <QByteArray>
-#include <QString>
+# include <QDir>
+# include <QByteArray>
+# include <QString>
 
-#include <Base/BaseClass.h>
+# include <Base/BaseClass.h>
 
-#include <Mod/Material/MaterialGlobal.h>
+# include <Mod/Material/MaterialGlobal.h>
 
 namespace Materials
 {
@@ -39,33 +39,22 @@ class ModelLoader;
 class ModelManagerLocal;
 class MaterialManagerLocal;
 
-class MaterialsExport SharedLibrary: public Base::BaseClass
+class MaterialsExport ManagedLibrary: public Base::BaseClass
 {
     TYPESYSTEM_HEADER_WITH_OVERRIDE();
 
 public:
-    SharedLibrary() = default;
-    SharedLibrary(const SharedLibrary& other) = default;
-    SharedLibrary(
-        const QString& repositoryName,
-        const QString& libraryName,
-        const QString& icon,
-        bool readOnly = true
-    );
-    SharedLibrary(
-        const QString& repositoryName,
-        const QString& libraryName,
-        const QByteArray& icon,
-        bool readOnly
-    );
-    SharedLibrary(
-        const QString& repositoryName,
+    ManagedLibrary() = default;
+    ManagedLibrary(const ManagedLibrary& other) = default;
+    ManagedLibrary(const QString& libraryName, const QString& icon, bool readOnly = true);
+    ManagedLibrary(const QString& libraryName, const QByteArray& icon, bool readOnly);
+    ManagedLibrary(
         const QString& libraryName,
         const QString& dir,
         const QString& iconPath,
         bool readOnly = true
     );
-    ~SharedLibrary() override = default;
+    ~ManagedLibrary() override = default;
 
     bool isLocal() const;
     void setLocal(bool local);
@@ -73,30 +62,30 @@ public:
     bool isModule() const;
     void setModule(bool module);
 
-    QString getName() const
+    QString getRepositoryName() const
     {
-        return _name;
+        return _repositoryName;
     }
-    void setName(const QString& newName)
+    void setRepositoryName(const QString& newName)
     {
-        _name = newName;
+        _repositoryName = newName;
     }
-    bool isName(const QString& name)
+    bool isRepositoryName(const QString& name) const
     {
-        return (_name == name);
+        return (_repositoryName == name);
     }
 
-    QString getRepository() const
+    QString getLibraryName() const
     {
-        return _name;
+        return _libraryName;
     }
-    void setRepository(const QString& newName)
+    void setLibraryName(const QString& newName)
     {
-        _name = newName;
+        _libraryName = newName;
     }
-    bool isRepository(const QString& name)
+    bool isLibraryName(const QString& name) const
     {
-        return (_name == name);
+        return (_libraryName == name);
     }
 
     QByteArray getIcon() const
@@ -129,18 +118,39 @@ public:
     {
         return _disabled;
     }
-
-    QString getDirectory() const
+    void setDisabled(bool disabled)
     {
-        return _directory;
-    }
-    QString getDirectoryPath() const
-    {
-        return QDir(_directory).absolutePath();
+        _disabled = disabled;
     }
 
-    bool operator==(const SharedLibrary& library) const;
-    bool operator!=(const SharedLibrary& library) const
+    QString getMaterialDirectory() const
+    {
+        return _materialDirectory;
+    }
+    void setMaterialDirectory(const QString& directory)
+    {
+        _materialDirectory = cleanPath(directory);
+    }
+
+    QString getModelDirectory() const
+    {
+        return _modelDirectory;
+    }
+    void setModelDirectory(const QString& directory)
+    {
+        _modelDirectory = cleanPath(directory);
+    }
+    QString getMaterialDirectoryPath() const
+    {
+        return QDir(_materialDirectory).absolutePath();
+    }
+    QString getModelDirectoryPath() const
+    {
+        return QDir(_modelDirectory).absolutePath();
+    }
+
+    bool operator==(const ManagedLibrary& library) const;
+    bool operator!=(const ManagedLibrary& library) const
     {
         return !operator==(library);
     }
@@ -151,31 +161,16 @@ public:
     bool isRoot(const QString& path) const;
 
     // Validate a remote library against this one (a local library)
-    void validate(const SharedLibrary& remote) const;
+    void validate(const ManagedLibrary& remote) const;
 
     static std::string cleanPath(const std::string path);
     static QString cleanPath(const QString& path);
 
-protected:
-    // These should only be done through the MaterialManager or one of its subbordinates
-    void setDisabled(bool disabled)
-    {
-        _disabled = disabled;
-    }
-    void setDirectory(const QString& directory)
-    {
-        _directory = cleanPath(directory);
-    }
-
-    friend class LibraryManager;
-    friend class ModelLoader;
-    friend class ModelManagerLocal;
-    friend class MaterialManagerLocal;
-
 private:
-    QString _repository;
-    QString _name;
-    QString _directory;
+    QString _repositoryName;
+    QString _libraryName;
+    QString _materialDirectory;
+    QString _modelDirectory;
     QByteArray _icon;
     QString _iconPath;
     bool _readOnly;
@@ -189,4 +184,4 @@ private:
 
 }  // namespace Materials
 
-#endif  // MATERIAL_SHAREDLIBRARY_H
+#endif  // MATERIAL_MANAGEDLIBRARY_H

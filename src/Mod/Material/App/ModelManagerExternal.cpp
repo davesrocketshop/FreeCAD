@@ -76,7 +76,7 @@ std::shared_ptr<std::list<std::shared_ptr<ModelLibrary>>> ModelManagerExternal::
     try {
         auto externalLibraries = ExternalManager::getManager()->libraries();
         for (auto& entry : *externalLibraries) {
-            auto library = std::make_shared<ModelLibrary>(*entry);
+            auto library = std::make_shared<ModelLibrary>(entry);
             libraryList->push_back(library);
         }
     }
@@ -92,7 +92,7 @@ std::shared_ptr<ModelLibrary> ModelManagerExternal::getLibrary(const QString& na
 {
     try {
         auto lib = ExternalManager::getManager()->getLibrary(name);
-        auto library = std::make_shared<ModelLibrary>(*lib);
+        auto library = std::make_shared<ModelLibrary>(lib);
         return library;
     }
     catch (const LibraryNotFound& e) {

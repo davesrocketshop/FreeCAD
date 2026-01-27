@@ -236,7 +236,7 @@ std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>> MaterialManager::ge
     if (includeMasked) {
         return getLibrariesMasked(includeDisabled);
     }
-    
+
     // External libraries take precedence over local libraries
     auto libMap = std::map<QString, std::shared_ptr<MaterialLibrary>>();
 #if defined(BUILD_MATERIAL_EXTERNAL)
@@ -342,7 +342,7 @@ std::shared_ptr<MaterialLibrary> MaterialManager::createLibrary(
 {
 #if defined(BUILD_MATERIAL_EXTERNAL)
     if (_useExternal) {
-        auto icon = Materials::Library::getIcon(iconPath);
+        auto icon = Materials::ManagedLibrary::getIcon(iconPath);
         return _externalManager->createLibrary(libraryName, icon, readOnly);
     }
 #endif
@@ -380,7 +380,7 @@ void MaterialManager::renameLibrary(const QString& libraryName, const QString& n
 
 void MaterialManager::changeIcon(const QString& libraryName, const QString& iconPath)
 {
-    auto icon = Materials::Library::getIcon(iconPath);
+    auto icon = Materials::ManagedLibrary::getIcon(iconPath);
     _localManager->changeIcon(libraryName, icon);
 }
 
