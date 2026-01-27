@@ -648,43 +648,43 @@ void Material::clearInherited()
 void Material::setName(const QString& name)
 {
     _name = name;
-    setEditStateExtend();
+    setEditStateChanged();
 }
 
 void Material::setAuthor(const QString& author)
 {
     _author = author;
-    setEditStateExtend();
+    setEditStateChanged();
 }
 
 void Material::setLicense(const QString& license)
 {
     _license = license;
-    setEditStateExtend();
+    setEditStateChanged();
 }
 
 void Material::setParentUUID(const QString& uuid)
 {
     _parentUuid = uuid;
-    setEditStateExtend();
+    setEditStateChanged();
 }
 
 void Material::setDescription(const QString& description)
 {
     _description = description;
-    setEditStateExtend();
+    setEditStateChanged();
 }
 
 void Material::setURL(const QString& url)
 {
     _url = url;
-    setEditStateExtend();
+    setEditStateChanged();
 }
 
 void Material::setReference(const QString& reference)
 {
     _reference = reference;
-    setEditStateExtend();
+    setEditStateChanged();
 }
 
 void Material::setEditState(ModelEdit newState)
@@ -740,7 +740,7 @@ void Material::addPhysical(const QString& uuid)
 
         _physicalUuids.insert(uuid);
         addModel(uuid);
-        setEditStateExtend();
+        setEditStateChanged();
 
         for (auto& it : *model) {
             QString propertyName = it.first;
@@ -817,7 +817,7 @@ void Material::addAppearance(const QString& uuid)
 
         _appearanceUuids.insert(uuid);
         addModel(uuid);
-        setEditStateExtend();
+        setEditStateChanged();
 
         for (auto& it : *model) {
             QString propertyName = it.first;
@@ -884,7 +884,7 @@ void Material::setPropertyEditState(const QString& name)
 void Material::setPhysicalEditState(const QString& name)
 {
     if (getPhysicalProperty(name)->isNull()) {
-        setEditStateExtend();
+        setEditStateChanged();
     }
     else {
         setEditStateInvariantChanged();
@@ -895,7 +895,7 @@ void Material::setAppearanceEditState(const QString& name)
 {
     try {
         if (getAppearanceProperty(name)->isNull()) {
-            setEditStateExtend();
+            setEditStateChanged();
         }
         else {
             setEditStateInvariantChanged();
