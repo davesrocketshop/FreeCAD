@@ -868,7 +868,7 @@ void MaterialsEditor::saveMaterial()
     bool saveAsCopy = false;
     bool saveInherited = true;
     if (_material->getEditState() != Materials::Material::ModelEdit_None) {
-        if (_material->getEditState() == Materials::Material::ModelEdit_Alter) {
+        if (_material->getEditState() == Materials::Material::ModelEdit_InvariantChanged) {
             MaterialSaveResult ret = overwriteOrCopy();
             if (ret == MaterialSave_Cancel) {
                 return;
@@ -1918,7 +1918,7 @@ void MaterialsEditor::onMenuNewMaterial(bool checked)
     auto uniqueName = item->getUniqueName(tr("New Material"), TreeFunctionMaterial);
     _material = std::make_shared<Materials::Material>();
     _material->setEditStateNew();
-    // _material->setEditStateAlter();
+    // _material->setEditStateInvariantChanged();
     setMaterialDefaults();
     _material->setLibrary(library);
     _material->setName(uniqueName);

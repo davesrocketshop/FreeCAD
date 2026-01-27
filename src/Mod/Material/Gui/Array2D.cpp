@@ -129,7 +129,7 @@ void Array2D::onDataChanged(const QModelIndex& topLeft,
     Q_UNUSED(bottomRight)
     Q_UNUSED(roles)
 
-    _material->setEditStateAlter();
+    _material->setEditStateInvariantChanged();
 }
 
 void Array2D::onContextMenu(const QPoint& pos)

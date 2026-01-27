@@ -192,7 +192,7 @@ void MaterialDelegate::notifyChanged(const QAbstractItemModel* model,
         // auto propertyName = group->child(row, 0)->text();
         auto propertyName = group->child(row, 0)->data().toString();
         auto propertyValue = material->getProperty(propertyName)->getValue();
-        material->setEditStateAlter();
+        material->setEditStateInvariantChanged();
 
         Q_EMIT const_cast<MaterialDelegate*>(this)->propertyChange(propertyName, propertyValue);
     }

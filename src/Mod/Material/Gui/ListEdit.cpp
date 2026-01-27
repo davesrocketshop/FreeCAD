@@ -110,7 +110,7 @@ void ListEdit::onDataChanged(const QModelIndex& topLeft,
     Q_UNUSED(bottomRight)
     Q_UNUSED(roles)
 
-    _material->setEditStateAlter();
+    _material->setEditStateInvariantChanged();
     update();
 }
 

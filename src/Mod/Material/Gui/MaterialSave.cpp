@@ -131,7 +131,7 @@ void MaterialSave::onOk(bool checked)
     QString name = _filename.remove(QStringLiteral(".FCMat"), Qt::CaseInsensitive);
     if (name != _material->getName()) {
         _material->setName(name);
-        _material->setEditStateAlter();  // ? Does a name change count?
+        _material->setEditStateInvariantChanged();  // ? Does a name change count?
     }
 
     auto variant = ui->comboLibrary->currentData();

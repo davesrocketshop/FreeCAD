@@ -692,12 +692,12 @@ void Material::setEditState(ModelEdit newState)
     if (_editState == ModelEdit_New) {
         return;
     }
-    if (newState == ModelEdit_Extend) {
-        if (_editState != ModelEdit_Alter) {
+    if (newState == ModelEdit_Changed) {
+        if (_editState != ModelEdit_InvariantChanged) {
             _editState = newState;
         }
     }
-    else if (newState == ModelEdit_Alter || newState == ModelEdit_New) {
+    else if (newState == ModelEdit_InvariantChanged || newState == ModelEdit_New) {
         _editState = newState;
     }
 }
@@ -790,7 +790,7 @@ void Material::removePhysical(const QString& uuid)
             _physical.erase(it.first);
         }
 
-        setEditStateAlter();
+        setEditStateInvariantChanged();
     }
     catch (ModelNotFound const&) {
         Base::Console().log("Physical model not found '%s'\n", uuid.toStdString().c_str());
@@ -861,7 +861,7 @@ void Material::removeAppearance(const QString& uuid)
             _appearance.erase(it.first);
         }
 
-        setEditStateAlter();
+        setEditStateInvariantChanged();
     }
     catch (ModelNotFound const&) {
     }
@@ -887,7 +887,7 @@ void Material::setPhysicalEditState(const QString& name)
         setEditStateExtend();
     }
     else {
-        setEditStateAlter();
+        setEditStateInvariantChanged();
     }
 }
 
@@ -898,7 +898,7 @@ void Material::setAppearanceEditState(const QString& name)
             setEditStateExtend();
         }
         else {
-            setEditStateAlter();
+            setEditStateInvariantChanged();
         }
     }
     catch (const PropertyNotFound&) {
@@ -1046,7 +1046,7 @@ void Material::setValue(const QString& name, const std::shared_ptr<MaterialValue
 
 void Material::setLegacyValue(const QString& name, const QString& value)
 {
-    setEditStateAlter();
+    setEditStateInvariantChanged();
 
     _legacy[name] = value;
 }

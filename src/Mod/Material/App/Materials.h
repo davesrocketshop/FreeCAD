@@ -178,10 +178,10 @@ class MaterialsExport Material: public Base::BaseClass
 public:
     enum ModelEdit
     {
-        ModelEdit_None,   // No change
-        ModelEdit_New,    // New unsaved material
-        ModelEdit_Alter,  // Existing values are changed
-        ModelEdit_Extend  // New values added
+        ModelEdit_None,             // No change
+        ModelEdit_New,              // New unsaved material
+        ModelEdit_InvariantChanged, // Changes that could impact existing documents
+        ModelEdit_Changed           // All other changes
     };
 
     Material();
@@ -271,13 +271,13 @@ public:
     void setReference(const QString& reference);
 
     void setEditState(ModelEdit newState);
-    void setEditStateAlter()
+    void setEditStateInvariantChanged()
     {
-        setEditState(ModelEdit_Alter);
+        setEditState(ModelEdit_InvariantChanged);
     }
-    void setEditStateExtend()
+    void setEditStateChanged()
     {
-        setEditState(ModelEdit_Extend);
+        setEditState(ModelEdit_Changed);
     }
     void setEditStateNew()
     {

@@ -160,7 +160,7 @@ void Array3D::onDataChanged(const QModelIndex& topLeft,
     Q_UNUSED(bottomRight)
     Q_UNUSED(roles)
 
-    _material->setEditStateAlter();
+    _material->setEditStateInvariantChanged();
 }
 
 void Array3D::setColumnWidths(QTableView* table)
