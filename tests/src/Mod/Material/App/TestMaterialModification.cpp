@@ -229,7 +229,7 @@ TEST_F(TestMaterialModification, TestAlter)
     ASSERT_EQ(material->getEditState(), Materials::Material::ModelEdit_Changed);
     material->setPhysicalValue(QStringLiteral("TestQuantity"), QStringLiteral("1.0 kg/m^3"));
     ASSERT_EQ(material->getEditState(), Materials::Material::ModelEdit_Changed);
-    material->setAppearanceValue("DiffuseColor", "(0.7804, 0.5686, 0.1137, 1.0)"); // No previous value
+    material->setAppearanceValue(QStringLiteral("DiffuseColor"), QStringLiteral("(0.7804, 0.5686, 0.1137, 1.0)")); // No previous value
     ASSERT_EQ(material->getEditState(), Materials::Material::ModelEdit_Changed);
     material->setPhysicalValue(QStringLiteral("TestQuantity"), QStringLiteral("1.0 kg/m^3"));
     ASSERT_EQ(material->getEditState(), Materials::Material::ModelEdit_InvariantChanged);
