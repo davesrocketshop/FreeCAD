@@ -163,6 +163,7 @@ TEST_F(TestMaterialFilter, TestFilters)
     Materials::MaterialFilterOptions options;
     ASSERT_TRUE(_library);
 
+    options.setIncludeLegacy(false);
     auto tree = _materialManager->getMaterialTree(*_library, filter, options);
     ASSERT_EQ(tree->size(), 4);
 

@@ -608,6 +608,7 @@ void MaterialLoader::loadLibraries(
 
     for (auto& it : *_materialMap) {
         dereference(it.second);
+        it.second->resetEditState();
     }
 }
 

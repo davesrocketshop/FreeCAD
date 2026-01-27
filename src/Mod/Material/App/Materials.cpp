@@ -502,6 +502,7 @@ Material::Material(const std::shared_ptr<MaterialLibrary>& library,
                    const QString& uuid,
                    const QString& name)
     : _library(library)
+    , _directory(directory)
     , _uuid(uuid)
     , _name(name)
     , _dereferenced(false)
@@ -557,6 +558,12 @@ bool Material::isDisabled() const
     return _library->isDisabled();
 }
 
+void Material::setLibrary(const std::shared_ptr<MaterialLibrary>& library)
+{
+    _library = library;
+    setEditStateChanged();
+}
+
 QString Material::getDirectory() const
 {
     return _directory;
@@ -565,6 +572,7 @@ QString Material::getDirectory() const
 void Material::setDirectory(const QString& directory)
 {
     _directory = directory;
+    setEditStateChanged();
 }
 
 QString Material::getFilename() const
@@ -575,6 +583,7 @@ QString Material::getFilename() const
 void Material::setFilename(const QString& filename)
 {
     _filename = filename;
+    setEditStateChanged();
 }
 
 QString Material::getFilePath() const
@@ -712,12 +721,14 @@ void Material::addTag(const QString& tag)
     auto trimmed = tag.trimmed();
     if (!trimmed.isEmpty()) {
         _tags.insert(trimmed);
+        setEditStateChanged();
     }
 }
 
 void Material::removeTag(const QString& tag)
 {
     _tags.remove(tag);
+    setEditStateChanged();
 }
 
 void Material::addPhysical(const QString& uuid)

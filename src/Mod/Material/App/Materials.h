@@ -252,10 +252,7 @@ public:
 
     App::Material getMaterialAppearance() const;
 
-    void setLibrary(const std::shared_ptr<MaterialLibrary>& library)
-    {
-        _library = library;
-    }
+    void setLibrary(const std::shared_ptr<MaterialLibrary>& library);
     void setDirectory(const QString& directory);
     void setFilename(const QString& filename);
     void setUUID(const QString& uuid)
