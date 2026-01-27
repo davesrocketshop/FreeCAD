@@ -131,7 +131,7 @@ TEST_F(TestMaterialModification, TestAlter)
     ASSERT_NE(library, nullptr);
 
     auto systemMaterial = _materialManager->getMaterial(QStringLiteral("c6c64159-19c1-40b5-859c-10561f20f979"));
-    auto material = std::make_shared<Materials::Material>(systemMaterial);
+    auto material = std::make_shared<Materials::Material>(*systemMaterial);
     ASSERT_NE(material, nullptr);
     ASSERT_EQ(material->getEditState(), Materials::Material::ModelEdit_None);
     material->resetEditState();
