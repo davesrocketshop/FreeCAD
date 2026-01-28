@@ -597,6 +597,7 @@ void MaterialManagerLocal::saveMaterial(
 {
     if (library->isLocal()) {
         auto newMaterial = library->saveMaterial(material, path, overwrite, saveAsCopy, saveInherited);
+        newMaterial->resetEditState();
         (*_materialMap)[newMaterial->getUUID()] = newMaterial;
     }
 }
