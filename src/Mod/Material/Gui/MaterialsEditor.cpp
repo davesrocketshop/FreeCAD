@@ -49,17 +49,16 @@
 #include <Mod/Material/App/MaterialLibrary.h>
 #include <Mod/Material/App/ModelManager.h>
 #include <Mod/Material/App/ModelUuids.h>
-#include <Mod/Material/Gui/Models/MaterialTreeModel.h>
 
-#include "MaterialDelegate.h"
-#include "MaterialSave.h"
+#include "Delegates/MaterialDelegate.h"
+#include "Models/MaterialTreeModel.h"
+#include "Widgets/MaterialPropertiesWidget.h"
+#include "Widgets/PropertiesWidget.h"
+
 #include "MaterialsEditor.h"
 #include "ModelSelect.h"
 #include "NewLibrary.h"
 #include "ui_MaterialsEditor.h"
-
-#include "Widgets/MaterialPropertiesWidget.h"
-#include "Widgets/PropertiesWidget.h"
 
 
 using namespace MatGui;
@@ -583,6 +582,9 @@ void MaterialsEditor::onTreeItemChanged(QStandardItem* item)
 
         case TreeFunctionMaterial:
             renameMaterial(materialItem);
+            break;
+
+        default:
             break;
     }
 }

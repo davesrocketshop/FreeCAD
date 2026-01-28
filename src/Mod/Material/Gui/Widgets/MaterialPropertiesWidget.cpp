@@ -29,7 +29,7 @@
 #include <Mod/Material/App/ModelManager.h>
 #include <Mod/Material/App/ModelUuids.h>
 
-#include <Mod/Material/Gui/MaterialDelegate.h>
+#include <Mod/Material/Gui/Delegates/MaterialDelegate.h>
 
 #include "MaterialPropertiesWidget.h"
 #include "ui_MaterialPropertiesWidget.h"

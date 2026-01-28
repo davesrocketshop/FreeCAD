@@ -48,7 +48,6 @@
 #include <Mod/Material/Gui/Models/ListModel.h>
 
 #include "ListDelegate.h"
-#include "MaterialSave.h"
 
 
 using namespace MatGui;

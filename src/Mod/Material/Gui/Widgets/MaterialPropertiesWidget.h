@@ -23,6 +23,7 @@
 #define MATGUI_MATERIALPROPERTIESWIDGET_H
 
 #include <QWidget>
+#include <QTreeView>
 
 #include <Mod/Material/App/MaterialManager.h>
 #include <Mod/Material/App/Materials.h>

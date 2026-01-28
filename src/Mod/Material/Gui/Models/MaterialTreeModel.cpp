@@ -21,8 +21,9 @@
  *                                                                         *
  **************************************************************************/
 
+#include <QIODevice>
 #include <QMetaType>
-
+#include <QMimeData>
 
 #include <Base/Console.h>
 

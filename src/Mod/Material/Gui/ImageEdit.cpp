@@ -40,7 +40,8 @@
 #include <Mod/Material/Gui/Models/ArrayModel.h>
 #include <Mod/Material/Gui/Models/ListModel.h>
 
-#include "ArrayDelegate.h"
+#include <Mod/Material/Gui/Delegates/ArrayDelegate.h>
+
 #include "ImageEdit.h"
 #include "ui_ImageEdit.h"
 

@@ -32,7 +32,8 @@
 #include <Mod/Material/Gui/Models/ArrayModel.h>
 #include <Mod/Material/Gui/Models/ListModel.h>
 
-#include "ListDelegate.h"
+#include <Mod/Material/Gui/Delegates/ListDelegate.h>
+
 #include "ListEdit.h"
 #include "ui_ListEdit.h"
 

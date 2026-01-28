@@ -767,9 +767,11 @@ void MaterialManager::saveMaterial(
         );
         _localManager->saveMaterial(materialLibrary, material, path, overwrite, saveAsCopy, saveInherited);
     }
+#if defined(BUILD_MATERIAL_EXTERNAL)
     else {
         _externalManager->saveMaterial(library, material, path, overwrite);
     }
+#endif
     material->resetEditState();
 }
 

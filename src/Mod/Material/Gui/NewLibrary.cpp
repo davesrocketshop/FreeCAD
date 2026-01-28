@@ -181,6 +181,8 @@ void NewLibrary::onReadOnly(Qt::CheckState state)
 
 void NewLibrary::onChangeIcon(bool checked)
 {
+    Q_UNUSED(checked)
+    
     QString prechosenDirectory = Gui::FileDialog::getWorkingDirectory();
 
     QFileDialog::Options dlgOpt;

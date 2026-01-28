@@ -45,7 +45,6 @@ set(MatGui_UIC_SRCS
     DlgSettingsMaterial.ui
     ImageEdit.ui
     ListEdit.ui
-    MaterialSave.ui
     MaterialsEditor.ui
     ModelSelect.ui
     NewLibrary.ui
@@ -73,10 +72,6 @@ SET(MatGui_SRCS
     Array3D.cpp
     Array3D.h
     Array3D.ui
-    ArrayDelegate.cpp
-    ArrayDelegate.h
-    BaseDelegate.cpp
-    BaseDelegate.h
     Command.cpp
     ClipboardText.cpp
     ClipboardText.h
@@ -104,16 +99,9 @@ SET(MatGui_SRCS
     ImageEdit.cpp
     ImageEdit.h
     ImageEdit.ui
-    ListDelegate.cpp
-    ListDelegate.h
     ListEdit.cpp
     ListEdit.h
     ListEdit.ui
-    MaterialDelegate.cpp
-    MaterialDelegate.h
-    MaterialSave.cpp
-    MaterialSave.h
-    MaterialSave.ui
     MaterialsEditor.cpp
     MaterialsEditor.h
     MaterialsEditor.ui
@@ -133,6 +121,14 @@ SET(MatGui_SRCS
     Workbench.h
     WorkbenchManipulator.cpp
     WorkbenchManipulator.h
+    Delegates/ArrayDelegate.cpp
+    Delegates/ArrayDelegate.h
+    Delegates/BaseDelegate.cpp
+    Delegates/BaseDelegate.h
+    Delegates/ListDelegate.cpp
+    Delegates/ListDelegate.h
+    Delegates/MaterialDelegate.cpp
+    Delegates/MaterialDelegate.h
     Models/ArrayModel.cpp
     Models/ArrayModel.h
     Models/ListModel.cpp
