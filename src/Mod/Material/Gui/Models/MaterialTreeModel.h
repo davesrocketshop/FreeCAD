@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: LGPL-2.1-or-later
 
 /***************************************************************************
- *   Copyright (c) 2026 David Carter <dcarter@david.carter.ca>             *
+ *   Copyright (c) 2023 David Carter <dcarter@david.carter.ca>             *
  *                                                                         *
  *   This file is part of FreeCAD.                                         *
  *                                                                         *
@@ -21,45 +21,46 @@
  *                                                                         *
  **************************************************************************/
 
-#ifndef MATGUI_MATERIALTREEVIEW_H
-#define MATGUI_MATERIALTREEVIEW_H
+#ifndef MATGUI_MATERIALTREEMODEL_H
+#define MATGUI_MATERIALTREEMODEL_H
 
 #include <memory>
 
-#include <QTreeView>
+#include <QStandardItemModel>
+// #include <QDialog>
+// #include <QList>
+// #include <QStandardItem>
+// #include <QVariant>
 
-#include <Mod/Material/App/MaterialLibrary.h>
-#include <Mod/Material/Gui/Models/MaterialTreeModel.h>
+// #include <Mod/Material/App/Materials.h>
+// #include <Mod/Material/App/Model.h>
 
 namespace MatGui
 {
 
-class MaterialTreeView: public QTreeView
+class MaterialTreeModel: public QStandardItemModel
 {
     Q_OBJECT
 
 public:
-    MaterialTreeView(QWidget* parent = nullptr);
-    ~MaterialTreeView() = default;
+    MaterialTreeModel(QObject* parent = nullptr);
+    ~MaterialTreeModel() override = default;
 
-    // Reimplemented functions
-    MaterialTreeModel* model() const;
+    bool dropMimeData(
+        const QMimeData* data,
+        Qt::DropAction action,
+        int row,
+        int column,
+        const QModelIndex& parent
+    ) override;
+    void decodeDataRecursive(QDataStream& stream, QStandardItem* item);
 
-    void mousePressEvent(QMouseEvent* event) override;
-    void startDrag(Qt::DropActions supportedActions) override;
-    QModelIndexList selectedDraggableIndexes() const;
-
-    inline bool isIndexDragEnabled(const QModelIndex& index) const
-    {
-        return (model()->flags(index) & Qt::ItemIsDragEnabled);
-    }
-
-    std::shared_ptr<Materials::MaterialLibrary> getItemAsLibrary(const QStandardItem* item) const;
-    std::shared_ptr<Materials::MaterialLibrary> getLibraryForItem(const QStandardItem* item) const;
+Q_SIGNALS:
+    void itemDropped(Qt::DropAction action, QStandardItem* source, QStandardItem* destination);
 
 private:
 };
 
 }  // namespace MatGui
 
-#endif  // MATGUI_MATERIALTREEVIEW_H
+#endif  // MATGUI_MATERIALTREEMODEL_H

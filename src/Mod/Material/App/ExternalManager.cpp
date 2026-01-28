@@ -1175,3 +1175,28 @@ void ExternalManager::removeMaterial(const QString& uuid)
         throw DeleteError(e1.what());
     }
 }
+
+bool ExternalManager::materialExists(const QString& libraryName, const QString& uuid)
+{
+    connect();
+
+    Base::PyGILStateLocker lock;
+    try {
+        if (_managerObject.hasAttr("materialExists")) {
+            Py::Callable libraries(_managerObject.getAttr("materialExists"));
+            Py::Tuple args(2);
+            args.setItem(0, Py::String(libraryName.toStdString()));
+            args.setItem(1, Py::String(uuid.toStdString()));
+            Py::Boolean exists(libraries.apply(args));  // No return expected
+            return exists.as_bool();
+        }
+        else {
+            Base::Console().log("\tmaterialExists() not found\n");
+            throw ConnectionError();
+        }
+    }
+    catch (Py::Exception& e) {
+        Base::PyException e1;  // extract the Python error text
+        throw MaterialNotFound(e1.what());
+    }
+}

@@ -27,6 +27,9 @@
 
 #include <Base/Console.h>
 
+#include <Mod/Material/Gui/Models/MaterialTreeModel.h>
+#include <Mod/Material/Gui/Widgets/MaterialTreeItem.h>
+
 #include "MaterialTreeView.h"
 
 using namespace MatGui;
@@ -38,12 +41,14 @@ MaterialTreeView::MaterialTreeView(QWidget* parent)
 {
     setDragDropMode(QAbstractItemView::DragDrop);
     setAcceptDrops(true);
+    setDefaultDropAction(Qt::MoveAction);
+    setModel(new MaterialTreeModel(this));
 }
 
 // Reimplemented functions
-QStandardItemModel* MaterialTreeView::model() const
+MaterialTreeModel* MaterialTreeView::model() const
 {
-    return static_cast<QStandardItemModel *>(QTreeView::model());
+    return static_cast<MaterialTreeModel*>(QTreeView::model());
 }
 
 void MaterialTreeView::mousePressEvent(QMouseEvent* event)
@@ -59,3 +64,65 @@ void MaterialTreeView::mousePressEvent(QMouseEvent* event)
 
     QTreeView::mousePressEvent(event);
 }
+
+void MaterialTreeView::startDrag(Qt::DropActions supportedActions)
+{
+    Base::Console().log("startDrag()\n");
+    auto itemActions = supportedActions;
+
+    QModelIndexList indexes = selectedDraggableIndexes();
+    if (indexes.size() > 0) {
+        if (indexes.size() > 1) {
+            Base::Console().log("Too many indexes selected: %d\n", indexes.size());
+            return;
+        }
+
+        auto item = model()->itemFromIndex(indexes[0]);
+        auto library = getLibraryForItem(item);
+        if (library && library->isReadOnly()) {
+                itemActions &= ~Qt::MoveAction;
+        }
+
+        QTreeView::startDrag(itemActions);
+    }
+}
+
+QModelIndexList MaterialTreeView::selectedDraggableIndexes() const
+{
+    QModelIndexList indexes = selectedIndexes();
+    auto isNotDragEnabled = [this](const QModelIndex& index) {
+        return !isIndexDragEnabled(index);
+    };
+    indexes.removeIf(isNotDragEnabled);
+    return indexes;
+}
+
+std::shared_ptr<Materials::MaterialLibrary> MaterialTreeView::getLibraryForItem(
+    const QStandardItem* item
+) const
+{
+    auto parent = static_cast<MaterialTreeItem*>(item->parent());
+    while (parent) {
+        if (parent->getItemFunction() == TreeFunctionLibrary) {
+            return getItemAsLibrary(parent);
+        }
+        parent = parent->parent();
+    }
+
+    // Not found
+    return nullptr;
+}
+
+std::shared_ptr<Materials::MaterialLibrary> MaterialTreeView::getItemAsLibrary(
+    const QStandardItem* item
+) const
+{
+    auto materialItem = static_cast<const MaterialTreeItem*>(item);
+    if (materialItem && materialItem->getItemFunction() == TreeFunctionLibrary) {
+        auto libraryItem = static_cast<const MaterialTreeLibraryItem*>(item);
+        return libraryItem->getLibrary();
+    }
+    return nullptr;
+}
+
+#include "moc_MaterialTreeView.cpp"

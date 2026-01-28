@@ -45,6 +45,7 @@
 #include <Mod/Material/App/MaterialManager.h>
 #include <Mod/Material/App/Materials.h>
 #include <Mod/Material/App/ModelManager.h>
+#include <Mod/Material/Gui/Models/MaterialTreeModel.h>
 #include <Mod/Material/Gui/Widgets/MaterialTreeItem.h>
 #include <Mod/Material/Gui/Widgets/MaterialTreeView.h>
 
@@ -95,6 +96,7 @@ public:
     static QIcon getIcon(const std::shared_ptr<Materials::Library>& library);
 
     void onTreeItemChanged(QStandardItem* item);
+    void onTreeItemDropped(Qt::DropAction action, QStandardItem* source, QStandardItem* destination);
 
     void onName(const QString& name);
     void onAuthor(const QString& author);
@@ -211,7 +213,7 @@ private:
     void saveState();
     void saveMaterialTreeChildren(const Base::Reference<ParameterGrp>& param,
                                   MaterialTreeView* tree,
-                                  QStandardItemModel* model,
+                                  MaterialTreeModel* model,
                                   MaterialTreeItem* item);
     void saveMaterialTree(const Base::Reference<ParameterGrp>& param);
 
@@ -230,7 +232,7 @@ private:
     void addRecent(const QString& uuid);
     bool isRecent(const QString& uuid) const;
 
-    const QStandardItemModel* getActionModel() const;
+    const MaterialTreeModel* getActionModel() const;
     MaterialTreeItem* getActionItem() const;
     TreeFunctionType getActionFunction() const;
     std::shared_ptr<Materials::MaterialLibrary> getItemAsLibrary(const MaterialTreeItem* item) const;
@@ -243,6 +245,7 @@ private:
     MaterialTreeItem* getItemFromLibrary(const Materials::Library& library) const;
     MaterialTreeItem* getItemFromMaterial(const Materials::Material& material) const;
     std::shared_ptr<Materials::MaterialLibrary> getLibraryForItem(const MaterialTreeItem* item) const;
+    QString getDirectoryForItem(const MaterialTreeItem* item) const;
 
     void favoriteContextMenu(QMenu& contextMenu);
     void recentContextMenu(QMenu& contextMenu);
@@ -285,9 +288,9 @@ private:
                             MaterialTreeItem* parent,
                             MaterialTreeItem* child,
                             const Base::Reference<ParameterGrp>& param);
-    static void addExpanded(MaterialTreeView* tree, QStandardItemModel* parent, MaterialTreeItem* child);
+    static void addExpanded(MaterialTreeView* tree, MaterialTreeModel* parent, MaterialTreeItem* child);
     static void addExpanded(MaterialTreeView* tree,
-                            QStandardItemModel* parent,
+                            MaterialTreeModel* parent,
                             MaterialTreeItem* child,
                             const Base::Reference<ParameterGrp>& param);
     void addRecents(MaterialTreeItem* parent);

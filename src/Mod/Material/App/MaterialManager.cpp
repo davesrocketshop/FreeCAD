@@ -689,6 +689,64 @@ bool MaterialManager::exists(const MaterialLibrary& library, const QString& uuid
     return false;
 }
 
+void MaterialManager::move(
+    const std::shared_ptr<MaterialLibrary>& library,
+    const QString& path,
+    const std::shared_ptr<Material>& original
+)
+{
+    if (library->isLocal() && original->getLibrary()->isLocal()) {
+        // Local to local
+        _localManager->move(library, path, original);
+    }
+#if defined(BUILD_MATERIAL_EXTERNAL)
+    else if (library->isLocal()) {
+        // Remote to local
+        auto newMaterial = std::make_shared<Material>(*original);
+        saveMaterial(library, newMaterial, path, false, false, true);
+        _externalManager->remove(original->getUUID());
+    }
+    else if (original->getLibrary()->isLocal()) {
+        // Local to remote
+        auto newMaterial = std::make_shared<Material>(*original);
+        saveMaterial(library, newMaterial, path, false, false, true);
+        _localManager->remove(original->getUUID());
+    }
+    else {
+        // Remote to remote
+        _externalManager->move(library, path, original);
+    }
+#endif
+}
+
+void MaterialManager::move(
+    const std::shared_ptr<MaterialLibrary>& library,
+    const QString& path,
+    const QString& uuid
+)
+{
+    move(library, path, getMaterial(uuid));
+}
+
+void MaterialManager::copy(
+    const std::shared_ptr<MaterialLibrary>& library,
+    const QString& path,
+    const Material& original
+)
+{
+    auto newMaterial = std::make_shared<Material>(original);
+    saveMaterial(library, newMaterial, path, false, false, true);
+}
+
+void MaterialManager::copy(
+    const std::shared_ptr<MaterialLibrary>& library,
+    const QString& path,
+    const QString& uuid
+)
+{
+    copy(library, path, *getMaterial(uuid));
+}
+
 void MaterialManager::remove(const QString& uuid) const
 {
     _localManager->remove(uuid);
@@ -703,10 +761,15 @@ void MaterialManager::saveMaterial(
     bool saveInherited
 ) const
 {
-    auto materialLibrary = reinterpret_cast<const std::shared_ptr<Materials::MaterialLibraryLocal>&>(
-        library
-    );
-    _localManager->saveMaterial(materialLibrary, material, path, overwrite, saveAsCopy, saveInherited);
+    if (library->isLocal()) {
+        auto materialLibrary = reinterpret_cast<const std::shared_ptr<Materials::MaterialLibraryLocal>&>(
+            library
+        );
+        _localManager->saveMaterial(materialLibrary, material, path, overwrite, saveAsCopy, saveInherited);
+    }
+    else {
+        _externalManager->saveMaterial(library, material, path, overwrite);
+    }
     material->resetEditState();
 }
 

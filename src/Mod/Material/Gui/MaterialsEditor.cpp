@@ -49,6 +49,7 @@
 #include <Mod/Material/App/MaterialLibrary.h>
 #include <Mod/Material/App/ModelManager.h>
 #include <Mod/Material/App/ModelUuids.h>
+#include <Mod/Material/Gui/Models/MaterialTreeModel.h>
 
 #include "MaterialDelegate.h"
 #include "MaterialSave.h"
@@ -271,7 +272,8 @@ void MaterialsEditor::setupModelCallbacks()
     auto tree = ui->treeMaterials;
     auto model = tree->model();
     model->invisibleRootItem()->setFlags(Qt::NoItemFlags);
-    connect(model, &QStandardItemModel::itemChanged, this, &MaterialsEditor::onTreeItemChanged);
+    connect(model, &MaterialTreeModel::itemChanged, this, &MaterialsEditor::onTreeItemChanged);
+    connect(model, &MaterialTreeModel::itemDropped, this, &MaterialsEditor::onTreeItemDropped);
 }
 
 void MaterialsEditor::setupContextMenus()
@@ -582,6 +584,58 @@ void MaterialsEditor::onTreeItemChanged(QStandardItem* item)
         case TreeFunctionMaterial:
             renameMaterial(materialItem);
             break;
+    }
+}
+
+void MaterialsEditor::onTreeItemDropped(
+    Qt::DropAction action,
+    QStandardItem* source,
+    QStandardItem* destination
+)
+{
+    Base::Console().log("onTreeItemDropped(%s, %s)\n", source->text().toStdString().c_str(), destination->text().toStdString().c_str());
+    auto destinationItem = static_cast<MaterialTreeItem*>(destination);
+    auto sourceItem = static_cast<MaterialTreeItem*>(source);
+
+    auto material = getItemAsMaterial(sourceItem);
+    auto library = material->getLibrary();
+    if (destinationItem->getItemFunction() == TreeFunctionMaterial) {
+        destinationItem = destinationItem->parent();
+    }
+    auto destinationLibrary = getLibraryForItem(destinationItem);
+    auto destinationFolder = getDirectoryForItem(destinationItem);
+
+    Base::Console().log(
+        "Library '%s' -> '%s'\n",
+        library->getName().toStdString().c_str(),
+        destinationLibrary->getName().toStdString().c_str()
+    );
+    Base::Console().log(
+        "Path '%s' -> '%s'\n",
+        material->getDirectory().toStdString().c_str(),
+        destinationFolder.toStdString().c_str()
+    );
+    Base::Console().log("Drop Action\n");
+    if (action & Qt::CopyAction) {
+        Base::Console().log("\t Copy\n");
+    }
+    if (action & Qt::MoveAction) {
+        Base::Console().log("\t Move\n");
+    }
+    if (action & Qt::LinkAction) {
+        Base::Console().log("\t Link\n");
+    }
+    if (action == Qt::IgnoreAction) {
+        Base::Console().log("\t Ignore\n");
+    }
+    if (action == Qt::TargetMoveAction) {
+        Base::Console().log("\t Target move\n");
+    }
+
+    if ((action & Qt::MoveAction) || (*library == *destinationLibrary)) {
+        Base::Console().log("Move\n");
+        getMaterialManager().move(destinationLibrary, destinationFolder, material);
+        refreshMaterialTree();
     }
 }
 
@@ -953,7 +1007,7 @@ void MaterialsEditor::reject()
 
 void MaterialsEditor::saveMaterialTreeChildren(const Base::Reference<ParameterGrp>& param,
                                                MaterialTreeView* tree,
-                                               QStandardItemModel* model,
+                                               MaterialTreeModel* model,
                                                MaterialTreeItem* item)
 {
     if (item->hasChildren()) {
@@ -1002,7 +1056,7 @@ void MaterialsEditor::addMaterials(
         std::shared_ptr<Materials::MaterialTreeNode> nodePtr = mat.second;
         Qt::ItemFlags flags = (Qt::ItemIsEnabled);
         if (!nodePtr->isReadOnly()) {
-            flags |= (Qt::ItemIsEditable | Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled);
+            flags |= (Qt::ItemIsEditable | Qt::ItemIsDropEnabled);
         }
         if (nodePtr->getType() == Materials::MaterialTreeNode::NodeType::DataNode) {
             QString uuid = nodePtr->getUUID();
@@ -1012,7 +1066,7 @@ void MaterialsEditor::addMaterials(
                 matIcon = _warningIcon;
             }
             auto card = new MaterialTreeMaterialItem(matIcon, mat.first, uuid);
-            card->setFlags(flags | Qt::ItemIsSelectable);
+            card->setFlags(flags | Qt::ItemIsSelectable | Qt::ItemIsDragEnabled);
             if (nodePtr->isOldFormat()) {
                 card->setToolTip(tr("This card uses the old format and must be saved before use"));
             }
@@ -1049,14 +1103,14 @@ void MaterialsEditor::addExpanded(MaterialTreeView* tree,
     tree->setExpanded(child->index(), expand);
 }
 
-void MaterialsEditor::addExpanded(MaterialTreeView* tree, QStandardItemModel* parent, MaterialTreeItem* child)
+void MaterialsEditor::addExpanded(MaterialTreeView* tree, MaterialTreeModel* parent, MaterialTreeItem* child)
 {
     parent->appendRow(child);
     tree->setExpanded(child->index(), true);
 }
 
 void MaterialsEditor::addExpanded(MaterialTreeView* tree,
-                                  QStandardItemModel* parent,
+                                  MaterialTreeModel* parent,
                                   MaterialTreeItem* child,
                                   const Base::Reference<ParameterGrp>& param)
 {
@@ -1192,7 +1246,7 @@ void MaterialsEditor::fillMaterialTree()
 void MaterialsEditor::createMaterialTree()
 {
     auto tree = ui->treeMaterials;
-    auto model = new QStandardItemModel();
+    auto model = new MaterialTreeModel();
     tree->setModel(model);
 
     tree->setHeaderHidden(true);
@@ -1354,9 +1408,9 @@ void MaterialsEditor::onSelectMaterial(const QItemSelection& selected,
     }
 }
 
-const QStandardItemModel* MaterialsEditor::getActionModel() const
+const MaterialTreeModel* MaterialsEditor::getActionModel() const
 {
-    return qobject_cast<const QStandardItemModel*>(_actionIndex.model());
+    return qobject_cast<const MaterialTreeModel*>(_actionIndex.model());
 }
 
 MaterialTreeItem* MaterialsEditor::getActionItem() const
@@ -1518,6 +1572,10 @@ std::shared_ptr<Materials::MaterialLibrary> MaterialsEditor::getLibraryForItem(
     const MaterialTreeItem* item
 ) const
 {
+    if (item->getItemFunction() == TreeFunctionLibrary) {
+        return getItemAsLibrary(item);
+    }
+
     auto parent = item->parent();
     while (parent) {
         if (parent->getItemFunction() == TreeFunctionLibrary) {
@@ -1528,6 +1586,20 @@ std::shared_ptr<Materials::MaterialLibrary> MaterialsEditor::getLibraryForItem(
 
     // Not found
     return nullptr;
+}
+
+QString MaterialsEditor::getDirectoryForItem(
+    const MaterialTreeItem* item
+) const
+{
+    auto function = item->getItemFunction();
+    if (function == TreeFunctionMaterial) {
+        return getDirectoryForItem(item->parent());
+    }
+    if (function == TreeFunctionFolder) {
+        return getDirectoryForItem(item->parent()) + QStringLiteral("/") + item->text();
+    }
+    return QString();
 }
 
 void MaterialsEditor::onContextMenu(const QPoint& pos)
@@ -2182,25 +2254,6 @@ void MaterialsEditor::renameMaterial(MaterialTreeItem* item)
 
         updateFavoritesName();
         updateRecentsName();
-    }
-    else {
-        auto material = getItemAsMaterial(item);
-        auto library = getLibraryForItem(item);
-        if (library) {
-            Base::Console().log(
-                "Library '%s' -> '%s'\n",
-                material->getLibrary()->getName().toStdString().c_str(),
-                library->getName().toStdString().c_str()
-            );
-            Base::Console().log(
-                "Path '%s' -> '%s'\n",
-                material->getDirectory().toStdString().c_str(),
-                path.toStdString().c_str()
-            );
-        }
-        else {
-            Base::Console().log("No library\n");
-        }
     }
 }
 

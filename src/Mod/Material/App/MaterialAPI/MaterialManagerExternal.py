@@ -255,3 +255,10 @@ class MaterialManagerExternal(ABC):
     @abstractmethod
     def removeMaterial(self, uuid: str) -> None:
         """Remove the material from the library"""
+
+    @abstractmethod
+    def materialExists(self, libraryName : str, uuid: str) -> bool:
+        """Returns true if the material exists
+        
+        The library name is required when looking for an instance in a specific library,
+        otherwise it can be an empty string"""

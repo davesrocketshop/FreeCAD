@@ -111,6 +111,11 @@ public:
     std::shared_ptr<Material> getMaterialByPath(const QString& path, const QString& library) const;
     bool exists(const QString& uuid) const;
     bool exists(const MaterialLibrary& library, const QString& uuid) const;
+    void move(
+        const std::shared_ptr<MaterialLibrary>& library,
+        const QString& path,
+        std::shared_ptr<Material> original
+    );
     void remove(const QString& uuid);
 
     void saveMaterial(

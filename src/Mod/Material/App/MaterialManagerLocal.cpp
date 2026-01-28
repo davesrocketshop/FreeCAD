@@ -573,6 +573,18 @@ bool MaterialManagerLocal::exists(const MaterialLibrary& library, const QString&
     return false;
 }
 
+void MaterialManagerLocal::move(
+    const std::shared_ptr<MaterialLibrary>& library,
+    const QString& path,
+    std::shared_ptr<Material> original
+)
+{
+    if (*library != *original->getLibrary()) {
+        original->setLibrary(library);
+    }
+    original->setDirectory(path);
+}
+
 void MaterialManagerLocal::remove(const QString& uuid)
 {
     auto material = getMaterial(uuid);
@@ -598,6 +610,9 @@ void MaterialManagerLocal::saveMaterial(
     if (library->isLocal()) {
         auto newMaterial = library->saveMaterial(material, path, overwrite, saveAsCopy, saveInherited);
         (*_materialMap)[newMaterial->getUUID()] = newMaterial;
+    }
+    else {
+        throw LibraryNotFound();
     }
 }
 

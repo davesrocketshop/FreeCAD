@@ -137,6 +137,8 @@ SET(MatGui_SRCS
     Models/ArrayModel.h
     Models/ListModel.cpp
     Models/ListModel.h
+    Models/MaterialTreeModel.cpp
+    Models/MaterialTreeModel.h
     Widgets/MaterialTreeItem.cpp
     Widgets/MaterialTreeItem.h
     Widgets/MaterialTreeView.cpp

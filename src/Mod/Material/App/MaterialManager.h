@@ -145,6 +145,18 @@ public:
     std::shared_ptr<Material> copyInherited(const Material& original, const QString& name) const;
     bool exists(const QString& uuid) const;
     bool exists(const MaterialLibrary& library, const QString& uuid) const;
+    void move(
+        const std::shared_ptr<MaterialLibrary>& library,
+        const QString& path,
+        const std::shared_ptr<Material>& original
+    );
+    void move(const std::shared_ptr<MaterialLibrary>& library, const QString& path, const QString& uuid);
+    void copy(
+        const std::shared_ptr<MaterialLibrary>& library,
+        const QString& path,
+        const Material& original
+    );
+    void copy(const std::shared_ptr<MaterialLibrary>& library, const QString& path, const QString& uuid);
     void remove(const QString& uuid) const;
 
     void saveMaterial(const std::shared_ptr<MaterialLibrary>& library,
