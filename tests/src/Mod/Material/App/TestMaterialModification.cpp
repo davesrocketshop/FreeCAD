@@ -157,7 +157,7 @@ TEST_F(TestMaterialModification, TestNew)
         ASSERT_FALSE(material->getUUID().isEmpty());
         ASSERT_EQ(material->getEditState(), Materials::Material::ModelEdit_None);
         auto reload = _materialManager->getMaterial(material->getUUID());
-        ASSERT_EQ(_materialManager->getEditState(), Materials::Material::ModelEdit_None);
+        ASSERT_EQ(reload->getEditState(), Materials::Material::ModelEdit_None);
     }
     catch (...) {
         FAIL() << "An unknown exception has occured\n";
@@ -300,7 +300,7 @@ TEST_F(TestMaterialModification, TestAlter)
         ASSERT_FALSE(material->getUUID().isEmpty());
         ASSERT_EQ(material->getEditState(), Materials::Material::ModelEdit_None);
         auto reload = _materialManager->getMaterial(material->getUUID());
-        ASSERT_EQ(_materialManager->getEditState(), Materials::Material::ModelEdit_None);
+        ASSERT_EQ(reload->getEditState(), Materials::Material::ModelEdit_None);
     }
     catch (...) {
         FAIL() << "An unknown exception has occured\n";
