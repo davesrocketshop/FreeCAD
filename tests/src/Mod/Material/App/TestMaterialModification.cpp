@@ -57,11 +57,35 @@ protected:
         Base::Interpreter().runString("import Part");
         _modelManager = &(Materials::ModelManager::getManager());
         _materialManager = &(Materials::MaterialManager::getManager());
+
+        // Disable the external interface
+        _useExternal = _materialManager->useExternal();
+        _materialManager->setUseExternal(false);
+
+        // Create a temporary library
+        QString libPath = QDir::tempPath() + QStringLiteral("/TestMaterialCards");
+        QDir libDir(libPath);
+        libDir.removeRecursively(); // Clear any old run data
+        libDir.mkdir(libPath);
+
+        _library = _materialManager->createLocalLibrary(QStringLiteral("TestMaterialCards"),
+                            libPath,
+                            QStringLiteral(":/icons/preferences-general.svg"),
+                            false);
+
+        _materialManager->refresh();
     }
 
-    // void TearDown() override {}
+    void TearDown() override {
+        _materialManager->removeLibrary(QStringLiteral("TestMaterialCards"), false); // Remove the library
+        _materialManager->setUseExternal(_useExternal);
+        _materialManager->refresh();
+    }
+
     Materials::ModelManager* _modelManager;
     Materials::MaterialManager* _materialManager;
+    std::shared_ptr<Materials::MaterialLibrary> _library;
+    bool _useExternal {};
 };
 
 TEST_F(TestMaterialModification, TestNew)
@@ -123,6 +147,21 @@ TEST_F(TestMaterialModification, TestNew)
     ASSERT_EQ(material->getEditState(), Materials::Material::ModelEdit_New);
 
     // Test save
+    try {
+        _materialManager->saveMaterial(_library,
+                        material,
+                        QStringLiteral("/Test Material2.FCMat"),
+                        false, // overwrite
+                        true,  // saveAsCopy
+                        false); // saveInherited
+        ASSERT_FALSE(material->getUUID().isEmpty());
+        ASSERT_EQ(material->getEditState(), Materials::Material::ModelEdit_None);
+        auto reload = _materialManager->getMaterial(material->getUUID());
+        ASSERT_EQ(_materialManager->getEditState(), Materials::Material::ModelEdit_None);
+    }
+    catch (...) {
+        FAIL() << "An unknown exception has occured\n";
+    }
 }
 
 TEST_F(TestMaterialModification, TestAlter)
@@ -251,6 +290,21 @@ TEST_F(TestMaterialModification, TestAlter)
     material->resetEditState();
 
     // Test save
+    try {
+        _materialManager->saveMaterial(_library,
+                        material,
+                        QStringLiteral("/Test Material3.FCMat"),
+                        false, // overwrite
+                        true,  // saveAsCopy
+                        false); // saveInherited
+        ASSERT_FALSE(material->getUUID().isEmpty());
+        ASSERT_EQ(material->getEditState(), Materials::Material::ModelEdit_None);
+        auto reload = _materialManager->getMaterial(material->getUUID());
+        ASSERT_EQ(_materialManager->getEditState(), Materials::Material::ModelEdit_None);
+    }
+    catch (...) {
+        FAIL() << "An unknown exception has occured\n";
+    }
 }
 
 // clang-format on
