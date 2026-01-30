@@ -1519,52 +1519,50 @@ MaterialTreeItem* MaterialsEditor::getItemFromMaterial(const Materials::Material
     if (libraryItem) {
         MaterialTreeItem* folderItem = libraryItem;
         auto directory = material.getDirectory();
-        if (directory.isEmpty()) {
-            folderItem = libraryItem;
-        }
-        else {
+        if (!(directory.isEmpty() || directory == QStringLiteral("/"))) {
+            Base::Console().log("Checking directory '%s'\n", directory.toStdString().c_str());
             auto path = directory.split(QStringLiteral("/"));
             for (auto folder : path)
-                    {
-                        int row = 0;
-                        auto item = folderItem->child(row);
-                        while (item) {
-                            if (item->getItemFunction() == TreeFunctionFolder) {
-                                auto folderName = item->originalName();
-                                if (folderName == folder) {
-                                    Base::Console().log(
-                                        "Folder '%s'\n",
-                                        folderName.toStdString().c_str()
-                                    );
-                                    folderItem = item;
-                                    break;
-                                }
-                            }
-                            row++;
-                            item = folderItem->child(row);
-                        }
-                        Base::Console().log(
-                            "Folder '%s'\n",
-                            folderItem->originalName().toStdString().c_str()
-                        );
-                        row = 0;
-                        item = folderItem->child(row);
-                        while (item) {
-                            if (item->getItemFunction() == TreeFunctionFolder) {
-                                auto materialItem = static_cast<MaterialTreeMaterialItem*>(item);
-                                auto uuid = materialItem->getUUID();
-                                if (uuid == material.getUUID()) {
-                                    Base::Console().log(
-                                        "Material '%s'\n",
-                                        material.getName().toStdString().c_str()
-                                    );
-                                    return materialItem;
-                                }
-                            }
-                            row++;
-                            item = folderItem->child(row);
+            {
+                int row = 0;
+                auto item = folderItem->child(row);
+                while (item) {
+                    if (item->getItemFunction() == TreeFunctionFolder) {
+                        auto folderName = item->originalName();
+                        if (folderName == folder) {
+                            Base::Console().log(
+                                "Folder '%s'\n",
+                                folderName.toStdString().c_str()
+                            );
+                            folderItem = item;
+                            break;
                         }
                     }
+                    row++;
+                    item = folderItem->child(row);
+                }
+            }
+        }
+        Base::Console().log(
+            "Folder '%s'\n",
+            folderItem->originalName().toStdString().c_str()
+        );
+        int row = 0;
+        auto item = folderItem->child(row);
+        while (item) {
+            if (item->getItemFunction() == TreeFunctionMaterial) {
+                auto materialItem = static_cast<MaterialTreeMaterialItem*>(item);
+                auto uuid = materialItem->getUUID();
+                if (uuid == material.getUUID()) {
+                    Base::Console().log(
+                        "Material '%s'\n",
+                        material.getName().toStdString().c_str()
+                    );
+                    return materialItem;
+                }
+            }
+            row++;
+            item = folderItem->child(row);
         }
     }
     return nullptr;
