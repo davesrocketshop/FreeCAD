@@ -795,8 +795,8 @@ void MaterialsEditor::onNewMaterial(bool checked)
     Q_UNUSED(checked)
 
     // Ensure data is saved (or discarded) before changing materials
-    if (_material->getEditState() != Materials::Material::ModelEdit_None
-        && _material->getEditState() != Materials::Material::ModelEdit_New) {
+    if (_material->getEditState() != Materials::Material::MaterialEdit_None
+        && _material->getEditState() != Materials::Material::MaterialEdit_New) {
         // Prompt the user to save or discard changes
         int res = confirmSave(this);
         if (res == QMessageBox::Cancel) {
@@ -822,7 +822,7 @@ void MaterialsEditor::onInheritNewMaterial(bool checked)
     auto parent = _material->getUUID();
 
     // Ensure data is saved (or discarded) before changing materials
-    if (_material->getEditState() != Materials::Material::ModelEdit_None) {
+    if (_material->getEditState() != Materials::Material::MaterialEdit_None) {
         // Prompt the user to save or discard changes
         int res = confirmSave(this);
         if (res == QMessageBox::Cancel) {
@@ -845,7 +845,7 @@ void MaterialsEditor::onOk(bool checked)
     Q_UNUSED(checked)
 
     // Ensure data is saved (or discarded) before exiting
-    if (_material->getEditState() != Materials::Material::ModelEdit_None) {
+    if (_material->getEditState() != Materials::Material::MaterialEdit_None) {
         // Prompt the user to save or discard changes
         int res = confirmSave(this);
         if (res == QMessageBox::Cancel) {
@@ -923,8 +923,8 @@ void MaterialsEditor::saveMaterial()
     bool overwrite = true;
     bool saveAsCopy = false;
     bool saveInherited = true;
-    if (_material->getEditState() != Materials::Material::ModelEdit_None) {
-        if (_material->getEditState() == Materials::Material::ModelEdit_InvariantChanged) {
+    if (_material->getEditState() != Materials::Material::MaterialEdit_None) {
+        if (_material->getEditState() == Materials::Material::MaterialEdit_InvariantChanged) {
             MaterialSaveResult ret = overwriteOrCopy();
             if (ret == MaterialSave_Cancel) {
                 return;
@@ -1316,7 +1316,7 @@ void MaterialsEditor::onSelectMaterial(const QItemSelection& selected,
 
     if (uuid.isEmpty() || uuid != _material->getUUID()) {
         // Ensure data is saved (or discarded) before changing materials
-        if (_material->getEditState() != Materials::Material::ModelEdit_None) {
+        if (_material->getEditState() != Materials::Material::MaterialEdit_None) {
             // Prompt the user to save or discard changes
             int res = confirmSave(this);
             if (res == QMessageBox::Cancel) {

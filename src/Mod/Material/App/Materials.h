@@ -176,12 +176,12 @@ class MaterialsExport Material: public Base::BaseClass
     TYPESYSTEM_HEADER_WITH_OVERRIDE();
 
 public:
-    enum ModelEdit
+    enum MaterialEdit
     {
-        ModelEdit_None,             // No change
-        ModelEdit_New,              // New unsaved material
-        ModelEdit_InvariantChanged, // Changes that could impact existing documents
-        ModelEdit_Changed           // All other changes
+        MaterialEdit_None,             // No change
+        MaterialEdit_New,              // New unsaved material
+        MaterialEdit_InvariantChanged, // Changes that could impact existing documents
+        MaterialEdit_Changed           // All other changes
     };
 
     Material();
@@ -233,7 +233,7 @@ public:
     {
         return _reference;
     }
-    ModelEdit getEditState() const
+    MaterialEdit getEditState() const
     {
         return _editState;
     }
@@ -267,25 +267,25 @@ public:
     void setURL(const QString& url);
     void setReference(const QString& reference);
 
-    void setEditState(ModelEdit newState);
+    void setEditState(MaterialEdit newState);
     void setEditStateInvariantChanged()
     {
-        setEditState(ModelEdit_InvariantChanged);
+        setEditState(MaterialEdit_InvariantChanged);
     }
     void setEditStateChanged()
     {
-        setEditState(ModelEdit_Changed);
+        setEditState(MaterialEdit_Changed);
     }
     void setEditStateNew()
     {
-        setEditState(ModelEdit_New);
+        setEditState(MaterialEdit_New);
     }
     void setPropertyEditState(const QString& name);
     void setPhysicalEditState(const QString& name);
     void setAppearanceEditState(const QString& name);
     void resetEditState()
     {
-        _editState = ModelEdit_None;
+        _editState = MaterialEdit_None;
     }
     void addTag(const QString& tag);
     void removeTag(const QString& tag);
@@ -488,7 +488,7 @@ private:
     std::map<QString, QString> _legacy;
     bool _dereferenced;
     bool _oldFormat;
-    ModelEdit _editState;
+    MaterialEdit _editState;
 };
 
 inline QTextStream& operator<<(QTextStream& output, const MaterialProperty& property)

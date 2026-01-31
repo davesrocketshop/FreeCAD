@@ -491,7 +491,7 @@ TYPESYSTEM_SOURCE(Materials::Material, Base::BaseClass)
 Material::Material()
     : _dereferenced(false)
     , _oldFormat(false)
-    , _editState(ModelEdit_None)
+    , _editState(MaterialEdit_None)
 {
     // Create an initial UUID
     newUuid();
@@ -507,7 +507,7 @@ Material::Material(const std::shared_ptr<MaterialLibrary>& library,
     , _name(name)
     , _dereferenced(false)
     , _oldFormat(false)
-    , _editState(ModelEdit_None)
+    , _editState(MaterialEdit_None)
 {
     setDirectory(directory);
 }
@@ -712,17 +712,17 @@ void Material::setReference(const QString& reference)
     setEditStateChanged();
 }
 
-void Material::setEditState(ModelEdit newState)
+void Material::setEditState(MaterialEdit newState)
 {
-    if (_editState == ModelEdit_New) {
+    if (_editState == MaterialEdit_New) {
         return;
     }
-    if (newState == ModelEdit_Changed) {
-        if (_editState != ModelEdit_InvariantChanged) {
+    if (newState == MaterialEdit_Changed) {
+        if (_editState != MaterialEdit_InvariantChanged) {
             _editState = newState;
         }
     }
-    else if (newState == ModelEdit_InvariantChanged || newState == ModelEdit_New) {
+    else if (newState == MaterialEdit_InvariantChanged || newState == MaterialEdit_New) {
         _editState = newState;
     }
 }
