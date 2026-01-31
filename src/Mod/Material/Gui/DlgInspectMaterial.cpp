@@ -21,7 +21,6 @@
  *                                                                         *
  **************************************************************************/
 
-#include <QClipboard>
 #include <QStandardItem>
 #include <QStandardItemModel>
 #include <QTreeView>
@@ -81,7 +80,7 @@ void DlgInspectMaterial::onClipboard(bool checked)
 {
     Q_UNUSED(checked)
 
-    QApplication::clipboard()->setText(clipboardText);
+    copyToClipboard();
 }
 
 std::vector<Gui::ViewProvider*> DlgInspectMaterial::getSelection() const
@@ -89,11 +88,12 @@ std::vector<Gui::ViewProvider*> DlgInspectMaterial::getSelection() const
     std::vector<Gui::ViewProvider*> views;
 
     // get a single selection
-    std::vector<Gui::SelectionSingleton::SelObj> sel =
-        Gui::Selection().getSelection(nullptr, Gui::ResolveMode::OldStyleElement, true);
+    std::vector<Gui::SelectionSingleton::SelObj> sel
+        = Gui::Selection().getSelection(nullptr, Gui::ResolveMode::OldStyleElement, true);
     for (const auto& it : sel) {
-        Gui::ViewProvider* view =
-            Gui::Application::Instance->getDocument(it.pDoc)->getViewProvider(it.pObject);
+        Gui::ViewProvider* view = Gui::Application::Instance->getDocument(it.pDoc)->getViewProvider(
+            it.pObject
+        );
         views.push_back(view);
     }
 
@@ -101,8 +101,10 @@ std::vector<Gui::ViewProvider*> DlgInspectMaterial::getSelection() const
 }
 
 /// @cond DOXERR
-void DlgInspectMaterial::OnChange(Gui::SelectionSingleton::SubjectType& rCaller,
-                                  Gui::SelectionSingleton::MessageType Reason)
+void DlgInspectMaterial::OnChange(
+    Gui::SelectionSingleton::SubjectType& rCaller,
+    Gui::SelectionSingleton::MessageType Reason
+)
 {
     Q_UNUSED(rCaller);
 
@@ -116,36 +118,9 @@ void DlgInspectMaterial::OnChange(Gui::SelectionSingleton::SubjectType& rCaller,
 }
 /// @endcond
 
-void DlgInspectMaterial::appendClip(QString text)
-{
-    // Need to add indent
-    QString indent(clipboardIndent * 4, QLatin1Char(' '));
-    clipboardText += indent + text + QStringLiteral("\n");
-}
-
-QStandardItem* DlgInspectMaterial::clipItem(QString text)
-{
-    appendClip(text);
-    auto item = new QStandardItem(text);
-    return item;
-}
-
-void DlgInspectMaterial::indent()
-{
-    clipboardIndent += 1;
-}
-
-void DlgInspectMaterial::unindent()
-{
-    if (clipboardIndent > 0) {
-        clipboardIndent -= 1;
-    }
-}
-
 void DlgInspectMaterial::update(std::vector<Gui::ViewProvider*>& views)
 {
-    clipboardText = QStringLiteral("");
-    clipboardIndent = 0;
+    resetClipboard();
     App::Document* doc = App::GetApplication().getActiveDocument();
     if (doc) {
         appendClip(tr("Document: ") + QString::fromUtf8(doc->Label.getValue()));
@@ -194,7 +169,8 @@ void DlgInspectMaterial::update(std::vector<Gui::ViewProvider*>& views)
 
             if (labelProp && QString::fromUtf8(labelProp->getValue()).size() > 0) {
                 auto* prop = dynamic_cast<Materials::PropertyMaterial*>(
-                    obj->getPropertyByName("ShapeMaterial"));
+                    obj->getPropertyByName("ShapeMaterial")
+                );
                 if (prop) {
                     updateMaterialTree(prop->getValue());
                 }
@@ -214,9 +190,11 @@ void DlgInspectMaterial::updateMaterialTree(const Materials::Material& material)
     addMaterial(tree, model, material);
 }
 
-void DlgInspectMaterial::addMaterial(QTreeView* tree,
-                                     QStandardItemModel* parent,
-                                     const Materials::Material& material)
+void DlgInspectMaterial::addMaterial(
+    QTreeView* tree,
+    QStandardItemModel* parent,
+    const Materials::Material& material
+)
 {
     auto card = clipItem(tr("Name: ") + material.getName());
     addExpanded(tree, parent, card);
@@ -226,9 +204,11 @@ void DlgInspectMaterial::addMaterial(QTreeView* tree,
     unindent();
 }
 
-void DlgInspectMaterial::addMaterial(QTreeView* tree,
-                                     QStandardItem* parent,
-                                     const Materials::Material& material)
+void DlgInspectMaterial::addMaterial(
+    QTreeView* tree,
+    QStandardItem* parent,
+    const Materials::Material& material
+)
 {
     auto card = clipItem(tr("Name: ") + material.getName());
     addExpanded(tree, parent, card);
@@ -238,9 +218,7 @@ void DlgInspectMaterial::addMaterial(QTreeView* tree,
     unindent();
 }
 
-void DlgInspectMaterial::addModels(QTreeView* tree,
-                                   QStandardItem* parent,
-                                   const QSet<QString>* models)
+void DlgInspectMaterial::addModels(QTreeView* tree, QStandardItem* parent, const QSet<QString>* models)
 {
     if (models->isEmpty()) {
         auto none = clipItem(tr("None"));
@@ -259,9 +237,11 @@ void DlgInspectMaterial::addModels(QTreeView* tree,
     }
 }
 
-void DlgInspectMaterial::addModelDetails(QTreeView* tree,
-                                         QStandardItem* parent,
-                                         std::shared_ptr<Materials::Model>& model)
+void DlgInspectMaterial::addModelDetails(
+    QTreeView* tree,
+    QStandardItem* parent,
+    std::shared_ptr<Materials::Model>& model
+)
 {
     auto uuid = clipItem(tr("UUID: ") + model->getUUID());
     addExpanded(tree, parent, uuid);
@@ -269,9 +249,13 @@ void DlgInspectMaterial::addModelDetails(QTreeView* tree,
     auto library = clipItem(tr("Library: ") + model->getLibrary()->getName());
     addExpanded(tree, parent, library);
 
-    auto libraryPath =
-        clipItem(tr("Library directory: ") + model->getLibrary()->getDirectoryPath());
+    auto libraryPath = clipItem(tr("Library directory: ") + model->getLibrary()->getDirectoryPath());
     addExpanded(tree, parent, libraryPath);
+
+    auto libraryType = clipItem(
+        tr("Library type: ") + (model->getLibrary()->isLocal() ? tr("Local") : tr("Remote"))
+    );
+    addExpanded(tree, parent, libraryType);
 
     auto directory = clipItem(tr("Subdirectory: ") + model->getDirectory());
     addExpanded(tree, parent, directory);
@@ -303,7 +287,8 @@ void DlgInspectMaterial::addModelDetails(QTreeView* tree,
 void DlgInspectMaterial::addProperties(
     QTreeView* tree,
     QStandardItem* parent,
-    const std::map<QString, std::shared_ptr<Materials::MaterialProperty>>& properties)
+    const std::map<QString, std::shared_ptr<Materials::MaterialProperty>>& properties
+)
 {
     if (properties.empty()) {
         auto none = clipItem(tr("None"));
@@ -324,7 +309,8 @@ void DlgInspectMaterial::addProperties(
 void DlgInspectMaterial::addPropertyDetails(
     QTreeView* tree,
     QStandardItem* parent,
-    const std::shared_ptr<Materials::MaterialProperty>& property)
+    const std::shared_ptr<Materials::MaterialProperty>& property
+)
 {
     auto uuid = clipItem(tr("Model UUID: ") + property->getModelUUID());
     addExpanded(tree, parent, uuid);
@@ -334,17 +320,22 @@ void DlgInspectMaterial::addPropertyDetails(
     addExpanded(tree, parent, hasValue);
 }
 
-void DlgInspectMaterial::addMaterialDetails(QTreeView* tree,
-                                            QStandardItem* parent,
-                                            const Materials::Material& material)
+void DlgInspectMaterial::addMaterialDetails(
+    QTreeView* tree,
+    QStandardItem* parent,
+    const Materials::Material& material
+)
 {
     auto uuid = clipItem(tr("UUID: ") + material.getUUID());
     addExpanded(tree, parent, uuid);
-    auto library =
-        clipItem(tr("Library: ") + material.getLibrary()->getName());
+    auto library = clipItem(tr("Library: ") + material.getLibrary()->getName());
     addExpanded(tree, parent, library);
     auto libraryPath = clipItem(tr("Library directory: ") + material.getLibrary()->getDirectoryPath());
     addExpanded(tree, parent, libraryPath);
+    auto libraryType = clipItem(
+        tr("Library type: ") + (material.getLibrary()->isLocal() ? tr("Local") : tr("Remote"))
+    );
+    addExpanded(tree, parent, libraryType);
     auto directory = clipItem(tr("Sub directory: ") + material.getDirectory());
     addExpanded(tree, parent, directory);
     auto inherits = clipItem(tr("Inherits:"));
@@ -353,7 +344,9 @@ void DlgInspectMaterial::addMaterialDetails(QTreeView* tree,
     indent();
     auto parentUUID = material.getParentUUID();
     if (!parentUUID.isEmpty()) {
-        auto parentMaterial = Materials::MaterialManager::getManager().getMaterial(material.getParentUUID());
+        auto parentMaterial = Materials::MaterialManager::getManager().getMaterial(
+            material.getParentUUID()
+        );
         addMaterial(tree, inherits, *parentMaterial);
     }
     else {
@@ -387,9 +380,7 @@ void DlgInspectMaterial::addMaterialDetails(QTreeView* tree,
     unindent();
 }
 
-void DlgInspectMaterial::addExpanded(QTreeView* tree,
-                                     QStandardItemModel* parent,
-                                     QStandardItem* child)
+void DlgInspectMaterial::addExpanded(QTreeView* tree, QStandardItemModel* parent, QStandardItem* child)
 {
     parent->appendRow(child);
     tree->setExpanded(child->index(), true);
@@ -406,7 +397,7 @@ void DlgInspectMaterial::addExpanded(QTreeView* tree, QStandardItem* parent, QSt
 TaskInspectMaterial::TaskInspectMaterial()
 {
     widget = new DlgInspectMaterial();
-    addTaskBox(Gui::BitmapFactory().pixmap("Part_Loft"), widget);
+    addTaskBox(Gui::BitmapFactory().pixmap("Material_Edit"), widget);
 }
 
 TaskInspectMaterial::~TaskInspectMaterial() = default;

@@ -29,6 +29,7 @@
 #include "Exceptions.h"
 #include "Model.h"
 #include "ModelLibrary.h"
+#include "ModelManager.h"
 
 
 using namespace Materials;
@@ -147,16 +148,20 @@ void ModelProperty::validate(const ModelProperty& other) const
 TYPESYSTEM_SOURCE(Materials::Model, Base::BaseClass)
 
 Model::Model()
+    : _dereferenced(false)
+    , _dereferencing(false)
 {}
 
-Model::Model(std::shared_ptr<ModelLibrary> library,
-             ModelType type,
-             const QString& name,
-             const QString& directory,
-             const QString& uuid,
-             const QString& description,
-             const QString& url,
-             const QString& doi)
+Model::Model(
+    std::shared_ptr<ModelLibrary> library,
+    ModelType type,
+    const QString& name,
+    const QString& directory,
+    const QString& uuid,
+    const QString& description,
+    const QString& url,
+    const QString& doi
+)
     : _library(library)
     , _type(type)
     , _name(name)
@@ -165,7 +170,14 @@ Model::Model(std::shared_ptr<ModelLibrary> library,
     , _description(description)
     , _url(url)
     , _doi(doi)
+    , _dereferenced(false)
+    , _dereferencing(false)
 {}
+
+bool Model::isDisabled() const
+{
+    return _library->isDisabled();
+}
 
 QString Model::getDirectory() const
 {
@@ -190,6 +202,11 @@ void Model::setFilename(const QString& filename)
 QString Model::getFilePath() const
 {
     return QDir(_directory + QStringLiteral("/") + _filename).absolutePath();
+}
+
+bool Model::hasProperty(const QString& name) const
+{
+    return _properties.contains(name);
 }
 
 ModelProperty& Model::operator[](const QString& key)
@@ -248,5 +265,72 @@ void Model::validate(Model& other) const
     for (auto& property : _properties) {
         auto& remote = other._properties[property.first];
         property.second.validate(remote);
+    }
+}
+
+void Model::save(QTextStream& stream)
+{
+    stream << "---\n";
+    stream << "# File created by " << QString::fromStdString(App::Application::Config()["ExeName"])
+           << " " << QString::fromStdString(App::Application::Config()["ExeVersion"])
+           << " Revision: " << QString::fromStdString(App::Application::Config()["BuildRevision"])
+           << "\n";
+    saveGeneral(stream);
+    saveInherits(stream);
+    saveProperties(stream);
+}
+
+void Model::saveGeneral(QTextStream& stream) const
+{
+    stream << "General:\n";
+    stream << "  UUID: \"" << _uuid << "\"\n";
+    stream << "  Name: \"" << MaterialValue::escapeString(_name) << "\"\n";
+    if (!_description.isEmpty()) {
+        stream << "  Description: \"" << MaterialValue::escapeString(_description) << "\"\n";
+    }
+    if (!_url.isEmpty()) {
+        stream << "  URL: \"" << MaterialValue::escapeString(_url) << "\"\n";
+    }
+    if (!_doi.isEmpty()) {
+        stream << "  DOI: \"" << MaterialValue::escapeString(_doi) << "\"\n";
+    }
+}
+
+void Model::saveInherits(QTextStream& stream) const
+{
+    if (!_inheritedUuids.empty()) {
+        stream << "Inherits:\n";
+        for (auto const& uuid : _inheritedUuids) {
+            auto model = ModelManager::getManager().getModel(uuid);
+            stream << "  - " << model->getName() << ":\n";
+            stream << "    UUID: \"" << uuid << "\"\n";
+        }
+    }
+}
+
+void Model::saveProperties(QTextStream& stream) const
+{
+    for (auto& it : _properties) {
+        // auto& name = it.first;
+        auto& property = it.second;
+        stream << property.getName() << ":\n";
+        if (!property.getDisplayName().isEmpty()) {
+            stream << "    DisplayName: \""
+                   << MaterialValue::escapeString(property.getDisplayName()) << "\"\n";
+        }
+        if (!property.getPropertyType().isEmpty()) {
+            stream << "    Type: \"" << MaterialValue::escapeString(property.getPropertyType())
+                   << "\"\n";
+        }
+        if (!property.getUnits().isEmpty()) {
+            stream << "    Units: \"" << MaterialValue::escapeString(property.getUnits()) << "\"\n";
+        }
+        if (!property.getURL().isEmpty()) {
+            stream << "    URL: \"" << MaterialValue::escapeString(property.getURL()) << "\"\n";
+        }
+        if (!property.getDescription().isEmpty()) {
+            stream << "    Description: \""
+                   << MaterialValue::escapeString(property.getDescription()) << "\"\n";
+        }
     }
 }

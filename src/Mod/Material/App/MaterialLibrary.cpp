@@ -104,37 +104,37 @@ MaterialLibrary::getMaterialTree(const Materials::MaterialFilter& filter,
         (*node)[filename] = child;
     }
 
-    // // Empty folders aren't included in _materialPathMap, so we add them by looking at the file
-    // // system
-    // if (!filter || options.includeEmptyFolders()) {
-    //     if (isLocal()) {
-    //         auto& materialLibrary =
-    //             *(reinterpret_cast<const Materials::MaterialLibraryLocal*>(this));
-    //         auto folderList = MaterialLoader::getMaterialFolders(materialLibrary);
-    //         for (auto& folder : *folderList) {
-    //             QStringList list = folder.split(QStringLiteral("/"));
+    // Empty folders aren't included in _materialPathMap, so we add them by looking at the file
+    // system
+    if (options.includeEmptyFolders()) {
+        if (isLocal()) {
+            auto& materialLibrary =
+                *(reinterpret_cast<const Materials::MaterialLibraryLocal*>(this));
+            auto folderList = MaterialLoader::getMaterialFolders(materialLibrary);
+            for (auto& folder : *folderList) {
+                QStringList list = folder.split(QStringLiteral("/"));
 
-    //             // Start at the root
-    //             auto node = materialTree;
-    //             for (auto& itp : list) {
-    //                 // Add the folder only if it's not already there
-    //                 if (!node->contains(itp)) {
-    //                     std::shared_ptr<std::map<QString, std::shared_ptr<MaterialTreeNode>>>
-    //                         mapPtr = std::make_shared<
-    //                             std::map<QString, std::shared_ptr<MaterialTreeNode>>>();
-    //                     std::shared_ptr<MaterialTreeNode> child =
-    //                         std::make_shared<MaterialTreeNode>();
-    //                     child->setFolder(mapPtr);
-    //                     (*node)[itp] = child;
-    //                     node = mapPtr;
-    //                 }
-    //                 else {
-    //                     node = (*node)[itp]->getFolder();
-    //                 }
-    //             }
-    //         }
-    //     }
-    // }
+                // Start at the root
+                auto node = materialTree;
+                for (auto& itp : list) {
+                    // Add the folder only if it's not already there
+                    if (!node->contains(itp)) {
+                        std::shared_ptr<std::map<QString, std::shared_ptr<MaterialTreeNode>>>
+                            mapPtr = std::make_shared<
+                                std::map<QString, std::shared_ptr<MaterialTreeNode>>>();
+                        std::shared_ptr<MaterialTreeNode> child =
+                            std::make_shared<MaterialTreeNode>();
+                        child->setFolder(mapPtr);
+                        (*node)[itp] = child;
+                        node = mapPtr;
+                    }
+                    else {
+                        node = (*node)[itp]->getFolder();
+                    }
+                }
+            }
+        }
+    }
 
     return materialTree;
 }
@@ -179,6 +179,11 @@ void MaterialLibraryLocal::renameFolder(const QString& oldPath, const QString& n
         }
     }
 
+    Base::Console().log(
+        "updatePaths('%s', '%s)\n",
+        oldPath.toStdString().c_str(),
+        newPath.toStdString().c_str()
+    );
     updatePaths(oldPath, newPath);
 }
 
@@ -272,7 +277,11 @@ void MaterialLibraryLocal::updatePaths(const QString& oldPath, const QString& ne
         if (path.startsWith(op)) {
             path = np + path.remove(0, op.size());
         }
-        itp.second->setDirectory(path);
+
+        // Don't include the filename
+        QFileInfo filepath(path);
+        itp.second->setDirectory(filepath.path());
+
         (*pathMap)[path] = itp.second;
     }
 
@@ -315,7 +324,7 @@ MaterialLibraryLocal::saveMaterial(const std::shared_ptr<Material>& material,
         // Write the contents
         material->setName(info.fileName().remove(QStringLiteral(".FCMat"), Qt::CaseInsensitive));
         material->setLibrary(getptr());
-        material->setDirectory(getRelativePath(path));
+        material->setDirectory(getRelativePath(info.path()));
         material->save(stream, overwrite, saveAsCopy, saveInherited);
     }
 

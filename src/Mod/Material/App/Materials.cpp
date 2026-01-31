@@ -552,6 +552,11 @@ Material::Material(const Material& other)
     }
 }
 
+bool Material::isDisabled() const
+{
+    return _library->isDisabled();
+}
+
 QString Material::getDirectory() const
 {
     return _directory;
@@ -684,12 +689,15 @@ void Material::setReference(const QString& reference)
 
 void Material::setEditState(ModelEdit newState)
 {
+    if (_editState == ModelEdit_New) {
+        return;
+    }
     if (newState == ModelEdit_Extend) {
         if (_editState != ModelEdit_Alter) {
             _editState = newState;
         }
     }
-    else if (newState == ModelEdit_Alter) {
+    else if (newState == ModelEdit_Alter || newState == ModelEdit_New) {
         _editState = newState;
     }
 }
@@ -1776,7 +1784,6 @@ App::Material Material::getMaterialAppearance() const
     if (hasAppearanceProperty(QStringLiteral("TextureImage"))) {
         auto property = getAppearanceProperty(QStringLiteral("TextureImage"));
         if (!property->isNull()) {
-            Base::Console().log("Has 'TextureImage'\n");
             material.image = property->getString().toStdString();
         }
 
@@ -1785,7 +1792,6 @@ App::Material Material::getMaterialAppearance() const
     else if (hasAppearanceProperty(QStringLiteral("TexturePath"))) {
         auto property = getAppearanceProperty(QStringLiteral("TexturePath"));
         if (!property->isNull()) {
-            Base::Console().log("Has 'TexturePath'\n");
             material.imagePath = property->getString().toStdString();
         }
 
@@ -1802,7 +1808,6 @@ App::Material Material::getMaterialAppearance() const
 
 void Material::validate(Material& other) const
 {
-
     try {
         _library->validate(*other._library);
     }

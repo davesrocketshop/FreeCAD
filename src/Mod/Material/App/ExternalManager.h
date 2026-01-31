@@ -107,6 +107,7 @@ public:
     void renameMaterial(const QString& libraryName, const QString& name, const QString& uuid);
     void moveMaterial(const QString& libraryName, const QString& path, const QString& uuid);
     void removeMaterial(const QString& uuid);
+    bool materialExists(const QString& libraryName, const QString& uuid);
 
 private:
     ExternalManager();

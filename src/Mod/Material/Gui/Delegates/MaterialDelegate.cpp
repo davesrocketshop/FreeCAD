@@ -48,13 +48,13 @@
 #include <Mod/Material/App/Exceptions.h>
 #include <Mod/Material/App/ModelManager.h>
 
-#include "Array2D.h"
-#include "Array3D.h"
-#include "ImageEdit.h"
-#include "ListEdit.h"
+#include <Mod/Material/Gui/Array2D.h>
+#include <Mod/Material/Gui/Array3D.h>
+#include <Mod/Material/Gui/ImageEdit.h>
+#include <Mod/Material/Gui/ListEdit.h>
+#include <Mod/Material/Gui/TextEdit.h>
+
 #include "MaterialDelegate.h"
-#include "MaterialSave.h"
-#include "TextEdit.h"
 
 
 using namespace MatGui;

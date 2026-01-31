@@ -29,6 +29,7 @@
 #include <Gui/MetaTypes.h>
 
 #include "MaterialLibrary.h"
+#include "MaterialManager.h"
 
 #include "MaterialLibraryPy.h"
 
@@ -96,11 +97,6 @@ Py::String MaterialLibraryPy::getDirectory() const
     return {path.toStdString()};
 }
 
-void MaterialLibraryPy::setDirectory(const Py::String value)
-{
-    getMaterialLibraryPtr()->setDirectory(QString::fromStdString(value));
-}
-
 Py::Boolean MaterialLibraryPy::getReadOnly() const
 {
     return getMaterialLibraryPtr()->isReadOnly();
@@ -119,6 +115,11 @@ Py::Boolean MaterialLibraryPy::getLocal() const
 void MaterialLibraryPy::setLocal(Py::Boolean value)
 {
     getMaterialLibraryPtr()->setLocal(value);
+}
+
+Py::Boolean MaterialLibraryPy::getDisabled() const
+{
+    return getMaterialLibraryPtr()->isDisabled();
 }
 
 PyObject* MaterialLibraryPy::getCustomAttributes(const char* /*attr*/) const

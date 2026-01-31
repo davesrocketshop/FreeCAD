@@ -25,6 +25,7 @@
 #include "Exceptions.h"
 #include "MaterialFilter.h"
 #include "MaterialFilterPy.h"
+#include "MaterialLibraryPy.h"
 #include "MaterialManager.h"
 #include "MaterialManagerPy.h"
 #include "MaterialPy.h"
@@ -88,9 +89,10 @@ PyObject* MaterialManagerPy::getMaterialByPath(PyObject* args)
     QString libPath(QString::fromStdString(lib));
     if (!libPath.isEmpty()) {
         try {
-            auto material =
-                getMaterialManagerPtr()->getMaterialByPath(QString::fromUtf8(utf8Path.c_str()),
-                                                           libPath);
+            auto material = getMaterialManagerPtr()->getMaterialByPath(
+                QString::fromUtf8(utf8Path.c_str()),
+                libPath
+            );
             return new MaterialPy(new Material(*material));
         }
         catch (const MaterialNotFound&) {
@@ -104,8 +106,7 @@ PyObject* MaterialManagerPy::getMaterialByPath(PyObject* args)
     }
 
     try {
-        auto material =
-            getMaterialManagerPtr()->getMaterialByPath(QString::fromUtf8(utf8Path.c_str()));
+        auto material = getMaterialManagerPtr()->getMaterialByPath(QString::fromUtf8(utf8Path.c_str()));
         return new MaterialPy(new Material(*material));
     }
     catch (const MaterialNotFound&) {
@@ -127,7 +128,7 @@ PyObject* MaterialManagerPy::inheritMaterial(PyObject* args)
         // Found the parent. Create a new material with this as parent
         auto material = new Material();
         material->setParentUUID(QString::fromLatin1(uuid));
-        return new MaterialPy(material); // Transfers ownership
+        return new MaterialPy(material);  // Transfers ownership
     }
     catch (const MaterialNotFound&) {
         PyErr_SetString(PyExc_LookupError, "Material not found");
@@ -142,27 +143,31 @@ Py::List MaterialManagerPy::getMaterialLibraries() const
 
     for (auto it = libraries->begin(); it != libraries->end(); it++) {
         auto lib = *it;
-        Py::Tuple libTuple(3);
-        if (lib->isLocal()) {
-            auto materialLibrary =
-                reinterpret_cast<const std::shared_ptr<Materials::MaterialLibraryLocal>&>(lib);
-            libTuple.setItem(0, Py::String(materialLibrary->getName().toStdString()));
-            libTuple.setItem(1, Py::String(materialLibrary->getDirectoryPath().toStdString()));
-            libTuple.setItem(2,
-                             Py::Bytes(Py::Bytes(materialLibrary->getIcon().data(),
-                                                 materialLibrary->getIcon().size())));
-        }
-        else
-        {
-            libTuple.setItem(0, Py::String());
-            libTuple.setItem(1, Py::String());
-            libTuple.setItem(2, Py::Bytes());
-        }
-
-        list.append(libTuple);
+        PyObject* libObject = new MaterialLibraryPy(new MaterialLibrary(*lib));
+        list.append(Py::Object(libObject, true));
     }
 
     return list;
+}
+
+PyObject* MaterialManagerPy::getLibraries(PyObject* args)
+{
+    PyObject* includeDisabled = Py_False;
+    if (!PyArg_ParseTuple(args, "|O!", &PyBool_Type, &includeDisabled)) {
+        return nullptr;
+    }
+
+    auto libraries = getMaterialManagerPtr()->getLibraries(PyObject_IsTrue(includeDisabled));
+    Py::List list;
+
+    for (auto it = libraries->begin(); it != libraries->end(); it++) {
+        auto lib = *it;
+        PyObject* libObject = new MaterialLibraryPy(new MaterialLibrary(*lib));
+        list.append(Py::Object(libObject, true));
+    }
+
+    Py_INCREF(*list);
+    return *list;
 }
 
 Py::Dict MaterialManagerPy::getMaterials() const
@@ -181,6 +186,85 @@ Py::Dict MaterialManagerPy::getMaterials() const
 
     // return Py::new_reference_to(dict);
     return dict;
+}
+
+Py::Boolean MaterialManagerPy::getUseExternal() const
+{
+    return getMaterialManagerPtr()->useExternal();
+}
+
+void MaterialManagerPy::setUseExternal(Py::Boolean value)
+{
+    getMaterialManagerPtr()->setUseExternal(value);
+}
+
+PyObject* MaterialManagerPy::createLibrary(PyObject* args)
+{
+    char* name {};
+    char* iconPath {};
+    PyObject* local = Py_False;
+    if (!PyArg_ParseTuple(args, "ssO!", &name, &iconPath, &PyBool_Type, &local)) {
+        return nullptr;
+    }
+
+    auto library = getMaterialManagerPtr()->createLibrary(
+        QString::fromStdString(name),
+        QString::fromStdString(iconPath),
+        PyObject_IsTrue(local)
+    );
+
+    return new MaterialLibraryPy(new MaterialLibrary(*library));
+}
+
+PyObject* MaterialManagerPy::createLocalLibrary(PyObject* args)
+{
+    char* name {};
+    char* iconPath {};
+    char* materialPath {};
+    char* modelPath {};
+    PyObject* local = Py_False;
+    if (PyArg_ParseTuple(args, "ssssO!", &name, &iconPath, &materialPath, &modelPath, &PyBool_Type, &local)) {
+        auto library = getMaterialManagerPtr()->createLocalLibrary(
+            QString::fromStdString(name),
+            QString::fromStdString(materialPath),
+            QString::fromStdString(modelPath),
+            QString::fromStdString(iconPath),
+            PyObject_IsTrue(local)
+        );
+
+        return new MaterialLibraryPy(new MaterialLibrary(*library));
+    }
+    else if (PyArg_ParseTuple(args, "sssO!", &name, &iconPath, materialPath, &PyBool_Type, &local)) {
+        auto library = getMaterialManagerPtr()->createLocalLibrary(
+            QString::fromStdString(name),
+            QString::fromStdString(iconPath),
+            QString::fromStdString(materialPath),
+            PyObject_IsTrue(local)
+        );
+
+        return new MaterialLibraryPy(new MaterialLibrary(*library));
+    }
+    return nullptr;
+}
+
+PyObject* MaterialManagerPy::removeLibrary(PyObject* args)
+{
+    char* name {};
+    PyObject* keepData = Py_True;
+    if (!PyArg_ParseTuple(args, "s|O!", &name, &PyBool_Type, &keepData)) {
+        return nullptr;
+    }
+
+    try {
+        getMaterialManagerPtr()->removeLibrary(QString::fromStdString(name), PyObject_IsTrue(keepData));
+    }
+    catch (const LibraryNotFound&) {
+        PyErr_SetString(PyExc_LookupError, "Unknown library");
+        return nullptr;
+    }
+
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 PyObject* MaterialManagerPy::getCustomAttributes(const char* /*attr*/) const
@@ -221,8 +305,7 @@ PyObject* MaterialManagerPy::materialsWithModelComplete(PyObject* args)
         return nullptr;
     }
 
-    auto materials =
-        getMaterialManagerPtr()->materialsWithModelComplete(QString::fromStdString(uuid));
+    auto materials = getMaterialManagerPtr()->materialsWithModelComplete(QString::fromStdString(uuid));
     Py::Dict dict;
 
     for (auto it = materials->begin(); it != materials->end(); it++) {
@@ -244,17 +327,25 @@ PyObject* MaterialManagerPy::save(PyObject* args, PyObject* kwds)
     PyObject* overwrite = Py_False;
     PyObject* saveAsCopy = Py_False;
     PyObject* saveInherited = Py_False;
-    static const std::array<const char *, 7> kwlist { "library", "material", "path", "overwrite", "saveAsCopy", "saveInherited", nullptr };
-    if (!Base::Wrapped_ParseTupleAndKeywords(args,
-                                     kwds,
-                                     "etOet|O!O!O!",
-                                     kwlist,
-                                     "utf-8", &libraryName,
-                                     &obj,
-                                     "utf-8", &path,
-                                     &PyBool_Type, &overwrite,
-                                     &PyBool_Type, &saveAsCopy,
-                                     &PyBool_Type, &saveInherited)) {
+    static const std::array<const char*, 7>
+        kwlist {"library", "material", "path", "overwrite", "saveAsCopy", "saveInherited", nullptr};
+    if (!Base::Wrapped_ParseTupleAndKeywords(
+            args,
+            kwds,
+            "etOet|O!O!O!",
+            kwlist,
+            "utf-8",
+            &libraryName,
+            &obj,
+            "utf-8",
+            &path,
+            &PyBool_Type,
+            &overwrite,
+            &PyBool_Type,
+            &saveAsCopy,
+            &PyBool_Type,
+            &saveInherited
+        )) {
         return nullptr;
     }
 
@@ -285,21 +376,25 @@ PyObject* MaterialManagerPy::save(PyObject* args, PyObject* kwds)
     }
 
 
-    getMaterialManagerPtr()->saveMaterial(library,
-                                          sharedMaterial,
-                                          QString::fromUtf8(path),
-                                          PyObject_IsTrue(overwrite),
-                                          PyObject_IsTrue(saveAsCopy),
-                                          PyObject_IsTrue(saveInherited));
-    material->getMaterialPtr()->setUUID(sharedMaterial->getUUID()); // Make sure they match
+    getMaterialManagerPtr()->saveMaterial(
+        library,
+        sharedMaterial,
+        QString::fromUtf8(path),
+        PyObject_IsTrue(overwrite),
+        PyObject_IsTrue(saveAsCopy),
+        PyObject_IsTrue(saveInherited)
+    );
+    material->getMaterialPtr()->setUUID(sharedMaterial->getUUID());  // Make sure they match
 
     Py_INCREF(Py_None);
     return Py_None;
 }
 
-void addMaterials(MaterialManager *manager,
-                  Py::List& list,
-                  const std::shared_ptr<std::map<QString, std::shared_ptr<MaterialTreeNode>>>& tree)
+void addMaterials(
+    MaterialManager* manager,
+    Py::List& list,
+    const std::shared_ptr<std::map<QString, std::shared_ptr<MaterialTreeNode>>>& tree
+)
 {
     for (auto& node : *tree) {
         if (node.second->getType() == MaterialTreeNode::NodeType::DataNode) {
@@ -318,18 +413,18 @@ PyObject* MaterialManagerPy::filterMaterials(PyObject* args, PyObject* kwds)
 {
     PyObject* filterPy {};
     PyObject* includeLegacy = Py_False;
-    static const std::array<const char*, 3> kwds_save{ "filter",
-                                                       "includeLegacy",
-                                                       nullptr };
-    if (!Base::Wrapped_ParseTupleAndKeywords(args,
-                                             kwds,
-                                             //  "O|O!",
-                                             "O!|O!",
-                                             kwds_save,
-                                             &MaterialFilterPy::Type,
-                                             &filterPy,
-                                             &PyBool_Type,
-                                             &includeLegacy)) {
+    static const std::array<const char*, 3> kwds_save {"filter", "includeLegacy", nullptr};
+    if (!Base::Wrapped_ParseTupleAndKeywords(
+            args,
+            kwds,
+            //  "O|O!",
+            "O!|O!",
+            kwds_save,
+            &MaterialFilterPy::Type,
+            &filterPy,
+            &PyBool_Type,
+            &includeLegacy
+        )) {
         return nullptr;
     }
 
@@ -340,20 +435,141 @@ PyObject* MaterialManagerPy::filterMaterials(PyObject* args, PyObject* kwds)
     options.setIncludeEmptyLibraries(false);
     options.setIncludeLegacy(PyObject_IsTrue(includeLegacy));
 
-    auto filter = std::make_shared<MaterialFilter>(*(static_cast<MaterialFilterPy*>(filterPy)->getMaterialFilterPtr()));
+    auto filter = std::make_shared<MaterialFilter>(
+        *(static_cast<MaterialFilterPy*>(filterPy)->getMaterialFilterPtr())
+    );
 
     auto libraries = getMaterialManagerPtr()->getLibraries();
     Py::List list;
 
     for (auto lib : *libraries) {
-        auto tree = getMaterialManagerPtr()->getMaterialTree(*lib, *filter, options);
-        if (tree->size() > 0) {
-            addMaterials(getMaterialManagerPtr(), list, tree);
+        if (!lib->isDisabled()) {
+            auto tree = getMaterialManagerPtr()->getMaterialTree(*lib, *filter, options);
+            if (tree->size() > 0) {
+                addMaterials(getMaterialManagerPtr(), list, tree);
+            }
         }
     }
 
     Py_INCREF(*list);
     return *list;
+}
+
+PyObject* MaterialManagerPy::setDisabled(PyObject* args)
+{
+    char* libraryName {};
+    PyObject* libraryPy {};
+    PyObject* disabledPy = Py_False;
+    PyObject* isLocalPy = Py_True;
+    std::shared_ptr<MaterialLibrary> library;
+    if (PyArg_ParseTuple(
+            args,
+            "O!O!|O!",
+            &MaterialLibraryPy::Type,
+            &libraryPy,
+            &PyBool_Type,
+            &disabledPy,
+            &PyBool_Type,
+            &isLocalPy
+        )) {
+        MaterialLibraryPy* materialLibrary;
+        if (QLatin1String(libraryPy->ob_type->tp_name) == QLatin1String("Materials.MaterialLibrary")) {
+            materialLibrary = static_cast<MaterialLibraryPy*>(libraryPy);
+        }
+        else {
+            PyErr_Format(
+                PyExc_TypeError,
+                "MaterialLibrary expected not '%s'",
+                libraryPy->ob_type->tp_name
+            );
+            return nullptr;
+        }
+        if (!materialLibrary) {
+            PyErr_SetString(PyExc_TypeError, "Invalid material library object");
+            return nullptr;
+        }
+        library = std::make_shared<MaterialLibrary>(*(materialLibrary->getMaterialLibraryPtr()));
+    }
+    else {
+        PyErr_Clear();
+        if (PyArg_ParseTuple(
+                args,
+                "etO!|O!",
+                "utf-8",
+                &libraryName,
+                &PyBool_Type,
+                &disabledPy,
+                &PyBool_Type,
+                &isLocalPy
+            )) {
+            try {
+                library = getMaterialManagerPtr()->getLibrary(QString::fromUtf8(libraryName));
+                if (isLocalPy != Py_True) {
+                    library->setLocal(false);
+                }
+            }
+            catch (const LibraryNotFound&) {
+                PyErr_SetString(PyExc_LookupError, "Unknown library");
+                return nullptr;
+            }
+        }
+        else {
+            return nullptr;
+        }
+    }
+
+    getMaterialManagerPtr()->setDisabled(*library, (disabledPy == Py_True));
+
+    Py_Return;
+}
+
+PyObject* MaterialManagerPy::isDisabled(PyObject* args)
+{
+    char* libraryName {};
+    PyObject* libraryPy {};
+    PyObject* isLocalPy = Py_True;
+    std::shared_ptr<MaterialLibrary> library;
+    if (PyArg_ParseTuple(args, "O!|O!", &MaterialLibraryPy::Type, &libraryPy, &PyBool_Type, &isLocalPy)) {
+        MaterialLibraryPy* materialLibrary;
+        if (QLatin1String(libraryPy->ob_type->tp_name) == QLatin1String("Materials.MaterialLibrary")) {
+            materialLibrary = static_cast<MaterialLibraryPy*>(libraryPy);
+        }
+        else {
+            PyErr_Format(
+                PyExc_TypeError,
+                "MaterialLibrary expected not '%s'",
+                libraryPy->ob_type->tp_name
+            );
+            return nullptr;
+        }
+        if (!materialLibrary) {
+            PyErr_SetString(PyExc_TypeError, "Invalid material library object");
+            return nullptr;
+        }
+        library = std::make_shared<MaterialLibrary>(*(materialLibrary->getMaterialLibraryPtr()));
+    }
+    else {
+        PyErr_Clear();
+        if (PyArg_ParseTuple(args, "et|O!", "utf-8", &libraryName, &PyBool_Type, &isLocalPy)) {
+            try {
+                library = getMaterialManagerPtr()->getLibrary(QString::fromUtf8(libraryName));
+                if (isLocalPy != Py_True) {
+                    library->setLocal(false);
+                }
+            }
+            catch (const LibraryNotFound&) {
+                PyErr_SetString(PyExc_LookupError, "Unknown library");
+                return nullptr;
+            }
+        }
+        else {
+            return nullptr;
+        }
+    }
+
+    bool disabled = getMaterialManagerPtr()->isDisabled(*library);
+
+    return Py::new_reference_to(Py::Boolean(disabled));
 }
 
 PyObject* MaterialManagerPy::refresh(PyObject* /*args*/)

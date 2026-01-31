@@ -33,9 +33,9 @@
 #include <Mod/Material/App/Exceptions.h>
 #include <Mod/Material/App/Materials.h>
 
+#include <Mod/Material/Gui/Delegates/ArrayDelegate.h>
+
 #include "Array2D.h"
-#include "ArrayDelegate.h"
-#include "ArrayModel.h"
 #include "ui_Array2D.h"
 
 

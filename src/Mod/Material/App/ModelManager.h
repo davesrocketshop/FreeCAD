@@ -40,6 +40,7 @@ namespace Materials
 {
 class ModelManagerLocal;
 class ModelManagerExternal;
+class MaterialManagerLocal;
 
 class MaterialsExport ModelManager: public Base::BaseClass, ParameterGrp::ObserverType
 {
@@ -54,8 +55,10 @@ public:
     void refresh();
 
     // Library management
-    std::shared_ptr<std::list<std::shared_ptr<ModelLibrary>>> getLibraries();
-    std::shared_ptr<std::list<std::shared_ptr<ModelLibrary>>> getLocalLibraries();
+    bool useExternal() const { return _useExternal; }
+    void setUseExternal(bool useExternal);
+    std::shared_ptr<std::list<std::shared_ptr<ModelLibrary>>> getLibraries(bool includeDisabled = false);
+    std::shared_ptr<std::list<std::shared_ptr<ModelLibrary>>> getLocalLibraries(bool includeDisabled = false);
     std::shared_ptr<ModelLibrary> getLibrary(const QString& name) const;
     void createLibrary(const QString& libraryName,
                        const QString& iconPath,
@@ -88,6 +91,9 @@ public:
     std::shared_ptr<Model> getModelByPath(const QString& path) const;
     std::shared_ptr<Model> getModelByPath(const QString& path, const QString& lib) const;
 
+    static void dereference(Model& model);
+    static void dereference(const std::shared_ptr<Model>& model);
+
     static bool isModel(const QString& file);
     static bool passFilter(ModelFilter filter, Model::ModelType modelType);
 
@@ -99,8 +105,17 @@ public:
     void validateMigration(const std::shared_ptr<Materials::ModelLibrary>& library);
 
     // Cache functions
+    static void resetCache();
     static double modelHitRate();
 #endif
+
+    static void createSystemLibraryConfig();
+    static void createUserLibraryConfig();
+
+protected:
+    void setDisabled(Library &library, bool disabled);
+
+    friend class MaterialManagerLocal;
 
 private:
     ModelManager();

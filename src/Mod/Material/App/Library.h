@@ -35,6 +35,10 @@
 namespace Materials
 {
 
+class ModelLoader;
+class ModelManagerLocal;
+class MaterialManagerLocal;
+
 class MaterialsExport Library: public Base::BaseClass
 {
     TYPESYSTEM_HEADER_WITH_OVERRIDE();
@@ -52,6 +56,9 @@ public:
 
     bool isLocal() const;
     void setLocal(bool local);
+
+    bool isModule() const;
+    void setModule(bool module);
 
     QString getName() const
     {
@@ -71,6 +78,10 @@ public:
         return _icon;
     }
     static QByteArray getIcon(const QString& iconPath);
+    QString getIconPath() const
+    {
+        return _iconPath;
+    }
     void setIcon(const QByteArray& icon)
     {
         _icon = icon;
@@ -88,14 +99,14 @@ public:
     {
         _readOnly = readOnly;
     }
+    bool isDisabled() const
+    {
+        return _disabled;
+    }
 
     QString getDirectory() const
     {
         return _directory;
-    }
-    void setDirectory(const QString& directory)
-    {
-        _directory = directory;
     }
     QString getDirectoryPath() const
     {
@@ -116,13 +127,34 @@ public:
     // Validate a remote library against this one (a local library)
     void validate(const Library& remote) const;
 
+    static std::string cleanPath(const std::string path);
+    static QString cleanPath(const QString& path);
+
+protected:
+    // These should only be done through the MaterialManager or one of its subbordinates
+    void setDisabled(bool disabled)
+    {
+        _disabled = disabled;
+    }
+    void setDirectory(const QString& directory)
+    {
+        _directory = cleanPath(directory);
+    }
+
+    friend class ModelLoader;
+    friend class ModelManagerLocal;
+    friend class MaterialManagerLocal;
+
 private:
     QString _name;
     QString _directory;
     QByteArray _icon;
+    QString _iconPath;
     bool _readOnly;
+    bool _disabled;
 
     bool _local;
+    bool _module;
 
     QByteArray loadByteArrayFromFile(const QString& filePath) const;
 };

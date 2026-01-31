@@ -67,7 +67,7 @@ public:
     std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>> getLibraries();
     std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>> getMaterialLibraries();
     std::shared_ptr<MaterialLibrary> getLibrary(const QString& name) const;
-    void createLibrary(const QString& libraryName,
+    std::shared_ptr<MaterialLibrary> createLibrary(const QString& libraryName,
                        const QByteArray& icon,
                        bool readOnly = true);
     void renameLibrary(const QString& libraryName, const QString& newName);
@@ -79,6 +79,9 @@ public:
     libraryMaterials(const QString& libraryName,
                      const MaterialFilter& filter,
                      const MaterialFilterOptions& options);
+    void setDisabled(const QString& libraryName, bool disabled);
+    bool isDisabled(const QString& libraryName);
+    bool exists(const QString& libraryName);
 
     // Folder management
     void createFolder(const MaterialLibrary& library, const QString& path);
@@ -94,6 +97,21 @@ public:
     void migrateMaterial(const QString& libraryName,
                      const QString& path,
                      const Material& material);
+    bool exists(const QString& uuid) const;
+    bool exists(const MaterialLibrary& library, const QString& uuid) const;
+    void move(
+        const std::shared_ptr<MaterialLibrary>& library,
+        const QString& path,
+        std::shared_ptr<Material> original
+    );
+    void remove(const QString& uuid);
+
+    void saveMaterial(
+        const std::shared_ptr<MaterialLibrary>& library,
+        const std::shared_ptr<Material>& material,
+        const QString& path,
+        bool overwrite
+    ) const;
 
     // Cache functions
     void resetCache();

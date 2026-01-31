@@ -271,7 +271,7 @@ std::shared_ptr<std::vector<std::shared_ptr<Library>>> ExternalManager::modelLib
             Py::Callable libraries(_managerObject.getAttr("modelLibraries"));
             Py::List list(libraries.apply());
             for (auto lib : list) {
-                auto library = libraryFromObject(Py::Tuple(lib));
+                auto library = libraryFromObject(Py::Object(lib));
                 libList->push_back(library);
             }
         }
@@ -300,7 +300,7 @@ std::shared_ptr<std::vector<std::shared_ptr<Library>>> ExternalManager::material
             Py::Callable libraries(_managerObject.getAttr("materialLibraries"));
             Py::List list(libraries.apply());
             for (auto lib : list) {
-                auto library = libraryFromObject(Py::Tuple(lib));
+                auto library = libraryFromObject(Py::Object(lib));
                 libList->push_back(library);
             }
         }
@@ -368,6 +368,7 @@ void ExternalManager::createLibrary(const QString& libraryName, const QByteArray
     }
     catch (Py::Exception& e) {
         Base::PyException e1;  // extract the Python error text
+        Base::Console().log("Python exception type %s", e1.getErrorType().c_str());
         throw CreationError(e1.what());
     }
 }
@@ -1172,5 +1173,30 @@ void ExternalManager::removeMaterial(const QString& uuid)
     catch (Py::Exception& e) {
         Base::PyException e1;  // extract the Python error text
         throw DeleteError(e1.what());
+    }
+}
+
+bool ExternalManager::materialExists(const QString& libraryName, const QString& uuid)
+{
+    connect();
+
+    Base::PyGILStateLocker lock;
+    try {
+        if (_managerObject.hasAttr("materialExists")) {
+            Py::Callable libraries(_managerObject.getAttr("materialExists"));
+            Py::Tuple args(2);
+            args.setItem(0, Py::String(libraryName.toStdString()));
+            args.setItem(1, Py::String(uuid.toStdString()));
+            Py::Boolean exists(libraries.apply(args));  // No return expected
+            return exists.as_bool();
+        }
+        else {
+            Base::Console().log("\tmaterialExists() not found\n");
+            throw ConnectionError();
+        }
+    }
+    catch (Py::Exception& e) {
+        Base::PyException e1;  // extract the Python error text
+        throw MaterialNotFound(e1.what());
     }
 }

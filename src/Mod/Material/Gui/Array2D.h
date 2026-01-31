@@ -35,8 +35,7 @@
 #include <QTableView>
 
 #include <Mod/Material/App/Model.h>
-
-#include "ArrayModel.h"
+#include <Mod/Material/Gui/Models/ArrayModel.h>
 
 namespace MatGui
 {

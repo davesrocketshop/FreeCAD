@@ -39,15 +39,18 @@ set(MatGui_UIC_SRCS
     DlgDisplayProperties.ui
     DlgInspectAppearance.ui
     DlgInspectMaterial.ui
+    DlgInspectModels.ui
     DlgMaterial.ui
     DlgSettingsDefaultMaterial.ui
     DlgSettingsMaterial.ui
     ImageEdit.ui
     ListEdit.ui
-    MaterialSave.ui
     MaterialsEditor.ui
     ModelSelect.ui
+    NewLibrary.ui
     TextEdit.ui
+    Widgets/MaterialPropertiesWidget.ui
+    Widgets/PropertiesWidget.ui
 )
 if(BUILD_MATERIAL_EXTERNAL)
     list(APPEND MatGui_UIC_SRCS
@@ -69,13 +72,9 @@ SET(MatGui_SRCS
     Array3D.cpp
     Array3D.h
     Array3D.ui
-    ArrayDelegate.cpp
-    ArrayDelegate.h
-    ArrayModel.cpp
-    ArrayModel.h
-    BaseDelegate.cpp
-    BaseDelegate.h
     Command.cpp
+    ClipboardText.cpp
+    ClipboardText.h
     DlgDisplayPropertiesImp.cpp
     DlgDisplayPropertiesImp.h
     DlgDisplayProperties.ui
@@ -85,6 +84,9 @@ SET(MatGui_SRCS
     DlgInspectMaterial.cpp
     DlgInspectMaterial.h
     DlgInspectMaterial.ui
+    DlgInspectModels.cpp
+    DlgInspectModels.h
+    DlgInspectModels.ui
     DlgMaterialImp.cpp
     DlgMaterialImp.h
     DlgMaterial.ui
@@ -97,18 +99,9 @@ SET(MatGui_SRCS
     ImageEdit.cpp
     ImageEdit.h
     ImageEdit.ui
-    ListDelegate.cpp
-    ListDelegate.h
     ListEdit.cpp
     ListEdit.h
     ListEdit.ui
-    ListModel.cpp
-    ListModel.h
-    MaterialDelegate.cpp
-    MaterialDelegate.h
-    MaterialSave.cpp
-    MaterialSave.h
-    MaterialSave.ui
     MaterialsEditor.cpp
     MaterialsEditor.h
     MaterialsEditor.ui
@@ -117,6 +110,9 @@ SET(MatGui_SRCS
     ModelSelect.cpp
     ModelSelect.h
     ModelSelect.ui
+    NewLibrary.cpp
+    NewLibrary.h
+    NewLibrary.ui
     PreCompiled.h
     TextEdit.cpp
     TextEdit.h
@@ -125,6 +121,30 @@ SET(MatGui_SRCS
     Workbench.h
     WorkbenchManipulator.cpp
     WorkbenchManipulator.h
+    Delegates/ArrayDelegate.cpp
+    Delegates/ArrayDelegate.h
+    Delegates/BaseDelegate.cpp
+    Delegates/BaseDelegate.h
+    Delegates/ListDelegate.cpp
+    Delegates/ListDelegate.h
+    Delegates/MaterialDelegate.cpp
+    Delegates/MaterialDelegate.h
+    Models/ArrayModel.cpp
+    Models/ArrayModel.h
+    Models/ListModel.cpp
+    Models/ListModel.h
+    Models/MaterialTreeModel.cpp
+    Models/MaterialTreeModel.h
+    Widgets/MaterialTreeItem.cpp
+    Widgets/MaterialTreeItem.h
+    Widgets/MaterialTreeView.cpp
+    Widgets/MaterialTreeView.h
+    Widgets/MaterialPropertiesWidget.cpp
+    Widgets/MaterialPropertiesWidget.h
+    Widgets/MaterialPropertiesWidget.ui
+    Widgets/PropertiesWidget.cpp
+    Widgets/PropertiesWidget.h
+    Widgets/PropertiesWidget.ui
 )
 if(BUILD_MATERIAL_EXTERNAL)
     list(APPEND MatGui_SRCS
@@ -140,6 +160,8 @@ endif(BUILD_MATERIAL_EXTERNAL)
 SET(MatGuiIcon_SVG
     Resources/icons/list.svg
     Resources/icons/Material_Edit.svg
+    Resources/icons/Material_Library.svg
+    Resources/icons/Material_Remote.svg
     Resources/icons/MaterialWorkbench.svg
     Resources/icons/multiline.svg
     Resources/icons/preferences-material.svg

@@ -72,19 +72,35 @@ public:
 
     // Library management
     bool useExternal() const { return _useExternal; }
-    std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>> getLibraries();
-    std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>> getLocalLibraries();
+    void setUseExternal(bool useExternal);
+    std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>> getLibraries(bool includeDisabled = false, bool includeMasked = false);
+    std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>> getLocalLibraries(
+        bool includeDisabled = false
+    );
+#if defined(BUILD_MATERIAL_EXTERNAL)
+    std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>> getRemoteLibraries(
+        bool includeDisabled = false
+    );
+#endif
     std::shared_ptr<MaterialLibrary> getLibrary(const QString& name) const;
-    void createLibrary(const QString& libraryName,
+    std::shared_ptr<MaterialLibrary> createLibrary(const QString& libraryName,
                        const QString& iconPath,
                        bool readOnly = true);
-    void createLocalLibrary(const QString& libraryName,
-                            const QString& directory,
+    std::shared_ptr<MaterialLibrary> createLocalLibrary(const QString& libraryName,
+                            const QString& materialDirectory,
+                            const QString& modelDirectory,
                             const QString& iconPath,
                             bool readOnly = true);
+    std::shared_ptr<MaterialLibrary> createLocalLibrary(const QString& libraryName,
+                            const QString& materialDirectory,
+                            const QString& iconPath,
+                            bool readOnly = true)
+    {
+        return createLocalLibrary(libraryName, materialDirectory, QString(), iconPath, readOnly);
+    }
     void renameLibrary(const QString& libraryName, const QString& newName);
     void changeIcon(const QString& libraryName, const QString& iconPath);
-    void removeLibrary(const QString& libraryName);
+    void removeLibrary(const QString& libraryName, bool keepData = true);
     std::shared_ptr<std::vector<LibraryObject>>
     libraryMaterials(const QString& libraryName, bool local = false);
     std::shared_ptr<std::vector<LibraryObject>>
@@ -93,6 +109,10 @@ public:
                      const MaterialFilterOptions& options,
                      bool local = false);
     bool isLocalLibrary(const QString& libraryName);
+    void setDisabled(const QString& libraryName, bool disabled, bool isLocal);
+    void setDisabled(const MaterialLibrary& library, bool disabled);
+    bool isDisabled(const QString& libraryName, bool isLocal);
+    bool isDisabled(const MaterialLibrary& library);
 
     // Folder management
     std::shared_ptr<std::list<QString>>
@@ -121,8 +141,22 @@ public:
     std::shared_ptr<Material> getMaterialByPath(const QString& path) const;
     std::shared_ptr<Material> getMaterialByPath(const QString& path, const QString& library) const;
     std::shared_ptr<Material> getParent(const std::shared_ptr<Material>& material) const;
+    std::shared_ptr<Material> copyNew(const Material& original, const QString& name) const;
+    std::shared_ptr<Material> copyInherited(const Material& original, const QString& name) const;
     bool exists(const QString& uuid) const;
     bool exists(const MaterialLibrary& library, const QString& uuid) const;
+    void move(
+        const std::shared_ptr<MaterialLibrary>& library,
+        const QString& path,
+        const std::shared_ptr<Material>& original
+    );
+    void move(const std::shared_ptr<MaterialLibrary>& library, const QString& path, const QString& uuid);
+    void copy(
+        const std::shared_ptr<MaterialLibrary>& library,
+        const QString& path,
+        const Material& original
+    );
+    void copy(const std::shared_ptr<MaterialLibrary>& library, const QString& path, const QString& uuid);
     void remove(const QString& uuid) const;
 
     void saveMaterial(const std::shared_ptr<MaterialLibrary>& library,
@@ -159,6 +193,10 @@ private:
     FC_DISABLE_COPY_MOVE(MaterialManager);
 
     static void initManagers();
+
+    std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>> getLibrariesMasked(
+        bool includeDisabled
+    );
 
     static MaterialManager* _manager;
 

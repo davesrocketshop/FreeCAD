@@ -29,6 +29,7 @@
 #include <QDir>
 #include <QString>
 #include <QStringList>
+#include <QTextStream>
 
 #include <Base/BaseClass.h>
 #include <Base/Quantity.h>
@@ -184,6 +185,7 @@ public:
     {
         return _library;
     }
+    bool isDisabled() const;
     QString getBase() const
     {
         return (_type == ModelType_Physical) ? QStringLiteral("Model")
@@ -270,6 +272,7 @@ public:
         return !operator==(m);
     }
 
+    bool hasProperty(const QString& name) const;
     ModelProperty& operator[](const QString& key);
     void addProperty(ModelProperty& property)
     {
@@ -304,6 +307,33 @@ public:
     }
 
     void validate(Model& other) const;
+    void save(QTextStream& stream);
+
+    bool isDereferenced() const
+    {
+        return _dereferenced;
+    }
+    void markDereferenced()
+    {
+        _dereferenced = true;
+    }
+    void clearDereferenced()
+    {
+        _dereferenced = false;
+    }
+
+    bool isDereferencing() const
+    {
+        return _dereferencing;
+    }
+    void markDereferencing()
+    {
+        _dereferencing = true;
+    }
+    void clearDereferencing()
+    {
+        _dereferencing = false;
+    }
 
 private:
     std::shared_ptr<ModelLibrary> _library;
@@ -317,10 +347,21 @@ private:
     QString _doi;
     QStringList _inheritedUuids;
     std::map<QString, ModelProperty> _properties;
+
+    bool _dereferenced;
+    bool _dereferencing;
+
+    void saveGeneral(QTextStream& stream) const;
+    void saveInherits(QTextStream& stream) const;
+    void saveProperties(QTextStream& stream) const;
 };
 
 typedef FolderTreeNode<Model> ModelTreeNode;
 
 }  // namespace Materials
+
+Q_DECLARE_METATYPE(Materials::ModelProperty)
+Q_DECLARE_METATYPE(Materials::Model*)
+Q_DECLARE_METATYPE(std::shared_ptr<Materials::Model>)
 
 #endif  // MATERIAL_MODEL_H

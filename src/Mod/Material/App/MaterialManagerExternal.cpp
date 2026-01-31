@@ -127,11 +127,12 @@ std::shared_ptr<MaterialLibrary> MaterialManagerExternal::getLibrary(const QStri
     }
 }
 
-void MaterialManagerExternal::createLibrary(const QString& libraryName,
+std::shared_ptr<MaterialLibrary> MaterialManagerExternal::createLibrary(const QString& libraryName,
                                             const QByteArray& icon,
                                             bool readOnly)
 {
     ExternalManager::getManager()->createLibrary(libraryName, icon, readOnly);
+    return getLibrary(libraryName);
 }
 
 void MaterialManagerExternal::renameLibrary(const QString& libraryName, const QString& newName)
@@ -161,6 +162,54 @@ MaterialManagerExternal::libraryMaterials(const QString& libraryName,
                                           const MaterialFilterOptions& options)
 {
     return ExternalManager::getManager()->libraryMaterials(libraryName, filter, options);
+}
+
+void MaterialManagerExternal::setDisabled(const QString& libraryName, bool disabled)
+{
+    if (!exists(libraryName)) {
+        throw LibraryNotFound();
+    }
+
+    ParameterGrp::handle param = App::GetApplication().GetParameterGroupByPath(
+        "User parameter:BaseApp/Preferences/Mod/Material/Resources/Remote"
+    );
+    auto group = param->GetGroup(libraryName.toStdString().c_str());
+        group->SetBool("Disabled", disabled);
+}
+
+bool MaterialManagerExternal::isDisabled(const QString& libraryName)
+{
+    if (!exists(libraryName)) {
+        throw LibraryNotFound();
+    }
+
+    ParameterGrp::handle param = App::GetApplication().GetParameterGroupByPath(
+        "User parameter:BaseApp/Preferences/Mod/Material/Resources/Remote"
+    );
+    auto groups = param->GetGroups();
+    for (auto group : groups) {
+        if (QString::fromStdString(group->GetGroupName()) == libraryName) {
+            return group->GetBool("Disabled", false);
+        }
+    }
+    // No entry means it isn't disabled
+    return false;
+}
+
+bool MaterialManagerExternal::exists(const QString& libraryName)
+{
+    try {
+        auto lib = ExternalManager::getManager()->getLibrary(libraryName);
+        return true;
+    }
+    catch (const LibraryNotFound& e) {
+    }
+    catch (const ConnectionError& e) {
+    }
+    catch (...) {
+    }
+
+    return false;
 }
 
 //=====
@@ -236,6 +285,56 @@ void MaterialManagerExternal::migrateMaterial(const QString& libraryName,
 {
     _cache.erase(material.getUUID().toStdString());
     ExternalManager::getManager()->migrateMaterial(libraryName, path, material);
+}
+
+bool MaterialManagerExternal::exists(const QString& uuid) const
+{
+    if (_cache.contains(uuid.toStdString())) {
+        return true;
+    }
+    return ExternalManager::getManager()->materialExists(QString(), uuid);
+}
+
+bool MaterialManagerExternal::exists(const MaterialLibrary& library, const QString& uuid) const
+{
+    return ExternalManager::getManager()->materialExists(library.getName(), uuid);
+}
+
+void MaterialManagerExternal::move(
+    const std::shared_ptr<MaterialLibrary>& library,
+    const QString& path,
+    std::shared_ptr<Material> original
+)
+{
+    _cache.erase(original->getUUID().toStdString());
+    ExternalManager::getManager()->moveMaterial(library->getName(), path, original->getUUID());
+}
+
+void MaterialManagerExternal::remove(const QString& uuid)
+{
+    _cache.erase(uuid.toStdString());
+    ExternalManager::getManager()->removeMaterial(uuid);
+}
+
+void MaterialManagerExternal::saveMaterial(
+    const std::shared_ptr<MaterialLibrary>& library,
+    const std::shared_ptr<Material>& material,
+    const QString& path,
+    bool overwrite
+) const
+{
+    _cache.erase(material->getUUID().toStdString());
+    if (ExternalManager::getManager()->materialExists(library->getName(), material->getUUID())) {
+        if (overwrite) {
+            ExternalManager::getManager()->updateMaterial(library->getName(), path, *material);
+        }
+        else {
+            throw MaterialExists();
+        }
+    }
+    else {
+        ExternalManager::getManager()->addMaterial(library->getName(), path, *material);
+    }
 }
 
 //=====

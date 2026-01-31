@@ -36,7 +36,7 @@
 
 using namespace MatGui;
 
-/* TRANSLATOR MatGui::ArrayModel */
+/* TRANSLATOR MatGui::ListModel */
 
 ListModel::ListModel()
 {}

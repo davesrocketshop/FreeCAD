@@ -39,6 +39,8 @@ UUIDAluminumMixed = "5f546608-fcbb-40db-98d7-d8e104eb33ce"
 UUIDAluminumPhysical = "a8e60089-550d-4370-8e7e-1734db12a3a9"
 UUIDBrassAppearance = "fff3d5c8-98c3-4ee2-8fe5-7e17403c48fcc"
 
+UUIDBasicRendering = "f006c7e4-35b7-43d5-bbf9-c5d572309e6e"
+
 
 class MaterialFilterTestCases(unittest.TestCase):
     """
@@ -46,157 +48,179 @@ class MaterialFilterTestCases(unittest.TestCase):
     """
 
     def setUp(self):
+        self._libraries = {}
+
         """Setup function to initialize test data"""
-        self.ModelManager = Materials.ModelManager()
-        self.MaterialManager = Materials.MaterialManager()
-        self.uuids = Materials.UUIDs()
+        self._modelManager = Materials.ModelManager()
+        self._materialManager = Materials.MaterialManager()
+        self._uuids = Materials.UUIDs()
 
-        # Use our test files as a custom directory
-        param = FreeCAD.ParamGet("User parameter:BaseApp/Preferences/Mod/Material/Resources")
-        self.customDir = param.GetString("CustomMaterialsDir", "")
-        self.useBuiltInDir = param.GetBool("UseBuiltInMaterials", True)
-        self.useWorkbenchDir = param.GetBool("UseMaterialsFromWorkbenches", True)
-        self.useUserDir = param.GetBool("UseMaterialsFromConfigDir", True)
-        self.useCustomDir = param.GetBool("UseMaterialsFromCustomDir", False)
+        # Disable the external interface
+        self._useExternal = self._materialManager.UseExternal
+        self._materialManager.UseExternal = False
 
-        paramExternal = FreeCAD.ParamGet("User parameter:BaseApp/Preferences/Mod/Material/ExternalInterface")
-        self.useExternal = paramExternal.GetBool("UseExternal", False)
+        # Create a custom library for our test files
+        self.createTestLibrary()
 
-        filePath = os.path.dirname(__file__) + os.sep
-        testPath = filePath + "Materials"
-        param.SetString("CustomMaterialsDir", testPath)
-        param.SetBool("UseBuiltInMaterials", False)
-        param.SetBool("UseMaterialsFromWorkbenches", False)
-        param.SetBool("UseMaterialsFromConfigDir", False)
-        param.SetBool("UseMaterialsFromCustomDir", True)
+        # Disable other libraries
+        self._libraryDisabled = {}
+        for library in self._materialManager.getLibraries(True):
+            # name = library[0]
+            if library.Name != "__UnitTest":
+                self._libraryDisabled[library.Name] = library.Disabled
+                self._materialManager.setDisabled(library, True)
 
-        paramExternal.SetBool("UseExternal", False)
-
-        self.MaterialManager.refresh()
+        self._materialManager.refresh()
 
     def tearDown(self):
-        param = FreeCAD.ParamGet("User parameter:BaseApp/Preferences/Mod/Material/Resources")
+        self.removeTestLibrary()
 
-        # Restore preferences
-        param.SetString("CustomMaterialsDir", self.customDir)
-        param.SetBool("UseBuiltInMaterials", self.useBuiltInDir)
-        param.SetBool("UseMaterialsFromWorkbenches", self.useWorkbenchDir)
-        param.SetBool("UseMaterialsFromConfigDir", self.useUserDir)
-        param.SetBool("UseMaterialsFromCustomDir", self.useCustomDir)
+        # Restore other libraries
+        for name, disabled in self._libraryDisabled.items():
+             self._materialManager.setDisabled(name, disabled)
 
-        paramExternal = FreeCAD.ParamGet("User parameter:BaseApp/Preferences/Mod/Material/ExternalInterface")
-        paramExternal.SetBool("UseExternal", self.useExternal)
+        # Restore the external interface
+        self._materialManager.UseExternal = self._useExternal
 
-        self.MaterialManager.refresh()
+        self._materialManager.refresh()
+
+    def createTestLibrary(self):
+        # Create a custom library for our test files
+        self.removeTestLibrary()
+
+        filePath = os.path.dirname(__file__) + os.sep
+        materialPath = filePath + "Materials"
+        modelPath = filePath + "Models"
+        print(f"materialPath {materialPath}")
+        self.library = self._materialManager.createLocalLibrary("__UnitTest", 
+            ":/icons/preferences-general.svg",
+            materialPath,
+            modelPath,
+            False
+        )
+        self._materialManager.setDisabled(self.library, False)
+
+    def removeTestLibrary(self):
+        try:
+            self._materialManager.removeLibrary("__UnitTest")
+        except LookupError as ex:
+            # Library may not exist
+            pass
+
+    def testModelLoading(self):
+        model = self._modelManager.getModel(UUIDBasicRendering)
+        self.assertIsNotNone(model)
 
     def testFilter(self):
         """Test that our filter returns the correct materials"""
 
         # First check that our materials are loading
-        material = self.MaterialManager.getMaterial(UUIDAluminumAppearance)
+        material = self._materialManager.getMaterial(UUIDAluminumAppearance)
         self.assertIsNotNone(material)
         self.assertEqual(material.Name, "TestAluminumAppearance")
         self.assertEqual(material.UUID, UUIDAluminumAppearance)
 
-        material = self.MaterialManager.getMaterial(UUIDAluminumMixed)
+        material = self._materialManager.getMaterial(UUIDAluminumMixed)
         self.assertIsNotNone(material)
         self.assertEqual(material.Name, "TestAluminumMixed")
         self.assertEqual(material.UUID, UUIDAluminumMixed)
 
-        material = self.MaterialManager.getMaterial(UUIDAluminumPhysical)
+        material = self._materialManager.getMaterial(UUIDAluminumPhysical)
         self.assertIsNotNone(material)
         self.assertEqual(material.Name, "TestAluminumPhysical")
         self.assertEqual(material.UUID, UUIDAluminumPhysical)
 
-        material = self.MaterialManager.getMaterial(UUIDBrassAppearance)
+        material = self._materialManager.getMaterial(UUIDBrassAppearance)
         self.assertIsNotNone(material)
         self.assertEqual(material.Name, "TestBrassAppearance")
         self.assertEqual(material.UUID, UUIDBrassAppearance)
 
         # Create an empty filter
         filter = Materials.MaterialFilter()
-        self.assertEqual(len(self.MaterialManager.MaterialLibraries), 1)
+        self.assertEqual(len(self._materialManager.MaterialLibraries), 1)
 
-        filtered = self.MaterialManager.filterMaterials(filter)
+        filtered = self._materialManager.filterMaterials(filter)
+        for material in filtered:
+            print(f"Material {material.Name} Library {material.LibraryName}")
         self.assertEqual(len(filtered), 4)
 
-        filtered = self.MaterialManager.filterMaterials(filter, includeLegacy=True)
+        filtered = self._materialManager.filterMaterials(filter, includeLegacy=True)
         self.assertEqual(len(filtered), 5)
 
         # Create a basic rendering filter
         filter.Name = "Basic Appearance"
-        filter.RequiredCompleteModels = [self.uuids.BasicRendering]
+        filter.RequiredCompleteModels = [self._uuids.BasicRendering]
 
-        filtered = self.MaterialManager.filterMaterials(filter)
+        filtered = self._materialManager.filterMaterials(filter)
         self.assertEqual(len(filtered), 3)
 
-        filtered = self.MaterialManager.filterMaterials(filter, includeLegacy=True)
+        filtered = self._materialManager.filterMaterials(filter, includeLegacy=True)
         self.assertEqual(len(filtered), 3)
 
         # Create an advanced rendering filter
         filter= Materials.MaterialFilter()
         filter.Name = "Advanced Appearance"
-        filter.RequiredCompleteModels = [self.uuids.AdvancedRendering]
+        filter.RequiredCompleteModels = [self._uuids.AdvancedRendering]
 
-        filtered = self.MaterialManager.filterMaterials(filter)
+        filtered = self._materialManager.filterMaterials(filter)
         self.assertEqual(len(filtered), 0)
 
-        filtered = self.MaterialManager.filterMaterials(filter, includeLegacy=True)
+        filtered = self._materialManager.filterMaterials(filter, includeLegacy=True)
         self.assertEqual(len(filtered), 0)
 
         # Create a Density filter
         filter= Materials.MaterialFilter()
         filter.Name = "Density"
-        filter.RequiredCompleteModels = [self.uuids.Density]
+        filter.RequiredCompleteModels = [self._uuids.Density]
 
-        filtered = self.MaterialManager.filterMaterials(filter)
+        filtered = self._materialManager.filterMaterials(filter)
         self.assertEqual(len(filtered), 2)
 
-        filtered = self.MaterialManager.filterMaterials(filter, includeLegacy=True)
+        filtered = self._materialManager.filterMaterials(filter, includeLegacy=True)
         self.assertEqual(len(filtered), 3)
 
         # Create a Hardness filter
         filter= Materials.MaterialFilter()
         filter.Name = "Hardness"
-        filter.RequiredCompleteModels = [self.uuids.Hardness]
+        filter.RequiredCompleteModels = [self._uuids.Hardness]
 
-        filtered = self.MaterialManager.filterMaterials(filter)
+        filtered = self._materialManager.filterMaterials(filter)
         self.assertEqual(len(filtered), 0)
 
-        filtered = self.MaterialManager.filterMaterials(filter, includeLegacy=True)
+        filtered = self._materialManager.filterMaterials(filter, includeLegacy=True)
         self.assertEqual(len(filtered), 0)
 
         # Create a Density and Basic Rendering filter
         filter= Materials.MaterialFilter()
         filter.Name = "Density and Basic Rendering"
-        filter.RequiredCompleteModels = [self.uuids.Density, self.uuids.BasicRendering]
+        filter.RequiredCompleteModels = [self._uuids.Density, self._uuids.BasicRendering]
 
-        filtered = self.MaterialManager.filterMaterials(filter)
+        filtered = self._materialManager.filterMaterials(filter)
         self.assertEqual(len(filtered), 1)
 
-        filtered = self.MaterialManager.filterMaterials(filter, includeLegacy=True)
+        filtered = self._materialManager.filterMaterials(filter, includeLegacy=True)
         self.assertEqual(len(filtered), 1)
 
         # Create a Linear Elastic filter
         filter= Materials.MaterialFilter()
         filter.Name = "Linear Elastic"
-        filter.RequiredCompleteModels = [self.uuids.LinearElastic]
+        filter.RequiredCompleteModels = [self._uuids.LinearElastic]
 
-        filtered = self.MaterialManager.filterMaterials(filter)
+        filtered = self._materialManager.filterMaterials(filter)
         self.assertEqual(len(filtered), 0)
 
-        filtered = self.MaterialManager.filterMaterials(filter, includeLegacy=True)
+        filtered = self._materialManager.filterMaterials(filter, includeLegacy=True)
         self.assertEqual(len(filtered), 0)
 
         filter= Materials.MaterialFilter()
         filter.Name = "Linear Elastic - incomplete"
-        filter.RequiredModels = [self.uuids.LinearElastic]
+        filter.RequiredModels = [self._uuids.LinearElastic]
 
-        filtered = self.MaterialManager.filterMaterials(filter)
+        filtered = self._materialManager.filterMaterials(filter)
         self.assertEqual(len(filtered), 2)
 
-        filtered = self.MaterialManager.filterMaterials(filter, includeLegacy=True)
+        filtered = self._materialManager.filterMaterials(filter, includeLegacy=True)
 
     def testErrorInput(self):
 
-        self.assertRaises(TypeError, self.MaterialManager.filterMaterials, [])
+        self.assertRaises(TypeError, self._materialManager.filterMaterials, [])

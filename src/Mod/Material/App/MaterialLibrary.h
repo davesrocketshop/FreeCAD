@@ -58,7 +58,6 @@ public:
                     const QString& iconPath,
                     bool readOnly = true);
     MaterialLibrary(const Library& library);
-    MaterialLibrary(const MaterialLibrary&) = delete;
     ~MaterialLibrary() override = default;
 
     virtual std::shared_ptr<std::map<QString, std::shared_ptr<MaterialTreeNode>>>

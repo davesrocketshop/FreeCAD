@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>434</width>
-    <height>553</height>
+    <height>612</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,137 +17,6 @@
    <property name="spacing">
     <number>6</number>
    </property>
-   <item>
-    <widget class="QGroupBox" name="gb_4_materials">
-     <property name="title">
-      <string>Card Resources</string>
-     </property>
-     <layout class="QVBoxLayout" name="verticalLayout_2">
-      <item>
-       <layout class="QVBoxLayout" name="verticalLayout_6">
-        <item>
-         <widget class="Gui::PrefCheckBox" name="cb_use_built_in_materials">
-          <property name="toolTip">
-           <string>The cards built-in to FreeCAD will be listed as available</string>
-          </property>
-          <property name="text">
-           <string>Use built-in materials</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-          <property name="prefEntry" stdset="0">
-           <cstring>UseBuiltInMaterials</cstring>
-          </property>
-          <property name="prefPath" stdset="0">
-           <cstring>Mod/Material/Resources</cstring>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="Gui::PrefCheckBox" name="cb_use_mat_from_workbenches">
-          <property name="toolTip">
-           <string>Use materials added by external workbenches</string>
-          </property>
-          <property name="text">
-           <string>Use materials from external workbenches</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-          <property name="prefEntry" stdset="0">
-           <cstring>UseMaterialsFromWorkbenches</cstring>
-          </property>
-          <property name="prefPath" stdset="0">
-           <cstring>Mod/Material/Resources</cstring>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="Gui::PrefCheckBox" name="cb_use_mat_from_config_dir">
-          <property name="toolTip">
-           <string>Cards from FreeCAD’s preferences directory are also listed as available</string>
-          </property>
-          <property name="text">
-           <string>Use materials from the Materials preference directory</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-          <property name="prefEntry" stdset="0">
-           <cstring>UseMaterialsFromConfigDir</cstring>
-          </property>
-          <property name="prefPath" stdset="0">
-           <cstring>Mod/Material/Resources</cstring>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="Gui::PrefCheckBox" name="cb_use_mat_from_custom_dir">
-          <property name="toolTip">
-           <string>Material cards from the specified directory will also be listed as available</string>
-          </property>
-          <property name="text">
-           <string>Use materials from user-defined directory</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-          <property name="prefEntry" stdset="0">
-           <cstring>UseMaterialsFromCustomDir</cstring>
-          </property>
-          <property name="prefPath" stdset="0">
-           <cstring>Mod/Material/Resources</cstring>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <layout class="QGridLayout" name="gridLayout">
-          <item row="1" column="0">
-           <widget class="QLabel" name="l_custom_mat_dir">
-            <property name="enabled">
-             <bool>true</bool>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>100</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="text">
-             <string>User directory</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1">
-           <widget class="Gui::PrefFileChooser" name="fc_custom_mat_dir">
-            <property name="enabled">
-             <bool>true</bool>
-            </property>
-            <property name="mode">
-             <enum>Gui::FileChooser::Directory</enum>
-            </property>
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="prefEntry" stdset="0">
-             <cstring>CustomMaterialsDir</cstring>
-            </property>
-            <property name="prefPath" stdset="0">
-             <cstring>Mod/Material/Resources</cstring>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-       </layout>
-      </item>
-     </layout>
-    </widget>
-   </item>
    <item>
     <widget class="QGroupBox" name="gb_4_materials_2">
      <property name="title">
@@ -204,6 +73,9 @@ If unchecked, they will be sorted by their name.</string>
      <layout class="QVBoxLayout" name="verticalLayout_5">
       <item>
        <widget class="Gui::PrefCheckBox" name="cb_show_favorites">
+        <property name="toolTip">
+         <string>Show materials marked as favourite</string>
+        </property>
         <property name="text">
          <string>Show favorites</string>
         </property>
@@ -220,6 +92,9 @@ If unchecked, they will be sorted by their name.</string>
       </item>
       <item>
        <widget class="Gui::PrefCheckBox" name="cb_show_recent">
+        <property name="toolTip">
+         <string>Show recently used materials</string>
+        </property>
         <property name="text">
          <string>Show recent</string>
         </property>
@@ -236,6 +111,9 @@ If unchecked, they will be sorted by their name.</string>
       </item>
       <item>
        <widget class="Gui::PrefCheckBox" name="cb_show_empty_libraries">
+        <property name="toolTip">
+         <string>Show empty libraries</string>
+        </property>
         <property name="text">
          <string>Show empty libraries</string>
         </property>
@@ -252,6 +130,9 @@ If unchecked, they will be sorted by their name.</string>
       </item>
       <item>
        <widget class="Gui::PrefCheckBox" name="cb_show_empty_folders">
+        <property name="toolTip">
+         <string>Show empty folders</string>
+        </property>
         <property name="text">
          <string>Show empty folders</string>
         </property>
@@ -265,6 +146,9 @@ If unchecked, they will be sorted by their name.</string>
       </item>
       <item>
        <widget class="Gui::PrefCheckBox" name="cb_show_legacy">
+        <property name="toolTip">
+         <string>Show materials in the pre-1.0 format</string>
+        </property>
         <property name="text">
          <string>Show legacy files</string>
         </property>
@@ -287,6 +171,9 @@ If unchecked, they will be sorted by their name.</string>
      <layout class="QVBoxLayout" name="verticalLayout_4">
       <item>
        <widget class="Gui::PrefCheckBox" name="cb_show_favorites_editor">
+        <property name="toolTip">
+         <string>Show materials marked as favourite</string>
+        </property>
         <property name="text">
          <string>Show favorites</string>
         </property>
@@ -303,6 +190,9 @@ If unchecked, they will be sorted by their name.</string>
       </item>
       <item>
        <widget class="Gui::PrefCheckBox" name="cb_show_recent_editor">
+        <property name="toolTip">
+         <string>Show recently used materials</string>
+        </property>
         <property name="text">
          <string>Show recent</string>
         </property>
@@ -319,6 +209,9 @@ If unchecked, they will be sorted by their name.</string>
       </item>
       <item>
        <widget class="Gui::PrefCheckBox" name="cb_show_empty_libraries_editor">
+        <property name="toolTip">
+         <string>Show empty libraries</string>
+        </property>
         <property name="text">
          <string>Show empty libraries</string>
         </property>
@@ -335,6 +228,9 @@ If unchecked, they will be sorted by their name.</string>
       </item>
       <item>
        <widget class="Gui::PrefCheckBox" name="cb_show_empty_folders_editor">
+        <property name="toolTip">
+         <string>Show empty folders</string>
+        </property>
         <property name="text">
          <string>Show empty folders</string>
         </property>
@@ -348,6 +244,9 @@ If unchecked, they will be sorted by their name.</string>
       </item>
       <item>
        <widget class="Gui::PrefCheckBox" name="cb_show_legacy_editor">
+        <property name="toolTip">
+         <string>Show materials in the pre-1.0 format</string>
+        </property>
         <property name="text">
          <string>Show legacy files</string>
         </property>
@@ -362,16 +261,48 @@ If unchecked, they will be sorted by their name.</string>
         </property>
        </widget>
       </item>
+      <item>
+       <widget class="Gui::PrefCheckBox" name="cb_show_disabled_editor">
+        <property name="toolTip">
+         <string>Show disabled libraries</string>
+        </property>
+        <property name="text">
+         <string>Show disabled libraries</string>
+        </property>
+        <property name="prefEntry" stdset="0">
+         <cstring>ShowDisabled</cstring>
+        </property>
+        <property name="prefPath" stdset="0">
+         <cstring>Mod/Material/Editor</cstring>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="Gui::PrefCheckBox" name="cb_show_masked_editor">
+        <property name="toolTip">
+         <string>Show local libraries libraries that have been masked by  remote library with the same name</string>
+        </property>
+        <property name="text">
+         <string>Show masked libraries</string>
+        </property>
+        <property name="prefEntry" stdset="0">
+         <cstring>ShowMasked</cstring>
+        </property>
+        <property name="prefPath" stdset="0">
+         <cstring>Mod/Material/Editor</cstring>
+        </property>
+       </widget>
+      </item>
      </layout>
     </widget>
    </item>
    <item>
     <spacer name="verticalSpacer">
      <property name="orientation">
-      <enum>Qt::Vertical</enum>
+      <enum>Qt::Orientation::Vertical</enum>
      </property>
      <property name="sizeType">
-      <enum>QSizePolicy::Expanding</enum>
+      <enum>QSizePolicy::Policy::Expanding</enum>
      </property>
      <property name="sizeHint" stdset="0">
       <size>
@@ -386,38 +317,11 @@ If unchecked, they will be sorted by their name.</string>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
   <customwidget>
-   <class>Gui::FileChooser</class>
-   <extends>QWidget</extends>
-   <header>Gui/FileDialog.h</header>
-  </customwidget>
-  <customwidget>
-   <class>Gui::PrefFileChooser</class>
-   <extends>Gui::FileChooser</extends>
-   <header>Gui/PrefWidgets.h</header>
-  </customwidget>
-  <customwidget>
    <class>Gui::PrefCheckBox</class>
    <extends>QCheckBox</extends>
    <header>Gui/PrefWidgets.h</header>
   </customwidget>
  </customwidgets>
  <resources/>
- <connections>
-  <connection>
-   <sender>cb_use_mat_from_custom_dir</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>fc_custom_mat_dir</receiver>
-   <slot>setEnabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>216</x>
-     <y>87</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>316</x>
-     <y>112</y>
-    </hint>
-   </hints>
-  </connection>
- </connections>
+ <connections/>
 </ui>

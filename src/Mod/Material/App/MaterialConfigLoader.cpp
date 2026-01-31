@@ -1091,16 +1091,26 @@ MaterialConfigLoader::getMaterialFromPath(const std::shared_ptr<MaterialLibraryL
     }
 
     // Add the remaining sections
-    addMechanical(fcmat, finalModel);
-    addFluid(fcmat, finalModel);
-    addThermal(fcmat, finalModel);
-    addElectromagnetic(fcmat, finalModel);
-    addArchitectural(fcmat, finalModel);
-    addCosts(fcmat, finalModel);
-    addRendering(fcmat, finalModel);
-    addVectorRendering(fcmat, finalModel);
-    addRenderWB(fcmat, finalModel);
-    addLegacy(fcmat, finalModel);
+    try {
+        addMechanical(fcmat, finalModel);
+        addFluid(fcmat, finalModel);
+        addThermal(fcmat, finalModel);
+        addElectromagnetic(fcmat, finalModel);
+        addArchitectural(fcmat, finalModel);
+        addCosts(fcmat, finalModel);
+        addRendering(fcmat, finalModel);
+        addVectorRendering(fcmat, finalModel);
+        addRenderWB(fcmat, finalModel);
+        addLegacy(fcmat, finalModel);
+    }
+    catch (const ModelNotFound&) {
+        Base::Console().log("Required model not found\n");
+        throw MaterialReadError();
+    }
+    catch (...) {
+        Base::Console().log("Unable to load the material due to unknown exception\n");
+        throw MaterialReadError();
+    }
 
     return finalModel;
 }

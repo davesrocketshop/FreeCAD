@@ -24,12 +24,14 @@
 
 #include <QMetaType>
 #include <QString>
+#include <QDir>
 
 #include <App/Application.h>
 #include <Base/Quantity.h>
 #include <Gui/MetaTypes.h>
 #include <src/App/InitApplication.h>
 
+#include <Mod/Material/App/Exceptions.h>
 #include <Mod/Material/App/MaterialLibrary.h>
 #include <Mod/Material/App/MaterialManager.h>
 #include <Mod/Material/App/MaterialValue.h>
@@ -50,54 +52,56 @@ protected:
         _modelManager = &(Materials::ModelManager::getManager());
         _materialManager = &(Materials::MaterialManager::getManager());
 
-        // Use our test files as a custom directory
-        ParameterGrp::handle hGrp =
-            App::GetApplication().GetParameterGroupByPath("User parameter:BaseApp/Preferences/Mod/Material/Resources");
+        // Disable the external interface
+        _useExternal = _materialManager->useExternal();
+        _materialManager->setUseExternal(false);
 
-        _customDir = hGrp->GetASCII("CustomMaterialsDir", "");
-        _useBuiltInDir = hGrp->GetBool("UseBuiltInMaterials", true);
-        _useWorkbenchDir = hGrp->GetBool("UseMaterialsFromWorkbenches", true);
-        _useUserDir = hGrp->GetBool("UseMaterialsFromConfigDir", true);
-        _useCustomDir = hGrp->GetBool("UseMaterialsFromCustomDir", false);
-
+        // Create a custom library for our test files
+        // Ensure the directory exists
         std::string testPath = App::Application::getHomePath() + "/tests/Materials/";
-        hGrp->SetASCII("CustomMaterialsDir", testPath);
-        hGrp->SetBool("UseBuiltInMaterials", false);
-        hGrp->SetBool("UseMaterialsFromWorkbenches", false);
-        hGrp->SetBool("UseMaterialsFromConfigDir", false);
-        hGrp->SetBool("UseMaterialsFromCustomDir", true);
+        QDir directory(QString::fromStdString(testPath));
+        ASSERT_TRUE(directory.exists());
+        std::string modelPath = App::Application::getResourceDir() + "/Mod/Material/Resources/Models";
+        QDir modelDirectory(QString::fromStdString(modelPath));
+        ASSERT_TRUE(modelDirectory.exists());
 
-        auto param = App::GetApplication().GetParameterGroupByPath(
-            "User parameter:BaseApp/Preferences/Mod/Material/Editor");
-        param->SetBool("ShowFavorites", true);
-        param->SetBool("ShowRecent", true);
-        param->SetBool("ShowEmptyFolders", false);
-        param->SetBool("ShowEmptyLibraries", true);
-        param->SetBool("ShowLegacy", false);
+        // Remove the library if it exists
+        try {
+            _materialManager->removeLibrary(QStringLiteral("__UnitTest"));
+        }
+        catch (const Materials::LibraryNotFound&) {
+            // ignore
+        }
+
+        _materialManager->createLocalLibrary(QStringLiteral("__UnitTest"),
+                            QString::fromStdString(testPath),
+                            QString::fromStdString(modelPath),
+                            QStringLiteral(":/icons/preferences-general.svg"),
+                            false);
+
+        // Disable other libraries
+        auto libraries = _materialManager->getLibraries(true);
+        _libraries.clear();
+        for (auto& library : *libraries) {
+            if (library->getName() != QStringLiteral("__UnitTest")) {
+                _libraries.emplace(library->getName(), library->isDisabled());
+                _materialManager->setDisabled(*library, true);
+            }
+        }
 
         _materialManager->refresh();
 
-        _library = _materialManager->getLibrary(QStringLiteral("Custom"));
+        _library = _materialManager->getLibrary(QStringLiteral("__UnitTest"));
     }
 
     void TearDown() override {
-        ParameterGrp::handle hGrp =
-            App::GetApplication().GetParameterGroupByPath("User parameter:BaseApp/Preferences/Mod/Material/Resources");
+        // Restore other libraries
+        for (auto& [name, disabled] : _libraries) {
+            _materialManager->setDisabled(name, disabled, true);
+        }
 
-        // Restore preferences
-        hGrp->SetASCII("CustomMaterialsDir", _customDir);
-        hGrp->SetBool("UseBuiltInMaterials", _useBuiltInDir);
-        hGrp->SetBool("UseMaterialsFromWorkbenches", _useWorkbenchDir);
-        hGrp->SetBool("UseMaterialsFromConfigDir", _useUserDir);
-        hGrp->SetBool("UseMaterialsFromCustomDir", _useCustomDir);
-
-        hGrp = App::GetApplication().GetParameterGroupByPath(
-            "User parameter:BaseApp/Preferences/Mod/Material/Editor");
-        hGrp->SetBool("ShowFavorites", _includeFavorites);
-        hGrp->SetBool("ShowRecent", _includeRecent);
-        hGrp->SetBool("ShowEmptyFolders", _includeFolders);
-        hGrp->SetBool("ShowEmptyLibraries", _includeLibraries);
-        hGrp->SetBool("ShowLegacy", _includeLegacy);
+        // Restore the external interface AFTER the local libraries
+        _materialManager->setUseExternal(_useExternal);
 
         _materialManager->refresh();
     }
@@ -107,11 +111,8 @@ protected:
     std::shared_ptr<Materials::MaterialLibrary> _library;
     QString _testMaterialUUID;
 
-    std::string _customDir;
-    bool _useBuiltInDir {};
-    bool _useWorkbenchDir {};
-    bool _useUserDir {};
-    bool _useCustomDir {};
+    bool _useExternal {};
+    std::map<QString, bool> _libraries;
 
     bool _includeFavorites {};
     bool _includeRecent {};
@@ -152,7 +153,7 @@ TEST_F(TestMaterialFilter, TestFilters)
     ASSERT_EQ(material->getUUID(), QString::fromLatin1(UUIDBrassAppearance));
 
     material = _materialManager->getMaterialByPath(QStringLiteral("TestAcrylicLegacy.FCMat"),
-        QStringLiteral("Custom"));
+        QStringLiteral("__UnitTest"));
     ASSERT_TRUE(material);
     ASSERT_EQ(material->getName(), QStringLiteral("TestAcrylicLegacy"));
     ASSERT_EQ(material->getUUID().size(), 36); // We don't know the UUID
@@ -162,6 +163,7 @@ TEST_F(TestMaterialFilter, TestFilters)
     Materials::MaterialFilterOptions options;
     ASSERT_TRUE(_library);
 
+    options.setIncludeLegacy(false);
     auto tree = _materialManager->getMaterialTree(*_library, filter, options);
     ASSERT_EQ(tree->size(), 4);
 

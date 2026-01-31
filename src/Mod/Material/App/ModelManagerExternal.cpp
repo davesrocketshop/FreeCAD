@@ -25,10 +25,11 @@
 
 #include <App/Application.h>
 
+#include "ExternalManager.h"
 #include "Model.h"
 #include "ModelLoader.h"
+#include "ModelManager.h"
 #include "ModelManagerExternal.h"
-#include "ExternalManager.h"
 
 using namespace Materials;
 
@@ -139,6 +140,7 @@ std::shared_ptr<Model> ModelManagerExternal::getModel(const QString& uuid)
     try
     {
         auto model = ExternalManager::getManager()->getModel(uuid);
+        ModelManager::dereference(model);
         _cache.emplace(uuid.toStdString(), model);
         return model;
     }
@@ -156,7 +158,17 @@ std::shared_ptr<Model> ModelManagerExternal::getModel(const QString& uuid)
 std::shared_ptr<std::map<QString, std::shared_ptr<Model>>> ModelManagerExternal::getModels()
 {
     // TODO: Implement an external call
-    return std::make_shared<std::map<QString, std::shared_ptr<Model>>>();
+    auto models = std::make_shared<std::map<QString, std::shared_ptr<Model>>>();
+    auto libraries = ExternalManager::getManager()->modelLibraries();
+    for (auto library : *libraries) {
+        auto libModels = ExternalManager::getManager()->libraryModels(library->getName());
+        for (auto libObject : *libModels) {
+            // This dereferences and places the model in the cache
+            auto model = getModel(libObject.getUUID());
+            models->emplace(libObject.getUUID(), model);
+        }
+    }
+    return models;
 }
 
 void ModelManagerExternal::addModel(const QString& libraryName,

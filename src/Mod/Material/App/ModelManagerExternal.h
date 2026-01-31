@@ -70,8 +70,8 @@ public:
     migrateModel(const QString& libraryName, const QString& path, const Model& model);
 
     // Cache functions
-    void resetCache();
-    double modelHitRate();
+    static void resetCache();
+    static double modelHitRate();
 
 private:
     static void initCache();

@@ -28,12 +28,13 @@
 
 #include "Model.h"
 #include "ModelLoader.h"
+#include "ModelManager.h"
 #include "ModelManagerLocal.h"
 
 using namespace Materials;
 
 std::shared_ptr<std::list<std::shared_ptr<ModelLibraryLocal>>> ModelManagerLocal::_libraryList = nullptr;
-std::shared_ptr<std::map<QString, std::shared_ptr<Model>>> ModelManagerLocal::_modelMap = nullptr;
+std::shared_ptr<std::multimap<QString, std::shared_ptr<Model>>> ModelManagerLocal::_modelMap = nullptr;
 QMutex ModelManagerLocal::_mutex;
 
 
@@ -49,7 +50,7 @@ void ModelManagerLocal::initLibraries()
     QMutexLocker locker(&_mutex);
 
     if (_modelMap == nullptr) {
-        _modelMap = std::make_shared<std::map<QString, std::shared_ptr<Model>>>();
+        _modelMap = std::make_shared<std::multimap<QString, std::shared_ptr<Model>>>();
         if (_libraryList == nullptr) {
             _libraryList = std::make_shared<std::list<std::shared_ptr<ModelLibraryLocal>>>();
         }
@@ -87,8 +88,12 @@ void ModelManagerLocal::cleanup()
 
 void ModelManagerLocal::refresh()
 {
+    for (auto& it : *_modelMap) {
+        // This is needed to resolve cyclic dependencies
+        it.second->setLibrary(nullptr);
+    }
     _modelMap->clear();
-    _libraryList->clear();
+    _libraryList->clear();  // This list will be regenerated
 
     // Load the libraries
     ModelLoader loader(_modelMap, _libraryList);
@@ -96,14 +101,15 @@ void ModelManagerLocal::refresh()
 
 std::shared_ptr<std::list<std::shared_ptr<ModelLibrary>>> ModelManagerLocal::getLibraries()
 {
-    return reinterpret_cast<std::shared_ptr<std::list<std::shared_ptr<ModelLibrary>>>&>(
-        _libraryList);
+    return reinterpret_cast<std::shared_ptr<std::list<std::shared_ptr<ModelLibrary>>>&>(_libraryList);
 }
 
-void ModelManagerLocal::createLibrary(const QString& libraryName,
-                                      const QString& directory,
-                                      const QString& icon,
-                                      bool readOnly)
+void ModelManagerLocal::createLibrary(
+    const QString& libraryName,
+    const QString& directory,
+    const QString& icon,
+    bool readOnly
+)
 {
     QDir dir;
     if (!dir.exists(directory)) {
@@ -154,20 +160,40 @@ void ModelManagerLocal::removeLibrary(const QString& libraryName)
     throw LibraryNotFound();
 }
 
-std::shared_ptr<std::vector<LibraryObject>>
-ModelManagerLocal::libraryModels(const QString& libraryName)
+std::shared_ptr<std::vector<LibraryObject>> ModelManagerLocal::libraryModels(const QString& libraryName)
 {
     auto models = std::make_shared<std::vector<LibraryObject>>();
 
     for (auto& it : *_modelMap) {
         // This is needed to resolve cyclic dependencies
         if (it.second->getLibrary()->isName(libraryName)) {
-            models->push_back(
-                LibraryObject(it.first, it.second->getDirectory(), it.second->getName()));
+            models->push_back(LibraryObject(it.first, it.second->getDirectory(), it.second->getName()));
         }
     }
 
     return models;
+}
+
+std::shared_ptr<std::map<QString, std::shared_ptr<Model>>> ModelManagerLocal::getModels()
+{
+    auto localModels = std::make_shared<std::map<QString, std::shared_ptr<Model>>>();
+    for (auto& [name, model_ptr] : *_modelMap) {
+        if (!model_ptr->isDisabled()) {
+            localModels->try_emplace(name, model_ptr);
+        }
+    }
+    return localModels;
+}
+
+void ModelManagerLocal::setDisabled(Library& library, bool disabled)
+{
+    for (auto& modelLibrary : *_libraryList) {
+        if (modelLibrary->isLocal() && modelLibrary->isName(library.getName())) {
+            modelLibrary->setDisabled(disabled);
+            return;
+        }
+    }
+    // throw LibraryNotFound(); - There may be no models in this library, hence no model library object
 }
 
 std::shared_ptr<Model> ModelManagerLocal::getModel(const QString& uuid) const
@@ -177,7 +203,15 @@ std::shared_ptr<Model> ModelManagerLocal::getModel(const QString& uuid) const
             throw Uninitialized();
         }
 
-        return _modelMap->at(uuid);
+        auto range = _modelMap->equal_range(uuid);
+        for (auto it = range.first; it != range.second; it++) {
+            auto& model = it->second;
+            if (!model->isDisabled()) {
+                ModelManager::dereference(model);
+                return model;
+            }
+        }
+        throw ModelNotFound();
     }
     catch (std::out_of_range const&) {
         throw ModelNotFound();
@@ -190,9 +224,11 @@ std::shared_ptr<Model> ModelManagerLocal::getModelByPath(const QString& path) co
 
     for (auto& library : *_libraryList) {
         if (library->isLocal()) {
-            auto localLibrary = std::static_pointer_cast<Materials::ModelLibraryLocal> (library);
+            auto localLibrary = std::static_pointer_cast<Materials::ModelLibraryLocal>(library);
             if (cleanPath.startsWith(localLibrary->getDirectory())) {
-                return localLibrary->getModelByPath(cleanPath);
+                auto model = localLibrary->getModelByPath(cleanPath);
+                ModelManager::dereference(model);
+                return model;
             }
         }
     }
@@ -200,13 +236,14 @@ std::shared_ptr<Model> ModelManagerLocal::getModelByPath(const QString& path) co
     throw ModelNotFound();
 }
 
-std::shared_ptr<Model> ModelManagerLocal::getModelByPath(const QString& path,
-                                                         const QString& lib) const
+std::shared_ptr<Model> ModelManagerLocal::getModelByPath(const QString& path, const QString& lib) const
 {
-    auto library = getLibrary(lib);        // May throw LibraryNotFound
+    auto library = getLibrary(lib);  // May throw LibraryNotFound
     if (library->isLocal()) {
         auto localLibrary = std::static_pointer_cast<Materials::ModelLibraryLocal>(library);
-        return localLibrary->getModelByPath(path);  // May throw ModelNotFound
+        auto model = localLibrary->getModelByPath(path);  // May throw ModelNotFound
+        ModelManager::dereference(model);
+        return model;
     }
 
     throw ModelNotFound();
