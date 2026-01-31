@@ -75,11 +75,9 @@ private:
         return Materials::MaterialManager::getManager();
     }
 
-    static QString libraryPath(const std::shared_ptr<Materials::Material>& material);
+    QString getColorHash(const QString& colorString, int colorRange = 255) const;
 
-    static QString getColorHash(const QString& colorString, int colorRange = 255);
-
-    static void addExpanded(QTreeView* tree, QStandardItemModel* parent, QStandardItem* child);
+    void addExpanded(QTreeView* tree, QStandardItemModel* parent, QStandardItem* child);
 
     void setup();
     void setupButtons();

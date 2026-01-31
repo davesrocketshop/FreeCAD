@@ -139,24 +139,7 @@ void MaterialPropertiesWidget::onAppearanceRemove()
     }
 }
 
-
-QString MaterialPropertiesWidget::libraryPath(const std::shared_ptr<Materials::Material>& material)
-{
-    QString path;
-    auto library = material->getLibrary();
-    if (library) {
-        path = QStringLiteral("/%1/%2/%3")
-                   .arg(library->getName())
-                   .arg(material->getDirectory())
-                   .arg(material->getName());
-        return path;
-    }
-
-    path = QStringLiteral("%1/%2").arg(material->getDirectory()).arg(material->getName());
-    return path;
-}
-
-QString MaterialPropertiesWidget::getColorHash(const QString& colorString, int colorRange)
+QString MaterialPropertiesWidget::getColorHash(const QString& colorString, int colorRange) const
 {
     /*
         returns a '#000000' string from a '(0.1,0.2,0.3)' string. Optionally the string
@@ -278,7 +261,7 @@ void MaterialPropertiesWidget::updateMaterialGeneral()
         QString parentString;
         try {
             auto parent = getMaterialManager().getParent(_material);
-            parentString = libraryPath(parent);
+            parentString = parent->getLibraryPath();
         }
         catch (const Materials::MaterialNotFound&) {
         }

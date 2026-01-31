@@ -135,8 +135,6 @@ public:
         return getMaterialManager().useExternal();
     }
 
-    static QString libraryPath(const std::shared_ptr<Materials::Material>& material);
-
     void onSelectMaterial(const QItemSelection& selected, const QItemSelection& deselected);
     void onContextMenu(const QPoint& pos);
 
@@ -281,7 +279,6 @@ private:
     void onMenuViewMasked(bool checked);
 
     void setMaterialDefaults();
-    static QString getColorHash(const QString& colorString, int colorRange = 255);
 
     static void addExpanded(MaterialTreeView* tree, MaterialTreeItem* parent, MaterialTreeItem* child);
     static void addExpanded(MaterialTreeView* tree,

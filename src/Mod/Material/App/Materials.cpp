@@ -514,7 +514,6 @@ Material::Material(const std::shared_ptr<MaterialLibrary>& library,
 Material::Material(const Material& other)
     : _library(other._library)
     , _directory(other._directory)
-    , _filename(other._filename)
     , _uuid(other._uuid)
     , _name(other._name)
     , _author(other._author)
@@ -567,19 +566,37 @@ void Material::setDirectory(const QString& directory)
     _directory = directory;
 }
 
-QString Material::getFilename() const
-{
-    return _filename;
-}
-
-void Material::setFilename(const QString& filename)
-{
-    _filename = filename;
-}
-
 QString Material::getFilePath() const
 {
-    return QDir(_directory + QStringLiteral("/") + _filename).absolutePath();
+    return QDir(_directory + QStringLiteral("/") + _name + QStringLiteral(".FCMat")).absolutePath();
+}
+
+QString Material::getLibraryPath() const
+{
+    QString path;
+    auto library = getLibrary();
+    if (library) {
+        if (!getDirectory().isEmpty() && getDirectory() != QStringLiteral("/")) {
+            path = QStringLiteral("/%1/%2/%3")
+                       .arg(library->getName())
+                       .arg(getDirectory())
+                       .arg(getName());
+        }
+        else {
+            path = QStringLiteral("/%1/%2")
+                       .arg(library->getName())
+                       .arg(getName());
+        }
+        return path;
+    }
+
+    if (!getDirectory().isEmpty() && getDirectory() != QStringLiteral("/")) {
+        path = QStringLiteral("%1/%2").arg(getDirectory()).arg(getName());
+    }
+    else {
+        path = QStringLiteral("/%1").arg(getName());
+    }
+    return path;
 }
 
 QString Material::getAuthorAndLicense() const
@@ -1598,7 +1615,6 @@ Material& Material::operator=(const Material& other)
 
     _library = other._library;
     _directory = other._directory;
-    _filename = other._filename;
     _uuid = other._uuid;
     _name = other._name;
     _author = other._author;
@@ -1817,9 +1833,6 @@ void Material::validate(Material& other) const
 
     if (_directory != other._directory) {
         throw InvalidMaterial("Model directories don't match");
-    }
-    if (!other._filename.isEmpty()) {
-        throw InvalidMaterial("Remote filename is not empty");
     }
     if (_uuid != other._uuid) {
         throw InvalidMaterial("Model UUIDs don't match");

@@ -1158,7 +1158,7 @@ void MaterialsEditor::addRecents(MaterialTreeItem* parent)
         try {
             auto material = getMaterialManager().getMaterial(uuid);
             QIcon icon = getIcon(material->getLibrary());
-            auto card = new MaterialTreeFavoriteItem(icon, libraryPath(material), uuid);
+            auto card = new MaterialTreeFavoriteItem(icon, material->getLibraryPath(), uuid);
 
             addExpanded(tree, parent, card);
         }
@@ -1174,7 +1174,7 @@ void MaterialsEditor::addFavorites(MaterialTreeItem* parent)
         try {
             auto material = getMaterialManager().getMaterial(uuid);
             QIcon icon = getIcon(material->getLibrary());
-            auto card = new MaterialTreeFavoriteItem(icon, libraryPath(material), uuid);
+            auto card = new MaterialTreeFavoriteItem(icon, material->getLibraryPath(), uuid);
 
             addExpanded(tree, parent, card);
         }
@@ -1275,58 +1275,6 @@ void MaterialsEditor::refreshMaterialTree()
     model->clear();
 
     fillMaterialTree();
-}
-
-QString MaterialsEditor::getColorHash(const QString& colorString, int colorRange)
-{
-    /*
-        returns a '#000000' string from a '(0.1,0.2,0.3)' string. Optionally the string
-        has a fourth value for alpha (transparency)
-    */
-    std::stringstream stream(colorString.toStdString());
-
-    char c;
-    stream >> c;  // read "("
-    double red;
-    stream >> red;
-    stream >> c;  // ","
-    double green;
-    stream >> green;
-    stream >> c;  // ","
-    double blue;
-    stream >> blue;
-    stream >> c;  // ","
-    double alpha = 1.0;
-    if (c == ',') {
-        stream >> alpha;
-    }
-
-    Base::Color color(red, green, blue, alpha);
-    QColor qcolor = color.asValue<QColor>();
-    return qcolor.name();
-}
-
-QString MaterialsEditor::libraryPath(const std::shared_ptr<Materials::Material>& material)
-{
-    QString path;
-    auto library = material->getLibrary();
-    if (library) {
-        if (!material->getDirectory().isEmpty()) {
-            path = QStringLiteral("/%1/%2/%3")
-                       .arg(library->getName())
-                       .arg(material->getDirectory())
-                       .arg(material->getName());
-        }
-        else {
-            path = QStringLiteral("/%1/%2")
-                       .arg(library->getName())
-                       .arg(material->getName());
-        }
-        return path;
-    }
-
-    path = QStringLiteral("%1/%2").arg(material->getDirectory()).arg(material->getName());
-    return path;
 }
 
 void MaterialsEditor::onSelectMaterial(const QItemSelection& selected,
@@ -2296,7 +2244,7 @@ void MaterialsEditor::updateRecentsName(const QString& uuid, const QString& name
 
 void MaterialsEditor::updateRecentsName()
 {
-    updateRecentsName(_material->getUUID(), libraryPath(_material));
+    updateRecentsName(_material->getUUID(), _material->getLibraryPath());
 }
 
 void MaterialsEditor::updateFavoritesName(const QString& uuid, const QString& name)
@@ -2306,7 +2254,7 @@ void MaterialsEditor::updateFavoritesName(const QString& uuid, const QString& na
 
 void MaterialsEditor::updateFavoritesName()
 {
-    updateFavoritesName(_material->getUUID(), libraryPath(_material));
+    updateFavoritesName(_material->getUUID(), _material->getLibraryPath());
 }
 
 #include "moc_MaterialsEditor.cpp"

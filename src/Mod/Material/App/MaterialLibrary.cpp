@@ -347,7 +347,7 @@ MaterialLibraryLocal::addMaterial(const std::shared_ptr<Material>& material, con
     std::shared_ptr<Material> newMaterial = std::make_shared<Material>(*material);
     newMaterial->setLibrary(getptr());
     newMaterial->setDirectory(getLibraryPath(filePath, info.fileName()));
-    newMaterial->setFilename(info.fileName());
+    // newMaterial->setFilename(info.fileName());
 
     (*_materialPathMap)[filePath] = newMaterial;
 
