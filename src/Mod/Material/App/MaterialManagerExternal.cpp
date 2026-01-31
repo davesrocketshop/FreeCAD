@@ -276,7 +276,8 @@ void MaterialManagerExternal::addMaterial(const QString& libraryName,
                                           const Material& material)
 {
     _cache.erase(material.getUUID().toStdString());
-    ExternalManager::getManager()->addMaterial(libraryName, path, material);
+    auto stripped = stripFilename(path, *material);
+    ExternalManager::getManager()->addMaterial(libraryName, stripped, material);
 }
 
 void MaterialManagerExternal::migrateMaterial(const QString& libraryName,
@@ -284,7 +285,8 @@ void MaterialManagerExternal::migrateMaterial(const QString& libraryName,
                                               const Material& material)
 {
     _cache.erase(material.getUUID().toStdString());
-    ExternalManager::getManager()->migrateMaterial(libraryName, path, material);
+    auto stripped = stripFilename(path, *material);
+    ExternalManager::getManager()->migrateMaterial(libraryName, stripped, material);
 }
 
 bool MaterialManagerExternal::exists(const QString& uuid) const
@@ -365,7 +367,7 @@ QString MaterialManagerExternal::stripFilename(const QString& path, const Materi
     auto stripped = path;
     auto filename = material.getName() + QStringLiteral(".FCMat");
     if (stripped.endsWith(filename)) {
-        stripped.chop(filename.size() + 1);  // Allow for the separator
+        stripped.truncate(filename.size() + 1);  // Allow for the separator
         Base::Console()
             .log("Path '%s' -> '%s'\n", path.toStdString().c_str(), stripped.toStdString().c_str());
     }
