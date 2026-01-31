@@ -134,10 +134,10 @@ QString Library::getLocalPath(const QString& path) const
     }
 
     QString clean = cleanPath(path);
-    QString prefix = QStringLiteral("/") + getName() + QStringLiteral("/");
+    QString prefix = QStringLiteral("[") + getName() + QStringLiteral("]");
     if (clean.startsWith(prefix)) {
         // Remove the library name from the path
-        filePath += clean.right(clean.length() - prefix.length());
+        filePath += clean.last(clean.length() - prefix.length());
     }
     else {
         filePath += clean;
@@ -157,10 +157,10 @@ QString Library::getRelativePath(const QString& path) const
 {
     QString filePath;
     QString clean = cleanPath(path);
-    QString prefix = QStringLiteral("/") + getName() + QStringLiteral("/");
+    QString prefix = QStringLiteral("[") + getName() + QStringLiteral("]");
     if (clean.startsWith(prefix)) {
         // Remove the library name from the path
-        filePath = clean.right(clean.length() - prefix.length());
+        filePath = clean.last(clean.length() - prefix.length());
     }
     else {
         filePath = clean;
@@ -169,7 +169,7 @@ QString Library::getRelativePath(const QString& path) const
     prefix = getDirectoryPath();
     if (filePath.startsWith(prefix, Qt::CaseInsensitive)) {
         // Remove the library root from the path
-        filePath = filePath.right(filePath.length() - prefix.length());
+        filePath = filePath.last(filePath.length() - prefix.length());
     }
 
     // Remove any leading '/'

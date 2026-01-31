@@ -583,23 +583,25 @@ QString Material::getLibraryPath() const
 {
     QString path;
     auto library = getLibrary();
+    auto directory = getDirectory();
+    if (directory.startsWith(QStringLiteral("/"))) {
+        // Remove leading '/' for consistent handling
+        directory = directory.last(directory.size() - 1);
+    }
     if (library) {
-        if (!getDirectory().isEmpty() && getDirectory() != QStringLiteral("/")) {
-            path = QStringLiteral("/%1/%2/%3")
-                       .arg(library->getName())
-                       .arg(getDirectory())
-                       .arg(getName());
+        if (!directory.isEmpty()) {
+            path = QStringLiteral("[%1]/%2/%3").arg(library->getName()).arg(directory).arg(getName());
         }
         else {
-            path = QStringLiteral("/%1/%2")
+            path = QStringLiteral("[%1]/%2")
                        .arg(library->getName())
                        .arg(getName());
         }
         return path;
     }
 
-    if (!getDirectory().isEmpty() && getDirectory() != QStringLiteral("/")) {
-        path = QStringLiteral("%1/%2").arg(getDirectory()).arg(getName());
+    if (!directory.isEmpty()) {
+        path = QStringLiteral("/%1/%2").arg(directory).arg(getName());
     }
     else {
         path = QStringLiteral("/%1").arg(getName());
