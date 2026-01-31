@@ -78,7 +78,7 @@ void TextEdit::accept()
     QString newText = ui->textEdit->toPlainText();
     if (newText != _value) {
         _property->setValue(ui->textEdit->toPlainText());
-        _material->setEditStateAlter();
+        _material->setEditStateInvariantChanged();
     }
     QDialog::accept();
 }

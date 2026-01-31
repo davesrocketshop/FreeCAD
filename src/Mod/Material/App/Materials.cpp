@@ -502,6 +502,7 @@ Material::Material(const std::shared_ptr<MaterialLibrary>& library,
                    const QString& uuid,
                    const QString& name)
     : _library(library)
+    , _directory(directory)
     , _uuid(uuid)
     , _name(name)
     , _dereferenced(false)
@@ -556,6 +557,12 @@ bool Material::isDisabled() const
     return _library->isDisabled();
 }
 
+void Material::setLibrary(const std::shared_ptr<MaterialLibrary>& library)
+{
+    _library = library;
+    setEditStateChanged();
+}
+
 QString Material::getDirectory() const
 {
     return _directory;
@@ -564,6 +571,7 @@ QString Material::getDirectory() const
 void Material::setDirectory(const QString& directory)
 {
     _directory = directory;
+    setEditStateChanged();
 }
 
 QString Material::getFilePath() const
@@ -665,43 +673,43 @@ void Material::clearInherited()
 void Material::setName(const QString& name)
 {
     _name = name;
-    setEditStateExtend();
+    setEditStateChanged();
 }
 
 void Material::setAuthor(const QString& author)
 {
     _author = author;
-    setEditStateExtend();
+    setEditStateChanged();
 }
 
 void Material::setLicense(const QString& license)
 {
     _license = license;
-    setEditStateExtend();
+    setEditStateChanged();
 }
 
 void Material::setParentUUID(const QString& uuid)
 {
     _parentUuid = uuid;
-    setEditStateExtend();
+    setEditStateChanged();
 }
 
 void Material::setDescription(const QString& description)
 {
     _description = description;
-    setEditStateExtend();
+    setEditStateChanged();
 }
 
 void Material::setURL(const QString& url)
 {
     _url = url;
-    setEditStateExtend();
+    setEditStateChanged();
 }
 
 void Material::setReference(const QString& reference)
 {
     _reference = reference;
-    setEditStateExtend();
+    setEditStateChanged();
 }
 
 void Material::setEditState(ModelEdit newState)
@@ -709,12 +717,12 @@ void Material::setEditState(ModelEdit newState)
     if (_editState == ModelEdit_New) {
         return;
     }
-    if (newState == ModelEdit_Extend) {
-        if (_editState != ModelEdit_Alter) {
+    if (newState == ModelEdit_Changed) {
+        if (_editState != ModelEdit_InvariantChanged) {
             _editState = newState;
         }
     }
-    else if (newState == ModelEdit_Alter || newState == ModelEdit_New) {
+    else if (newState == ModelEdit_InvariantChanged || newState == ModelEdit_New) {
         _editState = newState;
     }
 }
@@ -729,12 +737,14 @@ void Material::addTag(const QString& tag)
     auto trimmed = tag.trimmed();
     if (!trimmed.isEmpty()) {
         _tags.insert(trimmed);
+        setEditStateChanged();
     }
 }
 
 void Material::removeTag(const QString& tag)
 {
     _tags.remove(tag);
+    setEditStateChanged();
 }
 
 void Material::addPhysical(const QString& uuid)
@@ -757,7 +767,7 @@ void Material::addPhysical(const QString& uuid)
 
         _physicalUuids.insert(uuid);
         addModel(uuid);
-        setEditStateExtend();
+        setEditStateChanged();
 
         for (auto& it : *model) {
             QString propertyName = it.first;
@@ -807,7 +817,7 @@ void Material::removePhysical(const QString& uuid)
             _physical.erase(it.first);
         }
 
-        setEditStateAlter();
+        setEditStateInvariantChanged();
     }
     catch (ModelNotFound const&) {
         Base::Console().log("Physical model not found '%s'\n", uuid.toStdString().c_str());
@@ -834,7 +844,7 @@ void Material::addAppearance(const QString& uuid)
 
         _appearanceUuids.insert(uuid);
         addModel(uuid);
-        setEditStateExtend();
+        setEditStateChanged();
 
         for (auto& it : *model) {
             QString propertyName = it.first;
@@ -878,7 +888,7 @@ void Material::removeAppearance(const QString& uuid)
             _appearance.erase(it.first);
         }
 
-        setEditStateAlter();
+        setEditStateInvariantChanged();
     }
     catch (ModelNotFound const&) {
     }
@@ -901,10 +911,10 @@ void Material::setPropertyEditState(const QString& name)
 void Material::setPhysicalEditState(const QString& name)
 {
     if (getPhysicalProperty(name)->isNull()) {
-        setEditStateExtend();
+        setEditStateChanged();
     }
     else {
-        setEditStateAlter();
+        setEditStateInvariantChanged();
     }
 }
 
@@ -912,10 +922,10 @@ void Material::setAppearanceEditState(const QString& name)
 {
     try {
         if (getAppearanceProperty(name)->isNull()) {
-            setEditStateExtend();
+            setEditStateChanged();
         }
         else {
-            setEditStateAlter();
+            setEditStateInvariantChanged();
         }
     }
     catch (const PropertyNotFound&) {
@@ -1063,7 +1073,7 @@ void Material::setValue(const QString& name, const std::shared_ptr<MaterialValue
 
 void Material::setLegacyValue(const QString& name, const QString& value)
 {
-    setEditStateAlter();
+    setEditStateInvariantChanged();
 
     _legacy[name] = value;
 }

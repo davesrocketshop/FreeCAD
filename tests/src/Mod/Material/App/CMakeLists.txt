@@ -4,6 +4,7 @@ add_executable(Material_tests_run
         TestLibraries.cpp
         TestMaterialCards.cpp
         TestMaterialFilter.cpp
+        TestMaterialModification.cpp
         TestMaterialProperties.cpp
         TestMaterials.cpp
         TestMaterialValue.cpp
