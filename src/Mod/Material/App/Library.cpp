@@ -134,7 +134,7 @@ QString Library::getLocalPath(const QString& path) const
     }
 
     QString clean = cleanPath(path);
-    QString prefix = QStringLiteral("/") + getName();
+    QString prefix = QStringLiteral("/") + getName() + QStringLiteral("/");
     if (clean.startsWith(prefix)) {
         // Remove the library name from the path
         filePath += clean.right(clean.length() - prefix.length());
@@ -157,7 +157,7 @@ QString Library::getRelativePath(const QString& path) const
 {
     QString filePath;
     QString clean = cleanPath(path);
-    QString prefix = QStringLiteral("/") + getName();
+    QString prefix = QStringLiteral("/") + getName() + QStringLiteral("/");
     if (clean.startsWith(prefix)) {
         // Remove the library name from the path
         filePath = clean.right(clean.length() - prefix.length());
