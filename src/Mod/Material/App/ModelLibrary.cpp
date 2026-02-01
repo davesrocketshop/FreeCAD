@@ -38,6 +38,13 @@ using namespace Materials;
 
 TYPESYSTEM_SOURCE(Materials::ModelLibrary, Materials::Library)
 
+ModelLibrary::ModelLibrary()
+{}
+
+ModelLibrary::ModelLibrary(const std::shared_ptr<ManagedLibrary>& library)
+    : Library(library)
+{}
+
 ModelLibrary::ModelLibrary(const Library& other)
     : Library(other)
 {}
@@ -49,8 +56,16 @@ ModelLibrary::ModelLibrary(const QString& libraryName,
     : Library(libraryName, dir, iconPath, readOnly)
 {}
 
-ModelLibrary::ModelLibrary()
+bool ModelLibrary::isRoot(const QString& path) const
 {
+    QString localPath = getLocalPath(cleanPath(path));
+    QString clean = getLocalPath(QStringLiteral(""));
+    return (clean == localPath);
+}
+
+QString ModelLibrary::getLocalPath(const QString& path) const
+{
+    return Library::getLocalPath(getModelDirectoryPath(), path);
 }
 
 std::shared_ptr<std::map<QString, std::shared_ptr<ModelTreeNode>>>
@@ -97,6 +112,21 @@ ModelLibrary::getModelTree(ModelFilter filter) const
 
 TYPESYSTEM_SOURCE(Materials::ModelLibraryLocal, Materials::ModelLibrary)
 
+ModelLibraryLocal::ModelLibraryLocal()
+{
+    setLocal(true);
+
+    _modelPathMap = std::make_unique<std::map<QString, std::shared_ptr<Model>>>();
+}
+
+ModelLibraryLocal::ModelLibraryLocal(const std::shared_ptr<ManagedLibrary>& library)
+    : ModelLibrary(library)
+{
+    setLocal(true);
+
+    _modelPathMap = std::make_unique<std::map<QString, std::shared_ptr<Model>>>();
+}
+
 ModelLibraryLocal::ModelLibraryLocal(const Library& other)
     : ModelLibrary(other)
 {
@@ -110,13 +140,6 @@ ModelLibraryLocal::ModelLibraryLocal(const QString& libraryName,
                                      const QString& iconPath,
                                      bool readOnly)
     : ModelLibrary(libraryName, dir, iconPath, readOnly)
-{
-    setLocal(true);
-
-    _modelPathMap = std::make_unique<std::map<QString, std::shared_ptr<Model>>>();
-}
-
-ModelLibraryLocal::ModelLibraryLocal()
 {
     setLocal(true);
 

@@ -27,6 +27,7 @@
 #include <App/Application.h>
 #include <Base/Console.h>
 
+#include "LibraryManager.h"
 #include "Model.h"
 #include "ModelLoader.h"
 #include "ModelManager.h"
@@ -75,6 +76,8 @@ void ModelManager::initManagers()
 {
     QMutexLocker locker(&_mutex);
 
+    // Get our libraries
+    LibraryManager::getManager();
     if (!_manager) {
         // Can't use smart pointers for this since the constructor is private
         _manager = new ModelManager();
@@ -181,7 +184,7 @@ void ModelManager::createLibrary(
 )
 {
 #if defined(BUILD_MATERIAL_EXTERNAL)
-    auto icon = Materials::Library::getIcon(iconPath);
+    auto icon = Materials::ManagedLibrary::getIcon(iconPath);
     _externalManager->createLibrary(libraryName, icon, readOnly);
 #endif
 }

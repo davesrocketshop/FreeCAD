@@ -30,7 +30,7 @@
 #include <Base/Interpreter.h>
 #include <Base/Stream.h>
 
-
+#include "LibraryManager.h"
 #include "Model.h"
 #include "ModelLoader.h"
 #include "ModelManager.h"
@@ -258,6 +258,9 @@ void ModelLoader::loadLibrary(std::shared_ptr<ModelLibraryLocal> library)
     if (_modelEntryMap == nullptr) {
         _modelEntryMap = std::make_unique<std::map<QString, std::shared_ptr<ModelEntry>>>();
     }
+    // if (library->getDirectory().isEmpty()) {
+    //     return;
+    // }
 
     QDirIterator it(library->getDirectory(), QDirIterator::Subdirectories);
     while (it.hasNext()) {
@@ -295,66 +298,8 @@ void ModelLoader::loadLibraries()
 
 void ModelLoader::getModelLibraries()
 {
-    auto localParam = App::GetApplication().GetParameterGroupByPath(
-        "User parameter:BaseApp/Preferences/Mod/Material/Resources/Local"
-    );
-
-    // Ensure the builtin libraries have a configuration
-    if (!localParam->HasGroup("System")) {
-        ModelManager::createSystemLibraryConfig();
-    }
-    if (!localParam->HasGroup("User")) {
-        ModelManager::createUserLibraryConfig();
-    }
-
-    auto groups = localParam->GetGroups();
-    for (auto& group : groups) {
-        auto libName = QString::fromStdString(group->GetGroupName());
-        auto libDir = QString::fromStdString(group->GetASCII("ModelDirectory", ""));
-        auto libIcon = QString::fromStdString(group->GetASCII("IconPath", ""));
-        auto libReadOnly = group->GetBool("ReadOnly", true);
-        auto libDisabled = group->GetBool("Disabled", false);
-
-        if (libDir.length() > 0) {
-            QDir dir(libDir);
-            if (dir.exists()) {
-                auto libData = std::make_shared<ModelLibraryLocal>(
-                    libName,
-                    dir.canonicalPath(),
-                    libIcon,
-                    libReadOnly
-                );
-                libData->setDisabled(libDisabled);
-                _libraryList->push_back(libData);
-            }
-        }
-    }
-
-    auto moduleParam = App::GetApplication().GetParameterGroupByPath(
-        "User parameter:BaseApp/Preferences/Mod/Material/Resources/Modules"
-    );
-    for (auto& group : moduleParam->GetGroups()) {
-        auto moduleName = QString::fromStdString(group->GetGroupName());
-        auto modelDir = QString::fromStdString(
-            Library::cleanPath(group->GetASCII("ModuleModelDir", ""))
-        );
-        auto materialIcon = QString::fromStdString(group->GetASCII("ModuleIcon", ""));
-        auto materialReadOnly = group->GetBool("ModuleReadOnly", true);
-        auto materialDisabled = group->GetBool("ModuleMaterialDisabled", false);
-
-        if (modelDir.length() > 0) {
-            QDir dir(modelDir);
-            if (dir.exists()) {
-                auto libData = std::make_shared<ModelLibraryLocal>(
-                    moduleName,
-                    dir.canonicalPath(),
-                    materialIcon,
-                    materialReadOnly
-                );
-                libData->setModule(true);
-                libData->setDisabled(materialDisabled);
-                _libraryList->push_back(libData);
-            }
-        }
+    auto libraries = LibraryManager::getManager().getLocalModelLibraries();
+    for (auto library : *libraries) {
+        _libraryList->push_back(library);
     }
 }

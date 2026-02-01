@@ -83,7 +83,7 @@ Py::String MaterialPy::getLibraryRoot() const
     if (library->isLocal()) {
         auto materialLibrary =
             reinterpret_cast<const std::shared_ptr<Materials::MaterialLibraryLocal>&>(library);
-        return {materialLibrary ? materialLibrary->getDirectoryPath().toStdString() : ""};
+        return {materialLibrary ? materialLibrary->getMaterialDirectoryPath().toStdString() : ""};
     }
     return "";
 }

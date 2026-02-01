@@ -88,6 +88,10 @@ SET(Materials_SRCS
     FolderTree.h
     Library.cpp
     Library.h
+    LibraryManager.cpp
+    LibraryManager.h
+    ManagedLibrary.cpp
+    ManagedLibrary.h
     MaterialConfigLoader.cpp
     MaterialConfigLoader.h
     MaterialFilter.cpp

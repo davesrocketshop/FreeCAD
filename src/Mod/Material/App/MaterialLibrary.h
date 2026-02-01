@@ -52,6 +52,7 @@ class MaterialsExport MaterialLibrary
 
 public:
     MaterialLibrary() = default;
+    MaterialLibrary(const std::shared_ptr<ManagedLibrary>& library);
     MaterialLibrary(const QString& libraryName, const QString& icon, bool readOnly = true);
     MaterialLibrary(const QString& libraryName,
                     const QString& dir,
@@ -59,6 +60,18 @@ public:
                     bool readOnly = true);
     MaterialLibrary(const Library& library);
     ~MaterialLibrary() override = default;
+
+
+    bool isRoot(const QString& path) const override;
+    QString getDirectory() const override
+    {
+        return getMaterialDirectory();
+    }
+    QString getDirectoryPath() const override
+    {
+        return getMaterialDirectoryPath();
+    }
+    QString getLocalPath(const QString& path) const;
 
     virtual std::shared_ptr<std::map<QString, std::shared_ptr<MaterialTreeNode>>>
     getMaterialTree(const Materials::MaterialFilter& filter,
@@ -77,10 +90,13 @@ class MaterialsExport MaterialLibraryLocal: public MaterialLibrary
 
 public:
     MaterialLibraryLocal() = default;
-    MaterialLibraryLocal(const QString& libraryName,
-                         const QString& dir,
-                         const QString& iconPath,
-                         bool readOnly = true);
+    MaterialLibraryLocal(const std::shared_ptr<ManagedLibrary>& library);
+    MaterialLibraryLocal(
+        const QString& libraryName,
+        const QString& dir,
+        const QString& iconPath,
+        bool readOnly = true
+    );
     ~MaterialLibraryLocal() override = default;
 
     void createFolder(const QString& path);

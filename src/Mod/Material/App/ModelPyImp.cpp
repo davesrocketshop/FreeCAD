@@ -65,7 +65,7 @@ Py::String ModelPy::getLibraryRoot() const
     if (!library->isLocal()) {
         return "";
     }
-    return Py::String(library ? library->getDirectoryPath().toStdString() : "");
+    return Py::String(library ? library->getModelDirectoryPath().toStdString() : "");
 }
 
 Py::Object ModelPy::getLibraryIcon() const
