@@ -42,21 +42,14 @@ namespace Materials
 class ModelLoader;
 class ModelManagerLocal;
 class MaterialManagerLocal;
+class LibraryManager;
 
 class MaterialsExport Library: public Base::BaseClass
 {
     TYPESYSTEM_HEADER_WITH_OVERRIDE();
 
 public:
-    Library();
     Library(const Library &other) = default;
-    Library(const std::shared_ptr<ManagedLibrary>& library);
-    Library(const QString& libraryName, const QString& icon, bool readOnly = true);
-    Library(const QString& libraryName, const QByteArray& icon, bool readOnly);
-    Library(const QString& libraryName,
-            const QString& dir,
-            const QString& iconPath,
-            bool readOnly = true);
     ~Library() override = default;
 
     bool isLocal() const;
@@ -142,6 +135,12 @@ public:
     static QString cleanPath(const QString& path);
 
 protected:
+    Library();
+    Library(const std::shared_ptr<ManagedLibrary>& library);
+    Library(const QString& libraryName, const QString& icon, bool readOnly = true);
+    Library(const QString& libraryName, const QByteArray& icon, bool readOnly);
+    Library(const QString& libraryName, const QString& dir, const QString& iconPath, bool readOnly = true);
+
     // These should only be done through the MaterialManager or one of its subbordinates
     void setDisabled(bool disabled)
     {
@@ -152,9 +151,10 @@ protected:
         _managedLibrary->setMaterialDirectory(cleanPath(directory));
     }
 
-    friend class ModelLoader;
-    friend class ModelManagerLocal;
-    friend class MaterialManagerLocal;
+    // friend class ModelLoader;
+    // friend class ModelManagerLocal;
+    // friend class MaterialManagerLocal;
+    friend class LibraryManager;
 
     std::shared_ptr<ManagedLibrary> proxy() const {
         return _managedLibrary;

@@ -76,11 +76,11 @@ public:
     );
     void renameLibrary(const QString& libraryName, const QString& newName);
     void changeIcon(const QString& libraryName, const QByteArray& icon);
-    void updateLocalLibraryDirectories(
-        const Library& library,
-        const QString& materialDirectory,
-        const QString& modelDirectory
-    );
+    // void updateLocalLibraryDirectories(
+    //     const Library& library,
+    //     const QString& materialDirectory,
+    //     const QString& modelDirectory
+    // );
     void removeLibrary(const QString& libraryName, bool keepData);
     std::shared_ptr<std::vector<LibraryObject>> libraryMaterials(const QString& libraryName);
     std::shared_ptr<std::vector<LibraryObject>> libraryMaterials(
@@ -88,8 +88,8 @@ public:
         const MaterialFilter& filter,
         const MaterialFilterOptions& options
     );
-    void setDisabled(const QString& libraryName, bool disabled);
-    bool isDisabled(const QString& libraryName);
+    // void setDisabled(const QString& libraryName, bool disabled);
+    // bool isDisabled(const QString& libraryName);
     bool exists(const QString& libraryName);
 
     // Folder management
@@ -155,7 +155,7 @@ private:
     static QMutex _mutex;
 
     static void initLibraries();
-    void setDisabledOnLibraryList(const QString& libraryName, bool disabled);
+    // void setDisabledOnLibraryList(const QString& libraryName, bool disabled);
 };
 
 }  // namespace Materials

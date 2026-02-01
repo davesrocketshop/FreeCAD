@@ -131,11 +131,7 @@ void ModelManager::refresh()
 
 void ModelManager::setUseExternal(bool useExternal)
 {
-    ParameterGrp::handle paramExternal = App::GetApplication().GetParameterGroupByPath(
-        "User parameter:BaseApp/Preferences/Mod/Material/ExternalInterface"
-    );
-
-    paramExternal->SetBool("UseExternal", useExternal);
+    LibraryManager::getManager().setUseExternal(useExternal);
 }
 
 std::shared_ptr<std::list<std::shared_ptr<ModelLibrary>>> ModelManager::getLibraries(
@@ -177,18 +173,6 @@ std::shared_ptr<std::list<std::shared_ptr<ModelLibrary>>> ModelManager::getLocal
     return _localManager->getLibraries();
 }
 
-void ModelManager::createLibrary(
-    [[maybe_unused]] const QString& libraryName,
-    [[maybe_unused]] const QString& iconPath,
-    [[maybe_unused]] bool readOnly
-)
-{
-#if defined(BUILD_MATERIAL_EXTERNAL)
-    auto icon = Materials::ManagedLibrary::getIcon(iconPath);
-    _externalManager->createLibrary(libraryName, icon, readOnly);
-#endif
-}
-
 std::shared_ptr<ModelLibrary> ModelManager::getLibrary(const QString& name) const
 {
 #if defined(BUILD_MATERIAL_EXTERNAL)
@@ -200,16 +184,6 @@ std::shared_ptr<ModelLibrary> ModelManager::getLibrary(const QString& name) cons
     }
 #endif
     return _localManager->getLibrary(name);
-}
-
-void ModelManager::createLocalLibrary(
-    const QString& libraryName,
-    const QString& directory,
-    const QString& icon,
-    bool readOnly
-)
-{
-    _localManager->createLibrary(libraryName, directory, icon, readOnly);
 }
 
 void ModelManager::renameLibrary(const QString& libraryName, const QString& newName)
@@ -261,13 +235,6 @@ bool ModelManager::isLocalLibrary([[maybe_unused]] const QString& libraryName)
     }
 #endif
     return true;
-}
-
-void ModelManager::setDisabled(Library& library, bool disabled)
-{
-    if (library.isLocal()) {
-        _localManager->setDisabled(library, disabled);
-    }
 }
 
 //=====
@@ -450,53 +417,3 @@ double ModelManager::modelHitRate()
     return _externalManager->modelHitRate();
 }
 #endif
-
-void ModelManager::createSystemLibraryConfig()
-{
-    auto param = App::GetApplication().GetParameterGroupByPath(
-        "User parameter:BaseApp/Preferences/Mod/Material/Resources/Local"
-    );
-    if (!param->HasGroup("System")) {
-        Base::Console().log("No System library defined\n");
-        auto path = Library::cleanPath(
-            App::Application::getResourceDir() + "/Mod/Material/Resources"
-        );
-        auto library = param->GetGroup("System");
-
-        QDir resourceDir;
-        auto resourcePath = Library::cleanPath(path + "/Materials");
-        resourceDir.mkpath(QString::fromStdString(resourcePath));
-        library->SetASCII("Directory", resourcePath);
-        resourcePath = Library::cleanPath(path + "/Models");
-        resourceDir.mkpath(QString::fromStdString(resourcePath));
-        library->SetASCII("ModelDirectory", resourcePath);
-
-        library->SetASCII("IconPath", ":/icons/freecad.svg");
-        library->SetBool("ReadOnly", false);
-        library->SetBool("Disabled", false);
-    }
-}
-
-void ModelManager::createUserLibraryConfig()
-{
-    auto param = App::GetApplication().GetParameterGroupByPath(
-        "User parameter:BaseApp/Preferences/Mod/Material/Resources/Local"
-    );
-    if (!param->HasGroup("User")) {
-        Base::Console().log("No User library defined\n");
-        auto path = Library::cleanPath(App::Application::getUserAppDataDir());
-        auto library = param->GetGroup("User");
-
-        QDir resourceDir;
-        auto resourcePath = Library::cleanPath(path + "/Material");
-        resourceDir.mkpath(QString::fromStdString(resourcePath));
-        library->SetASCII("Directory", resourcePath);
-        resourcePath = Library::cleanPath(path + "/Models");
-        resourceDir.mkpath(QString::fromStdString(resourcePath));
-        library->SetASCII("ModelDirectory", resourcePath);
-
-        library->SetASCII("IconPath", ":/icons/preferences-general.svg");
-        library->SetBool("ReadOnly", false);
-        library->SetBool("Disabled", false);
-    }
-}

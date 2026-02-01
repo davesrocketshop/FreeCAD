@@ -104,24 +104,6 @@ std::shared_ptr<std::list<std::shared_ptr<ModelLibrary>>> ModelManagerLocal::get
     return reinterpret_cast<std::shared_ptr<std::list<std::shared_ptr<ModelLibrary>>>&>(_libraryList);
 }
 
-void ModelManagerLocal::createLibrary(
-    const QString& libraryName,
-    const QString& directory,
-    const QString& icon,
-    bool readOnly
-)
-{
-    QDir dir;
-    if (!dir.exists(directory)) {
-        if (!dir.mkpath(directory)) {
-            throw CreationError("Unable to create library path");
-        }
-    }
-
-    auto modelLibrary = std::make_shared<ModelLibraryLocal>(libraryName, directory, icon, readOnly);
-    _libraryList->push_back(modelLibrary);
-}
-
 void ModelManagerLocal::renameLibrary(const QString& libraryName, const QString& newName)
 {
     for (auto& library : *_libraryList) {
@@ -185,16 +167,16 @@ std::shared_ptr<std::map<QString, std::shared_ptr<Model>>> ModelManagerLocal::ge
     return localModels;
 }
 
-void ModelManagerLocal::setDisabled(Library& library, bool disabled)
-{
-    for (auto& modelLibrary : *_libraryList) {
-        if (modelLibrary->isLocal() && modelLibrary->isName(library.getName())) {
-            modelLibrary->setDisabled(disabled);
-            return;
-        }
-    }
-    // throw LibraryNotFound(); - There may be no models in this library, hence no model library object
-}
+// void ModelManagerLocal::setDisabled(Library& library, bool disabled)
+// {
+//     for (auto& modelLibrary : *_libraryList) {
+//         if (modelLibrary->isLocal() && modelLibrary->isName(library.getName())) {
+//             modelLibrary->setDisabled(disabled);
+//             return;
+//         }
+//     }
+//     // throw LibraryNotFound(); - There may be no models in this library, hence no model library object
+// }
 
 std::shared_ptr<Model> ModelManagerLocal::getModel(const QString& uuid) const
 {

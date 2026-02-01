@@ -34,7 +34,8 @@ using namespace Materials;
 TYPESYSTEM_SOURCE(Materials::ManagedLibrary, Base::BaseClass)
 
 ManagedLibrary::ManagedLibrary(const QString& libraryName, const QString& iconPath, bool readOnly)
-    : _libraryName(libraryName)
+    : _repositoryName(QStringLiteral("Remote"))
+    , _libraryName(libraryName)
     , _readOnly(readOnly)
     , _disabled(false)
     , _local(false)
@@ -44,7 +45,8 @@ ManagedLibrary::ManagedLibrary(const QString& libraryName, const QString& iconPa
 }
 
 ManagedLibrary::ManagedLibrary(const QString& libraryName, const QByteArray& icon, bool readOnly)
-    : _libraryName(libraryName)
+    : _repositoryName(QStringLiteral("Remote"))
+    , _libraryName(libraryName)
     , _icon(icon)
     , _readOnly(readOnly)
     , _disabled(false)
@@ -52,8 +54,14 @@ ManagedLibrary::ManagedLibrary(const QString& libraryName, const QByteArray& ico
     , _module(false)
 {}
 
-ManagedLibrary::ManagedLibrary(const QString& libraryName, const QString& dir, const QString& iconPath, bool readOnly)
-    : _libraryName(libraryName)
+ManagedLibrary::ManagedLibrary(
+    const QString& libraryName,
+    const QString& dir,
+    const QString& iconPath,
+    bool readOnly
+)
+    : _repositoryName(QStringLiteral("Remote"))
+    , _libraryName(libraryName)
     , _materialDirectory(cleanPath(dir))
     , _readOnly(readOnly)
     , _disabled(false)
@@ -90,6 +98,12 @@ bool ManagedLibrary::isLocal() const
 void ManagedLibrary::setLocal(bool local)
 {
     _local = local;
+    if (local) {
+        setRepositoryName(QStringLiteral("Local"));
+    }
+    else {
+        setRepositoryName(QStringLiteral("Remote"));
+    }
 }
 
 bool ManagedLibrary::isModule() const

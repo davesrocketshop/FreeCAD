@@ -60,13 +60,6 @@ public:
     std::shared_ptr<std::list<std::shared_ptr<ModelLibrary>>> getLibraries(bool includeDisabled = false);
     std::shared_ptr<std::list<std::shared_ptr<ModelLibrary>>> getLocalLibraries(bool includeDisabled = false);
     std::shared_ptr<ModelLibrary> getLibrary(const QString& name) const;
-    void createLibrary(const QString& libraryName,
-                       const QString& iconPath,
-                       bool readOnly = true);
-    void createLocalLibrary(const QString& libraryName,
-                       const QString& directory,
-                       const QString& icon,
-                       bool readOnly = true);
     void renameLibrary(const QString& libraryName, const QString& newName);
     void changeIcon(const QString& libraryName, const QString& icon);
     void removeLibrary(const QString& libraryName);
@@ -109,13 +102,7 @@ public:
     static double modelHitRate();
 #endif
 
-    static void createSystemLibraryConfig();
-    static void createUserLibraryConfig();
-
 protected:
-    void setDisabled(Library &library, bool disabled);
-
-    friend class MaterialManagerLocal;
 
 private:
     ModelManager();

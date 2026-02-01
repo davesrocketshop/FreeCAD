@@ -206,55 +206,55 @@ void MaterialManagerLocal::changeIcon(const QString& libraryName, const QByteArr
 
     throw LibraryNotFound();
 }
-void MaterialManagerLocal::updateLocalLibraryDirectories(
-    const Library& library,
-    const QString& materialDirectory,
-    const QString& modelDirectory
-)
-{
-    // Get the pointer
-    auto libPtr = getLibrary(library.getName());
-    auto materialPath = Library::cleanPath(materialDirectory);
-    auto modelPath = Library::cleanPath(modelDirectory);
+// void MaterialManagerLocal::updateLocalLibraryDirectories(
+//     const Library& library,
+//     const QString& materialDirectory,
+//     const QString& modelDirectory
+// )
+// {
+//     // Get the pointer
+//     auto libPtr = getLibrary(library.getName());
+//     auto materialPath = Library::cleanPath(materialDirectory);
+//     auto modelPath = Library::cleanPath(modelDirectory);
 
-    QDir dir;
-    if (!materialPath.isEmpty()) {
-        if (!dir.exists(materialPath)) {
-            if (!dir.mkpath(materialPath)) {
-                throw CreationError("Unable to create library path");
-            }
-        }
-        libPtr->setDirectory(materialPath);  // This will only work for the materials, not models
-    }
-    if (!modelPath.isEmpty()) {
-        if (!dir.exists(modelPath)) {
-            if (!dir.mkpath(modelPath)) {
-                throw CreationError("Unable to create library model path");
-            }
-        }
-    }
+//     QDir dir;
+//     if (!materialPath.isEmpty()) {
+//         if (!dir.exists(materialPath)) {
+//             if (!dir.mkpath(materialPath)) {
+//                 throw CreationError("Unable to create library path");
+//             }
+//         }
+//         libPtr->setDirectory(materialPath);  // This will only work for the materials, not models
+//     }
+//     if (!modelPath.isEmpty()) {
+//         if (!dir.exists(modelPath)) {
+//             if (!dir.mkpath(modelPath)) {
+//                 throw CreationError("Unable to create library model path");
+//             }
+//         }
+//     }
 
-    // Persist
-    std::string libRoot("User parameter:BaseApp/Preferences/Mod/Material/Resources/Local/");
-    libRoot += library.getName().toStdString();
+//     // Persist
+//     std::string libRoot("User parameter:BaseApp/Preferences/Mod/Material/Resources/Local/");
+//     libRoot += library.getName().toStdString();
 
-    auto newParam = App::GetApplication().GetParameterGroupByPath(libRoot.c_str());
-    if (!materialPath.isEmpty()) {
-        newParam->SetASCII("Directory", materialPath.toStdString().c_str());
-    }
-    if (!modelPath.isEmpty()) {
-        newParam->SetASCII("ModelDirectory", modelPath.toStdString().c_str());
-    }
+//     auto newParam = App::GetApplication().GetParameterGroupByPath(libRoot.c_str());
+//     if (!materialPath.isEmpty()) {
+//         newParam->SetASCII("Directory", materialPath.toStdString().c_str());
+//     }
+//     if (!modelPath.isEmpty()) {
+//         newParam->SetASCII("ModelDirectory", modelPath.toStdString().c_str());
+//     }
 
-    // Rescan the library
-    for (auto& it : *_materialMap) {
-        if (*it.second->getLibrary() == library) {
-            _materialMap->erase(it.first);
-        }
-    }
+//     // Rescan the library
+//     for (auto& it : *_materialMap) {
+//         if (*it.second->getLibrary() == library) {
+//             _materialMap->erase(it.first);
+//         }
+//     }
 
-    MaterialLoader loader(_materialMap, _libraryList);
-}
+//     MaterialLoader loader(_materialMap, _libraryList);
+// }
 
 void MaterialManagerLocal::removeLibrary(const QString& libraryName, bool keepData)
 {
@@ -343,67 +343,67 @@ std::shared_ptr<std::vector<LibraryObject>> MaterialManagerLocal::libraryMateria
     return materials;
 }
 
-void MaterialManagerLocal::setDisabledOnLibraryList(const QString& libraryName, bool disabled)
-{
-    for (auto& library : *_libraryList) {
-        if (library->isLocal() && library->isName(libraryName)) {
-            library->setDisabled(disabled);
-            ModelManager::getManager().setDisabled(*library, disabled);
-            return;
-        }
-    }
-    throw LibraryNotFound();
-}
+// void MaterialManagerLocal::setDisabledOnLibraryList(const QString& libraryName, bool disabled)
+// {
+//     for (auto& library : *_libraryList) {
+//         if (library->isLocal() && library->isName(libraryName)) {
+//             library->setDisabled(disabled);
+//             ModelManager::getManager().setDisabled(*library, disabled);
+//             return;
+//         }
+//     }
+//     throw LibraryNotFound();
+// }
 
-void MaterialManagerLocal::setDisabled(const QString& libraryName, bool disabled)
-{
-    ParameterGrp::handle param = App::GetApplication().GetParameterGroupByPath(
-        "User parameter:BaseApp/Preferences/Mod/Material/Resources/Local"
-    );
-    auto groups = param->GetGroups();
-    for (auto group : groups) {
-        if (QString::fromStdString(group->GetGroupName()) == libraryName) {
-            group->SetBool("Disabled", disabled);
-            setDisabledOnLibraryList(libraryName, disabled);
-            return;
-        }
-    }
-    param = App::GetApplication().GetParameterGroupByPath(
-        "User parameter:BaseApp/Preferences/Mod/Material/Resources/Modules"
-    );
-    groups = param->GetGroups();
-    for (auto group : groups) {
-        if (QString::fromStdString(group->GetGroupName()) == libraryName) {
-            group->SetBool("ModuleMaterialDisabled", disabled);
-            setDisabledOnLibraryList(libraryName, disabled);
-            return;
-        }
-    }
-    throw LibraryNotFound();
-}
+// // void MaterialManagerLocal::setDisabled(const QString& libraryName, bool disabled)
+// // {
+// //     ParameterGrp::handle param = App::GetApplication().GetParameterGroupByPath(
+// //         "User parameter:BaseApp/Preferences/Mod/Material/Resources/Local"
+// //     );
+// //     auto groups = param->GetGroups();
+// //     for (auto group : groups) {
+// //         if (QString::fromStdString(group->GetGroupName()) == libraryName) {
+// //             group->SetBool("Disabled", disabled);
+// //             setDisabledOnLibraryList(libraryName, disabled);
+// //             return;
+// //         }
+// //     }
+// //     param = App::GetApplication().GetParameterGroupByPath(
+// //         "User parameter:BaseApp/Preferences/Mod/Material/Resources/Modules"
+// //     );
+// //     groups = param->GetGroups();
+// //     for (auto group : groups) {
+// //         if (QString::fromStdString(group->GetGroupName()) == libraryName) {
+// //             group->SetBool("ModuleMaterialDisabled", disabled);
+// //             setDisabledOnLibraryList(libraryName, disabled);
+// //             return;
+// //         }
+// //     }
+// //     throw LibraryNotFound();
+// // }
 
-bool MaterialManagerLocal::isDisabled(const QString& libraryName)
-{
-    ParameterGrp::handle param = App::GetApplication().GetParameterGroupByPath(
-        "User parameter:BaseApp/Preferences/Mod/Material/Resources/Local"
-    );
-    auto groups = param->GetGroups();
-    for (auto group : groups) {
-        if (QString::fromStdString(group->GetGroupName()) == libraryName) {
-            return group->GetBool("Disabled", false);
-        }
-    }
-    param = App::GetApplication().GetParameterGroupByPath(
-        "User parameter:BaseApp/Preferences/Mod/Material/Resources/Modules"
-    );
-    groups = param->GetGroups();
-    for (auto group : groups) {
-        if (QString::fromStdString(group->GetGroupName()) == libraryName) {
-            return group->GetBool("ModuleMaterialDisabled", false);
-        }
-    }
-    throw LibraryNotFound();
-}
+// bool MaterialManagerLocal::isDisabled(const QString& libraryName)
+// {
+//     ParameterGrp::handle param = App::GetApplication().GetParameterGroupByPath(
+//         "User parameter:BaseApp/Preferences/Mod/Material/Resources/Local"
+//     );
+//     auto groups = param->GetGroups();
+//     for (auto group : groups) {
+//         if (QString::fromStdString(group->GetGroupName()) == libraryName) {
+//             return group->GetBool("Disabled", false);
+//         }
+//     }
+//     param = App::GetApplication().GetParameterGroupByPath(
+//         "User parameter:BaseApp/Preferences/Mod/Material/Resources/Modules"
+//     );
+//     groups = param->GetGroups();
+//     for (auto group : groups) {
+//         if (QString::fromStdString(group->GetGroupName()) == libraryName) {
+//             return group->GetBool("ModuleMaterialDisabled", false);
+//         }
+//     }
+//     throw LibraryNotFound();
+// }
 
 bool MaterialManagerLocal::exists(const QString& libraryName)
 {

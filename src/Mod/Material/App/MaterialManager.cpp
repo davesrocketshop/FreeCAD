@@ -32,6 +32,7 @@
 #include <App/Material.h>
 
 #include "Exceptions.h"
+#include "LibraryManager.h"
 #include "MaterialConfigLoader.h"
 #include "MaterialLoader.h"
 #include "MaterialManager.h"
@@ -432,7 +433,7 @@ std::shared_ptr<std::vector<LibraryObject>> MaterialManager::libraryMaterials(
 }
 
 #if defined(BUILD_MATERIAL_EXTERNAL)
-bool MaterialManager::isLocalLibrary(const QString& libraryName)
+bool MaterialManager::isLocalLibrary(const QString& libraryName) const
 {
     if (_useExternal) {
         try {
@@ -447,7 +448,7 @@ bool MaterialManager::isLocalLibrary(const QString& libraryName)
     return true;
 }
 #else
-bool MaterialManager::isLocalLibrary(const QString& /*libraryName*/)
+bool MaterialManager::isLocalLibrary(const QString& /*libraryName*/) const
 {
     return true;
 }
@@ -455,43 +456,24 @@ bool MaterialManager::isLocalLibrary(const QString& /*libraryName*/)
 
 void MaterialManager::setDisabled(const QString& libraryName, bool disabled, bool isLocal)
 {
-#if defined(BUILD_MATERIAL_EXTERNAL)
-    if (isLocal) {
-        _localManager->setDisabled(libraryName, disabled);
-    } else {
-        if (_useExternal) {
-            _externalManager->setDisabled(libraryName, disabled);
-        }
-    }
-    if (_useExternal) {
-        // Reset caches for both materials and models
-        _externalManager->resetCache();
-        ModelManager::resetCache();
-    }
-#else
-    Q_UNUSED(isLocal)
-
-    _localManager->setDisabled(libraryName, disabled);
-#endif
+    auto library = getLibrary(libraryName);
+    setDisabled(*library, disabled);
 }
 
-void MaterialManager::setDisabled(const MaterialLibrary& library, bool disabled)
+void MaterialManager::setDisabled(Library& library, bool disabled)
 {
-    setDisabled(library.getName(), disabled, library.isLocal());
+    LibraryManager::getManager().setDisabled(library, disabled);
 }
 
-bool MaterialManager::isDisabled(const QString& libraryName, bool isLocal)
+bool MaterialManager::isDisabled(const QString& libraryName, bool isLocal) const
 {
-    // TODO
-    if (isLocal) {
-        _localManager->isDisabled(libraryName);
-    }
-    return false;
+    auto library = getLibrary(libraryName);
+    return isDisabled(*library);
 }
 
-bool MaterialManager::isDisabled(const MaterialLibrary& library)
+bool MaterialManager::isDisabled(const Library& library) const
 {
-    return isDisabled(library.getName(), library.isLocal());
+    return LibraryManager::getManager().isDisabled(library);
 }
 
 //=====

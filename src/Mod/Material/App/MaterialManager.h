@@ -108,11 +108,11 @@ public:
                      const MaterialFilter& filter,
                      const MaterialFilterOptions& options,
                      bool local = false);
-    bool isLocalLibrary(const QString& libraryName);
+    bool isLocalLibrary(const QString& libraryName) const;
     void setDisabled(const QString& libraryName, bool disabled, bool isLocal);
-    void setDisabled(const MaterialLibrary& library, bool disabled);
-    bool isDisabled(const QString& libraryName, bool isLocal);
-    bool isDisabled(const MaterialLibrary& library);
+    void setDisabled(Library& library, bool disabled);
+    bool isDisabled(const QString& libraryName, bool isLocal) const;
+    bool isDisabled(const Library& library)const ;
 
     // Folder management
     std::shared_ptr<std::list<QString>>

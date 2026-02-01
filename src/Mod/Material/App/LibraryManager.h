@@ -32,8 +32,7 @@
 #include <QMutex>
 
 #include "Exceptions.h"
-#include "FolderTree.h"
-#include "Model.h"
+#include "ExternalManager.h"
 #include "ManagedLibrary.h"
 #include "MaterialLibrary.h"
 #include "ModelLibrary.h"
@@ -63,22 +62,22 @@ public:
     }
     void setUseExternal(bool useExternal);
 
-    std::shared_ptr<std::list<std::shared_ptr<ManagedLibrary>>> getLibraries(
+    std::shared_ptr<std::vector<std::shared_ptr<ManagedLibrary>>> getLibraries(
         bool includeDisabled = false
     );
-    std::shared_ptr<std::list<std::shared_ptr<ModelLibrary>>> getModelLibraries(
+    std::shared_ptr<std::vector<std::shared_ptr<ModelLibrary>>> getModelLibraries(
         bool includeDisabled = false
     );
-    std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>> getMaterialLibraries(
+    std::shared_ptr<std::vector<std::shared_ptr<MaterialLibrary>>> getMaterialLibraries(
         bool includeDisabled = false
     );
-    std::shared_ptr<std::list<std::shared_ptr<ManagedLibrary>>> getLocalLibraries(
+    std::shared_ptr<std::vector<std::shared_ptr<ManagedLibrary>>> getLocalLibraries(
         bool includeDisabled = false
     );
-    std::shared_ptr<std::list<std::shared_ptr<ModelLibraryLocal>>> getLocalModelLibraries(
+    std::shared_ptr<std::vector<std::shared_ptr<ModelLibraryLocal>>> getLocalModelLibraries(
         bool includeDisabled = false
     );
-    std::shared_ptr<std::list<std::shared_ptr<MaterialLibraryLocal>>> getLocalMaterialLibraries(
+    std::shared_ptr<std::vector<std::shared_ptr<MaterialLibraryLocal>>> getLocalMaterialLibraries(
         bool includeDisabled = false
     );
     std::shared_ptr<ModelLibrary> getModelLibrary(
@@ -95,47 +94,36 @@ public:
         const QString& iconPath,
         bool readOnly
     );
-    void createLocalLibrary(
-        const QString& repositoryName,
+    std::shared_ptr<MaterialLibrary> createLocalLibrary(
         const QString& libraryName,
         const QString& materialDirectory,
         const QString& modelDirectory,
-        const QString& icon,
+        const QString& iconPath,
         bool readOnly
     );
-    void registerLibrary(
-        const QString& repositoryName,
-        const QString& libraryName,
-        const QString& materialDirectory,
-        const QString& modelDirectory,
-        const QString& icon,
-        bool readOnly,
-        bool disabled
-    )
-    {}
-    void registerLibrary(const std::shared_ptr<ManagedLibrary>& library)
-    {}
-    void unregisterLibrary(const QString& repositoryName, const QString& libraryName)
-    {}
 
     void renameLibrary(const QString& repositoryName, const QString& libraryName, const QString& newName);
-    void changeIcon(const QString& repositoryName, const QString& libraryName, const QString& icon);
+    void changeIcon(const QString& repositoryName, const QString& libraryName, const QString& iconPath);
     void removeLibrary(const QString& repositoryName, const QString& libraryName);
     bool isLocalLibrary(const QString& repositoryName, const QString& libraryName);
 
     /// Observer message from the ParameterGrp
     void OnChange(ParameterGrp::SubjectType& rCaller, ParameterGrp::MessageType Reason) override;
 
-    static void createSystemLibraryConfig();
-    static void createUserLibraryConfig();
-    static std::shared_ptr<std::list<std::shared_ptr<ManagedLibrary>>> getConfiguredLibraries(
+    static std::shared_ptr<std::vector<std::shared_ptr<ManagedLibrary>>> getConfiguredLibraries(
         bool includeDisabled = false
     );
 
 protected:
-    void setDisabled(const QString& repositoryName, Library& library, bool disabled);
+    void setDisabled(const QString& repositoryName, const QString& libraryName, bool disabled);
+    void setDisabled(Library& library, bool disabled);
+    void setDisabled(const std::shared_ptr<ManagedLibrary>& library, bool disabled);
+    bool isDisabled(const QString& repositoryName, const QString& libraryName) const;
+    bool isDisabled(const const Library& library) const;
+    bool isDisabled(const std::shared_ptr<ManagedLibrary>& library) const;
 
     friend class MaterialManager;
+    friend class ModelManagerLocal;
 
 private:
     LibraryManager();
@@ -144,6 +132,32 @@ private:
 
     static void initManagers();
     static void convertConfiguration();
+
+    static void createSystemLibraryConfig();
+    static void createUserLibraryConfig();
+
+    const char* getResourceRoot(const std::shared_ptr<ManagedLibrary>& library) const;
+    static const char* getResourceRootLocal();
+    static const char* getResourceRootModules();
+    static const char* getResourceRootRemote();
+
+    void updateLibraryMap();
+
+    std::shared_ptr<ManagedLibrary> getLibrary(const QString& repositoryName, const QString& name) const;
+
+    void renameLibraryLocal(const std::shared_ptr<ManagedLibrary>& library, const QString& newName);
+    void renameLibraryRemote(const std::shared_ptr<ManagedLibrary>& library, const QString& newName);
+    void changeIconLocal(const std::shared_ptr<ManagedLibrary>& library, const QString& iconPath);
+    void changeIconRemote(const std::shared_ptr<ManagedLibrary>& library, const QString& iconPath);
+    void removeLibraryLocal(const std::shared_ptr<ManagedLibrary>& library);
+    void removeLibraryRemote(const std::shared_ptr<ManagedLibrary>& library);
+
+#if defined(BUILD_MATERIAL_EXTERNAL)
+    static ExternalManager* externalManager() {
+        return ExternalManager::getManager();
+    }
+#endif
+
 
     static LibraryManager* _manager;
     static QMutex _mutex;

@@ -49,12 +49,12 @@ ModelLibrary::ModelLibrary(const Library& other)
     : Library(other)
 {}
 
-ModelLibrary::ModelLibrary(const QString& libraryName,
-                           const QString& dir,
-                           const QString& iconPath,
-                           bool readOnly)
-    : Library(libraryName, dir, iconPath, readOnly)
-{}
+// ModelLibrary::ModelLibrary(const QString& libraryName,
+//                            const QString& dir,
+//                            const QString& iconPath,
+//                            bool readOnly)
+//     : Library(libraryName, dir, iconPath, readOnly)
+// {}
 
 bool ModelLibrary::isRoot(const QString& path) const
 {
@@ -135,16 +135,16 @@ ModelLibraryLocal::ModelLibraryLocal(const Library& other)
     _modelPathMap = std::make_unique<std::map<QString, std::shared_ptr<Model>>>();
 }
 
-ModelLibraryLocal::ModelLibraryLocal(const QString& libraryName,
-                                     const QString& dir,
-                                     const QString& iconPath,
-                                     bool readOnly)
-    : ModelLibrary(libraryName, dir, iconPath, readOnly)
-{
-    setLocal(true);
+// ModelLibraryLocal::ModelLibraryLocal(const QString& libraryName,
+//                                      const QString& dir,
+//                                      const QString& iconPath,
+//                                      bool readOnly)
+//     : ModelLibrary(libraryName, dir, iconPath, readOnly)
+// {
+//     setLocal(true);
 
-    _modelPathMap = std::make_unique<std::map<QString, std::shared_ptr<Model>>>();
-}
+//     _modelPathMap = std::make_unique<std::map<QString, std::shared_ptr<Model>>>();
+// }
 
 std::shared_ptr<Model> ModelLibraryLocal::getModelByPath(const QString& path) const
 {
