@@ -79,7 +79,7 @@ private:
     void setRemoteList();
 #endif
     void setLibraryList(
-        const std::shared_ptr<std::list<std::shared_ptr<Materials::MaterialLibrary>>>& libraries
+        const std::shared_ptr<std::vector<std::shared_ptr<Materials::MaterialLibrary>>>& libraries
     );
 
     bool checkLocalName(const QString& name) const;
@@ -88,7 +88,7 @@ private:
 #endif
     bool checkLibraryName(
         const QString& name,
-        const std::shared_ptr<std::list<std::shared_ptr<Materials::MaterialLibrary>>>& libraries,
+        const std::shared_ptr<std::vector<std::shared_ptr<Materials::MaterialLibrary>>>& libraries,
         const QString& error
     ) const;
     bool checkLibraryName(const QString& name) const;

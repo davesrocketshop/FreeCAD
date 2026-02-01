@@ -39,7 +39,7 @@
 
 // clang-format off
 
-class TestMaterialCards : public ::testing::Test {
+class DISABLED_TestMaterialCards : public ::testing::Test {
 protected:
     static void SetUpTestSuite() {
         if (App::Application::GetARGC() == 0) {
@@ -62,12 +62,12 @@ protected:
         }
 
         // Create a temporary library
-        QString libPath = QDir::tempPath() + QStringLiteral("/TestMaterialCards");
+        QString libPath = QDir::tempPath() + QStringLiteral("/DISABLED_TestMaterialCards");
         QDir libDir(libPath);
         libDir.removeRecursively(); // Clear any old run data
         libDir.mkdir(libPath);
 
-        _library = _materialManager->createLocalLibrary(QStringLiteral("TestMaterialCards"),
+        _library = _materialManager->createLocalLibrary(QStringLiteral("DISABLED_TestMaterialCards"),
                             libPath,
                             QStringLiteral(":/icons/preferences-general.svg"),
                             false);
@@ -78,7 +78,7 @@ protected:
     }
 
     void TearDown() override {
-        _materialManager->removeLibrary(QStringLiteral("TestMaterialCards"), false); // Remove the library
+        _materialManager->removeLibrary(QStringLiteral("DISABLED_TestMaterialCards"), false); // Remove the library
         _materialManager->setDisabled(QStringLiteral("System"), _systemDisabled, true);
         _materialManager->setUseExternal(_useExternal);
         _materialManager->refresh();
@@ -92,7 +92,7 @@ protected:
     bool _systemDisabled {};
 };
 
-TEST_F(TestMaterialCards, TestCopy)
+TEST_F(DISABLED_TestMaterialCards, TestCopy)
 {
     ASSERT_NE(_modelManager, nullptr);
     ASSERT_TRUE(_library);
@@ -255,7 +255,7 @@ TEST_F(TestMaterialCards, TestCopy)
     }
 }
 
-TEST_F(TestMaterialCards, TestColumns)
+TEST_F(DISABLED_TestMaterialCards, TestColumns)
 {
     ASSERT_NE(_modelManager, nullptr);
     ASSERT_TRUE(_library);

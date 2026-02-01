@@ -95,6 +95,11 @@ bool ManagedLibrary::isLocal() const
     return _local;
 }
 
+bool ManagedLibrary::isRemote() const
+{
+    return !_local;
+}
+
 void ManagedLibrary::setLocal(bool local)
 {
     _local = local;

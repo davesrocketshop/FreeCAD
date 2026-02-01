@@ -201,15 +201,17 @@ std::shared_ptr<std::vector<std::shared_ptr<ManagedLibrary>>> LibraryManager::ge
     return libraries;
 }
 
-std::shared_ptr<std::vector<std::shared_ptr<ModelLibraryLocal>>> LibraryManager::getLocalModelLibraries(
+std::shared_ptr<std::vector<std::shared_ptr<ModelLibrary>>> LibraryManager::getLocalModelLibraries(
     bool includeDisabled
 )
 {
-    auto libraries = std::make_shared<std::vector<std::shared_ptr<ModelLibraryLocal>>>();
+    auto libraries = std::make_shared<std::vector<std::shared_ptr<ModelLibrary>>>();
     for (auto libEntry : *_libraryList) {
         if (libEntry->isLocal()) {
-            if (!libEntry->getModelDirectory().isEmpty()) {
-                libraries->push_back(std::make_shared<ModelLibraryLocal>(libEntry));
+            if (includeDisabled || !libEntry->isDisabled()) {
+                if (!libEntry->getModelDirectory().isEmpty()) {
+                    libraries->push_back(std::make_shared<ModelLibraryLocal>(libEntry));
+                }
             }
         }
     }
@@ -217,15 +219,17 @@ std::shared_ptr<std::vector<std::shared_ptr<ModelLibraryLocal>>> LibraryManager:
     return libraries;
 }
 
-std::shared_ptr<std::vector<std::shared_ptr<MaterialLibraryLocal>>> LibraryManager::getLocalMaterialLibraries(
+std::shared_ptr<std::vector<std::shared_ptr<MaterialLibrary>>> LibraryManager::getLocalMaterialLibraries(
     bool includeDisabled
 )
 {
-    auto libraries = std::make_shared<std::vector<std::shared_ptr<MaterialLibraryLocal>>>();
+    auto libraries = std::make_shared<std::vector<std::shared_ptr<MaterialLibrary>>>();
     for (auto libEntry : *_libraryList) {
         if (libEntry->isLocal()) {
-            if (!libEntry->getMaterialDirectory().isEmpty()) {
-                libraries->push_back(std::make_shared<MaterialLibraryLocal>(libEntry));
+            if (includeDisabled || !libEntry->isDisabled()) {
+                if (!libEntry->getMaterialDirectory().isEmpty()) {
+                    libraries->push_back(std::make_shared<MaterialLibraryLocal>(libEntry));
+                }
             }
         }
     }
@@ -251,8 +255,9 @@ std::shared_ptr<ManagedLibrary> LibraryManager::getLibrary(
 std::shared_ptr<ModelLibrary> LibraryManager::getModelLibrary(const QString& repositoryName, const QString& name) const
 {
     if (auto search = _libraryMap->find(name); search != _libraryMap->end()) {
-        if (!search->second->getModelDirectory().isEmpty()) {
-            return std::make_shared<ModelLibrary>(search->second);
+        auto library = search->second;
+        if (library->isRemote() || !library->getModelDirectory().isEmpty()) {
+            return std::make_shared<ModelLibrary>(library);
         }
     }
     throw LibraryNotFound();
@@ -261,8 +266,9 @@ std::shared_ptr<ModelLibrary> LibraryManager::getModelLibrary(const QString& rep
 std::shared_ptr<MaterialLibrary> LibraryManager::getMaterialLibrary(const QString& repositoryName, const QString& name) const
 {
     if (auto search = _libraryMap->find(name); search != _libraryMap->end()) {
-        if (!search->second->getMaterialDirectory().isEmpty()) {
-            return std::make_shared<MaterialLibrary>(search->second);
+        auto library = search->second;
+        if (!library->getMaterialDirectory().isEmpty()) {
+            return std::make_shared<MaterialLibrary>(library);
         }
     }
     throw LibraryNotFound();

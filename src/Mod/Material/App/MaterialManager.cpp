@@ -107,6 +107,10 @@ void MaterialManager::initManagers()
 #endif
 }
 
+LibraryManager& MaterialManager::libraryManager() {
+    return LibraryManager::getManager();
+}
+
 void MaterialManager::OnChange(ParameterGrp::SubjectType& rCaller, ParameterGrp::MessageType Reason)
 {
     const ParameterGrp& rGrp = static_cast<ParameterGrp&>(rCaller);
@@ -298,22 +302,23 @@ std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>> MaterialManager::ge
     return libraries;
 }
 
-std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>> MaterialManager::getLocalLibraries(
+std::shared_ptr<std::vector<std::shared_ptr<MaterialLibrary>>> MaterialManager::getLocalLibraries(
     bool includeDisabled
 )
 {
-    return _localManager->getLibraries();
+    return libraryManager().getLocalMaterialLibraries(includeDisabled);
+    // return _localManager->getLibraries();
 }
 
 #if defined(BUILD_MATERIAL_EXTERNAL)
-std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>> MaterialManager::getRemoteLibraries(
+std::shared_ptr<std::vector<std::shared_ptr<MaterialLibrary>>> MaterialManager::getRemoteLibraries(
     bool includeDisabled
 )
 {
     if (_useExternal) {
         return _externalManager->getLibraries();
     }
-    return std::make_shared<std::list<std::shared_ptr<MaterialLibrary>>>();
+    return std::make_shared<std::vector<std::shared_ptr<MaterialLibrary>>>();
 }
 #endif
 

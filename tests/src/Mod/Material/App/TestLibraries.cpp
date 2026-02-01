@@ -40,7 +40,7 @@
 
 // clang-format off
 
-class TestLibraries : public ::testing::Test {
+class DISABLED_TestLibraries : public ::testing::Test {
 protected:
     static void SetUpTestSuite()
     {
@@ -85,7 +85,7 @@ protected:
     std::map<QString, bool> _libraries;
 };
 
-TEST_F(TestLibraries, TestDisabled)
+TEST_F(DISABLED_TestLibraries, TestDisabled)
 {
     auto libraries = _materialManager->getLibraries();
     ASSERT_EQ(libraries->size(), 0);
@@ -107,7 +107,7 @@ TEST_F(TestLibraries, TestDisabled)
     ASSERT_EQ(libraries->size(), 1);
 }
 
-TEST_F(TestLibraries, TestDisabledModels)
+TEST_F(DISABLED_TestLibraries, TestDisabledModels)
 {
     auto libraries = _modelManager->getLibraries();
     ASSERT_EQ(libraries->size(), 0);

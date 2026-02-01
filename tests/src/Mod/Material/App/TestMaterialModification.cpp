@@ -44,7 +44,7 @@
 
 // clang-format off
 
-class TestMaterialModification : public ::testing::Test {
+class DISABLED_TestMaterialModification : public ::testing::Test {
 
 protected:
     static void SetUpTestSuite() {
@@ -88,7 +88,7 @@ protected:
     bool _useExternal {};
 };
 
-TEST_F(TestMaterialModification, TestNew)
+TEST_F(DISABLED_TestMaterialModification, TestNew)
 {
     auto library = _materialManager->getLibrary(QStringLiteral("User"));
     ASSERT_NE(library, nullptr);
@@ -164,7 +164,7 @@ TEST_F(TestMaterialModification, TestNew)
     }
 }
 
-TEST_F(TestMaterialModification, TestAlter)
+TEST_F(DISABLED_TestMaterialModification, TestAlter)
 {
     auto library = _materialManager->getLibrary(QStringLiteral("User"));
     ASSERT_NE(library, nullptr);

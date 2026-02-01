@@ -57,6 +57,7 @@ public:
     ~ManagedLibrary() override = default;
 
     bool isLocal() const;
+    bool isRemote() const;
     void setLocal(bool local);
 
     bool isModule() const;

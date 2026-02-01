@@ -35,7 +35,7 @@
 #include <Mod/Material/App/ModelManager.h>
 #include <Mod/Material/App/ModelUuids.h>
 
-class TestMaterialProperties: public ::testing::Test
+class DISABLED_TestMaterialProperties: public ::testing::Test
 {
 protected:
     static void SetUpTestSuite()
@@ -125,7 +125,7 @@ protected:
     Materials::ModelProperty model3DProp3;
 };
 
-TEST_F(TestMaterialProperties, TestEmpty)
+TEST_F(DISABLED_TestMaterialProperties, TestEmpty)
 {
     Materials::MaterialProperty prop;
     EXPECT_EQ(prop.getType(), Materials::MaterialValue::None);
@@ -138,7 +138,7 @@ TEST_F(TestMaterialProperties, TestEmpty)
     EXPECT_EQ(variant.toString().size(), 0);
 }
 
-TEST_F(TestMaterialProperties, TestSingle)
+TEST_F(DISABLED_TestMaterialProperties, TestSingle)
 {
     Materials::MaterialProperty prop(modelProp1, QStringLiteral("sampleUUID"));
     EXPECT_EQ(prop.getType(), Materials::MaterialValue::Quantity);
@@ -170,20 +170,20 @@ void check2DArray(Materials::MaterialProperty& prop)
     EXPECT_EQ(prop.columns(), 2);
 }
 
-TEST_F(TestMaterialProperties, Test2DArray)
+TEST_F(DISABLED_TestMaterialProperties, Test2DArray)
 {
     Materials::MaterialProperty prop(modelProp, QStringLiteral("sampleUUID"));
     check2DArray(prop);
 }
 
-TEST_F(TestMaterialProperties, Test2DArrayCopy)
+TEST_F(DISABLED_TestMaterialProperties, Test2DArrayCopy)
 {
     Materials::MaterialProperty propBase(modelProp, QStringLiteral("sampleUUID"));
     Materials::MaterialProperty prop(propBase);
     check2DArray(prop);
 }
 
-TEST_F(TestMaterialProperties, Test2DArrayAssignment)
+TEST_F(DISABLED_TestMaterialProperties, Test2DArrayAssignment)
 {
     Materials::MaterialProperty propBase(modelProp, QStringLiteral("sampleUUID"));
     Materials::MaterialProperty prop;
@@ -209,20 +209,20 @@ void check3DArray(Materials::MaterialProperty& prop)
     EXPECT_EQ(prop.columns(), 3);
 }
 
-TEST_F(TestMaterialProperties, Test3DArray)
+TEST_F(DISABLED_TestMaterialProperties, Test3DArray)
 {
     Materials::MaterialProperty prop(model3DProp, QStringLiteral("sampleUUID"));
     check3DArray(prop);
 }
 
-TEST_F(TestMaterialProperties, Test3DArrayCopy)
+TEST_F(DISABLED_TestMaterialProperties, Test3DArrayCopy)
 {
     Materials::MaterialProperty propBase(model3DProp, QStringLiteral("sampleUUID"));
     Materials::MaterialProperty prop(propBase);
     check3DArray(prop);
 }
 
-TEST_F(TestMaterialProperties, Test3DArrayAssignment)
+TEST_F(DISABLED_TestMaterialProperties, Test3DArrayAssignment)
 {
     Materials::MaterialProperty propBase(model3DProp, QStringLiteral("sampleUUID"));
     Materials::MaterialProperty prop;

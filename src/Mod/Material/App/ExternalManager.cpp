@@ -32,6 +32,7 @@
 
 #include "Exceptions.h"
 #include "ExternalManager.h"
+#include "LibraryManager.h"
 #include "MaterialLibrary.h"
 #include "MaterialLibraryPy.h"
 #include "MaterialManager.h"
@@ -172,7 +173,7 @@ bool ExternalManager::checkMaterialLibraryType(const Py::Object& entry)
 }
 
 std::shared_ptr<ManagedLibrary>
-ExternalManager::libraryFromObject(const Py::Object& entry)
+ExternalManager::managedLibraryFromObject(const Py::Object& entry)
 {
     if (!checkMaterialLibraryType(entry)) {
         throw InvalidLibrary();
@@ -197,6 +198,44 @@ ExternalManager::libraryFromObject(const Py::Object& entry)
     bool readOnly = pyReadOnly.as_bool();
 
     auto library = std::make_shared<ManagedLibrary>(libraryName, icon, readOnly);
+    library->setLocal(false);
+    return library;
+}
+
+std::shared_ptr<ManagedLibrary>
+ExternalManager::libraryFromObject(const Py::Object& entry)
+{
+    if (!checkMaterialLibraryType(entry)) {
+        throw InvalidLibrary();
+    }
+
+    Py::String pyName(entry.getAttr("name"));
+    Py::Bytes pyIcon;
+    if (entry.getAttr("icon") != Py::None()) {
+        pyIcon = Py::Bytes(entry.getAttr("icon"));
+    }
+    Py::Boolean pyReadOnly(entry.getAttr("readOnly"));
+
+    QString libraryName;
+    if (!pyName.isNone()) {
+        libraryName = QString::fromStdString(pyName.as_string());
+    }
+    QByteArray icon;
+    if (!pyIcon.isNone()) {
+        icon = QByteArray(pyIcon.as_std_string().data(), pyIcon.size());
+    }
+
+    bool readOnly = pyReadOnly.as_bool();
+
+    // Library should already exist
+    ManagedLibrary library = nullptr;
+    try {
+        library = LibraryManager::getLibrary("Remote", libraryName);
+    }
+    catch (const LibraryNotFound&) {
+        library = std::make_shared<ManagedLibrary>(libraryName, icon, readOnly);
+    }
+    library->setLocal(false);
     return library;
 }
 

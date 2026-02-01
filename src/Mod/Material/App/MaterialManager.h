@@ -48,6 +48,7 @@ class Material;
 
 namespace Materials
 {
+class LibraryManager;
 class MaterialManagerExternal;
 class MaterialManagerLocal;
 class MaterialFilter;
@@ -74,11 +75,11 @@ public:
     bool useExternal() const { return _useExternal; }
     void setUseExternal(bool useExternal);
     std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>> getLibraries(bool includeDisabled = false, bool includeMasked = false);
-    std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>> getLocalLibraries(
+    std::shared_ptr<std::vector<std::shared_ptr<MaterialLibrary>>> getLocalLibraries(
         bool includeDisabled = false
     );
 #if defined(BUILD_MATERIAL_EXTERNAL)
-    std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>> getRemoteLibraries(
+    std::shared_ptr<std::vector<std::shared_ptr<MaterialLibrary>>> getRemoteLibraries(
         bool includeDisabled = false
     );
 #endif
@@ -193,6 +194,7 @@ private:
     FC_DISABLE_COPY_MOVE(MaterialManager);
 
     static void initManagers();
+    static LibraryManager& libraryManager();
 
     std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>> getLibrariesMasked(
         bool includeDisabled

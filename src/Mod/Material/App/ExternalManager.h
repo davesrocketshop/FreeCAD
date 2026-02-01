@@ -120,6 +120,7 @@ private:
     void instantiate();
     void connect();
     bool checkMaterialLibraryType(const Py::Object& entry);
+    std::shared_ptr<ManagedLibrary> managedLibraryFromObject(const Py::Object& entry);
     std::shared_ptr<ManagedLibrary> libraryFromObject(const Py::Object& entry);
     bool checkMaterialLibraryObjectType(const Py::Object& entry);
     LibraryObject materialLibraryObjectTypeFromObject(const Py::Object& entry);

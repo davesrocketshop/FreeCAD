@@ -116,7 +116,7 @@ ModelLibraryLocal::ModelLibraryLocal()
 {
     setLocal(true);
 
-    _modelPathMap = std::make_unique<std::map<QString, std::shared_ptr<Model>>>();
+    _modelPathMap = std::make_shared<std::map<QString, std::shared_ptr<Model>>>();
 }
 
 ModelLibraryLocal::ModelLibraryLocal(const std::shared_ptr<ManagedLibrary>& library)
@@ -124,7 +124,7 @@ ModelLibraryLocal::ModelLibraryLocal(const std::shared_ptr<ManagedLibrary>& libr
 {
     setLocal(true);
 
-    _modelPathMap = std::make_unique<std::map<QString, std::shared_ptr<Model>>>();
+    _modelPathMap = std::make_shared<std::map<QString, std::shared_ptr<Model>>>();
 }
 
 ModelLibraryLocal::ModelLibraryLocal(const Library& other)
@@ -132,19 +132,8 @@ ModelLibraryLocal::ModelLibraryLocal(const Library& other)
 {
     setLocal(true);
 
-    _modelPathMap = std::make_unique<std::map<QString, std::shared_ptr<Model>>>();
+    _modelPathMap = std::make_shared<std::map<QString, std::shared_ptr<Model>>>();
 }
-
-// ModelLibraryLocal::ModelLibraryLocal(const QString& libraryName,
-//                                      const QString& dir,
-//                                      const QString& iconPath,
-//                                      bool readOnly)
-//     : ModelLibrary(libraryName, dir, iconPath, readOnly)
-// {
-//     setLocal(true);
-
-//     _modelPathMap = std::make_unique<std::map<QString, std::shared_ptr<Model>>>();
-// }
 
 std::shared_ptr<Model> ModelLibraryLocal::getModelByPath(const QString& path) const
 {

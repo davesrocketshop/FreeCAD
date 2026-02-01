@@ -300,6 +300,9 @@ void ModelLoader::getModelLibraries()
 {
     auto libraries = LibraryManager::getManager().getLocalModelLibraries();
     for (auto library : *libraries) {
-        _libraryList->push_back(library);
+        auto local = std::dynamic_pointer_cast<ModelLibraryLocal>(library);
+        if (local) {
+            _libraryList->push_back(local);
+        }
     }
 }

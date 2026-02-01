@@ -159,9 +159,15 @@ MaterialLibrary::getMaterialTree(const Materials::MaterialFilter& filter,
 
 TYPESYSTEM_SOURCE(Materials::MaterialLibraryLocal, Materials::MaterialLibrary)
 
+MaterialLibraryLocal::MaterialLibraryLocal()
+{
+    setLocal(true);
+    _materialPathMap = std::make_shared<std::map<QString, std::shared_ptr<Material>>>();
+}
+
 MaterialLibraryLocal::MaterialLibraryLocal(const std::shared_ptr<ManagedLibrary>& library)
     : MaterialLibrary(library)
-    , _materialPathMap(std::make_unique<std::map<QString, std::shared_ptr<Material>>>())
+    , _materialPathMap(std::make_shared<std::map<QString, std::shared_ptr<Material>>>())
 {
     setLocal(true);
 }
@@ -173,7 +179,7 @@ MaterialLibraryLocal::MaterialLibraryLocal(
     bool readOnly
 )
     : MaterialLibrary(libraryName, dir, icon, readOnly)
-    , _materialPathMap(std::make_unique<std::map<QString, std::shared_ptr<Material>>>())
+    , _materialPathMap(std::make_shared<std::map<QString, std::shared_ptr<Material>>>())
 {
     setLocal(true);
 }

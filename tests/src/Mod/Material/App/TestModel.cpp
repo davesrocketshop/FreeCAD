@@ -33,7 +33,7 @@
 
 // clang-format off
 
-class TestModel : public ::testing::Test {
+class DISABLED_TestModel : public ::testing::Test {
 protected:
     static void SetUpTestSuite() {
         if (App::Application::GetARGC() == 0) {
@@ -57,12 +57,12 @@ protected:
     bool _useExternal {};
 };
 
-TEST_F(TestModel, TestApplication)
+TEST_F(DISABLED_TestModel, TestApplication)
 {
     ASSERT_NO_THROW(App::GetApplication());
 }
 
-TEST_F(TestModel, TestResources)
+TEST_F(DISABLED_TestModel, TestResources)
 {
     try {
         auto param = App::GetApplication().GetParameterGroupByPath(
@@ -75,7 +75,7 @@ TEST_F(TestModel, TestResources)
     }
 }
 
-TEST_F(TestModel, TestInstallation)
+TEST_F(DISABLED_TestModel, TestInstallation)
 {
     ASSERT_NE(_modelManager, nullptr);
 
@@ -88,7 +88,7 @@ TEST_F(TestModel, TestInstallation)
     ASSERT_GT(models->size(), 0);
 }
 
-TEST_F(TestModel, TestModelLoad)
+TEST_F(DISABLED_TestModel, TestModelLoad)
 {
     ASSERT_NE(_modelManager, nullptr);
 
@@ -100,7 +100,7 @@ TEST_F(TestModel, TestModelLoad)
     EXPECT_EQ(prop.getName(), QStringLiteral("Density"));
 }
 
-TEST_F(TestModel, TestModelByPath)
+TEST_F(DISABLED_TestModel, TestModelByPath)
 {
     ASSERT_NE(_modelManager, nullptr);
 

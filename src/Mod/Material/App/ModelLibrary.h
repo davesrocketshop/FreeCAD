@@ -54,11 +54,11 @@ public:
     ~ModelLibrary() override = default;
 
     bool isRoot(const QString& path) const override;
-    QString getDirectory() const
+    QString getDirectory() const override
     {
         return getModelDirectory();
     }
-    QString getDirectoryPath() const
+    QString getDirectoryPath() const override
     {
         return getModelDirectoryPath();
     }
@@ -92,10 +92,6 @@ class MaterialsExport ModelLibraryLocal: public ModelLibrary
 
 public:
     ModelLibraryLocal(const std::shared_ptr<ManagedLibrary>& library);
-    // ModelLibraryLocal(const QString& libraryName,
-    //                   const QString& dir,
-    //                   const QString& iconPath,
-    //                   bool readOnly = true);
     ModelLibraryLocal(const ModelLibraryLocal& other) = default;
     ~ModelLibraryLocal() override = default;
 
@@ -117,7 +113,7 @@ private:
 
     friend class LibraryManager;
 
-    std::unique_ptr<std::map<QString, std::shared_ptr<Model>>> _modelPathMap;
+    std::shared_ptr<std::map<QString, std::shared_ptr<Model>>> _modelPathMap;
 };
 
 }  // namespace Materials

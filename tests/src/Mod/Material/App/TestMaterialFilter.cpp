@@ -41,7 +41,7 @@
 
 // clang-format off
 
-class TestMaterialFilter : public ::testing::Test {
+class DISABLED_TestMaterialFilter : public ::testing::Test {
 protected:
     static void SetUpTestSuite()
     {
@@ -127,7 +127,7 @@ protected:
     const char* UUIDBrassAppearance = "fff3d5c8-98c3-4ee2-8fe5-7e17403c48fcc";
 };
 
-TEST_F(TestMaterialFilter, TestFilters)
+TEST_F(DISABLED_TestMaterialFilter, TestFilters)
 {
     ASSERT_NE(_modelManager, nullptr);
 

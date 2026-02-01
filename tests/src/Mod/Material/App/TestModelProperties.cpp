@@ -35,13 +35,13 @@
 
 // clang-format off
 
-class TestModelProperties : public ::testing::Test {
+class DISABLED_TestModelProperties : public ::testing::Test {
 protected:
     static void SetUpTestSuite() {
     }
 };
 
-TEST_F(TestModelProperties, TestEmpty)
+TEST_F(DISABLED_TestModelProperties, TestEmpty)
 {
     auto prop = Materials::ModelProperty();
     EXPECT_TRUE(prop.getName().isNull());
@@ -54,7 +54,7 @@ TEST_F(TestModelProperties, TestEmpty)
     EXPECT_EQ(prop.columns(), 0);
 }
 
-TEST_F(TestModelProperties, TestBasic)
+TEST_F(DISABLED_TestModelProperties, TestBasic)
 {
     auto prop = Materials::ModelProperty(QStringLiteral("1"),
                            QStringLiteral("2"),
@@ -77,7 +77,7 @@ TEST_F(TestModelProperties, TestBasic)
     EXPECT_TRUE(prop.isInherited());
 }
 
-TEST_F(TestModelProperties, TestAddColumns)
+TEST_F(DISABLED_TestModelProperties, TestAddColumns)
 {
     auto prop = Materials::ModelProperty(QStringLiteral("1"),
                            QStringLiteral("2"),

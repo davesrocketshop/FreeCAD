@@ -125,7 +125,7 @@ void NewLibrary::setRemoteList()
 #endif
 
 void NewLibrary::setLibraryList(
-    const std::shared_ptr<std::list<std::shared_ptr<Materials::MaterialLibrary>>>& libraries
+    const std::shared_ptr<std::vector<std::shared_ptr<Materials::MaterialLibrary>>>& libraries
 )
 {
     ui->listLibraries->clear();
@@ -218,7 +218,7 @@ bool NewLibrary::checkRemoteName(const QString& name) const
 
 bool NewLibrary::checkLibraryName(
     const QString& name,
-    const std::shared_ptr<std::list<std::shared_ptr<Materials::MaterialLibrary>>>& libraries,
+    const std::shared_ptr<std::vector<std::shared_ptr<Materials::MaterialLibrary>>>& libraries,
     const QString& error
 ) const
 {

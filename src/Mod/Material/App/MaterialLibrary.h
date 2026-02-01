@@ -89,7 +89,6 @@ class MaterialsExport MaterialLibraryLocal: public MaterialLibrary
     TYPESYSTEM_HEADER_WITH_OVERRIDE();
 
 public:
-    MaterialLibraryLocal() = default;
     MaterialLibraryLocal(const std::shared_ptr<ManagedLibrary>& library);
     MaterialLibraryLocal(
         const QString& libraryName,
@@ -137,8 +136,11 @@ protected:
     void updatePaths(const QString& oldPath, const QString& newPath);
 
     QString getUUIDFromPath(const QString& path) const;
+private:
+    MaterialLibraryLocal();
+    MaterialLibraryLocal(const Library& other);
 
-    std::unique_ptr<std::map<QString, std::shared_ptr<Material>>> _materialPathMap;
+    std::shared_ptr<std::map<QString, std::shared_ptr<Material>>> _materialPathMap;
 };
 
 }  // namespace Materials

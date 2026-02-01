@@ -74,12 +74,13 @@ public:
     std::shared_ptr<std::vector<std::shared_ptr<ManagedLibrary>>> getLocalLibraries(
         bool includeDisabled = false
     );
-    std::shared_ptr<std::vector<std::shared_ptr<ModelLibraryLocal>>> getLocalModelLibraries(
+    std::shared_ptr<std::vector<std::shared_ptr<ModelLibrary>>> getLocalModelLibraries(
         bool includeDisabled = false
     );
-    std::shared_ptr<std::vector<std::shared_ptr<MaterialLibraryLocal>>> getLocalMaterialLibraries(
+    std::shared_ptr<std::vector<std::shared_ptr<MaterialLibrary>>> getLocalMaterialLibraries(
         bool includeDisabled = false
     );
+    std::shared_ptr<ManagedLibrary> getLibrary(const QString& repositoryName, const QString& name) const;
     std::shared_ptr<ModelLibrary> getModelLibrary(
         const QString& repositoryName,
         const QString& name
@@ -119,7 +120,7 @@ protected:
     void setDisabled(Library& library, bool disabled);
     void setDisabled(const std::shared_ptr<ManagedLibrary>& library, bool disabled);
     bool isDisabled(const QString& repositoryName, const QString& libraryName) const;
-    bool isDisabled(const const Library& library) const;
+    bool isDisabled(const Library& library) const;
     bool isDisabled(const std::shared_ptr<ManagedLibrary>& library) const;
 
     friend class MaterialManager;
@@ -142,8 +143,6 @@ private:
     static const char* getResourceRootRemote();
 
     void updateLibraryMap();
-
-    std::shared_ptr<ManagedLibrary> getLibrary(const QString& repositoryName, const QString& name) const;
 
     void renameLibraryLocal(const std::shared_ptr<ManagedLibrary>& library, const QString& newName);
     void renameLibraryRemote(const std::shared_ptr<ManagedLibrary>& library, const QString& newName);

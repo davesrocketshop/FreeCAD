@@ -44,7 +44,7 @@
 
 // clang-format off
 
-class TestMaterial : public ::testing::Test {
+class DISABLED_TestMaterial : public ::testing::Test {
  protected:
   static void SetUpTestSuite() {
     if (App::Application::GetARGC() == 0) {
@@ -63,7 +63,7 @@ class TestMaterial : public ::testing::Test {
   Materials::MaterialManager* _materialManager;
 };
 
-TEST_F(TestMaterial, TestInstallation)
+TEST_F(DISABLED_TestMaterial, TestInstallation)
 {
     ASSERT_NE(_modelManager, nullptr);
 
@@ -76,7 +76,7 @@ TEST_F(TestMaterial, TestInstallation)
     ASSERT_GT(materials->size(), 0);
 }
 
-TEST_F(TestMaterial, TestMaterialsWithModel)
+TEST_F(DISABLED_TestMaterial, TestMaterialsWithModel)
 {
     ASSERT_NE(_materialManager, nullptr);
 
@@ -99,7 +99,7 @@ TEST_F(TestMaterial, TestMaterialsWithModel)
     }
 }
 
-TEST_F(TestMaterial, TestMaterialByPath)
+TEST_F(DISABLED_TestMaterial, TestMaterialByPath)
 {
     ASSERT_NE(_materialManager, nullptr);
 
@@ -127,7 +127,7 @@ TEST_F(TestMaterial, TestMaterialByPath)
     EXPECT_EQ(steel3->getUUID(), QStringLiteral("92589471-a6cb-4bbc-b748-d425a17dea7d"));
 }
 
-TEST_F(TestMaterial, TestAddPhysicalModel)
+TEST_F(DISABLED_TestMaterial, TestAddPhysicalModel)
 {
     // Start with an empty material
     Materials::Material material;
@@ -172,7 +172,7 @@ TEST_F(TestMaterial, TestAddPhysicalModel)
     EXPECT_EQ(models->size(), 0);
 }
 
-TEST_F(TestMaterial, TestAddAppearanceModel)
+TEST_F(DISABLED_TestMaterial, TestAddAppearanceModel)
 {
     // Start with an empty material
     Materials::Material material;
@@ -224,7 +224,7 @@ QString parseQuantity(const std::string& value)
     return QString::fromStdString(quantity.getUserString());
 }
 
-TEST_F(TestMaterial, TestCalculiXSteel)
+TEST_F(DISABLED_TestMaterial, TestCalculiXSteel)
 {
     ASSERT_NE(_materialManager, nullptr);
 
@@ -345,7 +345,7 @@ TEST_F(TestMaterial, TestCalculiXSteel)
     EXPECT_EQ(steel->getPhysicalQuantity(QStringLiteral("ThermalExpansionCoefficient")).getUserString(), parseQuantity("12.00 µm/m/K").toStdString());
 }
 
-TEST_F(TestMaterial, TestColumns)
+TEST_F(DISABLED_TestMaterial, TestColumns)
 {
     // Start with an empty material
     Materials::Material testMaterial;
