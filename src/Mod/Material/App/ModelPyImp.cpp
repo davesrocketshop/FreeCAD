@@ -56,7 +56,7 @@ int ModelPy::PyInit(PyObject* /*args*/, PyObject* /*kwd*/)
 Py::String ModelPy::getLibraryName() const
 {
     auto library = getModelPtr()->getLibrary();
-    return Py::String(library ? library->getName().toStdString() : "");
+    return Py::String(library ? library->getName() : "");
 }
 
 Py::String ModelPy::getLibraryRoot() const
@@ -65,7 +65,7 @@ Py::String ModelPy::getLibraryRoot() const
     if (!library->isLocal()) {
         return "";
     }
-    return Py::String(library ? library->getModelDirectoryPath().toStdString() : "");
+    return Py::String(library ? library->getModelDirectoryPath() : "");
 }
 
 Py::Object ModelPy::getLibraryIcon() const

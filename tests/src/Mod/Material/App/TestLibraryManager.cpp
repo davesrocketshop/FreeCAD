@@ -87,19 +87,19 @@ TEST_F(TestLibraryManager, TestInstallation)
     auto materials = _libraryManager->getLocalMaterialLibraries();
     ASSERT_GT(materials->size(), 0);
 
-    auto managed = _libraryManager->getLibrary(QStringLiteral("Local"), QStringLiteral("System"));
+    auto managed = _libraryManager->getLibrary("Local", "System");
     ASSERT_TRUE(managed);
-    managed = _libraryManager->getLibrary(QStringLiteral("Local"), QStringLiteral("User"));
+    managed = _libraryManager->getLibrary("Local", "User");
     ASSERT_TRUE(managed);
-    auto model = _libraryManager->getModelLibrary(QStringLiteral("Local"), QStringLiteral("System"));
+    auto model = _libraryManager->getModelLibrary("Local", "System");
     ASSERT_TRUE(model);
     // User folder may not have content
-    model = _libraryManager->getModelLibrary(QStringLiteral("Local"), QStringLiteral("User"));
+    model = _libraryManager->getModelLibrary("Local", "User");
     ASSERT_TRUE(model);
-    auto material = _libraryManager->getMaterialLibrary(QStringLiteral("Local"), QStringLiteral("System"));
+    auto material = _libraryManager->getMaterialLibrary("Local", "System");
     ASSERT_TRUE(material);
     // User folder may not have content
-    material = _libraryManager->getMaterialLibrary(QStringLiteral("Local"), QStringLiteral("User"));
+    material = _libraryManager->getMaterialLibrary("Local", "User");
     ASSERT_TRUE(material);
 }
 
@@ -107,18 +107,19 @@ TEST_F(TestLibraryManager, TestCreation)
 {
     QTemporaryDir dir;
     if (dir.isValid()) {
+        auto path = dir.path().toStdString();
         std::shared_ptr<Materials::MaterialLibrary> library;
         std::shared_ptr<Materials::ManagedLibrary> managed;
         std::shared_ptr<Materials::ModelLibrary> model;
         std::shared_ptr<Materials::MaterialLibrary> material;
 
-        EXPECT_NO_THROW(library = _libraryManager->createLocalLibrary(QStringLiteral("TestLibrary"), dir.path(), dir.path(), "icon path", false));
+        EXPECT_NO_THROW(library = _libraryManager->createLocalLibrary("TestLibrary", path, path, "icon path", false));
         ASSERT_TRUE(library);
-        EXPECT_NO_THROW(managed = _libraryManager->getLibrary(QStringLiteral("Local"), QStringLiteral("TestLibrary")));
+        EXPECT_NO_THROW(managed = _libraryManager->getLibrary("Local", "TestLibrary"));
         ASSERT_TRUE(managed);
-        EXPECT_NO_THROW(model = _libraryManager->getModelLibrary(QStringLiteral("Local"), QStringLiteral("TestLibrary")));
+        EXPECT_NO_THROW(model = _libraryManager->getModelLibrary("Local", "TestLibrary"));
         ASSERT_TRUE(model);
-        EXPECT_NO_THROW(material = _libraryManager->getMaterialLibrary(QStringLiteral("Local"), QStringLiteral("TestLibrary")));
+        EXPECT_NO_THROW(material = _libraryManager->getMaterialLibrary("Local", "TestLibrary"));
         ASSERT_TRUE(material);
     }
 }
@@ -127,23 +128,24 @@ TEST_F(TestLibraryManager, TestRename)
 {
     QTemporaryDir dir;
     if (dir.isValid()) {
+        auto path = dir.path().toStdString();
         std::shared_ptr<Materials::MaterialLibrary> library;
         std::shared_ptr<Materials::ManagedLibrary> managed;
         std::shared_ptr<Materials::ModelLibrary> model;
         std::shared_ptr<Materials::MaterialLibrary> material;
         
-        EXPECT_NO_THROW(library = _libraryManager->createLocalLibrary(QStringLiteral("TestLibrary"), dir.path(), dir.path(), "icon path", false));
+        EXPECT_NO_THROW(library = _libraryManager->createLocalLibrary("TestLibrary", path, path, "icon path", false));
         ASSERT_TRUE(library);
-        EXPECT_NO_THROW(managed = _libraryManager->getLibrary(QStringLiteral("Local"), QStringLiteral("TestLibrary")));
+        EXPECT_NO_THROW(managed = _libraryManager->getLibrary("Local", "TestLibrary"));
         ASSERT_TRUE(managed);
-        EXPECT_NO_THROW(_libraryManager->renameLibrary(QStringLiteral("Local"), QStringLiteral("TestLibrary"), QStringLiteral("TestRenamedLibrary")));
-        EXPECT_THROW(managed = _libraryManager->getLibrary(QStringLiteral("Local"), QStringLiteral("TestLibrary")), Materials::LibraryNotFound);
+        EXPECT_NO_THROW(_libraryManager->renameLibrary("Local", "TestLibrary", "TestRenamedLibrary"));
+        EXPECT_THROW(managed = _libraryManager->getLibrary("Local", "TestLibrary"), Materials::LibraryNotFound);
 
-        EXPECT_NO_THROW(managed = _libraryManager->getLibrary(QStringLiteral("Local"), QStringLiteral("TestRenamedLibrary")));
+        EXPECT_NO_THROW(managed = _libraryManager->getLibrary("Local", "TestRenamedLibrary"));
         ASSERT_TRUE(managed);
-        EXPECT_NO_THROW(model = _libraryManager->getModelLibrary(QStringLiteral("Local"), QStringLiteral("TestRenamedLibrary")));
+        EXPECT_NO_THROW(model = _libraryManager->getModelLibrary("Local", "TestRenamedLibrary"));
         ASSERT_TRUE(model);
-        EXPECT_NO_THROW(material = _libraryManager->getMaterialLibrary(QStringLiteral("Local"), QStringLiteral("TestRenamedLibrary")));
+        EXPECT_NO_THROW(material = _libraryManager->getMaterialLibrary("Local", "TestRenamedLibrary"));
         ASSERT_TRUE(material);
     }
 }

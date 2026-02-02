@@ -234,14 +234,14 @@ void ModelSelect::addExpanded(QTreeView* tree, QStandardItemModel* parent, QStan
 
 void ModelSelect::addModels(
     QStandardItem& parent,
-    const std::shared_ptr<std::map<QString, std::shared_ptr<Materials::ModelTreeNode>>> modelTree,
+    const std::shared_ptr<std::map<std::string, std::shared_ptr<Materials::ModelTreeNode>>> modelTree,
     const QIcon& icon)
 {
     auto tree = ui->treeModels;
     for (auto& mod : *modelTree) {
         std::shared_ptr<Materials::ModelTreeNode> nodePtr = mod.second;
         if (nodePtr->getType() == Materials::ModelTreeNode::NodeType::DataNode) {
-            QString uuid = nodePtr->getUUID();
+            QString uuid = QString::fromStdString(nodePtr->getUUID());
             auto model = nodePtr->getData();
             if (!model) {
                 model = Materials::ModelManager::getManager().getModel(uuid);
@@ -256,7 +256,7 @@ void ModelSelect::addModels(
             addExpanded(tree, &parent, card);
         }
         else {
-            auto node = new QStandardItem(mod.first);
+            auto node = new QStandardItem(QString::fromStdString(mod.first));
             addExpanded(tree, &parent, node);
             node->setFlags(Qt::ItemIsEnabled | Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled);
             auto treeMap = nodePtr->getFolder();
@@ -346,7 +346,7 @@ void ModelSelect::fillTree()
 
     auto libraries = Materials::ModelManager::getManager().getLibraries();
     for (auto& library : *libraries) {
-        lib = new QStandardItem(library->getName());
+        lib = new QStandardItem(QString::fromStdString(library->getName()));
         lib->setFlags(Qt::ItemIsEnabled | Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled);
         addExpanded(tree, model, lib);
 

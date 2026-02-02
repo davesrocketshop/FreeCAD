@@ -246,10 +246,10 @@ void DlgInspectMaterial::addModelDetails(
     auto uuid = clipItem(tr("UUID: ") + model->getUUID());
     addExpanded(tree, parent, uuid);
 
-    auto library = clipItem(tr("Library: ") + model->getLibrary()->getName());
+    auto library = clipItem(tr("Library: ") + QString::fromStdString(model->getLibrary()->getName()));
     addExpanded(tree, parent, library);
 
-    auto libraryPath = clipItem(tr("Library directory: ") + model->getLibrary()->getDirectoryPath());
+    auto libraryPath = clipItem(tr("Library directory: ") + QString::fromStdString(model->getLibrary()->getDirectoryPath()));
     addExpanded(tree, parent, libraryPath);
 
     auto libraryType = clipItem(
@@ -328,9 +328,9 @@ void DlgInspectMaterial::addMaterialDetails(
 {
     auto uuid = clipItem(tr("UUID: ") + material.getUUID());
     addExpanded(tree, parent, uuid);
-    auto library = clipItem(tr("Library: ") + material.getLibrary()->getName());
+    auto library = clipItem(tr("Library: ") + QString::fromStdString(material.getLibrary()->getName()));
     addExpanded(tree, parent, library);
-    auto libraryPath = clipItem(tr("Library directory: ") + material.getLibrary()->getDirectoryPath());
+    auto libraryPath = clipItem(tr("Library directory: ") + QString::fromStdString(material.getLibrary()->getDirectoryPath()));
     addExpanded(tree, parent, libraryPath);
     auto libraryType = clipItem(
         tr("Library type: ") + (material.getLibrary()->isLocal() ? tr("Local") : tr("Remote"))

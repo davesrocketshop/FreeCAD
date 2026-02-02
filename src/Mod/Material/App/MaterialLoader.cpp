@@ -373,7 +373,7 @@ void MaterialYamlEntry::addToTree(
     }
 
     QString path = QDir(directory).absolutePath();
-    (*materialMap)[uuid] = library->addMaterial(finalModel, path);
+    (*materialMap)[uuid] = library->addMaterial(finalModel, path.toStdString());
 }
 
 //===
@@ -447,7 +447,7 @@ std::shared_ptr<MaterialEntry> MaterialLoader::getMaterialFromPath(
     if (MaterialConfigLoader::isConfigStyle(path)) {
         auto material = MaterialConfigLoader::getMaterialFromPath(materialLibrary, clean);
         if (material) {
-            (*_materialMap)[material->getUUID()] = materialLibrary->addMaterial(material, clean);
+            (*_materialMap)[material->getUUID()] = materialLibrary->addMaterial(material, clean.toStdString());
         }
 
         // Return the nullptr as there are no intermediate steps to take, such
@@ -568,7 +568,7 @@ void MaterialLoader::loadLibrary(const std::shared_ptr<MaterialLibraryLocal>& li
         _materialEntryMap = std::make_unique<std::map<QString, std::shared_ptr<MaterialEntry>>>();
     }
 
-    QDirIterator it(library->getDirectory(), QDirIterator::Subdirectories);
+    QDirIterator it(QString::fromStdString(library->getDirectory()), QDirIterator::Subdirectories);
     while (it.hasNext()) {
         auto pathname = Library::cleanPath(it.next());
         QFileInfo file(pathname);
@@ -617,12 +617,12 @@ std::shared_ptr<std::list<QString>> MaterialLoader::getMaterialFolders(
 )
 {
     std::shared_ptr<std::list<QString>> pathList = std::make_shared<std::list<QString>>();
-    QDirIterator it(library.getDirectory(), QDirIterator::Subdirectories);
+    QDirIterator it(QString::fromStdString(library.getDirectory()), QDirIterator::Subdirectories);
     while (it.hasNext()) {
         auto pathname = it.next();
         QFileInfo file(pathname);
         if (file.isDir()) {
-            QString path = QDir(library.getDirectory()).relativeFilePath(file.absoluteFilePath());
+            QString path = QDir(QString::fromStdString(library.getDirectory())).relativeFilePath(file.absoluteFilePath());
             if (!path.startsWith(QStringLiteral("."))) {
                 pathList->push_back(path);
             }

@@ -125,14 +125,14 @@ public:
     void deleteRecursive(const std::shared_ptr<MaterialLibrary>& library, const QString& path);
 
     // Tree management
-    std::shared_ptr<std::map<QString, std::shared_ptr<MaterialTreeNode>>>
+    std::shared_ptr<std::map<std::string, std::shared_ptr<MaterialTreeNode>>>
     getMaterialTree(const MaterialLibrary& library,
                     const Materials::MaterialFilter& filter) const;
-    std::shared_ptr<std::map<QString, std::shared_ptr<MaterialTreeNode>>>
+    std::shared_ptr<std::map<std::string, std::shared_ptr<MaterialTreeNode>>>
     getMaterialTree(const MaterialLibrary& library,
                     const Materials::MaterialFilter& filter,
                     const MaterialFilterOptions& options) const;
-    std::shared_ptr<std::map<QString, std::shared_ptr<MaterialTreeNode>>>
+    std::shared_ptr<std::map<std::string, std::shared_ptr<MaterialTreeNode>>>
     getMaterialTree(const MaterialLibrary& library) const;
 
     // Material management

@@ -393,13 +393,13 @@ PyObject* MaterialManagerPy::save(PyObject* args, PyObject* kwds)
 void addMaterials(
     MaterialManager* manager,
     Py::List& list,
-    const std::shared_ptr<std::map<QString, std::shared_ptr<MaterialTreeNode>>>& tree
+    const std::shared_ptr<std::map<std::string, std::shared_ptr<MaterialTreeNode>>>& tree
 )
 {
     for (auto& node : *tree) {
         if (node.second->getType() == MaterialTreeNode::NodeType::DataNode) {
             auto uuid = node.second->getUUID();
-            auto material = manager->getMaterial(uuid);
+            auto material = manager->getMaterial(QString::fromStdString(uuid));
             PyObject* materialPy = new MaterialPy(new Material(*material));
             list.append(Py::Object(materialPy, true));
         }

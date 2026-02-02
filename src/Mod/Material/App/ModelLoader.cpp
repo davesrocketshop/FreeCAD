@@ -249,7 +249,7 @@ void ModelLoader::addToTree(std::shared_ptr<ModelEntry> model)
         }
     }
 
-    auto sharedModel = library->addModel(finalModel, directory);
+    auto sharedModel = library->addModel(finalModel, directory.toStdString());
     _modelMap->insert({uuid, sharedModel});
 }
 
@@ -262,7 +262,7 @@ void ModelLoader::loadLibrary(std::shared_ptr<ModelLibraryLocal> library)
     //     return;
     // }
 
-    QDirIterator it(library->getDirectory(), QDirIterator::Subdirectories);
+    QDirIterator it(QString::fromStdString(library->getDirectory()), QDirIterator::Subdirectories);
     while (it.hasNext()) {
         auto pathname = it.next();
         QFileInfo file(pathname);

@@ -609,8 +609,8 @@ void MaterialsEditor::onTreeItemDropped(
 
     Base::Console().log(
         "Library '%s' -> '%s'\n",
-        library->getName().toStdString().c_str(),
-        destinationLibrary->getName().toStdString().c_str()
+        library->getName().c_str(),
+        destinationLibrary->getName().c_str()
     );
     Base::Console().log(
         "Path '%s' -> '%s'\n",
@@ -959,7 +959,7 @@ void MaterialsEditor::saveMaterial()
             library = getMaterialManager().getLibrary(QStringLiteral("User"));
             filepath = QFileInfo(_material->getName() + QStringLiteral(".FCMat"));
         }
-        Base::Console().log("Using library '%s'\n", library->getName().toStdString().c_str());
+        Base::Console().log("Using library '%s'\n", library->getName().c_str());
         Base::Console().log("\tPath '%s'\n", filepath.filePath().toStdString().c_str());
         getMaterialManager().saveMaterial(
             _material->getLibrary(),
@@ -1046,7 +1046,7 @@ void MaterialsEditor::saveMaterialTree(const Base::Reference<ParameterGrp>& para
 
 void MaterialsEditor::addMaterials(
     MaterialTreeItem& parent,
-    const std::shared_ptr<std::map<QString, std::shared_ptr<Materials::MaterialTreeNode>>>
+    const std::shared_ptr<std::map<std::string, std::shared_ptr<Materials::MaterialTreeNode>>>
         materialTree,
     const QIcon& folderIcon,
     const QIcon& icon,
@@ -1061,13 +1061,13 @@ void MaterialsEditor::addMaterials(
             flags |= (Qt::ItemIsEditable | Qt::ItemIsDropEnabled);
         }
         if (nodePtr->getType() == Materials::MaterialTreeNode::NodeType::DataNode) {
-            QString uuid = nodePtr->getUUID();
+            QString uuid = QString::fromStdString(nodePtr->getUUID());
 
             QIcon matIcon = icon;
             if (nodePtr->isOldFormat()) {
                 matIcon = _warningIcon;
             }
-            auto card = new MaterialTreeMaterialItem(matIcon, mat.first, uuid);
+            auto card = new MaterialTreeMaterialItem(matIcon, QString::fromStdString(mat.first), uuid);
             card->setFlags(flags | Qt::ItemIsSelectable | Qt::ItemIsDragEnabled);
             if (nodePtr->isOldFormat()) {
                 card->setToolTip(tr("This card uses the old format and must be saved before use"));
@@ -1076,7 +1076,7 @@ void MaterialsEditor::addMaterials(
             addExpanded(tree, &parent, card);
         }
         else {
-            auto node = new MaterialTreeFolderItem(folderIcon, mat.first);
+            auto node = new MaterialTreeFolderItem(folderIcon, QString::fromStdString(mat.first));
             node->setFlags(flags);
             auto treeMap = nodePtr->getFolder();
 
@@ -1132,7 +1132,7 @@ QIcon MaterialsEditor::getIcon(const std::shared_ptr<Materials::Library>& librar
         QImage image;
         if (!image.loadFromData(library->getIcon())) {
             Base::Console().log("Unable to load icon image for library '%s'\n",
-                                library->getName().toStdString().c_str());
+                                library->getName().c_str());
             return QIcon();
         }
         icon = QIcon(QPixmap::fromImage(image));
@@ -1215,7 +1215,7 @@ void MaterialsEditor::fillMaterialTree()
         }
 
         if (showLibraries) {
-            QString title = library->getName();
+            QString title = QString::fromStdString(library->getName());
             auto lib = new MaterialTreeLibraryItem(title);
             if (!library->isLocal()) {
                 QIcon icon(QStringLiteral(":/icons/Material_Remote.svg"));
@@ -1449,7 +1449,7 @@ MaterialTreeItem* MaterialsEditor::getItemFromLibrary(const Materials::Library& 
                 if (*treeLibrary == library) {
                     Base::Console().log(
                         "Found library '%s'\n",
-                        treeLibrary->getName().toStdString().c_str()
+                        treeLibrary->getName().c_str()
                     );
                     return item;
                 }
@@ -1850,7 +1850,7 @@ void MaterialsEditor::onMenuDeleteLibrary(bool checked)
         if (ret == QMessageBox::Yes) {
             Gui::WaitCursor wc;
 
-            getMaterialManager().removeLibrary(library->getName());
+            getMaterialManager().removeLibrary(QString::fromStdString(library->getName()));
             getMaterialManager().refresh();
             refreshMaterialTree();
         }

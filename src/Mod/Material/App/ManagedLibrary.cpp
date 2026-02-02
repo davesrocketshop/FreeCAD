@@ -33,8 +33,8 @@ using namespace Materials;
 
 TYPESYSTEM_SOURCE(Materials::ManagedLibrary, Base::BaseClass)
 
-ManagedLibrary::ManagedLibrary(const QString& libraryName, const QString& iconPath, bool readOnly)
-    : _repositoryName(QStringLiteral("Remote"))
+ManagedLibrary::ManagedLibrary(const std::string& libraryName, const std::string& iconPath, bool readOnly)
+    : _repositoryName("Remote")
     , _libraryName(libraryName)
     , _readOnly(readOnly)
     , _disabled(false)
@@ -44,8 +44,8 @@ ManagedLibrary::ManagedLibrary(const QString& libraryName, const QString& iconPa
     setIcon(iconPath);
 }
 
-ManagedLibrary::ManagedLibrary(const QString& libraryName, const QByteArray& icon, bool readOnly)
-    : _repositoryName(QStringLiteral("Remote"))
+ManagedLibrary::ManagedLibrary(const std::string& libraryName, const QByteArray& icon, bool readOnly)
+    : _repositoryName("Remote")
     , _libraryName(libraryName)
     , _icon(icon)
     , _readOnly(readOnly)
@@ -55,12 +55,12 @@ ManagedLibrary::ManagedLibrary(const QString& libraryName, const QByteArray& ico
 {}
 
 ManagedLibrary::ManagedLibrary(
-    const QString& libraryName,
-    const QString& dir,
-    const QString& iconPath,
+    const std::string& libraryName,
+    const std::string& dir,
+    const std::string& iconPath,
     bool readOnly
 )
-    : _repositoryName(QStringLiteral("Remote"))
+    : _repositoryName("Remote")
     , _libraryName(libraryName)
     , _materialDirectory(cleanPath(dir))
     , _readOnly(readOnly)
@@ -71,11 +71,11 @@ ManagedLibrary::ManagedLibrary(
     setIcon(iconPath);
 }
 
-QByteArray ManagedLibrary::getIcon(const QString& iconPath)
+QByteArray ManagedLibrary::getIcon(const std::string& iconPath)
 {
-    QFile file(iconPath);
+    QFile file(QString::fromStdString(iconPath));
     if (!file.open(QIODevice::ReadOnly)) {
-        Base::Console().log("Failed to open icon file '%s'\n", iconPath.toStdString().c_str());
+        Base::Console().log("Failed to open icon file '%s'\n", iconPath.c_str());
         return QByteArray();  // Return an empty QByteArray if file opening fails
     }
 
@@ -84,7 +84,7 @@ QByteArray ManagedLibrary::getIcon(const QString& iconPath)
     return data;
 }
 
-void ManagedLibrary::setIcon(const QString& iconPath)
+void ManagedLibrary::setIcon(const std::string& iconPath)
 {
     _iconPath = iconPath;
     _icon = getIcon(iconPath);
@@ -104,10 +104,10 @@ void ManagedLibrary::setLocal(bool local)
 {
     _local = local;
     if (local) {
-        setRepositoryName(QStringLiteral("Local"));
+        setRepositoryName("Local");
     }
     else {
-        setRepositoryName(QStringLiteral("Remote"));
+        setRepositoryName("Remote");
     }
 }
 
@@ -139,12 +139,12 @@ void ManagedLibrary::validate(const ManagedLibrary& remote) const
     }
 
     // Local and remote paths will differ
-    if (!remote.getMaterialDirectory().isEmpty()) {
+    if (!remote.getMaterialDirectory().empty()) {
         throw InvalidLibrary("Remote library should not have a material path");
     }
 
     // Local and remote paths will differ
-    if (!remote.getModelDirectory().isEmpty()) {
+    if (!remote.getModelDirectory().empty()) {
         throw InvalidLibrary("Remote library should not have a model path");
     }
 
@@ -153,18 +153,18 @@ void ManagedLibrary::validate(const ManagedLibrary& remote) const
     }
 }
 
-QString ManagedLibrary::getLocalPath(const QString& path) const
+std::string ManagedLibrary::getLocalPath(const std::string& path) const
 {
-    QString filePath = getMaterialDirectoryPath();
-    if (!(filePath.endsWith(QStringLiteral("/")) || filePath.endsWith(QStringLiteral("\\")))) {
-        filePath += QStringLiteral("/");
+    std::string filePath = getMaterialDirectoryPath();
+    if (!(filePath.ends_with("/") || filePath.ends_with("\\"))) {
+        filePath += "/";
     }
 
-    QString clean = cleanPath(path);
-    QString prefix = QStringLiteral("/") + getLibraryName();
-    if (clean.startsWith(prefix)) {
+    std::string clean = cleanPath(path);
+    std::string prefix = "/" + getLibraryName();
+    if (clean.starts_with(prefix)) {
         // Remove the library name from the path
-        filePath += clean.right(clean.length() - prefix.length());
+        filePath += clean.erase(clean.length() - prefix.length());
     }
     else {
         filePath += clean;
@@ -173,48 +173,48 @@ QString ManagedLibrary::getLocalPath(const QString& path) const
     return filePath;
 }
 
-bool ManagedLibrary::isRoot(const QString& path) const
+bool ManagedLibrary::isRoot(const std::string& path) const
 {
-    QString localPath = getLocalPath(cleanPath(path));
-    QString clean = getLocalPath(QStringLiteral(""));
+    std::string localPath = getLocalPath(cleanPath(path));
+    std::string clean = getLocalPath("");
     return (clean == localPath);
 }
 
-QString ManagedLibrary::getRelativePath(const QString& path) const
+std::string ManagedLibrary::getRelativePath(const std::string& path) const
 {
-    QString filePath;
-    QString clean = cleanPath(path);
-    QString prefix = QStringLiteral("/") + getLibraryName();
-    if (clean.startsWith(prefix)) {
+    std::string filePath;
+    std::string clean = cleanPath(path);
+    std::string prefix = "/" + getLibraryName();
+    if (clean.starts_with(prefix)) {
         // Remove the library name from the path
-        filePath = clean.right(clean.length() - prefix.length());
+        filePath = clean.erase(clean.length() - prefix.length());
     }
     else {
         filePath = clean;
     }
 
     prefix = getMaterialDirectoryPath();
-    if (filePath.startsWith(prefix, Qt::CaseInsensitive)) {
+    if (filePath.starts_with(prefix)) {
         // Remove the library root from the path
-        filePath = filePath.right(filePath.length() - prefix.length());
+        filePath = filePath.erase(filePath.length() - prefix.length());
     }
 
     // Remove any leading '/'
-    if (filePath.startsWith(QStringLiteral("/"))) {
-        filePath.remove(0, 1);
+    if (filePath.starts_with("/")) {
+        filePath.erase(0, 1);
     }
 
     return filePath;
 }
 
-QString ManagedLibrary::getLibraryPath(const QString& path, const QString& filename) const
+std::string ManagedLibrary::getLibraryPath(const std::string& path, const std::string& filename) const
 {
-    QString filePath(cleanPath(path));
-    if (filePath.endsWith(filename)) {
-        filePath = filePath.left(filePath.length() - filename.length());
+    std::string filePath(cleanPath(path));
+    if (filePath.ends_with(filename)) {
+        filePath = filePath.erase(0, filePath.length() - filename.length());
     }
-    if (filePath.endsWith(QStringLiteral("/"))) {
-        filePath = filePath.left(filePath.length() - 1);
+    if (filePath.ends_with("/")) {
+        filePath = filePath.erase(0, filePath.length() - 1);
     }
 
     return filePath;

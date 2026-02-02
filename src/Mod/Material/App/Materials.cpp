@@ -590,11 +590,11 @@ QString Material::getLibraryPath() const
     }
     if (library) {
         if (!directory.isEmpty()) {
-            path = QStringLiteral("[%1]/%2/%3").arg(library->getName()).arg(directory).arg(getName());
+            path = QStringLiteral("[%1]/%2/%3").arg(QString::fromStdString(library->getName())).arg(directory).arg(getName());
         }
         else {
             path = QStringLiteral("[%1]/%2")
-                       .arg(library->getName())
+                       .arg(QString::fromStdString(library->getName()))
                        .arg(getName());
         }
         return path;

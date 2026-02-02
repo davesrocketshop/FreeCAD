@@ -80,33 +80,33 @@ public:
     std::shared_ptr<std::vector<std::shared_ptr<MaterialLibrary>>> getLocalMaterialLibraries(
         bool includeDisabled = false
     );
-    std::shared_ptr<ManagedLibrary> getLibrary(const QString& repositoryName, const QString& name) const;
+    std::shared_ptr<ManagedLibrary> getLibrary(const std::string& repositoryName, const std::string& name) const;
     std::shared_ptr<ModelLibrary> getModelLibrary(
-        const QString& repositoryName,
-        const QString& name
+        const std::string& repositoryName,
+        const std::string& name
     ) const;
     std::shared_ptr<MaterialLibrary> getMaterialLibrary(
-        const QString& repositoryName,
-        const QString& name
+        const std::string& repositoryName,
+        const std::string& name
     ) const;
     void createRemoteLibrary(
-        const QString& repositoryName,
-        const QString& libraryName,
-        const QString& iconPath,
+        const std::string& repositoryName,
+        const std::string& libraryName,
+        const std::string& iconPath,
         bool readOnly
     );
     std::shared_ptr<MaterialLibrary> createLocalLibrary(
-        const QString& libraryName,
-        const QString& materialDirectory,
-        const QString& modelDirectory,
-        const QString& iconPath,
+        const std::string& libraryName,
+        const std::string& materialDirectory,
+        const std::string& modelDirectory,
+        const std::string& iconPath,
         bool readOnly
     );
 
-    void renameLibrary(const QString& repositoryName, const QString& libraryName, const QString& newName);
-    void changeIcon(const QString& repositoryName, const QString& libraryName, const QString& iconPath);
-    void removeLibrary(const QString& repositoryName, const QString& libraryName);
-    bool isLocalLibrary(const QString& repositoryName, const QString& libraryName);
+    void renameLibrary(const std::string& repositoryName, const std::string& libraryName, const std::string& newName);
+    void changeIcon(const std::string& repositoryName, const std::string& libraryName, const std::string& iconPath);
+    void removeLibrary(const std::string& repositoryName, const std::string& libraryName);
+    bool isLocalLibrary(const std::string& repositoryName, const std::string& libraryName);
 
     /// Observer message from the ParameterGrp
     void OnChange(ParameterGrp::SubjectType& rCaller, ParameterGrp::MessageType Reason) override;
@@ -116,10 +116,10 @@ public:
     );
 
 protected:
-    void setDisabled(const QString& repositoryName, const QString& libraryName, bool disabled);
+    void setDisabled(const std::string& repositoryName, const std::string& libraryName, bool disabled);
     void setDisabled(Library& library, bool disabled);
     void setDisabled(const std::shared_ptr<ManagedLibrary>& library, bool disabled);
-    bool isDisabled(const QString& repositoryName, const QString& libraryName) const;
+    bool isDisabled(const std::string& repositoryName, const std::string& libraryName) const;
     bool isDisabled(const Library& library) const;
     bool isDisabled(const std::shared_ptr<ManagedLibrary>& library) const;
 
@@ -144,10 +144,10 @@ private:
 
     void updateLibraryMap();
 
-    void renameLibraryLocal(const std::shared_ptr<ManagedLibrary>& library, const QString& newName);
-    void renameLibraryRemote(const std::shared_ptr<ManagedLibrary>& library, const QString& newName);
-    void changeIconLocal(const std::shared_ptr<ManagedLibrary>& library, const QString& iconPath);
-    void changeIconRemote(const std::shared_ptr<ManagedLibrary>& library, const QString& iconPath);
+    void renameLibraryLocal(const std::shared_ptr<ManagedLibrary>& library, const std::string& newName);
+    void renameLibraryRemote(const std::shared_ptr<ManagedLibrary>& library, const std::string& newName);
+    void changeIconLocal(const std::shared_ptr<ManagedLibrary>& library, const std::string& iconPath);
+    void changeIconRemote(const std::shared_ptr<ManagedLibrary>& library, const std::string& iconPath);
     void removeLibraryLocal(const std::shared_ptr<ManagedLibrary>& library);
     void removeLibraryRemote(const std::shared_ptr<ManagedLibrary>& library);
 
@@ -162,7 +162,7 @@ private:
     static QMutex _mutex;
     static bool _useExternal;
     static std::shared_ptr<std::list<std::shared_ptr<ManagedLibrary>>> _libraryList;
-    static std::shared_ptr<std::multimap<QString, std::shared_ptr<ManagedLibrary>>> _libraryMap;
+    static std::shared_ptr<std::multimap<std::string, std::shared_ptr<ManagedLibrary>>> _libraryMap;
 
     ParameterGrp::handle _hGrp;
 };

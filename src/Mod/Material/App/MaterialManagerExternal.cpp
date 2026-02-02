@@ -220,20 +220,20 @@ bool MaterialManagerExternal::exists(const QString& libraryName)
 void MaterialManagerExternal::createFolder(const MaterialLibrary& library,
                                            const QString& path)
 {
-    ExternalManager::getManager()->createFolder(library.getName(), path);
+    ExternalManager::getManager()->createFolder(QString::fromStdString(library.getName()), path);
 }
 
 void MaterialManagerExternal::renameFolder(const MaterialLibrary& library,
                                            const QString& oldPath,
                                            const QString& newPath)
 {
-    ExternalManager::getManager()->renameFolder(library.getName(), oldPath, newPath);
+    ExternalManager::getManager()->renameFolder(QString::fromStdString(library.getName()), oldPath, newPath);
 }
 
 void MaterialManagerExternal::deleteRecursive(const MaterialLibrary& library,
                                               const QString& path)
 {
-    ExternalManager::getManager()->deleteRecursive(library.getName(), path);
+    ExternalManager::getManager()->deleteRecursive(QString::fromStdString(library.getName()), path);
 }
 
 //=====
@@ -298,7 +298,7 @@ bool MaterialManagerExternal::exists(const QString& uuid) const
 
 bool MaterialManagerExternal::exists(const MaterialLibrary& library, const QString& uuid) const
 {
-    return ExternalManager::getManager()->materialExists(library.getName(), uuid);
+    return ExternalManager::getManager()->materialExists(QString::fromStdString(library.getName()), uuid);
 }
 
 void MaterialManagerExternal::move(
@@ -309,7 +309,8 @@ void MaterialManagerExternal::move(
 {
     _cache.erase(original->getUUID().toStdString());
     auto stripped = stripFilename(path, *original);
-    ExternalManager::getManager()->moveMaterial(library->getName(), stripped, original->getUUID());
+    ExternalManager::getManager()
+        ->moveMaterial(QString::fromStdString(library->getName()), stripped, original->getUUID());
 }
 
 void MaterialManagerExternal::remove(const QString& uuid)
@@ -328,16 +329,16 @@ void MaterialManagerExternal::saveMaterial(
     _cache.erase(material->getUUID().toStdString());
 
     auto stripped = stripFilename(path, *material);
-    if (ExternalManager::getManager()->materialExists(library->getName(), material->getUUID())) {
+    if (ExternalManager::getManager()->materialExists(QString::fromStdString(library->getName()), material->getUUID())) {
         if (overwrite) {
-            ExternalManager::getManager()->updateMaterial(library->getName(), stripped, *material);
+            ExternalManager::getManager()->updateMaterial(QString::fromStdString(library->getName()), stripped, *material);
         }
         else {
             throw MaterialExists();
         }
     }
     else {
-        ExternalManager::getManager()->addMaterial(library->getName(), stripped, *material);
+        ExternalManager::getManager()->addMaterial(QString::fromStdString(library->getName()), stripped, *material);
     }
 }
 

@@ -297,7 +297,7 @@ private:
     void refreshMaterialTree();
     void addMaterials(
         MaterialTreeItem& parent,
-        const std::shared_ptr<std::map<QString, std::shared_ptr<Materials::MaterialTreeNode>>>
+        const std::shared_ptr<std::map<std::string, std::shared_ptr<Materials::MaterialTreeNode>>>
             modelTree,
         const QIcon& folderIcon,
         const QIcon& icon,

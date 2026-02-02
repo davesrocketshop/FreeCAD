@@ -43,22 +43,22 @@ Library::Library(const std::shared_ptr<ManagedLibrary>& library)
     : _managedLibrary(library)
 {}
 
-Library::Library(const QString& libraryName, const QString& iconPath, bool readOnly)
+Library::Library(const std::string& libraryName, const std::string& iconPath, bool readOnly)
 {
     _managedLibrary = std::make_shared<ManagedLibrary>(libraryName, iconPath, readOnly);
 }
 
-Library::Library(const QString& libraryName, const QByteArray& icon, bool readOnly)
+Library::Library(const std::string& libraryName, const QByteArray& icon, bool readOnly)
 {
     _managedLibrary = std::make_shared<ManagedLibrary>(libraryName, icon, readOnly);
 }
 
-Library::Library(const QString& libraryName, const QString& dir, const QString& iconPath, bool readOnly)
+Library::Library(const std::string& libraryName, const std::string& dir, const std::string& iconPath, bool readOnly)
 {
     _managedLibrary = std::make_shared<ManagedLibrary>(libraryName, dir, iconPath, readOnly);
 }
 
-void Library::setIcon(const QString& iconPath)
+void Library::setIcon(const std::string& iconPath)
 {
     _managedLibrary->setIcon(iconPath);
 }
@@ -93,18 +93,18 @@ void Library::validate(const Library& remote) const
     _managedLibrary->validate(*remote._managedLibrary);
 }
 
-QString Library::getLocalPath(const QString& directoryPath, const QString& path) const
+std::string Library::getLocalPath(const std::string& directoryPath, const std::string& path) const
 {
-    QString filePath = directoryPath;
-    if (!(filePath.endsWith(QStringLiteral("/")) || filePath.endsWith(QStringLiteral("\\")))) {
-        filePath += QStringLiteral("/");
+    std::string filePath = directoryPath;
+    if (!(filePath.ends_with("/") || filePath.ends_with("\\"))) {
+        filePath += "/";
     }
 
-    QString clean = cleanPath(path);
-    QString prefix = QStringLiteral("[") + getName() + QStringLiteral("]");
-    if (clean.startsWith(prefix)) {
+    std::string clean = cleanPath(path);
+    std::string prefix = "[" + getName() + "]";
+    if (clean.starts_with(prefix)) {
         // Remove the library name from the path
-        filePath += clean.last(clean.length() - prefix.length());
+        filePath += clean.erase(clean.length() - prefix.length());
     }
     else {
         filePath += clean;
@@ -113,41 +113,41 @@ QString Library::getLocalPath(const QString& directoryPath, const QString& path)
     return filePath;
 }
 
-QString Library::getRelativePath(const QString& path) const
+std::string Library::getRelativePath(const std::string& path) const
 {
-    QString filePath;
-    QString clean = cleanPath(path);
-    QString prefix = QStringLiteral("[") + getName() + QStringLiteral("]");
-    if (clean.startsWith(prefix)) {
+    std::string filePath;
+    std::string clean = cleanPath(path);
+    std::string prefix = "[" + getName() + "]";
+    if (clean.starts_with(prefix)) {
         // Remove the library name from the path
-        filePath = clean.last(clean.length() - prefix.length());
+        filePath = clean.erase(clean.length() - prefix.length());
     }
     else {
         filePath = clean;
     }
 
     prefix = getDirectoryPath();
-    if (filePath.startsWith(prefix, Qt::CaseInsensitive)) {
+    if (filePath.starts_with(prefix)) {
         // Remove the library root from the path
-        filePath = filePath.last(filePath.length() - prefix.length());
+        filePath = filePath.erase(filePath.length() - prefix.length());
     }
 
     // Remove any leading '/'
-    if (filePath.startsWith(QStringLiteral("/"))) {
-        filePath.remove(0, 1);
+    if (filePath.starts_with("/")) {
+        filePath.erase(0, 1);
     }
 
     return filePath;
 }
 
-QString Library::getLibraryPath(const QString& path, const QString& filename) const
+std::string Library::getLibraryPath(const std::string& path, const std::string& filename) const
 {
-    QString filePath(cleanPath(path));
-    if (filePath.endsWith(filename)) {
-        filePath = filePath.left(filePath.length() - filename.length());
+    std::string filePath(cleanPath(path));
+    if (filePath.ends_with(filename)) {
+        filePath = filePath.erase(0, filePath.length() - filename.length());
     }
-    if (filePath.endsWith(QStringLiteral("/"))) {
-        filePath = filePath.left(filePath.length() - 1);
+    if (filePath.ends_with("/")) {
+        filePath = filePath.erase(0, filePath.length() - 1);
     }
 
     return filePath;

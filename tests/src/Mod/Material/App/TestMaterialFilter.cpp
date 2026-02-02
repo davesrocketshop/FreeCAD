@@ -97,7 +97,7 @@ protected:
     void TearDown() override {
         // Restore other libraries
         for (auto& [name, disabled] : _libraries) {
-            _materialManager->setDisabled(name, disabled, true);
+            _materialManager->setDisabled(QString::fromStdString(name), disabled, true);
         }
 
         // Restore the external interface AFTER the local libraries
@@ -112,7 +112,7 @@ protected:
     QString _testMaterialUUID;
 
     bool _useExternal {};
-    std::map<QString, bool> _libraries;
+    std::map<std::string, bool> _libraries;
 
     bool _includeFavorites {};
     bool _includeRecent {};

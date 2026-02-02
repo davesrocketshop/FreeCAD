@@ -40,7 +40,7 @@ QMutex LibraryManager::_mutex;
 bool LibraryManager::_useExternal = false;
 LibraryManager* LibraryManager::_manager = nullptr;
 std::shared_ptr<std::list<std::shared_ptr<ManagedLibrary>>> LibraryManager::_libraryList = nullptr;
-std::shared_ptr<std::multimap<QString, std::shared_ptr<ManagedLibrary>>> LibraryManager::_libraryMap
+std::shared_ptr<std::multimap<std::string, std::shared_ptr<ManagedLibrary>>> LibraryManager::_libraryMap
     = nullptr;
 
 LibraryManager::LibraryManager()
@@ -77,7 +77,7 @@ void LibraryManager::initManagers()
     }
 
     if (_libraryMap == nullptr) {
-        _libraryMap = std::make_shared<std::multimap<QString, std::shared_ptr<ManagedLibrary>>>();
+        _libraryMap = std::make_shared<std::multimap<std::string, std::shared_ptr<ManagedLibrary>>>();
     }
 
     if (_libraryList == nullptr) {
@@ -161,7 +161,7 @@ std::shared_ptr<std::vector<std::shared_ptr<ModelLibrary>>> LibraryManager::getM
 {
     auto libraries = std::make_shared<std::vector<std::shared_ptr<ModelLibrary>>>();
     for (auto libEntry : *_libraryMap) {
-        if (!libEntry.second->getModelDirectory().isEmpty()) {
+        if (!libEntry.second->getModelDirectory().empty()) {
             if (includeDisabled || !libEntry.second->isDisabled()) {
                 libraries->push_back(std::make_shared<ModelLibrary>(libEntry.second));
             }
@@ -177,7 +177,7 @@ std::shared_ptr<std::vector<std::shared_ptr<MaterialLibrary>>> LibraryManager::g
 {
     auto libraries = std::make_shared<std::vector<std::shared_ptr<MaterialLibrary>>>();
     for (auto libEntry : *_libraryMap) {
-        if (!libEntry.second->getMaterialDirectory().isEmpty()) {
+        if (!libEntry.second->getMaterialDirectory().empty()) {
             if (includeDisabled || !libEntry.second->isDisabled()) {
                 libraries->push_back(std::make_shared<MaterialLibrary>(libEntry.second));
             }
@@ -211,7 +211,7 @@ std::shared_ptr<std::vector<std::shared_ptr<ModelLibrary>>> LibraryManager::getL
     for (auto libEntry : *_libraryList) {
         if (libEntry->isLocal()) {
             if (includeDisabled || !libEntry->isDisabled()) {
-                if (!libEntry->getModelDirectory().isEmpty()) {
+                if (!libEntry->getModelDirectory().empty()) {
                     libraries->push_back(std::make_shared<ModelLibraryLocal>(libEntry));
                 }
             }
@@ -229,7 +229,7 @@ std::shared_ptr<std::vector<std::shared_ptr<MaterialLibrary>>> LibraryManager::g
     for (auto libEntry : *_libraryList) {
         if (libEntry->isLocal()) {
             if (includeDisabled || !libEntry->isDisabled()) {
-                if (!libEntry->getMaterialDirectory().isEmpty()) {
+                if (!libEntry->getMaterialDirectory().empty()) {
                     libraries->push_back(std::make_shared<MaterialLibraryLocal>(libEntry));
                 }
             }
@@ -239,10 +239,7 @@ std::shared_ptr<std::vector<std::shared_ptr<MaterialLibrary>>> LibraryManager::g
     return libraries;
 }
 
-std::shared_ptr<ManagedLibrary> LibraryManager::getLibrary(
-    const QString& repositoryName,
-    const QString& name
-) const
+std::shared_ptr<ManagedLibrary> LibraryManager::getLibrary(const std::string& repositoryName, const std::string& name) const
 {
     auto range = _libraryMap->equal_range(name);
     for (auto it = range.first; it != range.second; ++it) {
@@ -254,76 +251,89 @@ std::shared_ptr<ManagedLibrary> LibraryManager::getLibrary(
     throw LibraryNotFound();
 }
 
-std::shared_ptr<ModelLibrary> LibraryManager::getModelLibrary(const QString& repositoryName, const QString& name) const
+std::shared_ptr<ModelLibrary> LibraryManager::getModelLibrary(
+    const std::string& repositoryName,
+    const std::string& name
+) const
 {
     auto library = getLibrary(repositoryName, name);
-    if (library->isRemote() || !library->getModelDirectory().isEmpty()) {
+    if (library->isRemote() || !library->getModelDirectory().empty()) {
         return std::make_shared<ModelLibrary>(library);
     }
 
     throw LibraryNotFound();
 }
 
-std::shared_ptr<MaterialLibrary> LibraryManager::getMaterialLibrary(const QString& repositoryName, const QString& name) const
+std::shared_ptr<MaterialLibrary> LibraryManager::getMaterialLibrary(
+    const std::string& repositoryName,
+    const std::string& name
+) const
 {
     auto library = getLibrary(repositoryName, name);
-    if (!library->getMaterialDirectory().isEmpty()) {
+    if (!library->getMaterialDirectory().empty()) {
         return std::make_shared<MaterialLibrary>(library);
     }
 
     throw LibraryNotFound();
 }
 
-void LibraryManager::createRemoteLibrary(
-    [[maybe_unused]] const QString& repositoryName,
-    [[maybe_unused]] const QString& libraryName,
-    [[maybe_unused]] const QString& iconPath,
-    [[maybe_unused]] bool readOnly
+void createRemoteLibrary(
+    const std::string& repositoryName,
+    const std::string& libraryName,
+    const std::string& iconPath,
+    bool readOnly
 )
 {
 #if defined(BUILD_MATERIAL_EXTERNAL)
     auto icon = Materials::ManagedLibrary::getIcon(iconPath);
-    externalManager()->createLibrary(libraryName, icon, readOnly);
+    ExternalManager::getManager()->createLibrary(QString::fromStdString(libraryName), icon, readOnly);
+#else
+    throw CreationError("External interface is not enabled");
 #endif
 }
 
 std::shared_ptr<MaterialLibrary> LibraryManager::createLocalLibrary(
-    const QString& libraryName,
-    const QString& materialDirectory,
-    const QString& modelDirectory,
-    const QString& iconPath,
+    const std::string& libraryName,
+    const std::string& materialDirectory,
+    const std::string& modelDirectory,
+    const std::string& iconPath,
     bool readOnly
 )
 {
     QDir dir;
-    if (!dir.exists(materialDirectory)) {
-        if (!dir.mkpath(materialDirectory)) {
+    if (!dir.exists(QString::fromStdString(materialDirectory))) {
+        if (!dir.mkpath(QString::fromStdString(materialDirectory))) {
             throw CreationError("Unable to create library path");
         }
     }
-    if (!modelDirectory.isEmpty()) {
-        if (!dir.exists(modelDirectory)) {
-            if (!dir.mkpath(modelDirectory)) {
+    if (!modelDirectory.empty()) {
+        if (!dir.exists(QString::fromStdString(modelDirectory))) {
+            if (!dir.mkpath(QString::fromStdString(modelDirectory))) {
                 throw CreationError("Unable to create library model path");
             }
         }
     }
 
     auto path = Library::cleanPath(materialDirectory);
-    auto library = std::make_shared<MaterialLibraryLocal>(libraryName, path, iconPath, readOnly);
+    auto library = std::make_shared<MaterialLibraryLocal>(
+        libraryName,
+        path,
+        iconPath,
+        readOnly
+    );
     auto modelPath = Library::cleanPath(modelDirectory);
     library->proxy()->setModelDirectory(modelPath);
 
     // Persist
     std::string libRoot = getResourceRootLocal();
-    libRoot += libraryName.toStdString();
+    libRoot += libraryName;
 
     auto newParam = App::GetApplication().GetParameterGroupByPath(libRoot.c_str());
-    newParam->SetASCII("Directory", path.toStdString().c_str());
-    if (!modelDirectory.isEmpty()) {
-        newParam->SetASCII("ModelDirectory", modelPath.toStdString().c_str());
+    newParam->SetASCII("Directory", path.c_str());
+    if (!modelDirectory.empty()) {
+        newParam->SetASCII("ModelDirectory", modelPath.c_str());
     }
-    newParam->SetASCII("IconPath", iconPath.toStdString().c_str());
+    newParam->SetASCII("IconPath", iconPath.c_str());
     newParam->SetBool("ReadOnly", readOnly);
     newParam->SetBool("Disabled", false);
 
@@ -333,7 +343,7 @@ std::shared_ptr<MaterialLibrary> LibraryManager::createLocalLibrary(
     return library;
 }
 
-void LibraryManager::renameLibrary(const QString& repositoryName,const QString& libraryName, const QString& newName)
+void LibraryManager::renameLibrary(const std::string& repositoryName,const std::string& libraryName, const std::string& newName)
 {
     auto library = getLibrary(repositoryName, libraryName);
     if (library->isReadOnly()) {
@@ -351,37 +361,37 @@ void LibraryManager::renameLibrary(const QString& repositoryName,const QString& 
 
 void LibraryManager::renameLibraryLocal(
     const std::shared_ptr<ManagedLibrary>& library,
-    const QString& newName
+    const std::string& newName
 )
 {
     // Update the config entries
     std::string libRoot = getResourceRoot(library);
     auto param = App::GetApplication().GetParameterGroupByPath(libRoot.c_str());
-    if (!param->HasGroup(library->getLibraryName().toStdString().c_str())) {
+    if (!param->HasGroup(library->getLibraryName().c_str())) {
         throw LibraryNotFound();
     }
-    if (param->HasGroup(newName.toStdString().c_str())) {
+    if (param->HasGroup(newName.c_str())) {
         throw RenameError("Another library with that name already exists");
     }
-    param->RenameGrp(library->getLibraryName().toStdString().c_str(), newName.toStdString().c_str());
+    param->RenameGrp(library->getLibraryName().c_str(), newName.c_str());
 }
 
 void LibraryManager::renameLibraryRemote(
     const std::shared_ptr<ManagedLibrary>& library,
-    const QString& newName
+    const std::string& newName
 )
 {
 #if defined(BUILD_MATERIAL_EXTERNAL)
-    externalManager()->renameLibrary(library->getLibraryName(), newName);
+    externalManager()->renameLibrary(QString::fromStdString(library->getLibraryName()), QString::fromStdString(newName));
 #else
     throw RenameError("External interface is not enabled");
 #endif
 }
 
 void LibraryManager::changeIcon(
-    const QString& repositoryName,
-    const QString& libraryName,
-    const QString& iconPath
+    const std::string& repositoryName,
+    const std::string& libraryName,
+    const std::string& iconPath
 )
 {
     auto library = getLibrary(repositoryName, libraryName);
@@ -398,34 +408,34 @@ void LibraryManager::changeIcon(
 
 void LibraryManager::changeIconLocal(
     const std::shared_ptr<ManagedLibrary>& library,
-    const QString& iconPath
+    const std::string& iconPath
 )
 {
     // Update the config entries
     std::string libRoot = getResourceRoot(library);
     auto param = App::GetApplication().GetParameterGroupByPath(libRoot.c_str());
-    if (!param->HasGroup(library->getLibraryName().toStdString().c_str())) {
+    if (!param->HasGroup(library->getLibraryName().c_str())) {
         throw LibraryNotFound();
     }
-    auto libParam = param->GetGroup(library->getLibraryName().toStdString().c_str());
-    libParam->SetASCII("IconPath", iconPath.toStdString().c_str());
+    auto libParam = param->GetGroup(library->getLibraryName().c_str());
+    libParam->SetASCII("IconPath", iconPath.c_str());
     library->setIcon(iconPath);
 }
 
 void LibraryManager::changeIconRemote(
     const std::shared_ptr<ManagedLibrary>& library,
-    const QString& iconPath
+    const std::string& iconPath
 )
 {
 #if defined(BUILD_MATERIAL_EXTERNAL)
     auto icon = Materials::ManagedLibrary::getIcon(iconPath);
-    externalManager()->changeIcon(library->getLibraryName(), icon);
+    externalManager()->changeIcon(QString::fromStdString(library->getLibraryName()), icon);
 #else
     throw UpdateError("External interface is not enabled");
 #endif
 }
 
-void LibraryManager::removeLibrary(const QString& repositoryName, const QString& libraryName)
+void LibraryManager::removeLibrary(const std::string& repositoryName, const std::string& libraryName)
 {
     for (auto& library : *_libraryList) {
         if (library->isLibraryName(libraryName) && library->isRepositoryName(repositoryName)) {
@@ -453,23 +463,23 @@ void LibraryManager::removeLibraryLocal(const std::shared_ptr<ManagedLibrary>& l
         throw DeleteError("Unable to remove a module defined library");
     }
     ParameterGrp::handle param = App::GetApplication().GetParameterGroupByPath(getResourceRoot(library));
-    if (!param->HasGroup(library->getLibraryName().toStdString().c_str())) {
+    if (!param->HasGroup(library->getLibraryName().c_str())) {
         // Nothing to do
         return;
     }
-    param->RemoveGrp(library->getLibraryName().toStdString().c_str());
+    param->RemoveGrp(library->getLibraryName().c_str());
 }
 
 void LibraryManager::removeLibraryRemote(const std::shared_ptr<ManagedLibrary>& library)
 {
 #if defined(BUILD_MATERIAL_EXTERNAL)
-    externalManager()->removeLibrary(library->getLibraryName());
+    externalManager()->removeLibrary(QString::fromStdString(library->getLibraryName()));
 #else
     throw DeleteError("External interface is not enabled");
 #endif
 }
 
-bool LibraryManager::isLocalLibrary(const QString& repositoryName, const QString& libraryName)
+bool LibraryManager::isLocalLibrary(const std::string& repositoryName, const std::string& libraryName)
 {
     try {
         auto library = getLibrary(repositoryName, libraryName);
@@ -482,7 +492,7 @@ bool LibraryManager::isLocalLibrary(const QString& repositoryName, const QString
     return false;
 }
 
-void LibraryManager::setDisabled(const QString& repositoryName, const QString& libraryName, bool disabled)
+void LibraryManager::setDisabled(const std::string& repositoryName, const std::string& libraryName, bool disabled)
 {
     auto library = getLibrary(repositoryName, libraryName);
     setDisabled(library, disabled);
@@ -496,14 +506,14 @@ void LibraryManager::setDisabled(Library& library, bool disabled)
 void LibraryManager::setDisabled(const std::shared_ptr<ManagedLibrary>& library, bool disabled)
 {
     std::string libRoot = getResourceRoot(library);
-    libRoot += library->getLibraryName().toStdString();
+    libRoot += library->getLibraryName();
     ParameterGrp::handle param = App::GetApplication().GetParameterGroupByPath(libRoot.c_str());
 
     param->SetBool("Disabled", disabled);
     library->setDisabled(disabled);
 }
 
-bool LibraryManager::isDisabled(const QString& repositoryName, const QString& libraryName) const
+bool LibraryManager::isDisabled(const std::string& repositoryName, const std::string& libraryName) const
 {
     auto library = getLibrary(repositoryName, libraryName);
     return isDisabled(library);
@@ -517,7 +527,7 @@ bool LibraryManager::isDisabled(const Library& library) const
 bool LibraryManager::isDisabled(const std::shared_ptr<ManagedLibrary>& library) const
 {
     std::string libRoot = getResourceRoot(library);
-    libRoot += library->getLibraryName().toStdString();
+    libRoot += library->getLibraryName();
     ParameterGrp::handle param = App::GetApplication().GetParameterGroupByPath(libRoot.c_str());
 
     return param->GetBool("Disabled", false);
@@ -586,21 +596,21 @@ std::shared_ptr<std::vector<std::shared_ptr<ManagedLibrary>>> LibraryManager::ge
     }
 
     for (auto& group : localParam->GetGroups()) {
-        auto libName = QString::fromStdString(group->GetGroupName());
-        auto libDir = QString::fromStdString(group->GetASCII("Directory", ""));
-        auto libModels = QString::fromStdString(group->GetASCII("ModelDirectory", ""));
-        auto libIcon = QString::fromStdString(group->GetASCII("IconPath", ""));
+        auto libName = group->GetGroupName();
+        auto libDir = group->GetASCII("Directory", "");
+        auto libModels = group->GetASCII("ModelDirectory", "");
+        auto libIcon = group->GetASCII("IconPath", "");
         auto libReadOnly = group->GetBool("ReadOnly", true);
         auto libDisabled = group->GetBool("Disabled", false);
 
         if (libDir.length() > 0) {
-            QDir dir(libDir);
+            QDir dir(QString::fromStdString(libDir));
             if (dir.exists()) {
                 if (!libDisabled || includeDisabled) {
                     // Use the canonical path to prevent issues with symbolic links
                     auto libData = std::make_shared<ManagedLibrary>(
                         libName,
-                        dir.canonicalPath(),
+                        dir.canonicalPath().toStdString(),
                         libIcon,
                         libReadOnly
                     );
@@ -611,8 +621,8 @@ std::shared_ptr<std::vector<std::shared_ptr<ManagedLibrary>>> LibraryManager::ge
                 }
             }
             else {
-                std::string name = libDir.toStdString();
-                std::string missing = libName.toStdString();
+                std::string name = libDir;
+                std::string missing = libName;
                 Base::Console()
                     .log("Missing dir '%s' for library '%s'\n", missing.c_str(), name.c_str());
             }
@@ -621,20 +631,20 @@ std::shared_ptr<std::vector<std::shared_ptr<ManagedLibrary>>> LibraryManager::ge
 
     auto moduleParam = App::GetApplication().GetParameterGroupByPath(getResourceRootModules());
     for (auto& group : moduleParam->GetGroups()) {
-        auto moduleName = QString::fromStdString(group->GetGroupName());
-        auto materialDir = QString::fromStdString(Library::cleanPath(group->GetASCII("ModuleDir", "")));
-        auto moduleDir = QString::fromStdString(group->GetASCII("ModuleModelDir", ""));
-        auto materialIcon = QString::fromStdString(group->GetASCII("ModuleIcon", ""));
+        auto moduleName = group->GetGroupName();
+        auto materialDir = Library::cleanPath(group->GetASCII("ModuleDir", ""));
+        auto moduleDir = group->GetASCII("ModuleModelDir", "");
+        auto materialIcon = group->GetASCII("ModuleIcon", "");
         auto materialReadOnly = group->GetBool("ModuleReadOnly", true);
         auto materialDisabled = group->GetBool("ModuleMaterialDisabled", false);
 
         if (materialDir.length() > 0) {
-            QDir dir(materialDir);
+            QDir dir(QString::fromStdString(materialDir));
             if (dir.exists()) {
                 if (!materialDisabled || includeDisabled) {
                     auto libData = std::make_shared<ManagedLibrary>(
                         moduleName,
-                        dir.canonicalPath(),
+                        dir.canonicalPath().toStdString(),
                         materialIcon,
                         materialReadOnly
                     );

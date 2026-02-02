@@ -72,7 +72,7 @@ Py::String MaterialPy::getLibraryName() const
     if (library->isLocal()) {
         auto materialLibrary =
             reinterpret_cast<const std::shared_ptr<Materials::MaterialLibraryLocal>&>(library);
-        return {materialLibrary ? materialLibrary->getName().toStdString() : ""};
+        return {materialLibrary ? materialLibrary->getName() : ""};
     }
     return "";
 }
@@ -83,7 +83,7 @@ Py::String MaterialPy::getLibraryRoot() const
     if (library->isLocal()) {
         auto materialLibrary =
             reinterpret_cast<const std::shared_ptr<Materials::MaterialLibraryLocal>&>(library);
-        return {materialLibrary ? materialLibrary->getMaterialDirectoryPath().toStdString() : ""};
+        return {materialLibrary ? materialLibrary->getMaterialDirectoryPath() : ""};
     }
     return "";
 }

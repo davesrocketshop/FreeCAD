@@ -69,7 +69,7 @@ protected:
     void TearDown() override {
         // Restore other libraries
         for (auto& [name, disabled] : _libraries) {
-            _materialManager->setDisabled(name, disabled, true);
+            _materialManager->setDisabled(QString::fromStdString(name), disabled, true);
         }
 
         // Restore the external interface AFTER the local libraries
@@ -82,7 +82,7 @@ protected:
     Materials::MaterialManager* _materialManager {};
 
     bool _useExternal {};
-    std::map<QString, bool> _libraries;
+    std::map<std::string, bool> _libraries;
 };
 
 TEST_F(DISABLED_TestLibraries, TestDisabled)
@@ -114,12 +114,12 @@ TEST_F(DISABLED_TestLibraries, TestDisabledModels)
 
     auto library = _modelManager->getLibrary(QStringLiteral("System"));
     EXPECT_NE(&library, nullptr);
-    ASSERT_EQ(library->getName(), QStringLiteral("System"));
+    ASSERT_EQ(library->getName(), "System");
     ASSERT_TRUE(library->isDisabled());
-    auto objects = _modelManager->libraryModels(library->getName());
+    auto objects = _modelManager->libraryModels(QString::fromStdString(library->getName()));
     ASSERT_GT(objects->size(), 0);
     for (auto modelObject : *objects) {
-        EXPECT_THROW(_modelManager->getModel(modelObject.getUUID()), Materials::ModelNotFound);
+        EXPECT_THROW(_modelManager->getModel(QString::fromStdString(modelObject.getUUID())), Materials::ModelNotFound);
         // auto model = _modelManager->getModel(modelObject.getUUID());
         // ASSERT_TRUE(model->isDisabled());
     }

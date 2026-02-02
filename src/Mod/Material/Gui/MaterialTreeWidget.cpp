@@ -556,7 +556,7 @@ void MaterialTreeWidget::fillMaterialTree()
         }
 
         if (showLibraries) {
-            auto lib = new QStandardItem(library->getName());
+            auto lib = new QStandardItem(QString::fromStdString(library->getName()));
             lib->setFlags(Qt::ItemIsEnabled);
             addExpanded(model, lib, param);
 
@@ -637,7 +637,7 @@ void MaterialTreeWidget::addFavorites(QStandardItem* parent)
 }
 void MaterialTreeWidget::addMaterials(
     QStandardItem& parent,
-    const std::shared_ptr<std::map<QString, std::shared_ptr<Materials::MaterialTreeNode>>>&
+    const std::shared_ptr<std::map<std::string, std::shared_ptr<Materials::MaterialTreeNode>>>&
         modelTree,
     const QIcon& folderIcon,
     const QIcon& icon,
@@ -647,16 +647,16 @@ void MaterialTreeWidget::addMaterials(
     for (auto& mat : *modelTree) {
         auto nodePtr = mat.second;
         if (nodePtr->getType() == Materials::MaterialTreeNode::NodeType::DataNode) {
-            QString uuid = nodePtr->getUUID();
+            QString uuid = QString::fromStdString(nodePtr->getUUID());
 
-            auto card = new QStandardItem(icon, mat.first);
+            auto card = new QStandardItem(icon, QString::fromStdString(mat.first));
             card->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
             card->setData(QVariant(uuid), Qt::UserRole);
 
             addExpanded(&parent, card);
         }
         else {
-            auto node = new QStandardItem(folderIcon, mat.first);
+            auto node = new QStandardItem(folderIcon, QString::fromStdString(mat.first));
             addExpanded(&parent, node, childParam);
             node->setFlags(Qt::ItemIsEnabled);
             auto treeMap = nodePtr->getFolder();

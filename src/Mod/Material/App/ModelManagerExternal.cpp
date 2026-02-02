@@ -161,11 +161,11 @@ std::shared_ptr<std::map<QString, std::shared_ptr<Model>>> ModelManagerExternal:
     auto models = std::make_shared<std::map<QString, std::shared_ptr<Model>>>();
     auto libraries = ExternalManager::getManager()->modelLibraries();
     for (auto library : *libraries) {
-        auto libModels = ExternalManager::getManager()->libraryModels(library->getName());
+        auto libModels = ExternalManager::getManager()->libraryModels(QString::fromStdString(library->getName()));
         for (auto libObject : *libModels) {
             // This dereferences and places the model in the cache
-            auto model = getModel(libObject.getUUID());
-            models->emplace(libObject.getUUID(), model);
+            auto model = getModel(QString::fromStdString(libObject.getUUID()));
+            models->emplace(QString::fromStdString(libObject.getUUID()), model);
         }
     }
     return models;

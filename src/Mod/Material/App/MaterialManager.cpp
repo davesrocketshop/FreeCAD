@@ -243,7 +243,7 @@ std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>> MaterialManager::ge
     }
 
     // External libraries take precedence over local libraries
-    auto libMap = std::map<QString, std::shared_ptr<MaterialLibrary>>();
+    auto libMap = std::map<std::string, std::shared_ptr<MaterialLibrary>>();
 #if defined(BUILD_MATERIAL_EXTERNAL)
     if (_useExternal) {
         auto remoteLibraries = _externalManager->getLibraries();
@@ -275,13 +275,13 @@ std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>> MaterialManager::ge
 )
 {
     // External libraries take precedence over local libraries
-    auto libMap = std::multimap<QString, std::shared_ptr<MaterialLibrary>>();
+    auto libMap = std::multimap<std::string, std::shared_ptr<MaterialLibrary>>();
 #if defined(BUILD_MATERIAL_EXTERNAL)
     if (_useExternal) {
         auto remoteLibraries = _externalManager->getLibraries();
         for (auto& remote : *remoteLibraries) {
             if (includeDisabled || !remote->isDisabled()) {
-                libMap.insert({remote->getName(), remote});
+                // libMap.insert({remote->getName(), remote});
             }
         }
     }
@@ -348,7 +348,7 @@ std::shared_ptr<MaterialLibrary> MaterialManager::createLibrary(
 {
 #if defined(BUILD_MATERIAL_EXTERNAL)
     if (_useExternal) {
-        auto icon = Materials::ManagedLibrary::getIcon(iconPath);
+        auto icon = Materials::ManagedLibrary::getIcon(iconPath.toStdString());
         return _externalManager->createLibrary(libraryName, icon, readOnly);
     }
 #endif
@@ -386,7 +386,7 @@ void MaterialManager::renameLibrary(const QString& libraryName, const QString& n
 
 void MaterialManager::changeIcon(const QString& libraryName, const QString& iconPath)
 {
-    auto icon = Materials::ManagedLibrary::getIcon(iconPath);
+    auto icon = Materials::ManagedLibrary::getIcon(iconPath.toStdString());
     _localManager->changeIcon(libraryName, icon);
 }
 
@@ -565,31 +565,34 @@ void MaterialManager::deleteRecursive(const std::shared_ptr<MaterialLibrary>& li
 //
 //=====
 
-std::shared_ptr<std::map<QString, std::shared_ptr<MaterialTreeNode>>> MaterialManager::getMaterialTree(
+std::shared_ptr<std::map<std::string, std::shared_ptr<MaterialTreeNode>>> MaterialManager::getMaterialTree(
     const MaterialLibrary& library,
     const Materials::MaterialFilter& filter
 ) const
 {
     MaterialFilterOptions options;
     return library.getMaterialTree(filter, options);
+    // return std::shared_ptr<std::map<std::string, std::shared_ptr<MaterialTreeNode>>>();
 }
 
-std::shared_ptr<std::map<QString, std::shared_ptr<MaterialTreeNode>>> MaterialManager::getMaterialTree(
+std::shared_ptr<std::map<std::string, std::shared_ptr<MaterialTreeNode>>> MaterialManager::getMaterialTree(
     const MaterialLibrary& library,
     const Materials::MaterialFilter& filter,
     const MaterialFilterOptions& options
 ) const
 {
     return library.getMaterialTree(filter, options);
+    // return std::shared_ptr<std::map<std::string, std::shared_ptr<MaterialTreeNode>>>();
 }
 
-std::shared_ptr<std::map<QString, std::shared_ptr<MaterialTreeNode>>> MaterialManager::getMaterialTree(
+std::shared_ptr<std::map<std::string, std::shared_ptr<MaterialTreeNode>>> MaterialManager::getMaterialTree(
     const MaterialLibrary& library
 ) const
 {
     Materials::MaterialFilter filter;
     MaterialFilterOptions options;
     return library.getMaterialTree(filter, options);
+    // return std::make_shared<std::map<std::string, std::shared_ptr<MaterialTreeNode>>>();
 }
 
 //=====
@@ -805,35 +808,39 @@ void MaterialManager::migrateToExternal(const std::shared_ptr<Materials::Materia
     }
 
     try {
-        _externalManager->createLibrary(library->getName(), library->getIcon(), library->isReadOnly());
+        _externalManager->createLibrary(
+            QString::fromStdString(library->getName()),
+            library->getIcon(),
+            library->isReadOnly()
+        );
     }
     catch (const CreationError&) {
     }
     catch (const ConnectionError&) {
     }
 
-    auto materials = _localManager->libraryMaterials(library->getName());
+    auto materials = _localManager->libraryMaterials(QString::fromStdString(library->getName()));
     for (auto& it : *materials) {
         auto uuid = it.getUUID();
         auto path = it.getPath();
         auto name = it.getName();
         Base::Console().log(
             "\t('%s', '%s', '%s')\n",
-            uuid.toStdString().c_str(),
-            path.toStdString().c_str(),
-            name.toStdString().c_str()
+            uuid.c_str(),
+            path.c_str(),
+            name.c_str()
         );
 
-        auto material = _localManager->getMaterial(uuid);
+        auto material = _localManager->getMaterial(QString::fromStdString(uuid));
         if (!material->isOldFormat()) {
-            _externalManager->migrateMaterial(library->getName(), path, *material);
+            _externalManager->migrateMaterial(QString::fromStdString(library->getName()), QString::fromStdString(path), *material);
         }
     }
 }
 
 void MaterialManager::validateMigration(const std::shared_ptr<Materials::MaterialLibrary>& library)
 {
-    auto materials = _localManager->libraryMaterials(library->getName());
+    auto materials = _localManager->libraryMaterials(QString::fromStdString(library->getName()));
     _externalManager->resetCache();
     for (auto& it : *materials) {
         auto uuid = it.getUUID();
@@ -841,14 +848,14 @@ void MaterialManager::validateMigration(const std::shared_ptr<Materials::Materia
         auto name = it.getName();
         Base::Console().log(
             "\t('%s', '%s', '%s')\n",
-            uuid.toStdString().c_str(),
-            path.toStdString().c_str(),
-            name.toStdString().c_str()
+            uuid.c_str(),
+            path.c_str(),
+            name.c_str()
         );
 
-        auto material = _localManager->getMaterial(uuid);
+        auto material = _localManager->getMaterial(QString::fromStdString(uuid));
         if (!material->isOldFormat()) {
-            auto externalMaterial = _externalManager->getMaterial(uuid);
+            auto externalMaterial = _externalManager->getMaterial(QString::fromStdString(uuid));
             material->validate(*externalMaterial);
         }
     }

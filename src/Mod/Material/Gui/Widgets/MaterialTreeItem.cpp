@@ -130,7 +130,7 @@ std::shared_ptr<Materials::MaterialLibrary> MaterialTreeLibraryItem::getLibrary(
 void MaterialTreeLibraryItem::setLibrary(const std::shared_ptr<Materials::MaterialLibrary>& library)
 {
     setData(QVariant::fromValue(library), TreeDataRole);
-    setData(QVariant(library->getName()), TreeNameRole);
+    setData(QVariant(QString::fromStdString(library->getName())), TreeNameRole);
 }
 
 //===

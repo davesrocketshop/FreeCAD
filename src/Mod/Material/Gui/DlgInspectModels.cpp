@@ -143,9 +143,9 @@ void DlgInspectModels::addModel(QTreeView* tree, QStandardItemModel* parent, con
     addExpanded(tree, parent, card);
 
     indent();
-        auto item = clipItem(tr("Library: ") + model.getLibrary()->getName());
+        auto item = clipItem(tr("Library: ") + QString::fromStdString(model.getLibrary()->getName()));
         addExpanded(tree, parent, item);
-        item = clipItem(tr("Library directory: ") + model.getLibrary()->getDirectoryPath());
+        item = clipItem(tr("Library directory: ") + QString::fromStdString(model.getLibrary()->getDirectoryPath()));
         addExpanded(tree, parent, item);
         item = clipItem(tr("Library Type: ") + (model.getLibrary()->isLocal() ? tr("Local") : tr("Remote")));
         addExpanded(tree, parent, item);

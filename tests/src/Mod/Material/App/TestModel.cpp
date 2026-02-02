@@ -131,8 +131,8 @@ TEST_F(DISABLED_TestModel, TestModelByPath)
     ASSERT_NO_THROW(linearElastic->getLibrary());
     ASSERT_NO_THROW(linearElastic->getLibrary()->getName());
     ASSERT_NO_THROW(linearElastic->getLibrary()->getDirectoryPath());
-    EXPECT_EQ(linearElastic->getLibrary()->getName(), QStringLiteral("System"));
-    QString path = linearElastic->getLibrary()->getDirectoryPath() + QStringLiteral("/Mechanical/LinearElastic.yml");
+    EXPECT_EQ(QString::fromStdString(linearElastic->getLibrary()->getName()), QStringLiteral("System"));
+    QString path = QString::fromStdString(linearElastic->getLibrary()->getDirectoryPath()) + QStringLiteral("/Mechanical/LinearElastic.yml");
 
     ASSERT_NO_THROW(_modelManager->getModelByPath(path));
     auto linearElastic4 = _modelManager->getModelByPath(path);

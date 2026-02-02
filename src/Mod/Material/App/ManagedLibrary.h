@@ -26,7 +26,7 @@
 
 # include <QDir>
 # include <QByteArray>
-# include <QString>
+#include <QString>
 
 # include <Base/BaseClass.h>
 
@@ -46,12 +46,12 @@ class MaterialsExport ManagedLibrary: public Base::BaseClass
 public:
     ManagedLibrary() = default;
     ManagedLibrary(const ManagedLibrary& other) = default;
-    ManagedLibrary(const QString& libraryName, const QString& icon, bool readOnly = true);
-    ManagedLibrary(const QString& libraryName, const QByteArray& icon, bool readOnly);
+    ManagedLibrary(const std::string& libraryName, const std::string& icon, bool readOnly = true);
+    ManagedLibrary(const std::string& libraryName, const QByteArray& icon, bool readOnly);
     ManagedLibrary(
-        const QString& libraryName,
-        const QString& dir,
-        const QString& iconPath,
+        const std::string& libraryName,
+        const std::string& dir,
+        const std::string& iconPath,
         bool readOnly = true
     );
     ~ManagedLibrary() override = default;
@@ -63,28 +63,28 @@ public:
     bool isModule() const;
     void setModule(bool module);
 
-    QString getRepositoryName() const
+    std::string getRepositoryName() const
     {
         return _repositoryName;
     }
-    void setRepositoryName(const QString& newName)
+    void setRepositoryName(const std::string& newName)
     {
         _repositoryName = newName;
     }
-    bool isRepositoryName(const QString& name) const
+    bool isRepositoryName(const std::string& name) const
     {
         return (_repositoryName == name);
     }
 
-    QString getLibraryName() const
+    std::string getLibraryName() const
     {
         return _libraryName;
     }
-    void setLibraryName(const QString& newName)
+    void setLibraryName(const std::string& newName)
     {
         _libraryName = newName;
     }
-    bool isLibraryName(const QString& name) const
+    bool isLibraryName(const std::string& name) const
     {
         return (_libraryName == name);
     }
@@ -93,8 +93,8 @@ public:
     {
         return _icon;
     }
-    static QByteArray getIcon(const QString& iconPath);
-    QString getIconPath() const
+    static QByteArray getIcon(const std::string& iconPath);
+    std::string getIconPath() const
     {
         return _iconPath;
     }
@@ -102,7 +102,7 @@ public:
     {
         _icon = icon;
     }
-    void setIcon(const QString& iconPath);
+    void setIcon(const std::string& iconPath);
     bool hasIcon() const
     {
         return !_icon.isEmpty();
@@ -124,30 +124,30 @@ public:
         _disabled = disabled;
     }
 
-    QString getMaterialDirectory() const
+    std::string getMaterialDirectory() const
     {
         return _materialDirectory;
     }
-    void setMaterialDirectory(const QString& directory)
+    void setMaterialDirectory(const std::string& directory)
     {
         _materialDirectory = cleanPath(directory);
     }
 
-    QString getModelDirectory() const
+    std::string getModelDirectory() const
     {
         return _modelDirectory;
     }
-    void setModelDirectory(const QString& directory)
+    void setModelDirectory(const std::string& directory)
     {
         _modelDirectory = cleanPath(directory);
     }
-    QString getMaterialDirectoryPath() const
+    std::string getMaterialDirectoryPath() const
     {
-        return QDir(_materialDirectory).absolutePath();
+        return QDir(QString::fromStdString(_materialDirectory)).absolutePath().toStdString();
     }
-    QString getModelDirectoryPath() const
+    std::string getModelDirectoryPath() const
     {
-        return QDir(_modelDirectory).absolutePath();
+        return QDir(QString::fromStdString(_modelDirectory)).absolutePath().toStdString();
     }
 
     bool operator==(const ManagedLibrary& library) const;
@@ -156,10 +156,10 @@ public:
         return !operator==(library);
     }
 
-    QString getLocalPath(const QString& path) const;
-    QString getRelativePath(const QString& path) const;
-    QString getLibraryPath(const QString& path, const QString& filename) const;
-    bool isRoot(const QString& path) const;
+    std::string getLocalPath(const std::string& path) const;
+    std::string getRelativePath(const std::string& path) const;
+    std::string getLibraryPath(const std::string& path, const std::string& filename) const;
+    bool isRoot(const std::string& path) const;
 
     // Validate a remote library against this one (a local library)
     void validate(const ManagedLibrary& remote) const;
@@ -168,19 +168,19 @@ public:
     static QString cleanPath(const QString& path);
 
 private:
-    QString _repositoryName;
-    QString _libraryName;
-    QString _materialDirectory;
-    QString _modelDirectory;
+    std::string _repositoryName;
+    std::string _libraryName;
+    std::string _materialDirectory;
+    std::string _modelDirectory;
     QByteArray _icon;
-    QString _iconPath;
+    std::string _iconPath;
     bool _readOnly;
     bool _disabled;
 
     bool _local;
     bool _module;
 
-    QByteArray loadByteArrayFromFile(const QString& filePath) const;
+    QByteArray loadByteArrayFromFile(const std::string& filePath) const;
 };
 
 }  // namespace Materials

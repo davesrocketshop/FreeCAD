@@ -131,7 +131,7 @@ void NewLibrary::setLibraryList(
     ui->listLibraries->clear();
     for (const auto& library : *libraries) {
         // The constructor automatically adds the item to the list widget
-        auto name = library->getName();
+        auto name = QString::fromStdString(library->getName());
         if (library->isDisabled()) {
             name += tr(" - disabled");
         }
