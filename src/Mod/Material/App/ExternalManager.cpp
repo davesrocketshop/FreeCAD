@@ -242,27 +242,32 @@ ExternalManager::libraries()
 {
     auto libList = std::make_shared<std::vector<std::shared_ptr<ManagedLibrary>>>();
 
-    connect();
-
-    Base::PyGILStateLocker lock;
     try {
-        if (_managerObject.hasAttr("libraries")) {
-            Py::Callable libraries(_managerObject.getAttr("libraries"));
-            Py::List list(libraries.apply());
-            for (auto lib : list) {
-                auto library = libraryFromObject(Py::Object(lib));
-                libList->push_back(library);
+        connect();
+
+        Base::PyGILStateLocker lock;
+        try {
+            if (_managerObject.hasAttr("libraries")) {
+                Py::Callable libraries(_managerObject.getAttr("libraries"));
+                Py::List list(libraries.apply());
+                for (auto lib : list) {
+                    auto library = libraryFromObject(Py::Object(lib));
+                    libList->push_back(library);
+                }
+            }
+            else {
+                Base::Console().log("\tlibraries() not found\n");
+                throw ConnectionError();
             }
         }
-        else {
-            Base::Console().log("\tlibraries() not found\n");
-            throw ConnectionError();
+        catch (Py::Exception& e) {
+            Base::PyException e1;  // extract the Python error text
+            Base::Console().log("Library error %s", e1.what());
+            throw LibraryNotFound(e1.what());
         }
     }
-    catch (Py::Exception& e) {
-        Base::PyException e1;  // extract the Python error text
-        Base::Console().log("Library error %s", e1.what());
-        throw LibraryNotFound(e1.what());
+    catch (const ConnectionError&) {
+        // Ignore and return an empty list
     }
 
     return libList;
