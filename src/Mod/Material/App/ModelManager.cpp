@@ -134,7 +134,7 @@ void ModelManager::setUseExternal(bool useExternal)
     LibraryManager::getManager().setUseExternal(useExternal);
 }
 
-std::shared_ptr<std::list<std::shared_ptr<ModelLibrary>>> ModelManager::getLibraries(
+std::shared_ptr<std::vector<std::shared_ptr<ModelLibrary>>> ModelManager::getLibraries(
     bool includeDisabled
 )
 {
@@ -150,7 +150,7 @@ std::shared_ptr<std::list<std::shared_ptr<ModelLibrary>>> ModelManager::getLibra
         }
     }
 #endif
-    auto localLibraries = _localManager->getLibraries();
+    auto localLibraries = LibraryManager::getManager().getLocalModelLibraries(); //_localManager->getLibraries();
     for (auto& local : *localLibraries) {
         if (includeDisabled || !local->isDisabled()) {
             libMap.try_emplace(QString::fromStdString(local->getName()), local);
@@ -158,7 +158,7 @@ std::shared_ptr<std::list<std::shared_ptr<ModelLibrary>>> ModelManager::getLibra
     }
 
     // Consolidate into a single list
-    auto libraries = std::make_shared<std::list<std::shared_ptr<ModelLibrary>>>();
+    auto libraries = std::make_shared<std::vector<std::shared_ptr<ModelLibrary>>>();
     for (auto libEntry : libMap) {
         libraries->push_back(libEntry.second);
     }
@@ -166,11 +166,11 @@ std::shared_ptr<std::list<std::shared_ptr<ModelLibrary>>> ModelManager::getLibra
     return libraries;
 }
 
-std::shared_ptr<std::list<std::shared_ptr<ModelLibrary>>> ModelManager::getLocalLibraries(
+std::shared_ptr<std::vector<std::shared_ptr<ModelLibrary>>> ModelManager::getLocalLibraries(
     bool includeDisabled
 )
 {
-    return _localManager->getLibraries();
+    return LibraryManager::getManager().getLocalModelLibraries(); //_localManager->getLibraries();
 }
 
 std::shared_ptr<ModelLibrary> ModelManager::getLibrary(const QString& name) const
@@ -188,17 +188,21 @@ std::shared_ptr<ModelLibrary> ModelManager::getLibrary(const QString& name) cons
 
 void ModelManager::renameLibrary(const QString& libraryName, const QString& newName)
 {
-    _localManager->renameLibrary(libraryName, newName);
+    LibraryManager::getManager()
+        .renameLibrary("Local", libraryName.toStdString(), newName.toStdString());
+    //_localManager->renameLibrary(libraryName, newName);
 }
 
 void ModelManager::changeIcon(const QString& libraryName, const QString& icon)
 {
-    _localManager->changeIcon(libraryName, icon);
+    // _localManager->changeIcon(libraryName, icon);
+    LibraryManager::getManager().changeIcon("Local", libraryName.toStdString(), icon.toStdString());
 }
 
 void ModelManager::removeLibrary(const QString& libraryName)
 {
-    _localManager->removeLibrary(libraryName);
+    // _localManager->removeLibrary(libraryName);
+    LibraryManager::getManager().removeLibrary("Local", libraryName.toStdString());
 }
 
 std::shared_ptr<std::vector<LibraryObject>> ModelManager::libraryModels(const QString& libraryName)

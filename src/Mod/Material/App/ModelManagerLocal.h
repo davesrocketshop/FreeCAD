@@ -49,10 +49,10 @@ public:
     static void cleanup();
     void refresh();
 
-    std::shared_ptr<std::list<std::shared_ptr<ModelLibrary>>> getLibraries();
-    void renameLibrary(const QString& libraryName, const QString& newName);
-    void changeIcon(const QString& libraryName, const QString& icon);
-    void removeLibrary(const QString& libraryName);
+    // std::shared_ptr<std::list<std::shared_ptr<ModelLibrary>>> getLibraries();
+    // void renameLibrary(const QString& libraryName, const QString& newName);
+    // void changeIcon(const QString& libraryName, const QString& icon);
+    // void removeLibrary(const QString& libraryName);
     std::shared_ptr<std::vector<LibraryObject>>
     libraryModels(const QString& libraryName);
 

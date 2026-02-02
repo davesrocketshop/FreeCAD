@@ -57,8 +57,8 @@ public:
     // Library management
     bool useExternal() const { return _useExternal; }
     void setUseExternal(bool useExternal);
-    std::shared_ptr<std::list<std::shared_ptr<ModelLibrary>>> getLibraries(bool includeDisabled = false);
-    std::shared_ptr<std::list<std::shared_ptr<ModelLibrary>>> getLocalLibraries(bool includeDisabled = false);
+    std::shared_ptr<std::vector<std::shared_ptr<ModelLibrary>>> getLibraries(bool includeDisabled = false);
+    std::shared_ptr<std::vector<std::shared_ptr<ModelLibrary>>> getLocalLibraries(bool includeDisabled = false);
     std::shared_ptr<ModelLibrary> getLibrary(const QString& name) const;
     void renameLibrary(const QString& libraryName, const QString& newName);
     void changeIcon(const QString& libraryName, const QString& icon);

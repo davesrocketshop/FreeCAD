@@ -99,48 +99,48 @@ void ModelManagerLocal::refresh()
     ModelLoader loader(_modelMap, _libraryList);
 }
 
-std::shared_ptr<std::list<std::shared_ptr<ModelLibrary>>> ModelManagerLocal::getLibraries()
-{
-    return reinterpret_cast<std::shared_ptr<std::list<std::shared_ptr<ModelLibrary>>>&>(_libraryList);
-}
+// std::shared_ptr<std::list<std::shared_ptr<ModelLibrary>>> ModelManagerLocal::getLibraries()
+// {
+//     return reinterpret_cast<std::shared_ptr<std::list<std::shared_ptr<ModelLibrary>>>&>(_libraryList);
+// }
 
-void ModelManagerLocal::renameLibrary(const QString& libraryName, const QString& newName)
-{
-    for (auto& library : *_libraryList) {
-        if (library->isName(libraryName.toStdString())) {
-            library->setName(newName.toStdString());
-            return;
-        }
-    }
+// void ModelManagerLocal::renameLibrary(const QString& libraryName, const QString& newName)
+// {
+//     for (auto& library : *_libraryList) {
+//         if (library->isName(libraryName.toStdString())) {
+//             library->setName(newName.toStdString());
+//             return;
+//         }
+//     }
 
-    throw LibraryNotFound();
-}
+//     throw LibraryNotFound();
+// }
 
-void ModelManagerLocal::changeIcon(const QString& libraryName, const QString& icon)
-{
-    for (auto& library : *_libraryList) {
-        if (library->isName(libraryName.toStdString())) {
-            library->setIcon(icon.toStdString());
-            return;
-        }
-    }
+// void ModelManagerLocal::changeIcon(const QString& libraryName, const QString& icon)
+// {
+//     for (auto& library : *_libraryList) {
+//         if (library->isName(libraryName.toStdString())) {
+//             library->setIcon(icon.toStdString());
+//             return;
+//         }
+//     }
 
-    throw LibraryNotFound();
-}
+//     throw LibraryNotFound();
+// }
 
-void ModelManagerLocal::removeLibrary(const QString& libraryName)
-{
-    for (auto& library : *_libraryList) {
-        if (library->isName(libraryName.toStdString())) {
-            _libraryList->remove(library);
+// void ModelManagerLocal::removeLibrary(const QString& libraryName)
+// {
+//     for (auto& library : *_libraryList) {
+//         if (library->isName(libraryName.toStdString())) {
+//             _libraryList->remove(library);
 
-            // At this point we should rebuild the model map
-            return;
-        }
-    }
+//             // At this point we should rebuild the model map
+//             return;
+//         }
+//     }
 
-    throw LibraryNotFound();
-}
+//     throw LibraryNotFound();
+// }
 
 std::shared_ptr<std::vector<LibraryObject>> ModelManagerLocal::libraryModels(const QString& libraryName)
 {
