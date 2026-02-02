@@ -22,7 +22,6 @@
  **************************************************************************/
 
 #include <QDirIterator>
-#include <QFileInfo>
 #include <QString>
 
 #include <App/Application.h>
@@ -268,11 +267,11 @@ void ModelLoader::loadLibrary(std::shared_ptr<ModelLibraryLocal> library)
     QDirIterator it(QString::fromStdString(library->getDirectory()), QDirIterator::Subdirectories);
     while (it.hasNext()) {
         auto pathname = it.next();
-        QFileInfo file(pathname);
+        Base::FileInfo file(pathname.toStdString());
         if (file.isFile()) {
-            if (file.suffix().toStdString() == "yml") {
+            if (file.extension() == "yml") {
                 try {
-                    auto model = getModelFromPath(library, file.canonicalFilePath().toStdString());
+                    auto model = getModelFromPath(library, file.filePath());
                     (*_modelEntryMap)[model->getUUID()] = model;
                     // showYaml(model->getModel());
                 }

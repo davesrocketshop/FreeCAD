@@ -22,11 +22,9 @@
  **************************************************************************/
 
 #include <string>
-#include <QLatin1Char>
-
-#include <QFileInfo>
 
 #include <App/Application.h>
+#include <Base/FileInfo.h>
 
 #include "Exceptions.h"
 #include "Model.h"
@@ -108,31 +106,25 @@ TYPESYSTEM_SOURCE(Materials::ModelLibraryLocal, Materials::ModelLibrary)
 ModelLibraryLocal::ModelLibraryLocal()
 {
     setLocal(true);
-
-    _modelPathMap = std::make_shared<std::map<std::string, std::shared_ptr<Model>>>();
 }
 
 ModelLibraryLocal::ModelLibraryLocal(const std::shared_ptr<ManagedLibrary>& library)
     : ModelLibrary(library)
 {
     setLocal(true);
-
-    _modelPathMap = std::make_shared<std::map<std::string, std::shared_ptr<Model>>>();
 }
 
 ModelLibraryLocal::ModelLibraryLocal(const Library& other)
     : ModelLibrary(other)
 {
     setLocal(true);
-
-    _modelPathMap = std::make_shared<std::map<std::string, std::shared_ptr<Model>>>();
 }
 
 std::shared_ptr<Model> ModelLibraryLocal::getModelByPath(const std::string& path) const
 {
     std::string filePath = getRelativePath(path);
     try {
-        std::shared_ptr<Model> model = _modelPathMap->at(filePath);
+        std::shared_ptr<Model> model = proxy()->_modelPathMap->at(filePath);
         return model;
     }
     catch (std::out_of_range&) {
@@ -143,13 +135,13 @@ std::shared_ptr<Model> ModelLibraryLocal::getModelByPath(const std::string& path
 std::shared_ptr<Model> ModelLibraryLocal::addModel(const Model& model, const std::string& path)
 {
     std::string filePath = getRelativePath(path);
-    QFileInfo info(QString::fromStdString(filePath));
+    Base::FileInfo info(filePath);
     std::shared_ptr<Model> newModel = std::make_shared<Model>(model);
     newModel->setLibrary(getptr());
-    newModel->setDirectory(QString::fromStdString(getLibraryPath(filePath, info.fileName().toStdString())));
-    newModel->setFilename(info.fileName());
+    newModel->setDirectory(QString::fromStdString(getLibraryPath(filePath, info.fileName())));
+    newModel->setFilename(QString::fromStdString(info.fileName()));
 
-    (*_modelPathMap)[filePath] = newModel;
+    (*proxy()->_modelPathMap)[filePath] = newModel;
 
     return newModel;
 }

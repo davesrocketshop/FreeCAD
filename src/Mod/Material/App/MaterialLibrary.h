@@ -139,8 +139,6 @@ protected:
 private:
     MaterialLibraryLocal();
     MaterialLibraryLocal(const Library& other);
-
-    std::shared_ptr<std::map<std::string, std::shared_ptr<Material>>> _materialPathMap;
 };
 
 }  // namespace Materials

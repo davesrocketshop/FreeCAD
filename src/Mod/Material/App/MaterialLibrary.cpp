@@ -162,12 +162,10 @@ TYPESYSTEM_SOURCE(Materials::MaterialLibraryLocal, Materials::MaterialLibrary)
 MaterialLibraryLocal::MaterialLibraryLocal()
 {
     setLocal(true);
-    _materialPathMap = std::make_shared<std::map<std::string, std::shared_ptr<Material>>>();
 }
 
 MaterialLibraryLocal::MaterialLibraryLocal(const std::shared_ptr<ManagedLibrary>& library)
     : MaterialLibrary(library)
-    , _materialPathMap(std::make_shared<std::map<std::string, std::shared_ptr<Material>>>())
 {
     setLocal(true);
 }
@@ -179,7 +177,6 @@ MaterialLibraryLocal::MaterialLibraryLocal(
     bool readOnly
 )
     : MaterialLibrary(libraryName, dir, icon, readOnly)
-    , _materialPathMap(std::make_shared<std::map<std::string, std::shared_ptr<Material>>>())
 {
     setLocal(true);
 }
@@ -288,7 +285,7 @@ void MaterialLibraryLocal::deleteFile(MaterialManager& manager, const std::strin
         catch (const MaterialNotFound&) {
             Base::Console().log("Unable to remove file from materials list\n");
         }
-        _materialPathMap->erase(rPath);
+        proxy()->_materialPathMap->erase(rPath);
     }
     else {
         std::string error = "DeleteError: Unable to delete " + path;
@@ -303,7 +300,7 @@ void MaterialLibraryLocal::updatePaths(const std::string& oldPath, const std::st
     std::string np = getRelativePath(newPath);
     std::unique_ptr<std::map<std::string, std::shared_ptr<Material>>> pathMap =
         std::make_unique<std::map<std::string, std::shared_ptr<Material>>>();
-    for (auto& itp : *_materialPathMap) {
+    for (auto& itp : *proxy()->_materialPathMap) {
         std::string path = itp.first;
         if (path.starts_with(op)) {
             path = np + QString::fromStdString(path).remove(0, op.size()).toStdString();
@@ -316,7 +313,7 @@ void MaterialLibraryLocal::updatePaths(const std::string& oldPath, const std::st
         (*pathMap)[path] = itp.second;
     }
 
-    _materialPathMap = std::move(pathMap);
+    proxy()->_materialPathMap = std::move(pathMap);
 }
 
 std::shared_ptr<Material>
@@ -380,7 +377,7 @@ MaterialLibraryLocal::addMaterial(const std::shared_ptr<Material>& material, con
     newMaterial->setDirectory(QString::fromStdString(getLibraryPath(filePath, info.fileName().toStdString())));
     // newMaterial->setFilename(info.fileName());
 
-    (*_materialPathMap)[filePath] = newMaterial;
+    (*proxy()->_materialPathMap)[filePath] = newMaterial;
 
     return newMaterial;
 }
@@ -389,8 +386,8 @@ std::shared_ptr<Material> MaterialLibraryLocal::getMaterialByPath(const std::str
 {
     std::string filePath = getRelativePath(path);
 
-    auto search = _materialPathMap->find(filePath);
-    if (search != _materialPathMap->end()) {
+    auto search = proxy()->_materialPathMap->find(filePath);
+    if (search != proxy()->_materialPathMap->end()) {
         return search->second;
     }
 
@@ -401,8 +398,8 @@ std::string MaterialLibraryLocal::getUUIDFromPath(const std::string& path) const
 {
     std::string filePath = getRelativePath(path);
 
-    auto search = _materialPathMap->find(filePath);
-    if (search != _materialPathMap->end()) {
+    auto search = proxy()->_materialPathMap->find(filePath);
+    if (search != proxy()->_materialPathMap->end()) {
         return search->second->getUUID().toStdString();
     }
 

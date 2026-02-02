@@ -42,6 +42,9 @@ ManagedLibrary::ManagedLibrary(const std::string& libraryName, const std::string
     , _module(false)
 {
     setIcon(iconPath);
+
+    _modelPathMap = std::make_shared<std::map<std::string, std::shared_ptr<Model>>>();
+    _materialPathMap = std::make_shared<std::map<std::string, std::shared_ptr<Material>>>();
 }
 
 ManagedLibrary::ManagedLibrary(const std::string& libraryName, const QByteArray& icon, bool readOnly)
@@ -52,7 +55,10 @@ ManagedLibrary::ManagedLibrary(const std::string& libraryName, const QByteArray&
     , _disabled(false)
     , _local(false)
     , _module(false)
-{}
+{
+    _modelPathMap = std::make_shared<std::map<std::string, std::shared_ptr<Model>>>();
+    _materialPathMap = std::make_shared<std::map<std::string, std::shared_ptr<Material>>>();
+}
 
 ManagedLibrary::ManagedLibrary(
     const std::string& libraryName,
@@ -69,6 +75,9 @@ ManagedLibrary::ManagedLibrary(
     , _module(false)
 {
     setIcon(iconPath);
+
+    _modelPathMap = std::make_shared<std::map<std::string, std::shared_ptr<Model>>>();
+    _materialPathMap = std::make_shared<std::map<std::string, std::shared_ptr<Material>>>();
 }
 
 QByteArray ManagedLibrary::getIcon(const std::string& iconPath)

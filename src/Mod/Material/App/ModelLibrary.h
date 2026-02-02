@@ -113,7 +113,7 @@ private:
 
     friend class LibraryManager;
 
-    std::shared_ptr<std::map<std::string, std::shared_ptr<Model>>> _modelPathMap;
+    // std::shared_ptr<std::map<std::string, std::shared_ptr<Model>>> _modelPathMap;
 };
 
 }  // namespace Materials
