@@ -167,7 +167,7 @@ void DlgInspectModels::addModel(QTreeView* tree, QStandardItemModel* parent, con
         addExpanded(tree, parent, inherits);
         indent();
         for (auto const& uuid : model.getInheritance()) {
-            auto superModel = Materials::ModelManager::getManager().getModel(uuid);
+            auto superModel = Materials::ModelManager::getManager().getModel(uuid.toStdString());
             item = clipItem(uuid + QStringLiteral(": ") + superModel->getName());
             addExpanded(tree, inherits, item);
         }
@@ -232,7 +232,7 @@ void DlgInspectModels::addPropertyDetails(
     text = clipItem(tr("Inheritance: ") + property.getInheritance());
     addExpanded(tree, parent, text);
     if (!uuid.isEmpty()) {
-        auto model = Materials::ModelManager::getManager().getModel(uuid);
+        auto model = Materials::ModelManager::getManager().getModel(uuid.toStdString());
         text = clipItem(QStringLiteral("- ") + model->getName());
         addExpanded(tree, parent, text);
     }

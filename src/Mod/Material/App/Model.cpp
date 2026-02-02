@@ -301,7 +301,7 @@ void Model::saveInherits(QTextStream& stream) const
     if (!_inheritedUuids.empty()) {
         stream << "Inherits:\n";
         for (auto const& uuid : _inheritedUuids) {
-            auto model = ModelManager::getManager().getModel(uuid);
+            auto model = ModelManager::getManager().getModel(uuid.toStdString());
             stream << "  - " << model->getName() << ":\n";
             stream << "    UUID: \"" << uuid << "\"\n";
         }

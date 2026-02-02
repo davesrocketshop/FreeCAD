@@ -244,7 +244,7 @@ void ModelSelect::addModels(
             QString uuid = QString::fromStdString(nodePtr->getUUID());
             auto model = nodePtr->getData();
             if (!model) {
-                model = Materials::ModelManager::getManager().getModel(uuid);
+                model = Materials::ModelManager::getManager().getModel(uuid.toStdString());
                 nodePtr->setData(model);
             }
 
@@ -270,7 +270,7 @@ void ModelSelect::addRecents(QStandardItem* parent)
     auto tree = ui->treeModels;
     for (auto& uuid : _recents) {
         try {
-            auto model = Materials::ModelManager::getManager().getModel(uuid);
+            auto model = Materials::ModelManager::getManager().getModel(uuid.toStdString());
 
             if (Materials::ModelManager::getManager().passFilter(_filter, model->getType())) {
                 auto icon = MaterialsEditor::getIcon(model->getLibrary());
@@ -292,7 +292,7 @@ void ModelSelect::addFavorites(QStandardItem* parent)
     auto tree = ui->treeModels;
     for (auto& uuid : _favorites) {
         try {
-            auto model = Materials::ModelManager::getManager().getModel(uuid);
+            auto model = Materials::ModelManager::getManager().getModel(uuid.toStdString());
 
             if (Materials::ModelManager::getManager().passFilter(_filter, model->getType())) {
                 auto icon = MaterialsEditor::getIcon(model->getLibrary());
@@ -431,7 +431,7 @@ void ModelSelect::updateModelProperties(std::shared_ptr<Materials::Model> model)
 
 void ModelSelect::updateMaterialModel(const QString& uuid)
 {
-    auto model = Materials::ModelManager::getManager().getModel(uuid);
+    auto model = Materials::ModelManager::getManager().getModel(uuid.toStdString());
 
     // Update the general information
     ui->editName->setText(model->getName());

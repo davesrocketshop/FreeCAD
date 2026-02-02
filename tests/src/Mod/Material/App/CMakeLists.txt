@@ -10,6 +10,7 @@ add_executable(Material_tests_run
         TestMaterials.cpp
         TestMaterialValue.cpp
         TestModel.cpp
+        TestModelManager.cpp
         TestModelProperties.cpp
 )
 

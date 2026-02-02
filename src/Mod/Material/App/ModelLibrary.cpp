@@ -67,13 +67,13 @@ ModelLibrary::getModelTree(ModelFilter filter) const
     std::shared_ptr<std::map<std::string, std::shared_ptr<ModelTreeNode>>> modelTree =
         std::make_shared<std::map<std::string, std::shared_ptr<ModelTreeNode>>>();
 
-    auto models = ModelManager::getManager().libraryModels(QString::fromStdString(getName()));
+    auto models = ModelManager::getManager().libraryModels(getName());
     for (auto& it : *models) {
         auto uuid = it.getUUID();
         auto path = it.getPath();
         auto filename = it.getName();
 
-        auto model = ModelManager::getManager().getModel(QString::fromStdString(getName()), QString::fromStdString(uuid));
+        auto model = ModelManager::getManager().getModel(getName(), uuid);
         if (ModelManager::passFilter(filter, model->getType())) {
             QStringList list = QString::fromStdString(path).split(QLatin1Char('/'));
 

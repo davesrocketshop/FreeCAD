@@ -59,13 +59,13 @@ public:
     void setUseExternal(bool useExternal);
     std::shared_ptr<std::vector<std::shared_ptr<ModelLibrary>>> getLibraries(bool includeDisabled = false);
     std::shared_ptr<std::vector<std::shared_ptr<ModelLibrary>>> getLocalLibraries(bool includeDisabled = false);
-    std::shared_ptr<ModelLibrary> getLibrary(const QString& name) const;
-    void renameLibrary(const QString& libraryName, const QString& newName);
-    void changeIcon(const QString& libraryName, const QString& icon);
-    void removeLibrary(const QString& libraryName);
+    std::shared_ptr<ModelLibrary> getLibrary(const std::string& name) const;
+    void renameLibrary(const std::string& libraryName, const std::string& newName);
+    void changeIcon(const std::string& libraryName, const std::string& icon);
+    void removeLibrary(const std::string& libraryName);
     std::shared_ptr<std::vector<LibraryObject>>
-    libraryModels(const QString& libraryName);
-    bool isLocalLibrary(const QString& libraryName);
+    libraryModels(const std::string& libraryName);
+    bool isLocalLibrary(const std::string& libraryName);
 
     // Folder management
 
@@ -77,17 +77,17 @@ public:
     }
 
     // Model management
-    std::shared_ptr<std::map<QString, std::shared_ptr<Model>>> getModels();
-    std::shared_ptr<std::map<QString, std::shared_ptr<Model>>> getLocalModels();
-    std::shared_ptr<Model> getModel(const QString& uuid) const;
-    std::shared_ptr<Model> getModel(const QString& libraryName, const QString& uuid) const;
-    std::shared_ptr<Model> getModelByPath(const QString& path) const;
-    std::shared_ptr<Model> getModelByPath(const QString& path, const QString& lib) const;
+    std::shared_ptr<std::map<std::string, std::shared_ptr<Model>>> getModels();
+    std::shared_ptr<std::map<std::string, std::shared_ptr<Model>>> getLocalModels();
+    std::shared_ptr<Model> getModel(const std::string& uuid) const;
+    std::shared_ptr<Model> getModel(const std::string& libraryName, const std::string& uuid) const;
+    std::shared_ptr<Model> getModelByPath(const std::string& path) const;
+    std::shared_ptr<Model> getModelByPath(const std::string& path, const std::string& lib) const;
 
     static void dereference(Model& model);
     static void dereference(const std::shared_ptr<Model>& model);
 
-    static bool isModel(const QString& file);
+    static bool isModel(const std::string& file);
     static bool passFilter(ModelFilter filter, Model::ModelType modelType);
 
     /// Observer message from the ParameterGrp

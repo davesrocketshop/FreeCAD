@@ -330,7 +330,7 @@ void MaterialPropertiesWidget::updateMaterialAppearance()
             for (auto it = models->begin(); it != models->end(); it++) {
                 QString uuid = *it;
                 try {
-                    auto model = Materials::ModelManager::getManager().getModel(uuid);
+                    auto model = Materials::ModelManager::getManager().getModel(uuid.toStdString());
                     QString name = model->getName();
 
                     auto modelRoot = new QStandardItem(name);
@@ -401,7 +401,7 @@ void MaterialPropertiesWidget::updateMaterialProperties()
             for (auto it = models->begin(); it != models->end(); it++) {
                 QString uuid = *it;
                 try {
-                    auto model = Materials::ModelManager::getManager().getModel(uuid);
+                    auto model = Materials::ModelManager::getManager().getModel(uuid.toStdString());
                     QString name = model->getName();
 
                     auto modelRoot = new QStandardItem(name);

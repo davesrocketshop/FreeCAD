@@ -640,7 +640,7 @@ void Material::addModel(const QString& uuid)
     auto& manager = ModelManager::getManager();
 
     try {
-        auto model = manager.getModel(uuid);
+        auto model = manager.getModel(uuid.toStdString());
         auto inheritance = model->getInheritance();
         for (auto& inherits : inheritance) {
             addModel(inherits);
@@ -758,7 +758,7 @@ void Material::addPhysical(const QString& uuid)
     auto& manager = ModelManager::getManager();
 
     try {
-        auto model = manager.getModel(uuid);
+        auto model = manager.getModel(uuid.toStdString());
 
         auto& inheritance = model->getInheritance();
         for (auto& it : inheritance) {
@@ -805,7 +805,7 @@ void Material::removePhysical(const QString& uuid)
     auto& manager = ModelManager::getManager();
 
     try {
-        auto model = manager.getModel(uuid);
+        auto model = manager.getModel(uuid.toStdString());
 
         auto& inheritance = model->getInheritance();
         for (auto& it : inheritance) {
@@ -835,7 +835,7 @@ void Material::addAppearance(const QString& uuid)
     auto& manager = ModelManager::getManager();
 
     try {
-        auto model = manager.getModel(uuid);
+        auto model = manager.getModel(uuid.toStdString());
 
         auto& inheritance = model->getInheritance();
         for (auto& it : inheritance) {
@@ -876,7 +876,7 @@ void Material::removeAppearance(const QString& uuid)
     auto& manager = ModelManager::getManager();
 
     try {
-        auto model = manager.getModel(uuid);
+        auto model = manager.getModel(uuid.toStdString());
 
         auto& inheritance = model->getInheritance();
         for (auto& it : inheritance) {
@@ -1274,7 +1274,7 @@ bool Material::hasPhysicalModel(const QString& uuid) const
     auto& manager = ModelManager::getManager();
 
     try {
-        auto model = manager.getModel(uuid);
+        auto model = manager.getModel(uuid.toStdString());
         if (model->getType() == Model::ModelType_Physical) {
             return true;
         }
@@ -1294,7 +1294,7 @@ bool Material::hasAppearanceModel(const QString& uuid) const
     auto& manager = ModelManager::getManager();
 
     try {
-        auto model = manager.getModel(uuid);
+        auto model = manager.getModel(uuid.toStdString());
         if (model->getType() == Model::ModelType_Appearance) {
             return true;
         }
@@ -1314,7 +1314,7 @@ bool Material::isPhysicalModelComplete(const QString& uuid) const
     auto& manager = ModelManager::getManager();
 
     try {
-        auto model = manager.getModel(uuid);
+        auto model = manager.getModel(uuid.toStdString());
         for (auto& it : *model) {
             QString propertyName = it.first;
             auto property = getPhysicalProperty(propertyName);
@@ -1340,7 +1340,7 @@ bool Material::isAppearanceModelComplete(const QString& uuid) const
     auto& manager = ModelManager::getManager();
 
     try {
-        auto model = manager.getModel(uuid);
+        auto model = manager.getModel(uuid.toStdString());
         for (auto& it : *model) {
             QString propertyName = it.first;
             auto property = getAppearanceProperty(propertyName);
@@ -1464,7 +1464,7 @@ void Material::saveModels(QTextStream& stream, bool saveInherited) const
 
     bool headerPrinted = false;
     for (auto& itm : _physicalUuids) {
-        auto model = modelManager.getModel(itm);
+        auto model = modelManager.getModel(itm.toStdString());
         if (!inherited || modelChanged(*parent, *model)) {
             if (!headerPrinted) {
                 stream << "Models:\n";
@@ -1518,7 +1518,7 @@ void Material::saveAppearanceModels(QTextStream& stream, bool saveInherited) con
 
     bool headerPrinted = false;
     for (auto& itm : _appearanceUuids) {
-        auto model = modelManager.getModel(itm);
+        auto model = modelManager.getModel(itm.toStdString());
         if (!inherited || modelAppearanceChanged(*parent, *model)) {
             if (!headerPrinted) {
                 stream << "AppearanceModels:\n";
@@ -1559,7 +1559,7 @@ QString Material::getModelByName(const QString& name) const
 
     for (auto& it : _allUuids) {
         try {
-            auto model = manager.getModel(it);
+            auto model = manager.getModel(it.toStdString());
             if (model->getName() == name) {
                 return it;
             }
@@ -1710,12 +1710,12 @@ QStringList Material::normalizeModels(const QStringList& models)
     auto& manager = ModelManager::getManager();
 
     for (auto& uuid : models) {
-        auto model = manager.getModel(uuid);
+        auto model = manager.getModel(uuid.toStdString());
 
         bool found = false;
         for (auto& childUuid : models) {
             if (uuid != childUuid) {
-                auto childModel = manager.getModel(childUuid);
+                auto childModel = manager.getModel(childUuid.toStdString());
                 if (childModel->inherits(childUuid)) {
                     // We're an inherited model
                     found = true;

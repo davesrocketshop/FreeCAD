@@ -112,14 +112,14 @@ TEST_F(DISABLED_TestLibraries, TestDisabledModels)
     auto libraries = _modelManager->getLibraries();
     ASSERT_EQ(libraries->size(), 0);
 
-    auto library = _modelManager->getLibrary(QStringLiteral("System"));
+    auto library = _modelManager->getLibrary("System");
     EXPECT_NE(&library, nullptr);
     ASSERT_EQ(library->getName(), "System");
     ASSERT_TRUE(library->isDisabled());
-    auto objects = _modelManager->libraryModels(QString::fromStdString(library->getName()));
+    auto objects = _modelManager->libraryModels(library->getName());
     ASSERT_GT(objects->size(), 0);
     for (auto modelObject : *objects) {
-        EXPECT_THROW(_modelManager->getModel(QString::fromStdString(modelObject.getUUID())), Materials::ModelNotFound);
+        EXPECT_THROW(_modelManager->getModel(modelObject.getUUID()), Materials::ModelNotFound);
         // auto model = _modelManager->getModel(modelObject.getUUID());
         // ASSERT_TRUE(model->isDisabled());
     }
@@ -129,7 +129,7 @@ TEST_F(DISABLED_TestLibraries, TestDisabledModels)
 
     _materialManager->setDisabled(*library, false);
     ASSERT_FALSE(library->isDisabled()); // Since this is a shared pointer
-    library = _modelManager->getLibrary(QStringLiteral("System"));
+    library = _modelManager->getLibrary("System");
     ASSERT_FALSE(library->isDisabled());
 
     libraries = _modelManager->getLibraries();
@@ -144,7 +144,7 @@ TEST_F(DISABLED_TestLibraries, TestDisabledModels)
 
     _materialManager->setDisabled(*library, true);
     ASSERT_TRUE(library->isDisabled()); // Since this is a shared pointer
-    library = _modelManager->getLibrary(QStringLiteral("System"));
+    library = _modelManager->getLibrary("System");
     ASSERT_TRUE(library->isDisabled());
 
     libraries = _modelManager->getLibraries();

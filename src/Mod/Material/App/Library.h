@@ -58,6 +58,19 @@ public:
     bool isModule() const;
     void setModule(bool module);
 
+    std::string getRepositoryName() const
+    {
+        return _managedLibrary->getRepositoryName();
+    }
+    void setRepositoryName(const std::string& newName)
+    {
+        _managedLibrary->setRepositoryName(newName);
+    }
+    bool isRepositoryName(const std::string& name) const
+    {
+        return _managedLibrary->isRepositoryName(name);
+    }
+
     std::string getName() const
     {
         return _managedLibrary->getLibraryName();

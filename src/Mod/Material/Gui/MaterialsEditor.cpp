@@ -702,7 +702,7 @@ void MaterialsEditor::onAppearanceAdd()
     if (dialog.exec() == QDialog::Accepted) {
         QString selected = dialog.selectedModel();
         _material->addAppearance(selected);
-        auto model = Materials::ModelManager::getManager().getModel(selected);
+        auto model = Materials::ModelManager::getManager().getModel(selected.toStdString());
         if (selected == Materials::ModelUUIDs::ModelUUID_Rendering_Basic
             || model->inherits(Materials::ModelUUIDs::ModelUUID_Rendering_Basic)) {
             // Add default appearance properties
