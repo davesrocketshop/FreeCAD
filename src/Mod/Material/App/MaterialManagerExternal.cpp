@@ -72,9 +72,9 @@ void MaterialManagerExternal::refresh()
 //
 //=====
 
-std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>> MaterialManagerExternal::getLibraries()
+std::shared_ptr<std::vector<std::shared_ptr<MaterialLibrary>>> MaterialManagerExternal::getLibraries()
 {
-    auto libraryList = std::make_shared<std::list<std::shared_ptr<MaterialLibrary>>>();
+    auto libraryList = std::make_shared<std::vector<std::shared_ptr<MaterialLibrary>>>();
     try {
         auto externalLibraries = ExternalManager::getManager()->libraries();
         for (auto& entry : *externalLibraries) {
@@ -90,10 +90,10 @@ std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>> MaterialManagerExte
     return libraryList;
 }
 
-std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>>
+std::shared_ptr<std::vector<std::shared_ptr<MaterialLibrary>>>
 MaterialManagerExternal::getMaterialLibraries()
 {
-    auto libraryList = std::make_shared<std::list<std::shared_ptr<MaterialLibrary>>>();
+    auto libraryList = std::make_shared<std::vector<std::shared_ptr<MaterialLibrary>>>();
     try {
         auto externalLibraries = ExternalManager::getManager()->materialLibraries();
         for (auto& entry : *externalLibraries) {

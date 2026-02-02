@@ -86,10 +86,12 @@ void LibraryManager::initManagers()
 
     auto configured = getConfiguredLibraries(true); // Include disabled
 #if defined(BUILD_MATERIAL_EXTERNAL)
-    auto externalList = externalManager()->libraries();
-    // External libraries have priority so are added first
-    for (auto library : *externalList) {
-        _libraryList->push_back(library);
+    if (_useExternal) {
+        auto externalList = externalManager()->libraries();
+        // External libraries have priority so are added first
+        for (auto library : *externalList) {
+            _libraryList->push_back(library);
+        }
     }
 #endif
     for (auto library : *configured) {
@@ -254,23 +256,21 @@ std::shared_ptr<ManagedLibrary> LibraryManager::getLibrary(
 
 std::shared_ptr<ModelLibrary> LibraryManager::getModelLibrary(const QString& repositoryName, const QString& name) const
 {
-    if (auto search = _libraryMap->find(name); search != _libraryMap->end()) {
-        auto library = search->second;
-        if (library->isRemote() || !library->getModelDirectory().isEmpty()) {
-            return std::make_shared<ModelLibrary>(library);
-        }
+    auto library = getLibrary(repositoryName, name);
+    if (library->isRemote() || !library->getModelDirectory().isEmpty()) {
+        return std::make_shared<ModelLibrary>(library);
     }
+
     throw LibraryNotFound();
 }
 
 std::shared_ptr<MaterialLibrary> LibraryManager::getMaterialLibrary(const QString& repositoryName, const QString& name) const
 {
-    if (auto search = _libraryMap->find(name); search != _libraryMap->end()) {
-        auto library = search->second;
-        if (!library->getMaterialDirectory().isEmpty()) {
-            return std::make_shared<MaterialLibrary>(library);
-        }
+    auto library = getLibrary(repositoryName, name);
+    if (!library->getMaterialDirectory().isEmpty()) {
+        return std::make_shared<MaterialLibrary>(library);
     }
+
     throw LibraryNotFound();
 }
 
@@ -311,7 +311,8 @@ std::shared_ptr<MaterialLibrary> LibraryManager::createLocalLibrary(
 
     auto path = Library::cleanPath(materialDirectory);
     auto library = std::make_shared<MaterialLibraryLocal>(libraryName, path, iconPath, readOnly);
-    _libraryList->push_back(library->proxy());
+    auto modelPath = Library::cleanPath(modelDirectory);
+    library->proxy()->setModelDirectory(modelPath);
 
     // Persist
     std::string libRoot = getResourceRootLocal();
@@ -320,11 +321,14 @@ std::shared_ptr<MaterialLibrary> LibraryManager::createLocalLibrary(
     auto newParam = App::GetApplication().GetParameterGroupByPath(libRoot.c_str());
     newParam->SetASCII("Directory", path.toStdString().c_str());
     if (!modelDirectory.isEmpty()) {
-        newParam->SetASCII("ModelDirectory", Library::cleanPath(modelDirectory).toStdString().c_str());
+        newParam->SetASCII("ModelDirectory", modelPath.toStdString().c_str());
     }
     newParam->SetASCII("IconPath", iconPath.toStdString().c_str());
     newParam->SetBool("ReadOnly", readOnly);
     newParam->SetBool("Disabled", false);
+
+    _libraryList->push_back(library->proxy());
+    _manager->updateLibraryMap();
 
     return library;
 }
@@ -584,6 +588,7 @@ std::shared_ptr<std::vector<std::shared_ptr<ManagedLibrary>>> LibraryManager::ge
     for (auto& group : localParam->GetGroups()) {
         auto libName = QString::fromStdString(group->GetGroupName());
         auto libDir = QString::fromStdString(group->GetASCII("Directory", ""));
+        auto libModels = QString::fromStdString(group->GetASCII("ModelDirectory", ""));
         auto libIcon = QString::fromStdString(group->GetASCII("IconPath", ""));
         auto libReadOnly = group->GetBool("ReadOnly", true);
         auto libDisabled = group->GetBool("Disabled", false);
@@ -601,6 +606,7 @@ std::shared_ptr<std::vector<std::shared_ptr<ManagedLibrary>>> LibraryManager::ge
                     );
                     libData->setLocal(true);
                     libData->setDisabled(libDisabled);
+                    libData->setModelDirectory(libModels);
                     libraryList->push_back(libData);
                 }
             }
@@ -617,6 +623,7 @@ std::shared_ptr<std::vector<std::shared_ptr<ManagedLibrary>>> LibraryManager::ge
     for (auto& group : moduleParam->GetGroups()) {
         auto moduleName = QString::fromStdString(group->GetGroupName());
         auto materialDir = QString::fromStdString(Library::cleanPath(group->GetASCII("ModuleDir", "")));
+        auto moduleDir = QString::fromStdString(group->GetASCII("ModuleModelDir", ""));
         auto materialIcon = QString::fromStdString(group->GetASCII("ModuleIcon", ""));
         auto materialReadOnly = group->GetBool("ModuleReadOnly", true);
         auto materialDisabled = group->GetBool("ModuleMaterialDisabled", false);
@@ -634,6 +641,7 @@ std::shared_ptr<std::vector<std::shared_ptr<ManagedLibrary>>> LibraryManager::ge
                     libData->setLocal(true);
                     libData->setModule(true);
                     libData->setDisabled(materialDisabled);
+                    libData->setModelDirectory(moduleDir);
                     libraryList->push_back(libData);
                 }
             }

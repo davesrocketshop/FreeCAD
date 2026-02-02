@@ -228,9 +228,9 @@ ExternalManager::libraryFromObject(const Py::Object& entry)
     bool readOnly = pyReadOnly.as_bool();
 
     // Library should already exist
-    ManagedLibrary library = nullptr;
+    std::shared_ptr<ManagedLibrary> library;
     try {
-        library = LibraryManager::getLibrary("Remote", libraryName);
+        library = LibraryManager::getManager().getLibrary("Remote", libraryName);
     }
     catch (const LibraryNotFound&) {
         library = std::make_shared<ManagedLibrary>(libraryName, icon, readOnly);

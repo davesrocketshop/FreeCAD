@@ -64,8 +64,8 @@ public:
     static const int DEFAULT_CACHE_SIZE = 100;
 
     // Library management
-    std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>> getLibraries();
-    std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>> getMaterialLibraries();
+    std::shared_ptr<std::vector<std::shared_ptr<MaterialLibrary>>> getLibraries();
+    std::shared_ptr<std::vector<std::shared_ptr<MaterialLibrary>>> getMaterialLibraries();
     std::shared_ptr<MaterialLibrary> getLibrary(const QString& name) const;
     std::shared_ptr<MaterialLibrary> createLibrary(const QString& libraryName,
                        const QByteArray& icon,
