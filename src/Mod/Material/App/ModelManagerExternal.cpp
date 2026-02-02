@@ -91,7 +91,7 @@ std::shared_ptr<std::list<std::shared_ptr<ModelLibrary>>> ModelManagerExternal::
 std::shared_ptr<ModelLibrary> ModelManagerExternal::getLibrary(const QString& name) const
 {
     try {
-        auto lib = ExternalManager::getManager()->getLibrary(name);
+        auto lib = ExternalManager::getManager()->getLibrary(name.toStdString());
         auto library = std::make_shared<ModelLibrary>(lib);
         return library;
     }
@@ -110,13 +110,13 @@ void ModelManagerExternal::createLibrary(const QString& libraryName,
                                          const QByteArray& icon,
                                          bool readOnly)
 {
-    ExternalManager::getManager()->createLibrary(libraryName, icon, readOnly);
+    ExternalManager::getManager()->createLibrary(libraryName.toStdString(), icon, readOnly);
 }
 
 std::shared_ptr<std::vector<LibraryObject>>
 ModelManagerExternal::libraryModels(const QString& libraryName)
 {
-    return ExternalManager::getManager()->libraryModels(libraryName);
+    return ExternalManager::getManager()->libraryModels(libraryName.toStdString());
 }
 
 //=====
@@ -139,7 +139,7 @@ std::shared_ptr<Model> ModelManagerExternal::getModel(const QString& uuid)
     }
     try
     {
-        auto model = ExternalManager::getManager()->getModel(uuid);
+        auto model = ExternalManager::getManager()->getModel(uuid.toStdString());
         ModelManager::dereference(model);
         _cache.emplace(uuid.toStdString(), model);
         return model;
@@ -161,7 +161,7 @@ std::shared_ptr<std::map<QString, std::shared_ptr<Model>>> ModelManagerExternal:
     auto models = std::make_shared<std::map<QString, std::shared_ptr<Model>>>();
     auto libraries = ExternalManager::getManager()->modelLibraries();
     for (auto library : *libraries) {
-        auto libModels = ExternalManager::getManager()->libraryModels(QString::fromStdString(library->getName()));
+        auto libModels = ExternalManager::getManager()->libraryModels(library->getName());
         for (auto libObject : *libModels) {
             // This dereferences and places the model in the cache
             auto model = getModel(QString::fromStdString(libObject.getUUID()));
@@ -176,7 +176,7 @@ void ModelManagerExternal::addModel(const QString& libraryName,
                                     const Model& model)
 {
     _cache.erase(model.getUUID().toStdString());
-    ExternalManager::getManager()->addModel(libraryName, path, model);
+    ExternalManager::getManager()->addModel(libraryName.toStdString(), path.toStdString(), model);
 }
 
 void ModelManagerExternal::migrateModel(const QString& libraryName,
@@ -184,7 +184,7 @@ void ModelManagerExternal::migrateModel(const QString& libraryName,
                                     const Model& model)
 {
     _cache.erase(model.getUUID().toStdString());
-    ExternalManager::getManager()->migrateModel(libraryName, path, model);
+    ExternalManager::getManager()->migrateModel(libraryName.toStdString(), path.toStdString(), model);
 }
 
 //=====

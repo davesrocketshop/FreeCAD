@@ -51,6 +51,8 @@ protected:
 
     void SetUp() override {
         // Disable the external interface
+        // Using the MaterialManager functions will cause a boot strapping issue so
+        // this needs to access the configuration directly
         ParameterGrp::handle paramExternal = App::GetApplication().GetParameterGroupByPath(
             "User parameter:BaseApp/Preferences/Mod/Material/ExternalInterface"
         );
@@ -121,6 +123,12 @@ TEST_F(TestLibraryManager, TestCreation)
         ASSERT_TRUE(model);
         EXPECT_NO_THROW(material = _libraryManager->getMaterialLibrary("Local", "TestLibrary"));
         ASSERT_TRUE(material);
+        EXPECT_NO_THROW(_libraryManager->removeLibrary("Local", "TestLibrary"));
+        EXPECT_THROW(_libraryManager->getLibrary("Local", "TestLibrary"), Materials::LibraryNotFound);
+
+        // This should fail since the external interface is disabled
+        EXPECT_THROW(_libraryManager->createRemoteLibrary("Remote", "TestLibrary", "icon path", false), Materials::CreationError);
+
     }
 }
 
@@ -147,5 +155,48 @@ TEST_F(TestLibraryManager, TestRename)
         ASSERT_TRUE(model);
         EXPECT_NO_THROW(material = _libraryManager->getMaterialLibrary("Local", "TestRenamedLibrary"));
         ASSERT_TRUE(material);
+
+        EXPECT_NO_THROW(_libraryManager->removeLibrary("Local", "TestRenamedLibrary"));
+        EXPECT_THROW(_libraryManager->getLibrary("Local", "TestRenamedLibrary"), Materials::LibraryNotFound);
+    }
+}
+
+TEST_F(TestLibraryManager, TestChangeIcon)
+{
+    // TODO
+    QTemporaryDir dir;
+    if (dir.isValid()) {
+        auto path = dir.path().toStdString();
+        std::shared_ptr<Materials::MaterialLibrary> library;
+        std::shared_ptr<Materials::ManagedLibrary> managed;
+        std::shared_ptr<Materials::ModelLibrary> model;
+        std::shared_ptr<Materials::MaterialLibrary> material;
+        
+        EXPECT_NO_THROW(library = _libraryManager->createLocalLibrary("TestLibrary", path, path, "icon path", false));
+        ASSERT_TRUE(library);
+        auto icon = library->getIcon();
+        EXPECT_EQ(icon.size(), 0); // The icon doesn't exist
+
+        EXPECT_NO_THROW(_libraryManager->removeLibrary("Local", "TestLibrary"));
+        EXPECT_THROW(_libraryManager->getLibrary("Local", "TestLibrary"), Materials::LibraryNotFound);
+    }
+}
+
+TEST_F(TestLibraryManager, TestRemoveLibrary)
+{
+    QTemporaryDir dir;
+    if (dir.isValid()) {
+        auto path = dir.path().toStdString();
+        std::shared_ptr<Materials::MaterialLibrary> library;
+        std::shared_ptr<Materials::ManagedLibrary> managed;
+        std::shared_ptr<Materials::ModelLibrary> model;
+        std::shared_ptr<Materials::MaterialLibrary> material;
+        
+        EXPECT_NO_THROW(library = _libraryManager->createLocalLibrary("TestLibrary", path, path, "icon path", false));
+        ASSERT_TRUE(library);
+
+        EXPECT_THROW(_libraryManager->removeLibrary("Remote", "TestLibrary"), Materials::LibraryNotFound);
+        EXPECT_NO_THROW(_libraryManager->removeLibrary("Local", "TestLibrary"));
+        EXPECT_THROW(_libraryManager->getLibrary("Local", "TestLibrary"), Materials::LibraryNotFound);
     }
 }

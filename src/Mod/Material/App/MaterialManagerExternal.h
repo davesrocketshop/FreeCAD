@@ -120,7 +120,7 @@ public:
 private:
     static void initCache();
     std::shared_ptr<Material> materialNotFound(const QString& uuid) const;
-    QString stripFilename(const QString& path, const Material& material) const;
+    std::string stripFilename(const QString& path, const Material& material) const;
 
     static QMutex _mutex;
 

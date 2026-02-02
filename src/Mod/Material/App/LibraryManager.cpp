@@ -277,16 +277,21 @@ std::shared_ptr<MaterialLibrary> LibraryManager::getMaterialLibrary(
     throw LibraryNotFound();
 }
 
-void createRemoteLibrary(
-    const std::string& repositoryName,
-    const std::string& libraryName,
-    const std::string& iconPath,
-    bool readOnly
+void LibraryManager::createRemoteLibrary(
+    [[maybe_unused]] const std::string& repositoryName,
+    [[maybe_unused]] const std::string& libraryName,
+    [[maybe_unused]] const std::string& iconPath,
+    [[maybe_unused]] bool readOnly
 )
 {
 #if defined(BUILD_MATERIAL_EXTERNAL)
-    auto icon = Materials::ManagedLibrary::getIcon(iconPath);
-    ExternalManager::getManager()->createLibrary(QString::fromStdString(libraryName), icon, readOnly);
+    if (_useExternal) {
+        auto icon = Materials::ManagedLibrary::getIcon(iconPath);
+        externalManager()->createLibrary(libraryName, icon, readOnly);
+    }
+    else {
+        throw CreationError("External interface is not enabled");
+    }
 #else
     throw CreationError("External interface is not enabled");
 #endif
@@ -300,6 +305,12 @@ std::shared_ptr<MaterialLibrary> LibraryManager::createLocalLibrary(
     bool readOnly
 )
 {
+    try {
+        auto library = getLibrary("Local", libraryName);
+        throw CreationError("Library already exists");
+    }
+    catch (const LibraryNotFound) {}
+
     QDir dir;
     if (!dir.exists(QString::fromStdString(materialDirectory))) {
         if (!dir.mkpath(QString::fromStdString(materialDirectory))) {
@@ -355,6 +366,7 @@ void LibraryManager::renameLibrary(const std::string& repositoryName,const std::
     else {
         renameLibraryRemote(library, newName);
     }
+    
     library->setLibraryName(newName);
     updateLibraryMap();
 }
@@ -374,15 +386,21 @@ void LibraryManager::renameLibraryLocal(
         throw RenameError("Another library with that name already exists");
     }
     param->RenameGrp(library->getLibraryName().c_str(), newName.c_str());
+    if (param->HasGroup(library->getLibraryName().c_str())) {
+        throw RenameError("Old library exists after rename");
+    }
+    if (!param->HasGroup(newName.c_str())) {
+        throw RenameError("Renamed library missing after rename");
+    }
 }
 
 void LibraryManager::renameLibraryRemote(
-    const std::shared_ptr<ManagedLibrary>& library,
-    const std::string& newName
+    [[maybe_unused]] const std::shared_ptr<ManagedLibrary>& library,
+    [[maybe_unused]] const std::string& newName
 )
 {
 #if defined(BUILD_MATERIAL_EXTERNAL)
-    externalManager()->renameLibrary(QString::fromStdString(library->getLibraryName()), QString::fromStdString(newName));
+    externalManager()->renameLibrary(library->getLibraryName(), newName);
 #else
     throw RenameError("External interface is not enabled");
 #endif
@@ -423,13 +441,13 @@ void LibraryManager::changeIconLocal(
 }
 
 void LibraryManager::changeIconRemote(
-    const std::shared_ptr<ManagedLibrary>& library,
-    const std::string& iconPath
+    [[maybe_unused]] const std::shared_ptr<ManagedLibrary>& library,
+    [[maybe_unused]] const std::string& iconPath
 )
 {
 #if defined(BUILD_MATERIAL_EXTERNAL)
     auto icon = Materials::ManagedLibrary::getIcon(iconPath);
-    externalManager()->changeIcon(QString::fromStdString(library->getLibraryName()), icon);
+    externalManager()->changeIcon(library->getLibraryName(), icon);
 #else
     throw UpdateError("External interface is not enabled");
 #endif
@@ -470,10 +488,10 @@ void LibraryManager::removeLibraryLocal(const std::shared_ptr<ManagedLibrary>& l
     param->RemoveGrp(library->getLibraryName().c_str());
 }
 
-void LibraryManager::removeLibraryRemote(const std::shared_ptr<ManagedLibrary>& library)
+void LibraryManager::removeLibraryRemote([[maybe_unused]] const std::shared_ptr<ManagedLibrary>& library)
 {
 #if defined(BUILD_MATERIAL_EXTERNAL)
-    externalManager()->removeLibrary(QString::fromStdString(library->getLibraryName()));
+    externalManager()->removeLibrary(library->getLibraryName());
 #else
     throw DeleteError("External interface is not enabled");
 #endif
