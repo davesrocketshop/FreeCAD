@@ -47,9 +47,9 @@ using namespace Materials;
 
 MaterialEntry::MaterialEntry(
     const std::shared_ptr<MaterialLibraryLocal>& library,
-    const QString& modelName,
-    const QString& dir,
-    const QString& modelUuid
+    const std::string& modelName,
+    const std::string& dir,
+    const std::string& modelUuid
 )
     : _library(library)
     , _name(modelName)
@@ -59,25 +59,25 @@ MaterialEntry::MaterialEntry(
 
 MaterialYamlEntry::MaterialYamlEntry(
     const std::shared_ptr<MaterialLibraryLocal>& library,
-    const QString& modelName,
-    const QString& dir,
-    const QString& modelUuid,
+    const std::string& modelName,
+    const std::string& dir,
+    const std::string& modelUuid,
     const YAML::Node& modelData
 )
     : MaterialEntry(library, modelName, dir, modelUuid)
     , _model(modelData)
 {}
 
-QString MaterialYamlEntry::yamlValue(
+std::string MaterialYamlEntry::yamlValue(
     const YAML::Node& node,
     const std::string& key,
     const std::string& defaultValue
 )
 {
     if (node[key]) {
-        return QString::fromStdString(node[key].as<std::string>());
+        return node[key].as<std::string>();
     }
-    return QString::fromStdString(defaultValue);
+    return defaultValue;
 }
 
 std::shared_ptr<QList<QVariant>> MaterialYamlEntry::readList(const YAML::Node& node, bool isImageList)
@@ -170,31 +170,36 @@ std::shared_ptr<Array3D> MaterialYamlEntry::read3DArray(const YAML::Node& node, 
 }
 
 void MaterialYamlEntry::addToTree(
-    std::shared_ptr<std::map<QString, std::shared_ptr<Material>>> materialMap
+    std::shared_ptr<std::map<std::string, std::shared_ptr<Material>>> materialMap
 )
 {
-    std::set<QString> exclude;
-    exclude.insert(QStringLiteral("General"));
-    exclude.insert(QStringLiteral("Inherits"));
+    std::set<std::string> exclude;
+    exclude.insert("General");
+    exclude.insert("Inherits");
 
     auto yamlModel = getModel();
     auto library = getLibrary();
     auto name = getName();
     auto directory = getDirectory();
-    QString uuid = getUUID();
+    std::string uuid = getUUID();
 
-    QString author = yamlValue(yamlModel["General"], "Author", "");
-    QString license = yamlValue(yamlModel["General"], "License", "");
-    QString description = yamlValue(yamlModel["General"], "Description", "");
-    QString sourceReference = yamlValue(yamlModel["General"], "ReferenceSource", "");
-    QString sourceURL = yamlValue(yamlModel["General"], "SourceURL", "");
+    std::string author = yamlValue(yamlModel["General"], "Author", "");
+    std::string license = yamlValue(yamlModel["General"], "License", "");
+    std::string description = yamlValue(yamlModel["General"], "Description", "");
+    std::string sourceReference = yamlValue(yamlModel["General"], "ReferenceSource", "");
+    std::string sourceURL = yamlValue(yamlModel["General"], "SourceURL", "");
 
-    std::shared_ptr<Material> finalModel = std::make_shared<Material>(library, directory, uuid, name);
-    finalModel->setAuthor(author);
-    finalModel->setLicense(license);
-    finalModel->setDescription(description);
-    finalModel->setReference(sourceReference);
-    finalModel->setURL(sourceURL);
+    std::shared_ptr<Material> finalModel = std::make_shared<Material>(
+        library,
+        QString::fromStdString(directory),
+        QString::fromStdString(uuid),
+        QString::fromStdString(name)
+    );
+    finalModel->setAuthor(QString::fromStdString(author));
+    finalModel->setLicense(QString::fromStdString(license));
+    finalModel->setDescription(QString::fromStdString(description));
+    finalModel->setReference(QString::fromStdString(sourceReference));
+    finalModel->setURL(QString::fromStdString(sourceURL));
 
     if (yamlModel["General"]["Tags"]) {
         auto tags = readList(yamlModel["General"]["Tags"]);
@@ -270,8 +275,8 @@ void MaterialYamlEntry::addToTree(
                                 Base::Console().log(
                                     "Units mismatch in material '%s':'%s' = '%s', "
                                     "setting to default property units '%s'\n",
-                                    name.toStdString().c_str(),
-                                    propertyName,
+                                    name.c_str(),
+                                    propertyName.c_str(),
                                     propertyValue.toStdString().c_str(),
                                     prop->getUnits().toStdString().c_str()
                                 );
@@ -287,7 +292,7 @@ void MaterialYamlEntry::addToTree(
                         Base::Console().log(
                             "Exception %s <%s:%s> - ignored\n",
                             e.what(),
-                            name.toStdString().c_str(),
+                            name.c_str(),
                             propertyName.c_str()
                         );
                     }
@@ -357,7 +362,7 @@ void MaterialYamlEntry::addToTree(
                         Base::Console().log(
                             "Exception %s <%s:%s> - ignored\n",
                             e.what(),
-                            name.toStdString().c_str(),
+                            name.c_str(),
                             propertyName.c_str()
                         );
                     }
@@ -372,17 +377,17 @@ void MaterialYamlEntry::addToTree(
         }
     }
 
-    QString path = QDir(directory).absolutePath();
+    QString path = QDir(QString::fromStdString(directory)).absolutePath();
     (*materialMap)[uuid] = library->addMaterial(finalModel, path.toStdString());
 }
 
 //===
 
-std::unique_ptr<std::map<QString, std::shared_ptr<MaterialEntry>>> MaterialLoader::_materialEntryMap
+std::unique_ptr<std::map<std::string, std::shared_ptr<MaterialEntry>>> MaterialLoader::_materialEntryMap
     = nullptr;
 
 MaterialLoader::MaterialLoader(
-    const std::shared_ptr<std::map<QString, std::shared_ptr<Material>>>& materialMap,
+    const std::shared_ptr<std::map<std::string, std::shared_ptr<Material>>>& materialMap,
     const std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>>& libraryList
 )
     : _materialMap(materialMap)
@@ -399,7 +404,7 @@ void MaterialLoader::addLibrary(const std::shared_ptr<MaterialLibraryLocal>& mod
 std::shared_ptr<MaterialEntry> MaterialLoader::getMaterialFromYAML(
     const std::shared_ptr<MaterialLibraryLocal>& library,
     YAML::Node& yamlroot,
-    const QString& path
+    const std::string& path
 )
 {
     std::shared_ptr<MaterialEntry> model = nullptr;
@@ -408,20 +413,20 @@ std::shared_ptr<MaterialEntry> MaterialLoader::getMaterialFromYAML(
         auto uuid = yamlroot["General"]["UUID"].as<std::string>();
 
         // Always get the name from the filename
-        QString clean = Library::cleanPath(path);
-        QFileInfo filepath(clean);
-        QString name = filepath.fileName().remove(QStringLiteral(".FCMat"), Qt::CaseInsensitive);
+        std::string clean = Library::cleanPath(path);
+        QFileInfo filepath(QString::fromStdString(clean));
+        std::string name = filepath.fileName().remove(QStringLiteral(".FCMat"), Qt::CaseInsensitive).toStdString();
 
         model = std::make_shared<MaterialYamlEntry>(
             library,
             name,
             clean,
-            QString::fromStdString(uuid),
+            uuid,
             yamlroot
         );
     }
     catch (YAML::Exception const& e) {
-        Base::Console().error("YAML parsing error: '%s'\n", path.toStdString().c_str());
+        Base::Console().error("YAML parsing error: '%s'\n", path.c_str());
         Base::Console().error("\t'%s'\n", e.what());
         showYaml(yamlroot);
     }
@@ -432,22 +437,22 @@ std::shared_ptr<MaterialEntry> MaterialLoader::getMaterialFromYAML(
 
 std::shared_ptr<MaterialEntry> MaterialLoader::getMaterialFromPath(
     const std::shared_ptr<MaterialLibraryLocal>& library,
-    const QString& path
+    const std::string& path
 ) const
 {
-    QString clean = Library::cleanPath(path);
+    std::string clean = Library::cleanPath(path);
     std::shared_ptr<MaterialEntry> model = nullptr;
     auto materialLibrary = reinterpret_cast<const std::shared_ptr<Materials::MaterialLibraryLocal>&>(
         library
     );
 
     // Used for debugging
-    std::string pathName = clean.toStdString();
+    std::string pathName = clean;
 
     if (MaterialConfigLoader::isConfigStyle(path)) {
         auto material = MaterialConfigLoader::getMaterialFromPath(materialLibrary, clean);
         if (material) {
-            (*_materialMap)[material->getUUID()] = materialLibrary->addMaterial(material, clean.toStdString());
+            (*_materialMap)[material->getUUID().toStdString()] = materialLibrary->addMaterial(material, clean);
         }
 
         // Return the nullptr as there are no intermediate steps to take, such
@@ -489,7 +494,7 @@ void MaterialLoader::showYaml(const YAML::Node& yaml)
 
 
 void MaterialLoader::dereference(
-    const std::shared_ptr<std::map<QString, std::shared_ptr<Material>>>& materialMap,
+    const std::shared_ptr<std::map<std::string, std::shared_ptr<Material>>>& materialMap,
     const std::shared_ptr<Material>& material
 )
 {
@@ -502,7 +507,7 @@ void MaterialLoader::dereference(
     if (parentUUID.size() > 0) {
         std::shared_ptr<Material> parent;
         try {
-            parent = materialMap->at(parentUUID);
+            parent = materialMap->at(parentUUID.toStdString());
         }
         catch (std::out_of_range&) {
             Base::Console().log(
@@ -565,7 +570,7 @@ void MaterialLoader::dereference(const std::shared_ptr<Material>& material)
 void MaterialLoader::loadLibrary(const std::shared_ptr<MaterialLibraryLocal>& library)
 {
     if (_materialEntryMap == nullptr) {
-        _materialEntryMap = std::make_unique<std::map<QString, std::shared_ptr<MaterialEntry>>>();
+        _materialEntryMap = std::make_unique<std::map<std::string, std::shared_ptr<MaterialEntry>>>();
     }
 
     QDirIterator it(QString::fromStdString(library->getDirectory()), QDirIterator::Subdirectories);
@@ -575,7 +580,7 @@ void MaterialLoader::loadLibrary(const std::shared_ptr<MaterialLibraryLocal>& li
         if (file.isFile()) {
             if (file.suffix().toStdString() == "FCMat") {
                 try {
-                    auto model = getMaterialFromPath(library, file.canonicalFilePath());
+                    auto model = getMaterialFromPath(library, file.canonicalFilePath().toStdString());
                     if (model) {
                         (*_materialEntryMap)[model->getUUID()] = model;
                     }
@@ -612,11 +617,11 @@ void MaterialLoader::loadLibraries(
     }
 }
 
-std::shared_ptr<std::list<QString>> MaterialLoader::getMaterialFolders(
+std::shared_ptr<std::list<std::string>> MaterialLoader::getMaterialFolders(
     const MaterialLibraryLocal& library
 )
 {
-    std::shared_ptr<std::list<QString>> pathList = std::make_shared<std::list<QString>>();
+    std::shared_ptr<std::list<std::string>> pathList = std::make_shared<std::list<std::string>>();
     QDirIterator it(QString::fromStdString(library.getDirectory()), QDirIterator::Subdirectories);
     while (it.hasNext()) {
         auto pathname = it.next();
@@ -624,7 +629,7 @@ std::shared_ptr<std::list<QString>> MaterialLoader::getMaterialFolders(
         if (file.isDir()) {
             QString path = QDir(QString::fromStdString(library.getDirectory())).relativeFilePath(file.absoluteFilePath());
             if (!path.startsWith(QStringLiteral("."))) {
-                pathList->push_back(path);
+                pathList->push_back(path.toStdString());
             }
         }
     }

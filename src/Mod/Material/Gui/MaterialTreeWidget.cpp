@@ -268,7 +268,7 @@ void MaterialTreeWidget::updateMaterial(const QString& uuid)
     // Fetch the material from the manager
     auto material = std::make_shared<Materials::Material>();
     try {
-        material = std::make_shared<Materials::Material>(*getMaterialManager().getMaterial(uuid));
+        material = std::make_shared<Materials::Material>(*getMaterialManager().getMaterial(uuid.toStdString()));
     }
     catch (Materials::MaterialNotFound const&) {
         Base::Console().log("*** Unable to load material '%s'\n", uuid.toStdString().c_str());
@@ -475,7 +475,7 @@ void MaterialTreeWidget::addRecent(const QString& uuid)
 {
     // Ensure it is a material. New, unsaved materials will not be
     try {
-        auto material = Materials::MaterialManager::getManager().getMaterial(uuid);
+        auto material = Materials::MaterialManager::getManager().getMaterial(uuid.toStdString());
         Q_UNUSED(material)
     }
     catch (const Materials::MaterialNotFound&) {
@@ -606,7 +606,7 @@ void MaterialTreeWidget::addRecents(QStandardItem* parent)
 {
     for (auto& uuid : _recents) {
         try {
-            auto material = getMaterialManager().getMaterial(uuid);
+            auto material = getMaterialManager().getMaterial(uuid.toStdString());
             auto icon = MaterialsEditor::getIcon(material->getLibrary());
             auto card = new QStandardItem(icon, material->getName());
             card->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
@@ -623,7 +623,7 @@ void MaterialTreeWidget::addFavorites(QStandardItem* parent)
 {
     for (auto& uuid : _favorites) {
         try {
-            auto material = getMaterialManager().getMaterial(uuid);
+            auto material = getMaterialManager().getMaterial(uuid.toStdString());
             auto icon = MaterialsEditor::getIcon(material->getLibrary());
             auto card = new QStandardItem(icon, material->getName());
             card->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
@@ -692,7 +692,7 @@ void MaterialTreeWidget::onSelectMaterial(const QItemSelection& selected,
     std::string _uuid = uuid.toStdString();
 
     if (!uuid.isEmpty()) {
-        Q_EMIT materialSelected(getMaterialManager().getMaterial(uuid));
+        Q_EMIT materialSelected(getMaterialManager().getMaterial(uuid.toStdString()));
         Q_EMIT onMaterial(uuid);
     }
 }

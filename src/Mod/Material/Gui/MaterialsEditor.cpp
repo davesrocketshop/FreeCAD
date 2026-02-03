@@ -453,7 +453,7 @@ void MaterialsEditor::addFavorite(const QString& uuid)
 {
     // Ensure it is a material. New, unsaved materials will not be
     try {
-        auto material = getMaterialManager().getMaterial(uuid);
+        auto material = getMaterialManager().getMaterial(uuid.toStdString());
         Q_UNUSED(material)
     }
     catch (const Materials::MaterialNotFound&) {
@@ -538,7 +538,7 @@ void MaterialsEditor::addRecent(const QString& uuid)
 {
     // Ensure it is a material. New, unsaved materials will not be
     try {
-        auto material = getMaterialManager().getMaterial(uuid);
+        auto material = getMaterialManager().getMaterial(uuid.toStdString());
         Q_UNUSED(material)
     }
     catch (const Materials::MaterialNotFound&) {
@@ -636,7 +636,8 @@ void MaterialsEditor::onTreeItemDropped(
 
     if ((action & Qt::MoveAction) || (*library == *destinationLibrary)) {
         Base::Console().log("Move\n");
-        getMaterialManager().move(destinationLibrary, destinationFolder, material);
+        getMaterialManager()
+            .move(destinationLibrary, destinationFolder.toStdString(), material);
         refreshMaterialTree();
     }
 }
@@ -940,10 +941,11 @@ void MaterialsEditor::saveMaterial()
                 auto uniqueName
                     = item->parent()->getUniqueName(_material->getName(), TreeFunctionMaterial);
                 if (ret == MaterialSave_New) {
-                    _material = getMaterialManager().copyNew(*_material, uniqueName);
+                    _material = getMaterialManager().copyNew(*_material, uniqueName.toStdString());
                 }
                 else {
-                    _material = getMaterialManager().copyInherited(*_material, uniqueName);
+                    _material
+                        = getMaterialManager().copyInherited(*_material, uniqueName.toStdString());
                 }
                 updateMaterial();
 
@@ -956,7 +958,7 @@ void MaterialsEditor::saveMaterial()
         QFileInfo filepath(_material->getDirectory() + QStringLiteral("/") + _material->getName() + QStringLiteral(".FCMat"));
         if (!library || library->isReadOnly()) {
             Base::Console().log("No library assigned\n");
-            library = getMaterialManager().getLibrary(QStringLiteral("User"));
+            library = getMaterialManager().getLibrary("User");
             filepath = QFileInfo(_material->getName() + QStringLiteral(".FCMat"));
         }
         Base::Console().log("Using library '%s'\n", library->getName().c_str());
@@ -964,7 +966,7 @@ void MaterialsEditor::saveMaterial()
         getMaterialManager().saveMaterial(
             _material->getLibrary(),
             _material,
-            filepath.filePath(),
+            filepath.filePath().toStdString(),
             overwrite,
             saveAsCopy,
             saveInherited
@@ -1156,7 +1158,7 @@ void MaterialsEditor::addRecents(MaterialTreeItem* parent)
     auto tree = ui->treeMaterials;
     for (auto& uuid : _recents) {
         try {
-            auto material = getMaterialManager().getMaterial(uuid);
+            auto material = getMaterialManager().getMaterial(uuid.toStdString());
             QIcon icon = getIcon(material->getLibrary());
             auto card = new MaterialTreeFavoriteItem(icon, material->getLibraryPath(), uuid);
 
@@ -1172,7 +1174,7 @@ void MaterialsEditor::addFavorites(MaterialTreeItem* parent)
     auto tree = ui->treeMaterials;
     for (auto& uuid : _favorites) {
         try {
-            auto material = getMaterialManager().getMaterial(uuid);
+            auto material = getMaterialManager().getMaterial(uuid.toStdString());
             QIcon icon = getIcon(material->getLibrary());
             auto card = new MaterialTreeFavoriteItem(icon, material->getLibraryPath(), uuid);
 
@@ -1339,7 +1341,9 @@ void MaterialsEditor::onSelectMaterial(const QItemSelection& selected,
     // Get the selected material
     try {
         if (!_material || _material->getUUID() != uuid) {
-            _material = std::make_shared<Materials::Material>(*getMaterialManager().getMaterial(uuid));
+            _material = std::make_shared<Materials::Material>(
+                *getMaterialManager().getMaterial(uuid.toStdString())
+            );
             setMaterialSelected(true);
             updateMaterial();
             _material->resetEditState();
@@ -1400,7 +1404,7 @@ std::shared_ptr<Materials::Material> MaterialsEditor::getItemAsMaterial(const Ma
     if (item && item->getItemFunction() == TreeFunctionMaterial) {
         auto material = static_cast<const MaterialTreeMaterialItem*>(item);
         auto uuid = material->getUUID();
-        return getMaterialManager().getMaterial(uuid);
+        return getMaterialManager().getMaterial(uuid.toStdString());
     }
     throw ActionError();
 }
@@ -1675,7 +1679,7 @@ void MaterialsEditor::folderContextMenu(QMenu& contextMenu)
     auto item = getActionItem();
     auto path = getPath(item, QString());
     auto libraryName = getLibraryName(item);
-    auto library = getMaterialManager().getLibrary(libraryName);
+    auto library = getMaterialManager().getLibrary(libraryName.toStdString());
     bool enabled = !library->isReadOnly();
 
     _actionNewMaterial.setEnabled(enabled);
@@ -1704,7 +1708,7 @@ void MaterialsEditor::materialContextMenu(QMenu& contextMenu)
 {
     auto item = getActionItem();
     auto libraryName = getLibraryName(item);
-    auto library = getMaterialManager().getLibrary(libraryName);
+    auto library = getMaterialManager().getLibrary(libraryName.toStdString());
     bool enabled = !library->isReadOnly();
 
     _actionNewMaterial.setEnabled(enabled);
@@ -1850,7 +1854,7 @@ void MaterialsEditor::onMenuDeleteLibrary(bool checked)
         if (ret == QMessageBox::Yes) {
             Gui::WaitCursor wc;
 
-            getMaterialManager().removeLibrary(QString::fromStdString(library->getName()));
+            getMaterialManager().removeLibrary(library->getName());
             getMaterialManager().refresh();
             refreshMaterialTree();
         }
@@ -1865,7 +1869,7 @@ void MaterialsEditor::onMenuNewFolder(bool checked)
     auto item = getActionItem();
     auto path = getPath(item, QString());
     auto libraryName = getLibraryName(item);
-    auto library = getMaterialManager().getLibrary(libraryName);
+    auto library = getMaterialManager().getLibrary(libraryName.toStdString());
     auto name = item->getUniqueName(tr("New Folder"), TreeFunctionFolder);
 
     Base::Console().log("path(%s)\n", path.toStdString().c_str());
@@ -1873,7 +1877,7 @@ void MaterialsEditor::onMenuNewFolder(bool checked)
 
     QIcon folderIcon(QStringLiteral(":/icons/folder.svg"));
 
-    getMaterialManager().createFolder(library, path + name);
+    getMaterialManager().createFolder(library, (path + name).toStdString());
 
     Qt::ItemFlags flags =
         (Qt::ItemIsEnabled | Qt::ItemIsEditable | Qt::ItemIsDropEnabled);
@@ -1897,7 +1901,7 @@ void MaterialsEditor::onMenuDeleteFolder(bool checked)
             path.toStdString().c_str(),
             libraryName.toStdString().c_str()
         );
-        auto library = getMaterialManager().getLibrary(libraryName);
+        auto library = getMaterialManager().getLibrary(libraryName.toStdString());
 
         if (item->hasChildren()) {
             int ret = QMessageBox::warning(
@@ -1914,7 +1918,7 @@ void MaterialsEditor::onMenuDeleteFolder(bool checked)
         }
 
         Gui::WaitCursor wc;
-        getMaterialManager().deleteRecursive(library, path);
+        getMaterialManager().deleteRecursive(library, path.toStdString());
         refreshMaterialTree();
     }
 }
@@ -1927,7 +1931,7 @@ void MaterialsEditor::onMenuNewMaterial(bool checked)
     auto item = getActionItem();
     auto path = getPath(item, QString());
     auto libraryName = getLibraryName(item);
-    auto library = getMaterialManager().getLibrary(libraryName);
+    auto library = getMaterialManager().getLibrary(libraryName.toStdString());
 
     Base::Console().log("path(%s)\n", path.toStdString().c_str());
     Base::Console().log("library(%s)\n", libraryName.toStdString().c_str());
@@ -1972,11 +1976,11 @@ void MaterialsEditor::onMenuInheritMaterial(bool checked)
 
     // Create a new material
     auto uniqueName = parent->getUniqueName(original->getName(), TreeFunctionMaterial);
-    _material = getMaterialManager().copyInherited(*original, uniqueName);
+    _material = getMaterialManager().copyInherited(*original, uniqueName.toStdString());
     _material->setEditStateNew();
 
     if (_material->getLibrary()->isReadOnly()) {
-        auto library = getMaterialManager().getLibrary(QStringLiteral("User"));
+        auto library = getMaterialManager().getLibrary("User");
         _material->setLibrary(library);
         _material->setDirectory(QStringLiteral(""));
         parent = getItemFromLibrary(*library);
@@ -2006,7 +2010,7 @@ void MaterialsEditor::onMenuDeleteMaterial(bool checked)
 
     auto original = getActionMaterial();
     auto uuid = original->getUUID();
-    getMaterialManager().remove(uuid);
+    getMaterialManager().remove(uuid.toStdString());
     if (_material->getUUID() == uuid) {
         // Only if the deleted material is the current material
         _material = std::make_shared<Materials::Material>();
@@ -2138,7 +2142,7 @@ void MaterialsEditor::renameLibrary(MaterialTreeItem* item)
         Base::Console().log("Library edited '%s'->'%s'\n",
                             originalName.toStdString().c_str(),
                             newName.toStdString().c_str());
-        getMaterialManager().renameLibrary(originalName, newName);
+        getMaterialManager().renameLibrary(originalName.toStdString(), newName.toStdString());
         item->setOriginalName(newName);
     }
 }
@@ -2152,7 +2156,7 @@ void MaterialsEditor::renameFolder(MaterialTreeItem* item)
     auto newPath = path + newName;
 
     auto libraryName = getLibraryName(item);
-    auto library = getMaterialManager().getLibrary(libraryName);
+    auto library = getMaterialManager().getLibrary(libraryName.toStdString());
 
     if (originalName != newName) {
         Base::Console().log("Folder edited '%s'->'%s'\n",
@@ -2161,7 +2165,7 @@ void MaterialsEditor::renameFolder(MaterialTreeItem* item)
         Base::Console().log("\t path '%s'->'%s'\n",
                             oldPath.toStdString().c_str(),
                             newPath.toStdString().c_str());
-        getMaterialManager().renameFolder(library, oldPath, newPath);
+        getMaterialManager().renameFolder(library, oldPath.toStdString(), newPath.toStdString());
         item->setOriginalName(newName);
 
         // Update the current material

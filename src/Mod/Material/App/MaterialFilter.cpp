@@ -111,7 +111,7 @@ bool MaterialFilter::modelIncluded(const Material& material) const
 bool MaterialFilter::modelIncluded(const QString& uuid) const
 {
     try {
-        auto material = MaterialManager::getManager().getMaterial(uuid);
+        auto material = MaterialManager::getManager().getMaterial(uuid.toStdString());
         return modelIncluded(*material);
     }
     catch (const MaterialNotFound&) {

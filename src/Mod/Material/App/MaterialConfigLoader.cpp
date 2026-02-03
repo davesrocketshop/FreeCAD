@@ -46,9 +46,9 @@
 
 using namespace Materials;
 
-bool MaterialConfigLoader::isConfigStyle(const QString& path)
+bool MaterialConfigLoader::isConfigStyle(const std::string& path)
 {
-    QSettings fcmat(path, QSettings::IniFormat);
+    QSettings fcmat(QString::fromStdString(path), QSettings::IniFormat);
 
     // No [sections] means not .ini
     if (fcmat.childGroups().empty()) {
@@ -56,7 +56,7 @@ bool MaterialConfigLoader::isConfigStyle(const QString& path)
     }
 
     // Sometimes arrays can create a false positive
-    QFile infile(path);
+    QFile infile(QString::fromStdString(path));
     if (infile.open(QIODevice::ReadOnly)) {
         QTextStream in(&infile);
 
@@ -75,10 +75,10 @@ bool MaterialConfigLoader::isConfigStyle(const QString& path)
     return true;
 }
 
-bool MaterialConfigLoader::readFile(const QString& path, QMap<QString, QString>& map)
+bool MaterialConfigLoader::readFile(const std::string& path, QMap<std::string, std::string>& map)
 {
     // This function is necessary as the built in routines don't always return the full value string
-    QFile infile(path);
+    QFile infile(QString::fromStdString(path));
     if (infile.open(QIODevice::ReadOnly)) {
         QTextStream in(&infile);
 #if QT_VERSION < QT_VERSION_CHECK(6,0,0)
@@ -109,7 +109,7 @@ bool MaterialConfigLoader::readFile(const QString& path, QMap<QString, QString>&
                 if (separator > 2) {
                     auto left = line.mid(0, separator - 1);
                     auto right = line.mid(separator + 2);
-                    map[prefix + left] = right;
+                    map[(prefix + left).toStdString()] = right.toStdString();
                 }
             }
         }
@@ -120,13 +120,13 @@ bool MaterialConfigLoader::readFile(const QString& path, QMap<QString, QString>&
     return false;
 }
 
-void MaterialConfigLoader::splitTexture(const QString& value, QString* texture, QString* remain)
+void MaterialConfigLoader::splitTexture(const std::string& value, std::string* texture, std::string* remain)
 {
     // Split Texture(...);(...) into its two pieces
-    if (value.contains(QLatin1Char(';'))) {
-        auto separator = value.indexOf(QLatin1Char(';'));
-        auto left = value.mid(0, separator);
-        auto right = value.mid(separator + 1);
+    auto separator = value.find(';');
+    if (separator != std::string::npos) {
+        auto left = value.substr(0, separator);
+        auto right = value.substr(separator + 1);
         if (isTexture(left)) {
             *texture = left;
             *remain = right;
@@ -146,22 +146,22 @@ void MaterialConfigLoader::splitTexture(const QString& value, QString* texture, 
     }
 }
 
-void MaterialConfigLoader::splitTextureObject(const QString& value,
-                                              QString* texture,
-                                              QString* remain,
-                                              QString* object)
+void MaterialConfigLoader::splitTextureObject(const std::string& value,
+                                              std::string* texture,
+                                              std::string* remain,
+                                              std::string* object)
 {
     splitTexture(value, texture, remain);
-    if (*remain == QStringLiteral("Object")) {
-        *remain = QString();  // Empty string
-        *object = QStringLiteral("true");
+    if (*remain == "Object") {
+        *remain = std::string();  // Empty string
+        *object = "true";
     }
 }
 
-QString MaterialConfigLoader::getAuthorAndLicense(const QString& path)
+std::string MaterialConfigLoader::getAuthorAndLicense(const std::string& path)
 {
-    std::ifstream infile(path.toStdString());
-    QString noAuthor;
+    std::ifstream infile(path);
+    std::string noAuthor;
 
     // Skip the first line
     std::string line;
@@ -175,26 +175,26 @@ QString MaterialConfigLoader::getAuthorAndLicense(const QString& path)
     }
     std::size_t found = line.find(';');
     if (found != std::string::npos) {
-        return QString::fromStdString(trim_copy(line.substr(found + 1)));
+        return trim_copy(line.substr(found + 1));
     }
 
     return noAuthor;
 }
 
-void MaterialConfigLoader::addVectorRendering(const QMap<QString, QString>& fcmat,
+void MaterialConfigLoader::addVectorRendering(const QMap<std::string, std::string>& fcmat,
                                               const std::shared_ptr<Material>& finalModel)
 {
-    QString sectionFillPattern = value(fcmat, "VectorRendering/SectionFillPattern", "");
-    QString sectionLinewidth = value(fcmat, "VectorRendering/SectionLinewidth", "");
-    QString sectionColor = value(fcmat, "VectorRendering/SectionColor", "");
-    QString viewColor = value(fcmat, "VectorRendering/ViewColor", "");
-    QString viewFillPattern = value(fcmat, "VectorRendering/ViewFillPattern", "");
-    QString viewLinewidth = value(fcmat, "VectorRendering/ViewLinewidth", "");
+    std::string sectionFillPattern = value(fcmat, "VectorRendering/SectionFillPattern", "");
+    std::string sectionLinewidth = value(fcmat, "VectorRendering/SectionLinewidth", "");
+    std::string sectionColor = value(fcmat, "VectorRendering/SectionColor", "");
+    std::string viewColor = value(fcmat, "VectorRendering/ViewColor", "");
+    std::string viewFillPattern = value(fcmat, "VectorRendering/ViewFillPattern", "");
+    std::string viewLinewidth = value(fcmat, "VectorRendering/ViewLinewidth", "");
 
     // Defined by the Render WB
-    QString aSection = value(fcmat, "Architectural/SectionColor", "");
+    std::string aSection = value(fcmat, "Architectural/SectionColor", "");
 
-    if (!aSection.isEmpty()) {
+    if (!aSection.empty()) {
         sectionColor = aSection;
     }
 
@@ -213,28 +213,28 @@ void MaterialConfigLoader::addVectorRendering(const QMap<QString, QString>& fcma
     }
 }
 
-void MaterialConfigLoader::addRendering(const QMap<QString, QString>& fcmat,
+void MaterialConfigLoader::addRendering(const QMap<std::string, std::string>& fcmat,
                                         const std::shared_ptr<Material>& finalModel)
 {
-    QString ambientColor = value(fcmat, "Rendering/AmbientColor", "");
-    QString diffuseColor = value(fcmat, "Rendering/DiffuseColor", "");
-    QString emissiveColor = value(fcmat, "Rendering/EmissiveColor", "");
-    QString shininess = value(fcmat, "Rendering/Shininess", "");
-    QString specularColor = value(fcmat, "Rendering/SpecularColor", "");
-    QString transparency = value(fcmat, "Rendering/Transparency", "");
-    QString texturePath = value(fcmat, "Rendering/TexturePath", "");
-    QString textureScaling = value(fcmat, "Rendering/TextureScaling", "");
-    QString fragmentShader = value(fcmat, "Rendering/FragmentShader", "");
-    QString vertexShader = value(fcmat, "Rendering/VertexShader", "");
+    std::string ambientColor = value(fcmat, "Rendering/AmbientColor", "");
+    std::string diffuseColor = value(fcmat, "Rendering/DiffuseColor", "");
+    std::string emissiveColor = value(fcmat, "Rendering/EmissiveColor", "");
+    std::string shininess = value(fcmat, "Rendering/Shininess", "");
+    std::string specularColor = value(fcmat, "Rendering/SpecularColor", "");
+    std::string transparency = value(fcmat, "Rendering/Transparency", "");
+    std::string texturePath = value(fcmat, "Rendering/TexturePath", "");
+    std::string textureScaling = value(fcmat, "Rendering/TextureScaling", "");
+    std::string fragmentShader = value(fcmat, "Rendering/FragmentShader", "");
+    std::string vertexShader = value(fcmat, "Rendering/VertexShader", "");
 
     // Defined by the Render WB
-    QString aDiffuse = value(fcmat, "Architectural/DiffuseColor", "");
-    QString aTransparency = value(fcmat, "Architectural/Transparency", "");
+    std::string aDiffuse = value(fcmat, "Architectural/DiffuseColor", "");
+    std::string aTransparency = value(fcmat, "Architectural/Transparency", "");
 
-    if (!aDiffuse.isEmpty()) {
+    if (!aDiffuse.empty()) {
         diffuseColor = aDiffuse;
     }
-    if (!aTransparency.isEmpty()) {
+    if (!aTransparency.empty()) {
         transparency = aTransparency;
     }
 
@@ -277,19 +277,19 @@ void MaterialConfigLoader::addRendering(const QMap<QString, QString>& fcmat,
     setAppearanceValue(finalModel, "VertexShader", vertexShader);
 }
 
-QString MaterialConfigLoader::multiLineKey(QMap<QString, QString>& fcmat, const QString& prefix)
+std::string MaterialConfigLoader::multiLineKey(QMap<std::string, std::string>& fcmat, const std::string& prefix)
 {
     // fcmat.beginGroup(QStringLiteral("Render"));
-    QString multiLineString;
+    std::string multiLineString;
     auto keys = fcmat.keys();
     for (const auto& key : keys) {
-        if (key.startsWith(prefix) || key.startsWith(QStringLiteral("Render/") + prefix)) {
-            QString string = value(fcmat, key.toStdString(), "");
-            if (multiLineString.isEmpty()) {
+        if (key.starts_with(prefix) || key.starts_with("Render/" + prefix)) {
+            std::string string = value(fcmat, key, "");
+            if (multiLineString.empty()) {
                 multiLineString += string;
             }
             else {
-                multiLineString += QStringLiteral("\n") + string;
+                multiLineString += "\n" + string;
             }
         }
     }
@@ -298,13 +298,13 @@ QString MaterialConfigLoader::multiLineKey(QMap<QString, QString>& fcmat, const 
     return multiLineString;
 }
 
-void MaterialConfigLoader::addRenderAppleseed(QMap<QString, QString>& fcmat,
+void MaterialConfigLoader::addRenderAppleseed(QMap<std::string, std::string>& fcmat,
                                               const std::shared_ptr<Material>& finalModel)
 {
-    QString prefix = QStringLiteral("Render.Appleseed");
-    QString string = multiLineKey(fcmat, prefix);
+    std::string prefix = "Render.Appleseed";
+    std::string string = multiLineKey(fcmat, prefix);
 
-    if (!string.isEmpty()) {
+    if (!string.empty()) {
         finalModel->addAppearance(ModelUUIDs::ModelUUID_Render_Appleseed);
 
         // Now add the data
@@ -312,25 +312,25 @@ void MaterialConfigLoader::addRenderAppleseed(QMap<QString, QString>& fcmat,
     }
 }
 
-void MaterialConfigLoader::addRenderCarpaint(QMap<QString, QString>& fcmat,
+void MaterialConfigLoader::addRenderCarpaint(QMap<std::string, std::string>& fcmat,
                                              const std::shared_ptr<Material>& finalModel)
 {
-    QString renderBaseColorValue = value(fcmat, "Render/Render.Carpaint.BaseColor", "");
-    QString renderBump = value(fcmat, "Render/Render.Carpaint.Bump", "");
-    QString renderDisplacement = value(fcmat, "Render/Render.Carpaint.Displacement", "");
-    QString renderNormal = value(fcmat, "Render/Render.Carpaint.Normal", "");
+    std::string renderBaseColorValue = value(fcmat, "Render/Render.Carpaint.BaseColor", "");
+    std::string renderBump = value(fcmat, "Render/Render.Carpaint.Bump", "");
+    std::string renderDisplacement = value(fcmat, "Render/Render.Carpaint.Displacement", "");
+    std::string renderNormal = value(fcmat, "Render/Render.Carpaint.Normal", "");
 
     // Split out the textures
-    QString renderBaseColor;
-    QString renderBaseColorTexture;
-    QString renderBaseColorObject;
+    std::string renderBaseColor;
+    std::string renderBaseColorTexture;
+    std::string renderBaseColorObject;
     splitTextureObject(renderBaseColorValue,
                        &renderBaseColorTexture,
                        &renderBaseColor,
                        &renderBaseColorObject);
 
-    if (!renderBaseColorValue.isEmpty() || !renderBump.isEmpty() || !renderDisplacement.isEmpty()
-        || !renderNormal.isEmpty()) {
+    if (!renderBaseColorValue.empty() || !renderBump.empty() || !renderDisplacement.empty()
+        || !renderNormal.empty()) {
         finalModel->addAppearance(ModelUUIDs::ModelUUID_Render_Carpaint);
 
         // Now add the data
@@ -343,12 +343,12 @@ void MaterialConfigLoader::addRenderCarpaint(QMap<QString, QString>& fcmat,
     }
 }
 
-void MaterialConfigLoader::addRenderCycles(QMap<QString, QString>& fcmat,
+void MaterialConfigLoader::addRenderCycles(QMap<std::string, std::string>& fcmat,
                                            const std::shared_ptr<Material>& finalModel)
 {
-    QString prefix = QStringLiteral("Render.Cycles");
-    QString string = multiLineKey(fcmat, prefix);
-    if (!string.isEmpty()) {
+    std::string prefix = "Render.Cycles";
+    std::string string = multiLineKey(fcmat, prefix);
+    if (!string.empty()) {
         finalModel->addAppearance(ModelUUIDs::ModelUUID_Render_Cycles);
 
         // Now add the data
@@ -356,22 +356,22 @@ void MaterialConfigLoader::addRenderCycles(QMap<QString, QString>& fcmat,
     }
 }
 
-void MaterialConfigLoader::addRenderDiffuse(QMap<QString, QString>& fcmat,
+void MaterialConfigLoader::addRenderDiffuse(QMap<std::string, std::string>& fcmat,
                                             const std::shared_ptr<Material>& finalModel)
 {
-    QString renderBump = value(fcmat, "Render/Render.Diffuse.Bump", "");
-    QString renderColorValue = value(fcmat, "Render/Render.Diffuse.Color", "");
-    QString renderDisplacement = value(fcmat, "Render/Render.Diffuse.Displacement", "");
-    QString renderNormal = value(fcmat, "Render/Render.Diffuse.Normal", "");
+    std::string renderBump = value(fcmat, "Render/Render.Diffuse.Bump", "");
+    std::string renderColorValue = value(fcmat, "Render/Render.Diffuse.Color", "");
+    std::string renderDisplacement = value(fcmat, "Render/Render.Diffuse.Displacement", "");
+    std::string renderNormal = value(fcmat, "Render/Render.Diffuse.Normal", "");
 
     // Split out the textures
-    QString renderColor;
-    QString renderColorTexture;
-    QString renderColorObject;
+    std::string renderColor;
+    std::string renderColorTexture;
+    std::string renderColorObject;
     splitTextureObject(renderColorValue, &renderColorTexture, &renderColor, &renderColorObject);
 
-    if (!renderBump.isEmpty() || !renderColorValue.isEmpty() || !renderDisplacement.isEmpty()
-        || !renderNormal.isEmpty()) {
+    if (!renderBump.empty() || !renderColorValue.empty() || !renderDisplacement.empty()
+        || !renderNormal.empty()) {
         finalModel->addAppearance(ModelUUIDs::ModelUUID_Render_Diffuse);
 
         // Now add the data
@@ -384,86 +384,85 @@ void MaterialConfigLoader::addRenderDiffuse(QMap<QString, QString>& fcmat,
     }
 }
 
-void MaterialConfigLoader::addRenderDisney(QMap<QString, QString>& fcmat,
+void MaterialConfigLoader::addRenderDisney(QMap<std::string, std::string>& fcmat,
                                            const std::shared_ptr<Material>& finalModel)
 {
-    QString renderAnisotropicValue = value(fcmat, "Render/Render.Disney.Anisotropic", "");
-    QString renderBaseColorValue = value(fcmat, "Render/Render.Disney.BaseColor", "");
-    QString renderBump = value(fcmat, "Render/Render.Disney.Bump", "");
-    QString renderClearCoatValue = value(fcmat, "Render/Render.Disney.ClearCoat", "");
-    QString renderClearCoatGlossValue = value(fcmat, "Render/Render.Disney.ClearCoatGloss", "");
-    QString renderDisplacement = value(fcmat, "Render/Render.Disney.Displacement", "");
-    QString renderMetallicValue = value(fcmat, "Render/Render.Disney.Metallic", "");
-    QString renderNormal = value(fcmat, "Render/Render.Disney.Normal", "");
-    QString renderRoughnessValue = value(fcmat, "Render/Render.Disney.Roughness", "");
-    QString renderSheenValue = value(fcmat, "Render/Render.Disney.Sheen", "");
-    QString renderSheenTintValue = value(fcmat, "Render/Render.Disney.SheenTint", "");
-    QString renderSpecularValue = value(fcmat, "Render/Render.Disney.Specular", "");
-    QString renderSpecularTintValue = value(fcmat, "Render/Render.Disney.SpecularTint", "");
-    QString renderSubsurfaceValue = value(fcmat, "Render/Render.Disney.Subsurface", "");
+    std::string renderAnisotropicValue = value(fcmat, "Render/Render.Disney.Anisotropic", "");
+    std::string renderBaseColorValue = value(fcmat, "Render/Render.Disney.BaseColor", "");
+    std::string renderBump = value(fcmat, "Render/Render.Disney.Bump", "");
+    std::string renderClearCoatValue = value(fcmat, "Render/Render.Disney.ClearCoat", "");
+    std::string renderClearCoatGlossValue = value(fcmat, "Render/Render.Disney.ClearCoatGloss", "");
+    std::string renderDisplacement = value(fcmat, "Render/Render.Disney.Displacement", "");
+    std::string renderMetallicValue = value(fcmat, "Render/Render.Disney.Metallic", "");
+    std::string renderNormal = value(fcmat, "Render/Render.Disney.Normal", "");
+    std::string renderRoughnessValue = value(fcmat, "Render/Render.Disney.Roughness", "");
+    std::string renderSheenValue = value(fcmat, "Render/Render.Disney.Sheen", "");
+    std::string renderSheenTintValue = value(fcmat, "Render/Render.Disney.SheenTint", "");
+    std::string renderSpecularValue = value(fcmat, "Render/Render.Disney.Specular", "");
+    std::string renderSpecularTintValue = value(fcmat, "Render/Render.Disney.SpecularTint", "");
+    std::string renderSubsurfaceValue = value(fcmat, "Render/Render.Disney.Subsurface", "");
 
     // Split out the textures
-    QString renderAnisotropic;
-    QString renderAnisotropicTexture;
+    std::string renderAnisotropic;
+    std::string renderAnisotropicTexture;
     splitTexture(renderAnisotropicValue, &renderAnisotropicTexture, &renderAnisotropic);
-    QString renderBaseColor;
-    QString renderBaseColorTexture;
-    QString renderBaseColorObject;
+    std::string renderBaseColor;
+    std::string renderBaseColorTexture;
+    std::string renderBaseColorObject;
     splitTextureObject(renderBaseColorValue,
                        &renderBaseColorTexture,
                        &renderBaseColor,
                        &renderBaseColorObject);
-    QString renderClearCoat;
-    QString renderClearCoatTexture;
-    QString renderClearCoatObject;
+    std::string renderClearCoat;
+    std::string renderClearCoatTexture;
+    std::string renderClearCoatObject;
     splitTextureObject(renderClearCoatValue,
                        &renderClearCoatTexture,
                        &renderClearCoat,
                        &renderClearCoatObject);
-    QString renderClearCoatGloss;
-    QString renderClearCoatGlossTexture;
-    QString renderClearCoatGlossObject;
+    std::string renderClearCoatGloss;
+    std::string renderClearCoatGlossTexture;
+    std::string renderClearCoatGlossObject;
     splitTextureObject(renderClearCoatGlossValue,
                        &renderClearCoatGlossTexture,
                        &renderClearCoatGloss,
                        &renderClearCoatGlossObject);
-    QString renderMetallic;
-    QString renderMetallicTexture;
+    std::string renderMetallic;
+    std::string renderMetallicTexture;
     splitTexture(renderMetallicValue, &renderMetallicTexture, &renderMetallic);
-    QString renderRoughness;
-    QString renderRoughnessTexture;
+    std::string renderRoughness;
+    std::string renderRoughnessTexture;
     splitTexture(renderRoughnessValue, &renderRoughnessTexture, &renderRoughness);
-    QString renderSheen;
-    QString renderSheenTexture;
+    std::string renderSheen;
+    std::string renderSheenTexture;
     splitTexture(renderSheenValue, &renderSheenTexture, &renderSheen);
-    QString renderSheenTint;
-    QString renderSheenTintTexture;
+    std::string renderSheenTint;
+    std::string renderSheenTintTexture;
     splitTexture(renderSheenTintValue, &renderSheenTintTexture, &renderSheenTint);
-    QString renderSpecular;
-    QString renderSpecularTexture;
-    QString renderSpecularObject;
+    std::string renderSpecular;
+    std::string renderSpecularTexture;
+    std::string renderSpecularObject;
     splitTextureObject(renderSpecularValue,
                        &renderSpecularTexture,
                        &renderSpecular,
                        &renderSpecularObject);
-    QString renderSpecularTint;
-    QString renderSpecularTintTexture;
-    QString renderSpecularTintObject;
+    std::string renderSpecularTint;
+    std::string renderSpecularTintTexture;
+    std::string renderSpecularTintObject;
     splitTextureObject(renderSpecularTintValue,
                        &renderSpecularTintTexture,
                        &renderSpecularTint,
                        &renderSpecularTintObject);
-    QString renderSubsurface;
-    QString renderSubsurfaceTexture;
+    std::string renderSubsurface;
+    std::string renderSubsurfaceTexture;
     splitTexture(renderSubsurfaceValue, &renderSubsurfaceTexture, &renderSubsurface);
 
-    if (!renderAnisotropicValue.isEmpty() || !renderBaseColorValue.isEmpty()
-        || !renderBump.isEmpty() || !renderClearCoatValue.isEmpty()
-        || !renderClearCoatGlossValue.isEmpty() || !renderDisplacement.isEmpty()
-        || !renderMetallicValue.isEmpty() || !renderNormal.isEmpty()
-        || !renderRoughnessValue.isEmpty() || !renderSheenValue.isEmpty()
-        || !renderSheenTintValue.isEmpty() || !renderSpecularValue.isEmpty()
-        || !renderSpecularTintValue.isEmpty() || !renderSubsurfaceValue.isEmpty()) {
+    if (!renderAnisotropicValue.empty() || !renderBaseColorValue.empty() || !renderBump.empty()
+        || !renderClearCoatValue.empty() || !renderClearCoatGlossValue.empty()
+        || !renderDisplacement.empty() || !renderMetallicValue.empty() || !renderNormal.empty()
+        || !renderRoughnessValue.empty() || !renderSheenValue.empty()
+        || !renderSheenTintValue.empty() || !renderSpecularValue.empty()
+        || !renderSpecularTintValue.empty() || !renderSubsurfaceValue.empty()) {
         finalModel->addAppearance(ModelUUIDs::ModelUUID_Render_Disney);
 
         // Now add the data
@@ -501,25 +500,25 @@ void MaterialConfigLoader::addRenderDisney(QMap<QString, QString>& fcmat,
     }
 }
 
-void MaterialConfigLoader::addRenderEmission(QMap<QString, QString>& fcmat,
+void MaterialConfigLoader::addRenderEmission(QMap<std::string, std::string>& fcmat,
                                              const std::shared_ptr<Material>& finalModel)
 {
-    QString renderBump = value(fcmat, "Render/Render.Emission.Bump", "");
-    QString renderColorValue = value(fcmat, "Render/Render.Emission.Color", "");
-    QString renderNormal = value(fcmat, "Render/Render.Emission.Normal", "");
-    QString renderPowerValue = value(fcmat, "Render/Render.Emission.Power", "");
+    std::string renderBump = value(fcmat, "Render/Render.Emission.Bump", "");
+    std::string renderColorValue = value(fcmat, "Render/Render.Emission.Color", "");
+    std::string renderNormal = value(fcmat, "Render/Render.Emission.Normal", "");
+    std::string renderPowerValue = value(fcmat, "Render/Render.Emission.Power", "");
 
     // Split out the textures
-    QString renderColor;
-    QString renderColorTexture;
-    QString renderColorObject;
+    std::string renderColor;
+    std::string renderColorTexture;
+    std::string renderColorObject;
     splitTextureObject(renderColorValue, &renderColorTexture, &renderColor, &renderColorObject);
-    QString renderPower;
-    QString renderPowerTexture;
+    std::string renderPower;
+    std::string renderPowerTexture;
     splitTexture(renderPowerValue, &renderPowerTexture, &renderPower);
 
-    if (!renderColorValue.isEmpty() || !renderBump.isEmpty() || !renderPowerValue.isEmpty()
-        || !renderNormal.isEmpty()) {
+    if (!renderColorValue.empty() || !renderBump.empty() || !renderPowerValue.empty()
+        || !renderNormal.empty()) {
         finalModel->addAppearance(ModelUUIDs::ModelUUID_Render_Emission);
 
         // Now add the data
@@ -533,26 +532,26 @@ void MaterialConfigLoader::addRenderEmission(QMap<QString, QString>& fcmat,
     }
 }
 
-void MaterialConfigLoader::addRenderGlass(QMap<QString, QString>& fcmat,
+void MaterialConfigLoader::addRenderGlass(QMap<std::string, std::string>& fcmat,
                                           const std::shared_ptr<Material>& finalModel)
 {
-    QString renderBump = value(fcmat, "Render/Render.Glass.Bump", "");
-    QString renderColorValue = value(fcmat, "Render/Render.Glass.Color", "");
-    QString renderIORValue = value(fcmat, "Render/Render.Glass.IOR", "");
-    QString renderDisplacement = value(fcmat, "Render/Render.Glass.Displacement", "");
-    QString renderNormal = value(fcmat, "Render/Render.Glass.Normal", "");
+    std::string renderBump = value(fcmat, "Render/Render.Glass.Bump", "");
+    std::string renderColorValue = value(fcmat, "Render/Render.Glass.Color", "");
+    std::string renderIORValue = value(fcmat, "Render/Render.Glass.IOR", "");
+    std::string renderDisplacement = value(fcmat, "Render/Render.Glass.Displacement", "");
+    std::string renderNormal = value(fcmat, "Render/Render.Glass.Normal", "");
 
     // Split out the textures
-    QString renderColor;
-    QString renderColorTexture;
-    QString renderColorObject;
+    std::string renderColor;
+    std::string renderColorTexture;
+    std::string renderColorObject;
     splitTextureObject(renderColorValue, &renderColorTexture, &renderColor, &renderColorObject);
-    QString renderIOR;
-    QString renderIORTexture;
+    std::string renderIOR;
+    std::string renderIORTexture;
     splitTexture(renderIORValue, &renderIORTexture, &renderIOR);
 
-    if (!renderBump.isEmpty() || !renderColorValue.isEmpty() || !renderIORValue.isEmpty()
-        || !renderDisplacement.isEmpty() || !renderNormal.isEmpty()) {
+    if (!renderBump.empty() || !renderColorValue.empty() || !renderIORValue.empty()
+        || !renderDisplacement.empty() || !renderNormal.empty()) {
         finalModel->addAppearance(ModelUUIDs::ModelUUID_Render_Glass);
 
         setAppearanceValue(finalModel, "Render.Glass.Bump", renderBump);
@@ -566,13 +565,13 @@ void MaterialConfigLoader::addRenderGlass(QMap<QString, QString>& fcmat,
     }
 }
 
-void MaterialConfigLoader::addRenderLuxcore(QMap<QString, QString>& fcmat,
+void MaterialConfigLoader::addRenderLuxcore(QMap<std::string, std::string>& fcmat,
                                             const std::shared_ptr<Material>& finalModel)
 {
-    QString prefix = QStringLiteral("Render.Luxcore");
-    QString string = multiLineKey(fcmat, prefix);
+    std::string prefix = "Render.Luxcore";
+    std::string string = multiLineKey(fcmat, prefix);
 
-    if (!string.isEmpty()) {
+    if (!string.empty()) {
         finalModel->addAppearance(ModelUUIDs::ModelUUID_Render_Luxcore);
 
         // Now add the data
@@ -580,13 +579,13 @@ void MaterialConfigLoader::addRenderLuxcore(QMap<QString, QString>& fcmat,
     }
 }
 
-void MaterialConfigLoader::addRenderLuxrender(QMap<QString, QString>& fcmat,
+void MaterialConfigLoader::addRenderLuxrender(QMap<std::string, std::string>& fcmat,
                                               const std::shared_ptr<Material>& finalModel)
 {
-    QString prefix = QStringLiteral("Render.Luxrender");
-    QString string = multiLineKey(fcmat, prefix);
+    std::string prefix = "Render.Luxrender";
+    std::string string = multiLineKey(fcmat, prefix);
 
-    if (!string.isEmpty()) {
+    if (!string.empty()) {
         finalModel->addAppearance(ModelUUIDs::ModelUUID_Render_Luxrender);
 
         // Now add the data
@@ -594,42 +593,42 @@ void MaterialConfigLoader::addRenderLuxrender(QMap<QString, QString>& fcmat,
     }
 }
 
-void MaterialConfigLoader::addRenderMixed(QMap<QString, QString>& fcmat,
+void MaterialConfigLoader::addRenderMixed(QMap<std::string, std::string>& fcmat,
                                           const std::shared_ptr<Material>& finalModel)
 {
-    QString renderBump = value(fcmat, "Render/Render.Mixed.Bump", "");
-    QString renderDiffuseColorValue = value(fcmat, "Render/Render.Mixed.Diffuse.Color", "");
-    QString renderDisplacement = value(fcmat, "Render/Render.Mixed.Displacement", "");
-    QString renderGlassColorValue = value(fcmat, "Render/Render.Mixed.Glass.Color", "");
-    QString renderGlassIORValue = value(fcmat, "Render/Render.Mixed.Glass.IOR", "");
-    QString renderNormal = value(fcmat, "Render/Render.Mixed.Normal", "");
-    QString renderTransparencyValue = value(fcmat, "Render/Render.Mixed.Transparency", "");
+    std::string renderBump = value(fcmat, "Render/Render.Mixed.Bump", "");
+    std::string renderDiffuseColorValue = value(fcmat, "Render/Render.Mixed.Diffuse.Color", "");
+    std::string renderDisplacement = value(fcmat, "Render/Render.Mixed.Displacement", "");
+    std::string renderGlassColorValue = value(fcmat, "Render/Render.Mixed.Glass.Color", "");
+    std::string renderGlassIORValue = value(fcmat, "Render/Render.Mixed.Glass.IOR", "");
+    std::string renderNormal = value(fcmat, "Render/Render.Mixed.Normal", "");
+    std::string renderTransparencyValue = value(fcmat, "Render/Render.Mixed.Transparency", "");
 
     // Split out the textures
-    QString renderDiffuseColor;
-    QString renderDiffuseColorTexture;
-    QString renderDiffuseColorObject;
+    std::string renderDiffuseColor;
+    std::string renderDiffuseColorTexture;
+    std::string renderDiffuseColorObject;
     splitTextureObject(renderDiffuseColorValue,
                        &renderDiffuseColorTexture,
                        &renderDiffuseColor,
                        &renderDiffuseColorObject);
-    QString renderGlassColor;
-    QString renderGlassColorTexture;
-    QString renderGlassColorObject;
+    std::string renderGlassColor;
+    std::string renderGlassColorTexture;
+    std::string renderGlassColorObject;
     splitTextureObject(renderGlassColorValue,
                        &renderGlassColorTexture,
                        &renderGlassColor,
                        &renderGlassColorObject);
-    QString renderGlassIOR;
-    QString renderGlassIORTexture;
+    std::string renderGlassIOR;
+    std::string renderGlassIORTexture;
     splitTexture(renderGlassIORValue, &renderGlassIORTexture, &renderGlassIOR);
-    QString renderTransparency;
-    QString renderTransparencyTexture;
+    std::string renderTransparency;
+    std::string renderTransparencyTexture;
     splitTexture(renderTransparencyValue, &renderTransparencyTexture, &renderTransparency);
 
-    if (!renderBump.isEmpty() || !renderDiffuseColorValue.isEmpty() || !renderDisplacement.isEmpty()
-        || !renderGlassColorValue.isEmpty() || !renderGlassIORValue.isEmpty()
-        || !renderNormal.isEmpty() || !renderTransparencyValue.isEmpty()) {
+    if (!renderBump.empty() || !renderDiffuseColorValue.empty() || !renderDisplacement.empty()
+        || !renderGlassColorValue.empty() || !renderGlassIORValue.empty() || !renderNormal.empty()
+        || !renderTransparencyValue.empty()) {
         finalModel->addAppearance(ModelUUIDs::ModelUUID_Render_Mixed);
 
         // Now add the data
@@ -655,13 +654,13 @@ void MaterialConfigLoader::addRenderMixed(QMap<QString, QString>& fcmat,
     }
 }
 
-void MaterialConfigLoader::addRenderOspray(QMap<QString, QString>& fcmat,
+void MaterialConfigLoader::addRenderOspray(QMap<std::string, std::string>& fcmat,
                                            const std::shared_ptr<Material>& finalModel)
 {
-    QString prefix = QStringLiteral("Render.Ospray");
-    QString string = multiLineKey(fcmat, prefix);
+    std::string prefix = "Render.Ospray";
+    std::string string = multiLineKey(fcmat, prefix);
 
-    if (!string.isEmpty()) {
+    if (!string.empty()) {
         finalModel->addAppearance(ModelUUIDs::ModelUUID_Render_Ospray);
 
         // Now add the data
@@ -669,13 +668,13 @@ void MaterialConfigLoader::addRenderOspray(QMap<QString, QString>& fcmat,
     }
 }
 
-void MaterialConfigLoader::addRenderPbrt(QMap<QString, QString>& fcmat,
+void MaterialConfigLoader::addRenderPbrt(QMap<std::string, std::string>& fcmat,
                                          const std::shared_ptr<Material>& finalModel)
 {
-    QString prefix = QStringLiteral("Render.Pbrt");
-    QString string = multiLineKey(fcmat, prefix);
+    std::string prefix = "Render.Pbrt";
+    std::string string = multiLineKey(fcmat, prefix);
 
-    if (!string.isEmpty()) {
+    if (!string.empty()) {
         finalModel->addAppearance(ModelUUIDs::ModelUUID_Render_Pbrt);
 
         // Now add the data
@@ -683,13 +682,13 @@ void MaterialConfigLoader::addRenderPbrt(QMap<QString, QString>& fcmat,
     }
 }
 
-void MaterialConfigLoader::addRenderPovray(QMap<QString, QString>& fcmat,
+void MaterialConfigLoader::addRenderPovray(QMap<std::string, std::string>& fcmat,
                                            const std::shared_ptr<Material>& finalModel)
 {
-    QString prefix = QStringLiteral("Render.Povray");
-    QString string = multiLineKey(fcmat, prefix);
+    std::string prefix = "Render.Povray";
+    std::string string = multiLineKey(fcmat, prefix);
 
-    if (!string.isEmpty()) {
+    if (!string.empty()) {
         finalModel->addAppearance(ModelUUIDs::ModelUUID_Render_Povray);
 
         // Now add the data
@@ -697,37 +696,36 @@ void MaterialConfigLoader::addRenderPovray(QMap<QString, QString>& fcmat,
     }
 }
 
-void MaterialConfigLoader::addRenderSubstancePBR(QMap<QString, QString>& fcmat,
+void MaterialConfigLoader::addRenderSubstancePBR(QMap<std::string, std::string>& fcmat,
                                                  const std::shared_ptr<Material>& finalModel)
 {
-    QString renderBaseColorValue = value(fcmat, "Render/Render.Substance_PBR.BaseColor", "");
-    QString renderBump = value(fcmat, "Render/Render.Substance_PBR.Bump", "");
-    QString renderMetallicValue = value(fcmat, "Render/Render.Substance_PBR.Metallic", "");
-    QString renderNormal = value(fcmat, "Render/Render.Substance_PBR.Normal", "");
-    QString renderRoughnessValue = value(fcmat, "Render/Render.Substance_PBR.Roughness", "");
-    QString renderSpecularValue = value(fcmat, "Render/Render.Substance_PBR.Specular", "");
+    std::string renderBaseColorValue = value(fcmat, "Render/Render.Substance_PBR.BaseColor", "");
+    std::string renderBump = value(fcmat, "Render/Render.Substance_PBR.Bump", "");
+    std::string renderMetallicValue = value(fcmat, "Render/Render.Substance_PBR.Metallic", "");
+    std::string renderNormal = value(fcmat, "Render/Render.Substance_PBR.Normal", "");
+    std::string renderRoughnessValue = value(fcmat, "Render/Render.Substance_PBR.Roughness", "");
+    std::string renderSpecularValue = value(fcmat, "Render/Render.Substance_PBR.Specular", "");
 
     // Split out the textures
-    QString renderBaseColor;
-    QString renderBaseColorTexture;
-    QString renderBaseColorObject;
+    std::string renderBaseColor;
+    std::string renderBaseColorTexture;
+    std::string renderBaseColorObject;
     splitTextureObject(renderBaseColorValue,
                        &renderBaseColorTexture,
                        &renderBaseColor,
                        &renderBaseColorObject);
-    QString renderMetallic;
-    QString renderMetallicTexture;
+    std::string renderMetallic;
+    std::string renderMetallicTexture;
     splitTexture(renderMetallicValue, &renderMetallicTexture, &renderMetallic);
-    QString renderRoughness;
-    QString renderRoughnessTexture;
+    std::string renderRoughness;
+    std::string renderRoughnessTexture;
     splitTexture(renderRoughnessValue, &renderRoughnessTexture, &renderRoughness);
-    QString renderSpecular;
-    QString renderSpecularTexture;
+    std::string renderSpecular;
+    std::string renderSpecularTexture;
     splitTexture(renderSpecularValue, &renderSpecularTexture, &renderSpecular);
 
-    if (!renderBaseColorValue.isEmpty() || !renderBump.isEmpty() || !renderMetallicValue.isEmpty()
-        || !renderNormal.isEmpty() || !renderRoughnessValue.isEmpty()
-        || !renderSpecularValue.isEmpty()) {
+    if (!renderBaseColorValue.empty() || !renderBump.empty() || !renderMetallicValue.empty()
+        || !renderNormal.empty() || !renderRoughnessValue.empty() || !renderSpecularValue.empty()) {
         finalModel->addAppearance(ModelUUIDs::ModelUUID_Render_SubstancePBR);
 
         // Now add the data
@@ -755,42 +753,42 @@ void MaterialConfigLoader::addRenderSubstancePBR(QMap<QString, QString>& fcmat,
     }
 }
 
-void MaterialConfigLoader::addRenderTexture(QMap<QString, QString>& fcmat,
+void MaterialConfigLoader::addRenderTexture(QMap<std::string, std::string>& fcmat,
                                             const std::shared_ptr<Material>& finalModel)
 {
-    QString renderName;
+    std::string renderName;
     auto renderImage = std::make_shared<QList<QVariant>>();
-    QString renderScale;
-    QString renderRotation;
-    QString renderTranslationU;
-    QString renderTranslationV;
+    std::string renderScale;
+    std::string renderRotation;
+    std::string renderTranslationU;
+    std::string renderTranslationV;
 
     auto keys = fcmat.keys();
     for (const auto& key : keys) {
-        if (key.startsWith(QStringLiteral("Render/Render.Textures."))) {
-            QStringList list1 = key.split(QLatin1Char('.'));
-            if (renderName.isEmpty()) {
-                renderName = list1[2];
+        if (key.starts_with("Render/Render.Textures.")) {
+            QStringList list1 = QString::fromStdString(key).split(QLatin1Char('.'));
+            if (renderName.empty()) {
+                renderName = list1[2].toStdString();
             }
             if (list1[3] == QStringLiteral("Images")) {
-                renderImage->push_back(value(fcmat, key.toStdString(), ""));
+                // renderImage->push_back(value(fcmat, key, "")); TODO: fix
             }
             else if (list1[3] == QStringLiteral("Scale")) {
-                renderScale = value(fcmat, key.toStdString(), "");
+                renderScale = value(fcmat, key, "");
             }
             else if (list1[3] == QStringLiteral("Rotation")) {
-                renderRotation = value(fcmat, key.toStdString(), "");
+                renderRotation = value(fcmat, key, "");
             }
             else if (list1[3] == QStringLiteral("TranslationU")) {
-                renderTranslationU = value(fcmat, key.toStdString(), "");
+                renderTranslationU = value(fcmat, key, "");
             }
             else if (list1[3] == QStringLiteral(" TranslationV")) {
-                renderTranslationV = value(fcmat, key.toStdString(), "");
+                renderTranslationV = value(fcmat, key, "");
             }
         }
     }
 
-    if (!renderName.isEmpty()) {
+    if (!renderName.empty()) {
         finalModel->addAppearance(ModelUUIDs::ModelUUID_Render_Texture);
 
         // Now add the data
@@ -803,13 +801,13 @@ void MaterialConfigLoader::addRenderTexture(QMap<QString, QString>& fcmat,
     }
 }
 
-void MaterialConfigLoader::addRenderWB(QMap<QString, QString>& fcmat,
+void MaterialConfigLoader::addRenderWB(QMap<std::string, std::string>& fcmat,
                                        const std::shared_ptr<Material>& finalModel)
 {
-    QString useObjectColor = value(fcmat, "General/UseObjectColor", "");
-    QString renderType = value(fcmat, "Render/Render.Type", "");
+    std::string useObjectColor = value(fcmat, "General/UseObjectColor", "");
+    std::string renderType = value(fcmat, "Render/Render.Type", "");
 
-    if (!renderType.isEmpty()) {
+    if (!renderType.empty()) {
         finalModel->addAppearance(ModelUUIDs::ModelUUID_RenderWB);
 
         // Now add the data
@@ -834,12 +832,12 @@ void MaterialConfigLoader::addRenderWB(QMap<QString, QString>& fcmat,
     addRenderTexture(fcmat, finalModel);
 }
 
-void MaterialConfigLoader::addCosts(const QMap<QString, QString>& fcmat,
+void MaterialConfigLoader::addCosts(const QMap<std::string, std::string>& fcmat,
                                     const std::shared_ptr<Material>& finalModel)
 {
-    QString productURL = value(fcmat, "Cost/ProductURL", "");
-    QString specificPrice = value(fcmat, "Cost/SpecificPrice", "");
-    QString vendor = value(fcmat, "Cost/Vendor", "");
+    std::string productURL = value(fcmat, "Cost/ProductURL", "");
+    std::string specificPrice = value(fcmat, "Cost/SpecificPrice", "");
+    std::string vendor = value(fcmat, "Cost/Vendor", "");
 
     if (productURL.length() + specificPrice.length() + vendor.length() > 0) {
         finalModel->addPhysical(ModelUUIDs::ModelUUID_Costs_Default);
@@ -851,18 +849,18 @@ void MaterialConfigLoader::addCosts(const QMap<QString, QString>& fcmat,
     }
 }
 
-void MaterialConfigLoader::addArchitectural(const QMap<QString, QString>& fcmat,
+void MaterialConfigLoader::addArchitectural(const QMap<std::string, std::string>& fcmat,
                                             const std::shared_ptr<Material>& finalModel)
 {
-    QString color = value(fcmat, "Architectural/Color", "");
-    QString environmentalEfficiencyClass =
+    std::string color = value(fcmat, "Architectural/Color", "");
+    std::string environmentalEfficiencyClass =
         value(fcmat, "Architectural/EnvironmentalEfficiencyClass", "");
-    QString executionInstructions = value(fcmat, "Architectural/ExecutionInstructions", "");
-    QString finish = value(fcmat, "Architectural/Finish", "");
-    QString fireResistanceClass = value(fcmat, "Architectural/FireResistanceClass", "");
-    QString model = value(fcmat, "Architectural/Model", "");
-    QString soundTransmissionClass = value(fcmat, "Architectural/SoundTransmissionClass", "");
-    QString unitsPerQuantity = value(fcmat, "Architectural/UnitsPerQuantity", "");
+    std::string executionInstructions = value(fcmat, "Architectural/ExecutionInstructions", "");
+    std::string finish = value(fcmat, "Architectural/Finish", "");
+    std::string fireResistanceClass = value(fcmat, "Architectural/FireResistanceClass", "");
+    std::string model = value(fcmat, "Architectural/Model", "");
+    std::string soundTransmissionClass = value(fcmat, "Architectural/SoundTransmissionClass", "");
+    std::string unitsPerQuantity = value(fcmat, "Architectural/UnitsPerQuantity", "");
 
     if (environmentalEfficiencyClass.length() + executionInstructions.length()
             + fireResistanceClass.length() + model.length() + soundTransmissionClass.length()
@@ -886,12 +884,12 @@ void MaterialConfigLoader::addArchitectural(const QMap<QString, QString>& fcmat,
     setAppearanceValue(finalModel, "Finish", finish);
 }
 
-void MaterialConfigLoader::addElectromagnetic(const QMap<QString, QString>& fcmat,
+void MaterialConfigLoader::addElectromagnetic(const QMap<std::string, std::string>& fcmat,
                                               const std::shared_ptr<Material>& finalModel)
 {
-    QString relativePermittivity = value(fcmat, "Electromagnetic/RelativePermittivity", "");
-    QString electricalConductivity = value(fcmat, "Electromagnetic/ElectricalConductivity", "");
-    QString relativePermeability = value(fcmat, "Electromagnetic/RelativePermeability", "");
+    std::string relativePermittivity = value(fcmat, "Electromagnetic/RelativePermittivity", "");
+    std::string electricalConductivity = value(fcmat, "Electromagnetic/ElectricalConductivity", "");
+    std::string relativePermeability = value(fcmat, "Electromagnetic/RelativePermeability", "");
 
     if (relativePermittivity.length() + electricalConductivity.length()
             + relativePermeability.length()
@@ -905,12 +903,12 @@ void MaterialConfigLoader::addElectromagnetic(const QMap<QString, QString>& fcma
     }
 }
 
-void MaterialConfigLoader::addThermal(const QMap<QString, QString>& fcmat,
+void MaterialConfigLoader::addThermal(const QMap<std::string, std::string>& fcmat,
                                       const std::shared_ptr<Material>& finalModel)
 {
-    QString specificHeat = value(fcmat, "Thermal/SpecificHeat", "");
-    QString thermalConductivity = value(fcmat, "Thermal/ThermalConductivity", "");
-    QString thermalExpansionCoefficient = value(fcmat, "Thermal/ThermalExpansionCoefficient", "");
+    std::string specificHeat = value(fcmat, "Thermal/SpecificHeat", "");
+    std::string thermalConductivity = value(fcmat, "Thermal/ThermalConductivity", "");
+    std::string thermalExpansionCoefficient = value(fcmat, "Thermal/ThermalExpansionCoefficient", "");
 
     if (specificHeat.length() + thermalConductivity.length() + thermalExpansionCoefficient.length()
         > 0) {
@@ -923,13 +921,13 @@ void MaterialConfigLoader::addThermal(const QMap<QString, QString>& fcmat,
     }
 }
 
-void MaterialConfigLoader::addFluid(const QMap<QString, QString>& fcmat,
+void MaterialConfigLoader::addFluid(const QMap<std::string, std::string>& fcmat,
                                     const std::shared_ptr<Material>& finalModel)
 {
-    QString density = value(fcmat, "Fluidic/Density", "");
-    QString dynamicViscosity = value(fcmat, "Fluidic/DynamicViscosity", "");
-    QString kinematicViscosity = value(fcmat, "Fluidic/KinematicViscosity", "");
-    QString prandtlNumber = value(fcmat, "Fluidic/PrandtlNumber", "");
+    std::string density = value(fcmat, "Fluidic/Density", "");
+    std::string dynamicViscosity = value(fcmat, "Fluidic/DynamicViscosity", "");
+    std::string kinematicViscosity = value(fcmat, "Fluidic/KinematicViscosity", "");
+    std::string prandtlNumber = value(fcmat, "Fluidic/PrandtlNumber", "");
 
     // Check which model we need
     bool useDensity = false;
@@ -955,21 +953,21 @@ void MaterialConfigLoader::addFluid(const QMap<QString, QString>& fcmat,
     setPhysicalValue(finalModel, "PrandtlNumber", prandtlNumber);
 }
 
-void MaterialConfigLoader::addMechanical(const QMap<QString, QString>& fcmat,
+void MaterialConfigLoader::addMechanical(const QMap<std::string, std::string>& fcmat,
                                          const std::shared_ptr<Material>& finalModel)
 {
-    QString density = value(fcmat, "Mechanical/Density", "");
-    QString bulkModulus = value(fcmat, "Mechanical/BulkModulus", "");
-    QString poissonRatio = value(fcmat, "Mechanical/PoissonRatio", "");
-    QString shearModulus = value(fcmat, "Mechanical/ShearModulus", "");
-    QString youngsModulus = value(fcmat, "Mechanical/YoungsModulus", "");
-    QString angleOfFriction = value(fcmat, "Mechanical/AngleOfFriction", "");
-    QString compressiveStrength = value(fcmat, "Mechanical/CompressiveStrength", "");
-    QString fractureToughness = value(fcmat, "Mechanical/FractureToughness", "");
-    QString ultimateStrain = value(fcmat, "Mechanical/UltimateStrain", "");
-    QString ultimateTensileStrength = value(fcmat, "Mechanical/UltimateTensileStrength", "");
-    QString yieldStrength = value(fcmat, "Mechanical/YieldStrength", "");
-    QString stiffness = value(fcmat, "Mechanical/Stiffness", "");
+    std::string density = value(fcmat, "Mechanical/Density", "");
+    std::string bulkModulus = value(fcmat, "Mechanical/BulkModulus", "");
+    std::string poissonRatio = value(fcmat, "Mechanical/PoissonRatio", "");
+    std::string shearModulus = value(fcmat, "Mechanical/ShearModulus", "");
+    std::string youngsModulus = value(fcmat, "Mechanical/YoungsModulus", "");
+    std::string angleOfFriction = value(fcmat, "Mechanical/AngleOfFriction", "");
+    std::string compressiveStrength = value(fcmat, "Mechanical/CompressiveStrength", "");
+    std::string fractureToughness = value(fcmat, "Mechanical/FractureToughness", "");
+    std::string ultimateStrain = value(fcmat, "Mechanical/UltimateStrain", "");
+    std::string ultimateTensileStrength = value(fcmat, "Mechanical/UltimateTensileStrength", "");
+    std::string yieldStrength = value(fcmat, "Mechanical/YieldStrength", "");
+    std::string stiffness = value(fcmat, "Mechanical/Stiffness", "");
 
     // Check which model we need
     bool useDensity = false;
@@ -1017,68 +1015,72 @@ void MaterialConfigLoader::addMechanical(const QMap<QString, QString>& fcmat,
     setPhysicalValue(finalModel, "Stiffness", stiffness);
 }
 
-void MaterialConfigLoader::addLegacy(const QMap<QString, QString>& fcmat,
+void MaterialConfigLoader::addLegacy(const QMap<std::string, std::string>& fcmat,
                                      const std::shared_ptr<Material>& finalModel)
 {
     for (auto const& legacy : fcmat.keys()) {
         auto name = legacy;
-        int last = name.lastIndexOf(QStringLiteral("/"));
+        int last = name.rfind("/");
         if (last > 0) {
-            name = name.mid(last + 1);
+            name = name.substr(last + 1);
         }
 
-        if (!finalModel->hasNonLegacyProperty(name)) {
-            setLegacyValue(finalModel, name.toStdString(), fcmat[legacy]);
+        if (!finalModel->hasNonLegacyProperty(QString::fromStdString(name))) {
+            setLegacyValue(finalModel, name, fcmat[legacy]);
         }
     }
 }
 
 std::shared_ptr<Material>
 MaterialConfigLoader::getMaterialFromPath(const std::shared_ptr<MaterialLibraryLocal>& library,
-                                          const QString& path)
+                                          const std::string& path)
 {
-    QString author = getAuthorAndLicense(path);  // Place them both in the author field
+    std::string author = getAuthorAndLicense(path);  // Place them both in the author field
 
-    QMap<QString, QString> fcmat;
+    QMap<std::string, std::string> fcmat;
     if (!readFile(path, fcmat)) {
-        Base::Console().log("Error reading '%s'\n", path.toStdString().c_str());
+        Base::Console().log("Error reading '%s'\n", path.c_str());
         throw MaterialReadError();
     }
 
     // General section
-    // QString name = value(fcmat, "Name", ""); - always get the name from the filename
-    QFileInfo filepath(path);
-    QString name =
-        filepath.fileName().remove(QStringLiteral(".FCMat"), Qt::CaseInsensitive);
-    QString uuid = QUuid::createUuid().toString(QUuid::WithoutBraces);
+    // std::string name = value(fcmat, "Name", ""); - always get the name from the filename
+    QFileInfo filepath(QString::fromStdString(path));
+    std::string name =
+        filepath.fileName().remove(QStringLiteral(".FCMat"), Qt::CaseInsensitive).toStdString();
+    std::string uuid = QUuid::createUuid().toString(QUuid::WithoutBraces).toStdString();
 
-    QString description = value(fcmat, "Description", "");
-    QString sourceReference = value(fcmat, "ReferenceSource", "");
-    QString sourceURL = value(fcmat, "SourceURL", "");
+    std::string description = value(fcmat, "Description", "");
+    std::string sourceReference = value(fcmat, "ReferenceSource", "");
+    std::string sourceURL = value(fcmat, "SourceURL", "");
 
     auto baseLibrary =
         reinterpret_cast<const std::shared_ptr<Materials::MaterialLibrary>&>(library);
-    std::shared_ptr<Material> finalModel =
-        std::make_shared<Material>(baseLibrary, path, uuid, name);
+    std::shared_ptr<Material> finalModel = std::make_shared<Material>(
+        baseLibrary,
+        QString::fromStdString(path),
+        QString::fromStdString(uuid),
+        QString::fromStdString(name)
+    );
     finalModel->setOldFormat(true);
 
-    finalModel->setAuthor(author);
-    finalModel->setDescription(description);
-    finalModel->setReference(sourceReference);
-    finalModel->setURL(sourceURL);
+    finalModel->setAuthor(QString::fromStdString(author));
+    finalModel->setDescription(QString::fromStdString(description));
+    finalModel->setReference(QString::fromStdString(sourceReference));
+    finalModel->setURL(QString::fromStdString(sourceURL));
 
-    QString father = value(fcmat, "Father", "");
-    if (!father.isEmpty()) {
+    std::string father = value(fcmat, "Father", "");
+    if (!father.empty()) {
         finalModel->addPhysical(ModelUUIDs::ModelUUID_Legacy_Father);
 
         // Now add the data
         setPhysicalValue(finalModel, "Father", father);
     }
 
-    QString kindOfMaterial = value(fcmat, "KindOfMaterial", "");
-    QString materialNumber = value(fcmat, "MaterialNumber", "");
-    QString norm = value(fcmat, "Norm", "");
-    QString standardCode = value(fcmat, "StandardCode", "");
+    std::string kindOfMaterial = value(fcmat, "KindOfMaterial", "");
+    std::string materialNumber = value(fcmat, "MaterialNumber", "");
+    std::string norm = value(fcmat, "Norm", "");
+    std::string standardCode = value(fcmat, "StandardCode", "");
     if (kindOfMaterial.length() + materialNumber.length() + norm.length() + standardCode.length()
         > 0) {
         finalModel->addPhysical(ModelUUIDs::ModelUUID_Legacy_MaterialStandard);

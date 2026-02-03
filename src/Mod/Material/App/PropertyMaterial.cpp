@@ -93,7 +93,7 @@ void PropertyMaterial::Restore(Base::XMLReader& reader)
     // get the value of my Attribute
     auto uuid = reader.getAttribute<const char*>("uuid");
 
-    setValue(*MaterialManager::getManager().getMaterial(QString::fromLatin1(uuid)));
+    setValue(*MaterialManager::getManager().getMaterial(uuid));
 }
 
 const char* PropertyMaterial::getEditorName() const

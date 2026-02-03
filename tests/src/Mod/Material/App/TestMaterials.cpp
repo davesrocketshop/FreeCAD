@@ -81,15 +81,15 @@ TEST_F(DISABLED_TestMaterial, TestMaterialsWithModel)
     ASSERT_NE(_materialManager, nullptr);
 
     auto materials = _materialManager->materialsWithModel(
-        QStringLiteral("f6f9e48c-b116-4e82-ad7f-3659a9219c50")); // IsotropicLinearElastic
+        "f6f9e48c-b116-4e82-ad7f-3659a9219c50"); // IsotropicLinearElastic
     EXPECT_GT(materials->size(), 0);
 
     auto materialsComplete = _materialManager->materialsWithModelComplete(
-        QStringLiteral("f6f9e48c-b116-4e82-ad7f-3659a9219c50"));  // IsotropicLinearElastic
+        "f6f9e48c-b116-4e82-ad7f-3659a9219c50");  // IsotropicLinearElastic
     EXPECT_LE(materialsComplete->size(), materials->size());
 
     auto materialsLinearElastic = _materialManager->materialsWithModel(
-        QStringLiteral("7b561d1d-fb9b-44f6-9da9-56a4f74d7536")); // LinearElastic
+        "7b561d1d-fb9b-44f6-9da9-56a4f74d7536"); // LinearElastic
 
     // All LinearElastic models should be in IsotropicLinearElastic since it is inherited
     EXPECT_LE(materialsLinearElastic->size(), materials->size());
@@ -104,24 +104,24 @@ TEST_F(DISABLED_TestMaterial, TestMaterialByPath)
     ASSERT_NE(_materialManager, nullptr);
 
     auto steel = _materialManager->getMaterialByPath(
-        QStringLiteral("Standard/Metal/Steel/CalculiX-Steel.FCMat"),
-        QStringLiteral("System"));
+        "Standard/Metal/Steel/CalculiX-Steel.FCMat",
+        "System");
     EXPECT_NE(&steel, nullptr);
     EXPECT_EQ(steel->getName(), QStringLiteral("CalculiX-Steel"));
     EXPECT_EQ(steel->getUUID(), QStringLiteral("92589471-a6cb-4bbc-b748-d425a17dea7d"));
 
     // The same but with a leading '/'
     auto steel2 = _materialManager->getMaterialByPath(
-        QStringLiteral("/Standard/Metal/Steel/CalculiX-Steel.FCMat"),
-        QStringLiteral("System"));
+        "/Standard/Metal/Steel/CalculiX-Steel.FCMat",
+        "System");
     EXPECT_NE(&steel2, nullptr);
     EXPECT_EQ(steel2->getName(), QStringLiteral("CalculiX-Steel"));
     EXPECT_EQ(steel2->getUUID(), QStringLiteral("92589471-a6cb-4bbc-b748-d425a17dea7d"));
 
     // Same with the library name as a prefix
     auto steel3 = _materialManager->getMaterialByPath(
-        QStringLiteral("/System/Standard/Metal/Steel/CalculiX-Steel.FCMat"),
-        QStringLiteral("System"));
+        "/System/Standard/Metal/Steel/CalculiX-Steel.FCMat",
+        "System");
     EXPECT_NE(&steel3, nullptr);
     EXPECT_EQ(steel3->getName(), QStringLiteral("CalculiX-Steel"));
     EXPECT_EQ(steel3->getUUID(), QStringLiteral("92589471-a6cb-4bbc-b748-d425a17dea7d"));
@@ -228,7 +228,7 @@ TEST_F(DISABLED_TestMaterial, TestCalculiXSteel)
 {
     ASSERT_NE(_materialManager, nullptr);
 
-    auto steel = _materialManager->getMaterial(QStringLiteral("92589471-a6cb-4bbc-b748-d425a17dea7d"));
+    auto steel = _materialManager->getMaterial("92589471-a6cb-4bbc-b748-d425a17dea7d");
     EXPECT_EQ(steel->getName(), QStringLiteral("CalculiX-Steel"));
     EXPECT_EQ(steel->getUUID(), QStringLiteral("92589471-a6cb-4bbc-b748-d425a17dea7d"));
 

@@ -68,16 +68,16 @@ protected:
         libDir.removeRecursively(); // Clear any old run data
         libDir.mkdir(libPath);
 
-        _library = _materialManager->createLocalLibrary(QStringLiteral("TestMaterialCards"),
-                            libPath,
-                            QStringLiteral(":/icons/preferences-general.svg"),
+        _library = _materialManager->createLocalLibrary("TestMaterialCards",
+                            libPath.toStdString(),
+                            ":/icons/preferences-general.svg",
                             false);
 
         _materialManager->refresh();
     }
 
     void TearDown() override {
-        _materialManager->removeLibrary(QStringLiteral("TestMaterialCards"), false); // Remove the library
+        _materialManager->removeLibrary("TestMaterialCards", false); // Remove the library
         _materialManager->setUseExternal(_useExternal);
         _materialManager->refresh();
     }
@@ -90,7 +90,7 @@ protected:
 
 TEST_F(DISABLED_TestMaterialModification, TestNew)
 {
-    auto library = _materialManager->getLibrary(QStringLiteral("User"));
+    auto library = _materialManager->getLibrary("User");
     ASSERT_NE(library, nullptr);
 
     auto material = std::make_shared<Materials::Material>();
@@ -150,13 +150,13 @@ TEST_F(DISABLED_TestMaterialModification, TestNew)
     try {
         _materialManager->saveMaterial(_library,
                         material,
-                        QStringLiteral("/Test Material2.FCMat"),
+                        "/Test Material2.FCMat",
                         false, // overwrite
                         true,  // saveAsCopy
                         false); // saveInherited
         ASSERT_FALSE(material->getUUID().isEmpty());
         ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_None);
-        auto reload = _materialManager->getMaterial(material->getUUID());
+        auto reload = _materialManager->getMaterial(material->getUUID().toStdString());
         ASSERT_EQ(reload->getEditState(), Materials::Material::MaterialEdit_None);
     }
     catch (...) {
@@ -166,10 +166,10 @@ TEST_F(DISABLED_TestMaterialModification, TestNew)
 
 TEST_F(DISABLED_TestMaterialModification, TestAlter)
 {
-    auto library = _materialManager->getLibrary(QStringLiteral("User"));
+    auto library = _materialManager->getLibrary("User");
     ASSERT_NE(library, nullptr);
 
-    auto systemMaterial = _materialManager->getMaterial(QStringLiteral("c6c64159-19c1-40b5-859c-10561f20f979")); // Test Material.FCMat
+    auto systemMaterial = _materialManager->getMaterial("c6c64159-19c1-40b5-859c-10561f20f979"); // Test Material.FCMat
     ASSERT_EQ(systemMaterial->getEditState(), Materials::Material::MaterialEdit_None);
     auto material = std::make_shared<Materials::Material>(*systemMaterial);
     ASSERT_NE(material, nullptr);
@@ -293,13 +293,13 @@ TEST_F(DISABLED_TestMaterialModification, TestAlter)
     try {
         _materialManager->saveMaterial(_library,
                         material,
-                        QStringLiteral("/Test Material3.FCMat"),
+                        "/Test Material3.FCMat",
                         false, // overwrite
                         true,  // saveAsCopy
                         false); // saveInherited
         ASSERT_FALSE(material->getUUID().isEmpty());
         ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_None);
-        auto reload = _materialManager->getMaterial(material->getUUID());
+        auto reload = _materialManager->getMaterial(material->getUUID().toStdString());
         ASSERT_EQ(reload->getEditState(), Materials::Material::MaterialEdit_None);
     }
     catch (...) {

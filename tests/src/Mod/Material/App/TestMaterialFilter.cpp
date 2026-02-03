@@ -67,16 +67,16 @@ protected:
 
         // Remove the library if it exists
         try {
-            _materialManager->removeLibrary(QStringLiteral("__UnitTest"));
+            _materialManager->removeLibrary("__UnitTest");
         }
         catch (const Materials::LibraryNotFound&) {
             // ignore
         }
 
-        _materialManager->createLocalLibrary(QStringLiteral("__UnitTest"),
-                            QString::fromStdString(testPath),
-                            QString::fromStdString(modelPath),
-                            QStringLiteral(":/icons/preferences-general.svg"),
+        _materialManager->createLocalLibrary("__UnitTest",
+                            testPath,
+                            modelPath,
+                            ":/icons/preferences-general.svg",
                             false);
 
         // Disable other libraries
@@ -91,13 +91,13 @@ protected:
 
         _materialManager->refresh();
 
-        _library = _materialManager->getLibrary(QStringLiteral("__UnitTest"));
+        _library = _materialManager->getLibrary("__UnitTest");
     }
 
     void TearDown() override {
         // Restore other libraries
         for (auto& [name, disabled] : _libraries) {
-            _materialManager->setDisabled(QString::fromStdString(name), disabled, true);
+            _materialManager->setDisabled(name, disabled, true);
         }
 
         // Restore the external interface AFTER the local libraries
@@ -132,28 +132,28 @@ TEST_F(DISABLED_TestMaterialFilter, TestFilters)
     ASSERT_NE(_modelManager, nullptr);
 
     // First check that our materials are loading
-    auto material = _materialManager->getMaterial(QString::fromLatin1(UUIDAluminumAppearance));
+    auto material = _materialManager->getMaterial(UUIDAluminumAppearance);
     ASSERT_TRUE(material);
     ASSERT_EQ(material->getName(), QStringLiteral("TestAluminumAppearance"));
     ASSERT_EQ(material->getUUID(), QString::fromLatin1(UUIDAluminumAppearance));
 
-    material = _materialManager->getMaterial(QString::fromLatin1(UUIDAluminumMixed));
+    material = _materialManager->getMaterial(UUIDAluminumMixed);
     ASSERT_TRUE(material);
     ASSERT_EQ(material->getName(), QStringLiteral("TestAluminumMixed"));
     ASSERT_EQ(material->getUUID(), QString::fromLatin1(UUIDAluminumMixed));
 
-    material = _materialManager->getMaterial(QString::fromLatin1(UUIDAluminumPhysical));
+    material = _materialManager->getMaterial(UUIDAluminumPhysical);
     ASSERT_TRUE(material);
     ASSERT_EQ(material->getName(), QStringLiteral("TestAluminumPhysical"));
     ASSERT_EQ(material->getUUID(), QString::fromLatin1(UUIDAluminumPhysical));
 
-    material = _materialManager->getMaterial(QString::fromLatin1(UUIDBrassAppearance));
+    material = _materialManager->getMaterial(UUIDBrassAppearance);
     ASSERT_TRUE(material);
     ASSERT_EQ(material->getName(), QStringLiteral("TestBrassAppearance"));
     ASSERT_EQ(material->getUUID(), QString::fromLatin1(UUIDBrassAppearance));
 
-    material = _materialManager->getMaterialByPath(QStringLiteral("TestAcrylicLegacy.FCMat"),
-        QStringLiteral("__UnitTest"));
+    material = _materialManager->getMaterialByPath("TestAcrylicLegacy.FCMat",
+        "__UnitTest");
     ASSERT_TRUE(material);
     ASSERT_EQ(material->getName(), QStringLiteral("TestAcrylicLegacy"));
     ASSERT_EQ(material->getUUID().size(), 36); // We don't know the UUID

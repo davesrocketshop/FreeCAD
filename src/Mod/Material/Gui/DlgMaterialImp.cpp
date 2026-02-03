@@ -206,7 +206,9 @@ void DlgMaterialImp::setMaterial(const std::vector<App::DocumentObject*>& object
             }
         }
     }
-    d->ui.widgetMaterial->setMaterial(Materials::MaterialManager::defaultMaterialUUID());
+    d->ui.widgetMaterial->setMaterial(
+        QString::fromStdString(Materials::MaterialManager::defaultMaterialUUID())
+    );
 }
 
 std::vector<Gui::ViewProvider*> DlgMaterialImp::getSelection() const

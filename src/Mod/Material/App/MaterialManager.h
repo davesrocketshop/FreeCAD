@@ -69,7 +69,7 @@ public:
     // Defaults
     static std::shared_ptr<App::Material> defaultAppearance();
     static std::shared_ptr<Material> defaultMaterial();
-    static QString defaultMaterialUUID();
+    static std::string defaultMaterialUUID();
 
     // Library management
     bool useExternal() const { return _useExternal; }
@@ -83,46 +83,46 @@ public:
         bool includeDisabled = false
     );
 #endif
-    std::shared_ptr<MaterialLibrary> getLibrary(const QString& name) const;
-    std::shared_ptr<MaterialLibrary> createLibrary(const QString& libraryName,
-                       const QString& iconPath,
+    std::shared_ptr<MaterialLibrary> getLibrary(const std::string& name) const;
+    std::shared_ptr<MaterialLibrary> createLibrary(const std::string& libraryName,
+                       const std::string& iconPath,
                        bool readOnly = true);
-    std::shared_ptr<MaterialLibrary> createLocalLibrary(const QString& libraryName,
-                            const QString& materialDirectory,
-                            const QString& modelDirectory,
-                            const QString& iconPath,
+    std::shared_ptr<MaterialLibrary> createLocalLibrary(const std::string& libraryName,
+                            const std::string& materialDirectory,
+                            const std::string& modelDirectory,
+                            const std::string& iconPath,
                             bool readOnly = true);
-    std::shared_ptr<MaterialLibrary> createLocalLibrary(const QString& libraryName,
-                            const QString& materialDirectory,
-                            const QString& iconPath,
+    std::shared_ptr<MaterialLibrary> createLocalLibrary(const std::string& libraryName,
+                            const std::string& materialDirectory,
+                            const std::string& iconPath,
                             bool readOnly = true)
     {
-        return createLocalLibrary(libraryName, materialDirectory, QString(), iconPath, readOnly);
+        return createLocalLibrary(libraryName, materialDirectory, std::string(), iconPath, readOnly);
     }
-    void renameLibrary(const QString& libraryName, const QString& newName);
-    void changeIcon(const QString& libraryName, const QString& iconPath);
-    void removeLibrary(const QString& libraryName, bool keepData = true);
+    void renameLibrary(const std::string& libraryName, const std::string& newName);
+    void changeIcon(const std::string& libraryName, const std::string& iconPath);
+    void removeLibrary(const std::string& libraryName, bool keepData = true);
     std::shared_ptr<std::vector<LibraryObject>>
-    libraryMaterials(const QString& libraryName, bool local = false);
+    libraryMaterials(const std::string& libraryName, bool local = false);
     std::shared_ptr<std::vector<LibraryObject>>
-    libraryMaterials(const QString& libraryName,
+    libraryMaterials(const std::string& libraryName,
                      const MaterialFilter& filter,
                      const MaterialFilterOptions& options,
                      bool local = false);
-    bool isLocalLibrary(const QString& libraryName) const;
-    void setDisabled(const QString& libraryName, bool disabled, bool isLocal);
+    bool isLocalLibrary(const std::string& libraryName) const;
+    void setDisabled(const std::string& libraryName, bool disabled, bool isLocal);
     void setDisabled(Library& library, bool disabled);
-    bool isDisabled(const QString& libraryName, bool isLocal) const;
+    bool isDisabled(const std::string& libraryName, bool isLocal) const;
     bool isDisabled(const Library& library)const ;
 
     // Folder management
-    std::shared_ptr<std::list<QString>>
+    std::shared_ptr<std::list<std::string>>
     getMaterialFolders(const std::shared_ptr<MaterialLibrary>& library) const;
-    void createFolder(const std::shared_ptr<MaterialLibrary>& library, const QString& path);
+    void createFolder(const std::shared_ptr<MaterialLibrary>& library, const std::string& path);
     void renameFolder(const std::shared_ptr<MaterialLibrary>& library,
-                      const QString& oldPath,
-                      const QString& newPath);
-    void deleteRecursive(const std::shared_ptr<MaterialLibrary>& library, const QString& path);
+                      const std::string& oldPath,
+                      const std::string& newPath);
+    void deleteRecursive(const std::shared_ptr<MaterialLibrary>& library, const std::string& path);
 
     // Tree management
     std::shared_ptr<std::map<std::string, std::shared_ptr<MaterialTreeNode>>>
@@ -136,33 +136,33 @@ public:
     getMaterialTree(const MaterialLibrary& library) const;
 
     // Material management
-    std::shared_ptr<std::map<QString, std::shared_ptr<Material>>> getLocalMaterials() const;
-    std::shared_ptr<Material> getMaterial(const QString& uuid) const;
+    std::shared_ptr<std::map<std::string, std::shared_ptr<Material>>> getLocalMaterials() const;
+    std::shared_ptr<Material> getMaterial(const std::string& uuid) const;
     static std::shared_ptr<Material> getMaterial(const App::Material& material);
-    std::shared_ptr<Material> getMaterialByPath(const QString& path) const;
-    std::shared_ptr<Material> getMaterialByPath(const QString& path, const QString& library) const;
+    std::shared_ptr<Material> getMaterialByPath(const std::string& path) const;
+    std::shared_ptr<Material> getMaterialByPath(const std::string& path, const std::string& library) const;
     std::shared_ptr<Material> getParent(const std::shared_ptr<Material>& material) const;
-    std::shared_ptr<Material> copyNew(const Material& original, const QString& name) const;
-    std::shared_ptr<Material> copyInherited(const Material& original, const QString& name) const;
-    bool exists(const QString& uuid) const;
-    bool exists(const MaterialLibrary& library, const QString& uuid) const;
+    std::shared_ptr<Material> copyNew(const Material& original, const std::string& name) const;
+    std::shared_ptr<Material> copyInherited(const Material& original, const std::string& name) const;
+    bool exists(const std::string& uuid) const;
+    bool exists(const MaterialLibrary& library, const std::string& uuid) const;
     void move(
         const std::shared_ptr<MaterialLibrary>& library,
-        const QString& path,
+        const std::string& path,
         const std::shared_ptr<Material>& original
     );
-    void move(const std::shared_ptr<MaterialLibrary>& library, const QString& path, const QString& uuid);
+    void move(const std::shared_ptr<MaterialLibrary>& library, const std::string& path, const std::string& uuid);
     void copy(
         const std::shared_ptr<MaterialLibrary>& library,
-        const QString& path,
+        const std::string& path,
         const Material& original
     );
-    void copy(const std::shared_ptr<MaterialLibrary>& library, const QString& path, const QString& uuid);
-    void remove(const QString& uuid) const;
+    void copy(const std::shared_ptr<MaterialLibrary>& library, const std::string& path, const std::string& uuid);
+    void remove(const std::string& uuid) const;
 
     void saveMaterial(const std::shared_ptr<MaterialLibrary>& library,
                       const std::shared_ptr<Material>& material,
-                      const QString& path,
+                      const std::string& path,
                       bool overwrite,
                       bool saveAsCopy,
                       bool saveInherited) const;
@@ -170,10 +170,10 @@ public:
     bool isMaterial(const fs::path& p) const;
     bool isMaterial(const QFileInfo& file) const;
 
-    std::shared_ptr<std::map<QString, std::shared_ptr<Material>>>
-    materialsWithModel(const QString& uuid) const;
-    std::shared_ptr<std::map<QString, std::shared_ptr<Material>>>
-    materialsWithModelComplete(const QString& uuid) const;
+    std::shared_ptr<std::map<std::string, std::shared_ptr<Material>>>
+    materialsWithModel(const std::string& uuid) const;
+    std::shared_ptr<std::map<std::string, std::shared_ptr<Material>>>
+    materialsWithModelComplete(const std::string& uuid) const;
     void dereference(std::shared_ptr<Material> material) const;
     void dereference() const;
 

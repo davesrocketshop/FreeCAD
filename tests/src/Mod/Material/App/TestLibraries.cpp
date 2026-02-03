@@ -69,7 +69,7 @@ protected:
     void TearDown() override {
         // Restore other libraries
         for (auto& [name, disabled] : _libraries) {
-            _materialManager->setDisabled(QString::fromStdString(name), disabled, true);
+            _materialManager->setDisabled(name, disabled, true);
         }
 
         // Restore the external interface AFTER the local libraries
@@ -93,14 +93,14 @@ TEST_F(DISABLED_TestLibraries, TestDisabled)
     libraries = _materialManager->getLibraries(true);
     ASSERT_GT(libraries->size(), 0);
 
-    auto library = _materialManager->getLibrary(QStringLiteral("System"));
+    auto library = _materialManager->getLibrary("System");
     EXPECT_NE(&library, nullptr);
     ASSERT_EQ(library->getName(), QStringLiteral("System"));
     ASSERT_TRUE(library->isDisabled());
 
     _materialManager->setDisabled(*library, false);
     ASSERT_FALSE(library->isDisabled()); // Since this is a shared pointer
-    library = _materialManager->getLibrary(QStringLiteral("System"));
+    library = _materialManager->getLibrary("System");
     ASSERT_FALSE(library->isDisabled());
 
     libraries = _materialManager->getLibraries();

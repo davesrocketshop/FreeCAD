@@ -347,7 +347,7 @@ void DlgInspectMaterial::addMaterialDetails(
     auto parentUUID = material.getParentUUID();
     if (!parentUUID.isEmpty()) {
         auto parentMaterial = Materials::MaterialManager::getManager().getMaterial(
-            material.getParentUUID()
+            material.getParentUUID().toStdString()
         );
         addMaterial(tree, inherits, *parentMaterial);
     }

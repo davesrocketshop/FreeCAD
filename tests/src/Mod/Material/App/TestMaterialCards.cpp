@@ -55,9 +55,9 @@ protected:
         _useExternal = _materialManager->useExternal();
         _materialManager->setUseExternal(false);
 
-        _systemDisabled = _materialManager->isDisabled(QStringLiteral("System"), true);
-        _materialManager->setDisabled(QStringLiteral("System"), false, true);
-        if (_materialManager->isDisabled(QStringLiteral("System"), true)) {
+        _systemDisabled = _materialManager->isDisabled("System", true);
+        _materialManager->setDisabled("System", false, true);
+        if (_materialManager->isDisabled("System", true)) {
             FAIL() << "System is disabled";
         }
 
@@ -67,9 +67,9 @@ protected:
         libDir.removeRecursively(); // Clear any old run data
         libDir.mkdir(libPath);
 
-        _library = _materialManager->createLocalLibrary(QStringLiteral("DISABLED_TestMaterialCards"),
-                            libPath,
-                            QStringLiteral(":/icons/preferences-general.svg"),
+        _library = _materialManager->createLocalLibrary("DISABLED_TestMaterialCards",
+                            libPath.toStdString(),
+                            ":/icons/preferences-general.svg",
                             false);
 
         // Test Material.FCMat
@@ -78,8 +78,8 @@ protected:
     }
 
     void TearDown() override {
-        _materialManager->removeLibrary(QStringLiteral("DISABLED_TestMaterialCards"), false); // Remove the library
-        _materialManager->setDisabled(QStringLiteral("System"), _systemDisabled, true);
+        _materialManager->removeLibrary("DISABLED_TestMaterialCards", false); // Remove the library
+        _materialManager->setDisabled("System", _systemDisabled, true);
         _materialManager->setUseExternal(_useExternal);
         _materialManager->refresh();
     }
@@ -102,7 +102,7 @@ TEST_F(DISABLED_TestMaterialCards, TestCopy)
     std::shared_ptr<Materials::Material> newMaterial;
 
     try {
-        auto testMaterial = _materialManager->getMaterial(_testMaterialUUID);
+        auto testMaterial = _materialManager->getMaterial(_testMaterialUUID.toStdString());
         newMaterial = std::make_shared<Materials::Material>(*testMaterial);
 
         EXPECT_EQ(testMaterial->getUUID(), _testMaterialUUID);
@@ -122,7 +122,7 @@ TEST_F(DISABLED_TestMaterialCards, TestCopy)
     try {
         _materialManager->saveMaterial(_library,
                         newMaterial,
-                        QStringLiteral("/Test Material2.FCMat"),
+                        "/Test Material2.FCMat",
                         false, // overwrite
                         true,  // saveAsCopy
                         false); // saveInherited
@@ -137,7 +137,7 @@ TEST_F(DISABLED_TestMaterialCards, TestCopy)
     try {
         EXPECT_THROW(_materialManager->saveMaterial(_library,
                         newMaterial,
-                        QStringLiteral("/Test Material2.FCMat"),
+                        "/Test Material2.FCMat",
                         false, // overwrite
                         true,  // saveAsCopy
                         false) // saveInherited
@@ -153,7 +153,7 @@ TEST_F(DISABLED_TestMaterialCards, TestCopy)
     try {
         _materialManager->saveMaterial(_library,
                         newMaterial,
-                        QStringLiteral("/Test Material2.FCMat"),
+                        "/Test Material2.FCMat",
                         true,  // overwrite
                         true,  // saveAsCopy
                         false);// saveInherited
@@ -168,7 +168,7 @@ TEST_F(DISABLED_TestMaterialCards, TestCopy)
     try {
         _materialManager->saveMaterial(_library,
                         newMaterial,
-                        QStringLiteral("/Test Material3.FCMat"),
+                        "/Test Material3.FCMat",
                         false,  // overwrite
                         true,  // saveAsCopy
                         true);// saveInherited
@@ -184,7 +184,7 @@ TEST_F(DISABLED_TestMaterialCards, TestCopy)
     try {
         _materialManager->saveMaterial(_library,
                         newMaterial,
-                        QStringLiteral("/Test Material4.FCMat"),
+                        "/Test Material4.FCMat",
                         false,  // overwrite
                         false,  // saveAsCopy
                         true);// saveInherited
@@ -200,7 +200,7 @@ TEST_F(DISABLED_TestMaterialCards, TestCopy)
     try {
         _materialManager->saveMaterial(_library,
                         newMaterial,
-                        QStringLiteral("/Test Material5.FCMat"),
+                        "/Test Material5.FCMat",
                         false,  // overwrite
                         true,  // saveAsCopy
                         true);// saveInherited
@@ -214,7 +214,7 @@ TEST_F(DISABLED_TestMaterialCards, TestCopy)
     try {
         _materialManager->saveMaterial(_library,
                         newMaterial,
-                        QStringLiteral("/Test Material5.FCMat"),
+                        "/Test Material5.FCMat",
                         true,  // overwrite
                         true,  // saveAsCopy
                         true);// saveInherited
@@ -229,7 +229,7 @@ TEST_F(DISABLED_TestMaterialCards, TestCopy)
     try {
         _materialManager->saveMaterial(_library,
                         newMaterial,
-                        QStringLiteral("/Test Material6.FCMat"),
+                        "/Test Material6.FCMat",
                         false,  // overwrite
                         true,  // saveAsCopy
                         true);// saveInherited
@@ -243,7 +243,7 @@ TEST_F(DISABLED_TestMaterialCards, TestCopy)
     try {
         _materialManager->saveMaterial(_library,
                         newMaterial,
-                        QStringLiteral("/Test Material6.FCMat"),
+                        "/Test Material6.FCMat",
                         true,  // overwrite
                         false,  // saveAsCopy
                         true);// saveInherited
@@ -260,7 +260,7 @@ TEST_F(DISABLED_TestMaterialCards, TestColumns)
     ASSERT_NE(_modelManager, nullptr);
     ASSERT_TRUE(_library);
 
-    auto testMaterial = _materialManager->getMaterial(_testMaterialUUID);
+    auto testMaterial = _materialManager->getMaterial(_testMaterialUUID.toStdString());
 
     EXPECT_TRUE(testMaterial->hasPhysicalProperty(QStringLiteral("TestArray2D")));
     auto array2d = testMaterial->getPhysicalProperty(QStringLiteral("TestArray2D"))->getMaterialValue();

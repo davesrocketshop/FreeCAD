@@ -182,7 +182,7 @@ void NewLibrary::onReadOnly(Qt::CheckState state)
 void NewLibrary::onChangeIcon(bool checked)
 {
     Q_UNUSED(checked)
-    
+
     QString prechosenDirectory = Gui::FileDialog::getWorkingDirectory();
 
     QFileDialog::Options dlgOpt;
@@ -266,7 +266,7 @@ bool NewLibrary::createLocalLibrary(const QString& name)
     try {
         Gui::WaitCursor wc;
         auto directory = ui->fileLocal->fileName();
-        getMaterialManager().createLocalLibrary(name, directory, _icon, isReadOnly());
+        getMaterialManager().createLocalLibrary(name.toStdString(), directory.toStdString(), _icon.toStdString(), isReadOnly());
         getMaterialManager().refresh();
     }
     catch (const Materials::CreationError& e) {
@@ -282,7 +282,7 @@ bool NewLibrary::createRemoteLibrary(const QString& name)
 {
     try {
         Gui::WaitCursor wc;
-        getMaterialManager().createLibrary(name, _icon, isReadOnly());
+        getMaterialManager().createLibrary(name.toStdString(), _icon.toStdString(), isReadOnly());
         getMaterialManager().refresh();
     }
     catch (const Materials::CreationError& e) {

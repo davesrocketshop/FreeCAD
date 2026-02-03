@@ -1389,7 +1389,7 @@ void Material::saveInherits(QTextStream& stream) const
 {
     if (!_parentUuid.isEmpty()) {
         try {
-            auto material = MaterialManager::getManager().getMaterial(_parentUuid);
+            auto material = MaterialManager::getManager().getMaterial(_parentUuid.toStdString());
 
             stream << "Inherits:\n";
             stream << "  " << material->getName() << ":\n";
@@ -1455,7 +1455,7 @@ void Material::saveModels(QTextStream& stream, bool saveInherited) const
     std::shared_ptr<Material> parent;
     if (inherited) {
         try {
-            parent = materialManager.getMaterial(_parentUuid);
+            parent = materialManager.getMaterial(_parentUuid.toStdString());
         }
         catch (const MaterialNotFound&) {
             inherited = false;
@@ -1509,7 +1509,7 @@ void Material::saveAppearanceModels(QTextStream& stream, bool saveInherited) con
     std::shared_ptr<Material> parent;
     if (inherited) {
         try {
-            parent = materialManager.getMaterial(_parentUuid);
+            parent = materialManager.getMaterial(_parentUuid.toStdString());
         }
         catch (const MaterialNotFound&) {
             inherited = false;
@@ -1576,7 +1576,7 @@ void Material::save(QTextStream& stream, bool overwrite, bool saveAsCopy, bool s
     if (saveInherited && !saveAsCopy) {
         // Check to see if we're an original or if we're already in the list of
         // models
-        if (MaterialManager::getManager().exists(_uuid) && !overwrite) {
+        if (MaterialManager::getManager().exists(_uuid.toStdString()) && !overwrite) {
             // Make a new version based on the current
             setParentUUID(_uuid);
         }

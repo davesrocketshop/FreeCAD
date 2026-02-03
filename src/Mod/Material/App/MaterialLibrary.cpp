@@ -81,7 +81,7 @@ MaterialLibrary::getMaterialTree(const Materials::MaterialFilter& filter,
     std::shared_ptr<std::map<std::string, std::shared_ptr<MaterialTreeNode>>> materialTree =
         std::make_shared<std::map<std::string, std::shared_ptr<MaterialTreeNode>>>();
 
-    auto materials = MaterialManager::getManager().libraryMaterials(QString::fromStdString(getName()), filter, options, isLocal());
+    auto materials = MaterialManager::getManager().libraryMaterials(getName(), filter, options, isLocal());
     for (auto& it : *materials) {
         auto uuid = it.getUUID();
         auto path = it.getPath();
@@ -114,7 +114,7 @@ MaterialLibrary::getMaterialTree(const Materials::MaterialFilter& filter,
         child->setUUID(uuid);
         child->setReadOnly(isReadOnly());
         if (isLocal()) {
-            auto material = MaterialManager::getManager().getMaterial(QString::fromStdString(uuid));
+            auto material = MaterialManager::getManager().getMaterial(uuid);
             child->setOldFormat(material->isOldFormat());
         }
         (*node)[filename] = child;
@@ -128,7 +128,7 @@ MaterialLibrary::getMaterialTree(const Materials::MaterialFilter& filter,
                 *(reinterpret_cast<const Materials::MaterialLibraryLocal*>(this));
             auto folderList = MaterialLoader::getMaterialFolders(materialLibrary);
             for (auto& folder : *folderList) {
-                QStringList list = folder.split(QStringLiteral("/"));
+                QStringList list = QString::fromStdString(folder).split(QStringLiteral("/"));
 
                 // Start at the root
                 auto node = materialTree;
@@ -280,7 +280,7 @@ void MaterialLibraryLocal::deleteFile(MaterialManager& manager, const std::strin
         std::string rPath = getRelativePath(path);
         try {
             auto material = getMaterialByPath(rPath);
-            manager.remove(material->getUUID());
+            manager.remove(material->getUUID().toStdString());
         }
         catch (const MaterialNotFound&) {
             Base::Console().log("Unable to remove file from materials list\n");
