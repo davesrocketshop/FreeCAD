@@ -55,19 +55,10 @@ ModelEntry::ModelEntry(
 
 std::unique_ptr<std::map<std::string, std::shared_ptr<ModelEntry>>> ModelLoader::_modelEntryMap = nullptr;
 
-ModelLoader::ModelLoader(
-    std::shared_ptr<std::multimap<std::string, std::shared_ptr<Model>>> modelMap,
-    std::shared_ptr<std::list<std::shared_ptr<ModelLibraryLocal>>> libraryList
-)
+ModelLoader::ModelLoader(std::shared_ptr<std::multimap<std::string, std::shared_ptr<Model>>> modelMap)
     : _modelMap(modelMap)
-    , _libraryList(libraryList)
 {
     loadLibraries();
-}
-
-void ModelLoader::addLibrary(std::shared_ptr<ModelLibraryLocal> model)
-{
-    _libraryList->push_back(model);
 }
 
 const std::string ModelLoader::getUUIDFromPath(const std::string& path)
@@ -260,9 +251,6 @@ void ModelLoader::loadLibrary(std::shared_ptr<ModelLibraryLocal> library)
     if (_modelEntryMap == nullptr) {
         _modelEntryMap = std::make_unique<std::map<std::string, std::shared_ptr<ModelEntry>>>();
     }
-    // if (library->getDirectory().isEmpty()) {
-    //     return;
-    // }
 
     QDirIterator it(QString::fromStdString(library->getDirectory()), QDirIterator::Subdirectories);
     while (it.hasNext()) {
@@ -290,21 +278,13 @@ void ModelLoader::loadLibrary(std::shared_ptr<ModelLibraryLocal> library)
 
 void ModelLoader::loadLibraries()
 {
-    getModelLibraries();
-    if (_libraryList) {
-        for (auto it = _libraryList->begin(); it != _libraryList->end(); it++) {
-            loadLibrary(*it);
-        }
-    }
-}
-
-void ModelLoader::getModelLibraries()
-{
-    auto libraries = LibraryManager::getManager().getLocalModelLibraries();
-    for (auto library : *libraries) {
-        auto local = std::dynamic_pointer_cast<ModelLibraryLocal>(library);
-        if (local) {
-            _libraryList->push_back(local);
+    auto libraries = LibraryManager::getManager().getLocalModelLibraries(false);
+    if (libraries) {
+        for (auto it = libraries->begin(); it != libraries->end(); it++) {
+            auto local = std::dynamic_pointer_cast<ModelLibraryLocal>(*it);
+            if (local) {
+                loadLibrary(local);
+            }
         }
     }
 }

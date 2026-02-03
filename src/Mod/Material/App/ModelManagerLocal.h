@@ -49,10 +49,6 @@ public:
     static void cleanup();
     void refresh();
 
-    // std::shared_ptr<std::list<std::shared_ptr<ModelLibrary>>> getLibraries();
-    // void renameLibrary(const std::string& libraryName, const std::string& newName);
-    // void changeIcon(const std::string& libraryName, const std::string& icon);
-    // void removeLibrary(const std::string& libraryName);
     std::shared_ptr<std::vector<LibraryObject>>
     libraryModels(const std::string& libraryName);
 
@@ -73,7 +69,6 @@ public:
 private:
     static void initLibraries();
 
-    static std::shared_ptr<std::list<std::shared_ptr<ModelLibraryLocal>>> _libraryList;
     static std::shared_ptr<std::multimap<std::string, std::shared_ptr<Model>>> _modelMap;
     static QMutex _mutex;
 };

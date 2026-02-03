@@ -138,71 +138,34 @@ std::shared_ptr<std::vector<std::shared_ptr<ModelLibrary>>> ModelManager::getLib
     bool includeDisabled
 )
 {
-    return LibraryManager::getManager().getModelLibraries();
-//     // External libraries take precedence over local libraries
-//     auto libMap = std::map<std::string, std::shared_ptr<ModelLibrary>>();
-// #if defined(BUILD_MATERIAL_EXTERNAL)
-//     if (_useExternal) {
-//         auto remoteLibraries = _externalManager->getLibraries();
-//         for (auto& remote : *remoteLibraries) {
-//             if (includeDisabled || !remote->isDisabled()) {
-//                 libMap.try_emplace(std::string::fromStdString(remote->getName()), remote);
-//             }
-//         }
-//     }
-// #endif
-//     auto localLibraries = LibraryManager::getManager().getLocalModelLibraries(); //_localManager->getLibraries();
-//     for (auto& local : *localLibraries) {
-//         if (includeDisabled || !local->isDisabled()) {
-//             libMap.try_emplace(std::string::fromStdString(local->getName()), local);
-//         }
-//     }
-
-//     // Consolidate into a single list
-//     auto libraries = std::make_shared<std::vector<std::shared_ptr<ModelLibrary>>>();
-//     for (auto libEntry : libMap) {
-//         libraries->push_back(libEntry.second);
-//     }
-
-//     return libraries;
+    return LibraryManager::getManager().getModelLibraries(includeDisabled);
 }
 
 std::shared_ptr<std::vector<std::shared_ptr<ModelLibrary>>> ModelManager::getLocalLibraries(
     bool includeDisabled
 )
 {
-    return LibraryManager::getManager().getLocalModelLibraries(); //_localManager->getLibraries();
+    return LibraryManager::getManager().getLocalModelLibraries(includeDisabled);
 }
 
 std::shared_ptr<ModelLibrary> ModelManager::getLibrary(const std::string& name) const
 {
-#if defined(BUILD_MATERIAL_EXTERNAL)
-    if (_useExternal) {
-        auto library = _externalManager->getLibrary(name);
-        if (library) {
-            return library;
-        }
-    }
-#endif
-    return _localManager->getLibrary(name);
+    return LibraryManager::getManager().getModelLibrary("Local", name);
 }
 
 void ModelManager::renameLibrary(const std::string& libraryName, const std::string& newName)
 {
     LibraryManager::getManager()
         .renameLibrary("Local", libraryName, newName);
-    //_localManager->renameLibrary(libraryName, newName);
 }
 
 void ModelManager::changeIcon(const std::string& libraryName, const std::string& icon)
 {
-    // _localManager->changeIcon(libraryName, icon);
     LibraryManager::getManager().changeIcon("Local", libraryName, icon);
 }
 
 void ModelManager::removeLibrary(const std::string& libraryName)
 {
-    // _localManager->removeLibrary(libraryName);
     LibraryManager::getManager().removeLibrary("Local", libraryName);
 }
 
@@ -225,7 +188,7 @@ std::shared_ptr<std::vector<LibraryObject>> ModelManager::libraryModels(const st
     return _localManager->libraryModels(libraryName);
 }
 
-bool ModelManager::isLocalLibrary([[maybe_unused]] const std::string& libraryName)
+bool ModelManager::isLocalLibrary(const std::string& libraryName)
 {
     try {
         LibraryManager::getManager().getLibrary("Local", libraryName);

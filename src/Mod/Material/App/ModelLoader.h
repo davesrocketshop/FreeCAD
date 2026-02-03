@@ -90,8 +90,7 @@ private:
 class ModelLoader
 {
 public:
-    ModelLoader(std::shared_ptr<std::multimap<std::string, std::shared_ptr<Model>>> modelMap,
-                std::shared_ptr<std::list<std::shared_ptr<ModelLibraryLocal>>> libraryList);
+    ModelLoader(std::shared_ptr<std::multimap<std::string, std::shared_ptr<Model>>> modelMap);
     virtual ~ModelLoader() = default;
 
     static const std::string getUUIDFromPath(const std::string& path);
@@ -99,20 +98,17 @@ public:
 private:
     ModelLoader();
 
-    void getModelLibraries();
     std::string
     yamlValue(const YAML::Node& node, const std::string& key, const std::string& defaultValue);
     void addToTree(std::shared_ptr<ModelEntry> model);
     void showYaml(const YAML::Node& yaml) const;
     std::shared_ptr<ModelEntry> getModelFromPath(std::shared_ptr<ModelLibrary> library,
                                                  const std::string& path) const;
-    void addLibrary(std::shared_ptr<ModelLibraryLocal> model);
     void loadLibrary(std::shared_ptr<ModelLibraryLocal> library);
     void loadLibraries();
 
     static std::unique_ptr<std::map<std::string, std::shared_ptr<ModelEntry>>> _modelEntryMap;
     std::shared_ptr<std::multimap<std::string, std::shared_ptr<Model>>> _modelMap;
-    std::shared_ptr<std::list<std::shared_ptr<ModelLibraryLocal>>> _libraryList;
 };
 
 }  // namespace Materials
