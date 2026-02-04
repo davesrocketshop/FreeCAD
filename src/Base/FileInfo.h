@@ -140,6 +140,8 @@ public:
     bool createDirectories() const;
     /// Get a list of the directory content
     std::vector<Base::FileInfo> getDirectoryContent() const;
+    /// Get a list of the directory content, including subfolders
+    std::vector<Base::FileInfo> getDirectoryContentRecursive() const;
     /// Delete an empty directory
     bool deleteDirectory() const;
     /// Delete a directory and all its content.

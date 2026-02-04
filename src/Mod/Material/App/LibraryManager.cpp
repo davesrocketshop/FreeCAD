@@ -582,13 +582,13 @@ void LibraryManager::createSystemLibraryConfig()
         auto path = Library::cleanPath(App::Application::getResourceDir() + "/Mod/Material/Resources");
         auto library = param->GetGroup("System");
 
-        QDir resourceDir;
-        auto resourcePath = Library::cleanPath(path + "/Materials");
-        resourceDir.mkpath(QString::fromStdString(resourcePath));
-        library->SetASCII("Directory", resourcePath);
-        resourcePath = Library::cleanPath(path + "/Models");
-        resourceDir.mkpath(QString::fromStdString(resourcePath));
-        library->SetASCII("ModelDirectory", resourcePath);
+        Base::FileInfo resourceDir;
+        resourceDir.setFile(Library::cleanPath(path + "/Materials"));
+        resourceDir.createDirectories();
+        library->SetASCII("Directory", resourceDir.filePath());
+        resourceDir.setFile(Library::cleanPath(path + "/Models"));
+        resourceDir.createDirectories();
+        library->SetASCII("ModelDirectory", resourceDir.filePath());
 
         library->SetASCII("IconPath", ":/icons/freecad.svg");
         library->SetBool("ReadOnly", false);
@@ -604,12 +604,14 @@ void LibraryManager::createUserLibraryConfig()
         auto path = Library::cleanPath(App::Application::getUserAppDataDir());
         auto library = param->GetGroup("User");
 
-        QDir resourceDir;
+        Base::FileInfo resourceDir;
         auto resourcePath = Library::cleanPath(path + "/Material");
-        resourceDir.mkpath(QString::fromStdString(resourcePath));
+        resourceDir.setFile(resourcePath);
+        resourceDir.createDirectories();
         library->SetASCII("Directory", resourcePath);
         resourcePath = Library::cleanPath(path + "/Models");
-        resourceDir.mkpath(QString::fromStdString(resourcePath));
+        resourceDir.setFile(resourcePath);
+        resourceDir.createDirectories();
         library->SetASCII("ModelDirectory", resourcePath);
 
         library->SetASCII("IconPath", ":/icons/preferences-general.svg");

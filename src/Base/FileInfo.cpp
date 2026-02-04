@@ -566,3 +566,16 @@ std::vector<Base::FileInfo> FileInfo::getDirectoryContent() const
 
     return list;
 }
+
+std::vector<Base::FileInfo> FileInfo::getDirectoryContentRecursive() const
+{
+    std::error_code ec;
+    std::vector<Base::FileInfo> list;
+    fs::path path = stringToPath(FileName);
+
+    for (const fs::directory_entry& f : fs::recursive_directory_iterator {path, ec}) {
+        list.emplace_back(pathToString(f.path()));
+    }
+
+    return list;
+}

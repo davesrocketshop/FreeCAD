@@ -409,7 +409,7 @@ std::shared_ptr<MaterialEntry> MaterialLoader::getMaterialFromYAML(
     const std::string& path
 )
 {
-    std::shared_ptr<MaterialEntry> model = nullptr;
+    std::shared_ptr<MaterialEntry> material = nullptr;
 
     try {
         auto uuid = yamlroot["General"]["UUID"].as<std::string>();
@@ -419,13 +419,7 @@ std::shared_ptr<MaterialEntry> MaterialLoader::getMaterialFromYAML(
         Base::FileInfo filepath(clean);
         std::string name = filepath.fileNamePure();
 
-        model = std::make_shared<MaterialYamlEntry>(
-            library,
-            name,
-            clean,
-            uuid,
-            yamlroot
-        );
+        material = std::make_shared<MaterialYamlEntry>(library, name, clean, uuid, yamlroot);
     }
     catch (YAML::Exception const& e) {
         Base::Console().error("YAML parsing error: '%s'\n", path.c_str());
@@ -434,7 +428,7 @@ std::shared_ptr<MaterialEntry> MaterialLoader::getMaterialFromYAML(
     }
 
 
-    return model;
+    return material;
 }
 
 std::shared_ptr<MaterialEntry> MaterialLoader::getMaterialFromPath(
@@ -443,7 +437,7 @@ std::shared_ptr<MaterialEntry> MaterialLoader::getMaterialFromPath(
 ) const
 {
     std::string clean = Library::cleanPath(path);
-    std::shared_ptr<MaterialEntry> model = nullptr;
+    std::shared_ptr<MaterialEntry> material = nullptr;
     auto materialLibrary = reinterpret_cast<const std::shared_ptr<Materials::MaterialLibraryLocal>&>(
         library
     );
@@ -459,21 +453,21 @@ std::shared_ptr<MaterialEntry> MaterialLoader::getMaterialFromPath(
 
         // Return the nullptr as there are no intermediate steps to take, such
         // as checking inheritance
-        return model;
+        return nullptr;
     }
 
     Base::FileInfo info(pathName);
     Base::ifstream fin(info);
     if (!fin) {
         Base::Console().error("YAML file open error: '%s'\n", pathName.c_str());
-        return model;
+        return material;
     }
 
     YAML::Node yamlroot;
     try {
         yamlroot = YAML::Load(fin);
 
-        model = getMaterialFromYAML(materialLibrary, yamlroot, clean);
+        material = getMaterialFromYAML(materialLibrary, yamlroot, clean);
     }
     catch (YAML::Exception const& e) {
         Base::Console().error("YAML parsing error: '%s'\n", pathName.c_str());
@@ -482,7 +476,7 @@ std::shared_ptr<MaterialEntry> MaterialLoader::getMaterialFromPath(
     }
 
 
-    return model;
+    return material;
 }
 
 void MaterialLoader::showYaml(const YAML::Node& yaml)
@@ -576,7 +570,7 @@ void MaterialLoader::loadLibrary(const std::shared_ptr<MaterialLibraryLocal>& li
     }
 
     Base::FileInfo dirInfo(library->getDirectory());
-    auto dirList = dirInfo.getDirectoryContent(); // This needs to be recursive
+    auto dirList = dirInfo.getDirectoryContentRecursive(); // This needs to be recursive
     for (auto file : dirList) {
         if (file.isFile()) {
             if (file.hasExtension("FCMat")) {
