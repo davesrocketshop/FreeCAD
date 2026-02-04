@@ -576,12 +576,12 @@ void MaterialLoader::loadLibrary(const std::shared_ptr<MaterialLibraryLocal>& li
     }
 
     Base::FileInfo dirInfo(library->getDirectory());
-    auto dirList = dirInfo.getDirectoryContent();
+    auto dirList = dirInfo.getDirectoryContent(); // This needs to be recursive
     for (auto file : dirList) {
         if (file.isFile()) {
             if (file.hasExtension("FCMat")) {
                 try {
-                    auto model = getMaterialFromPath(library, fs::canonical(file.filePath()).string());
+                    auto model = getMaterialFromPath(library, Base::FileInfo::pathToString(fs::canonical(file.filePath())));
                     if (model) {
                         (*_materialEntryMap)[model->getUUID()] = model;
                     }
