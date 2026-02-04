@@ -24,8 +24,7 @@
 #ifndef MATERIAL_MANAGEDLIBRARY_H
 #define MATERIAL_MANAGEDLIBRARY_H
 
-# include <QDir>
-# include <QByteArray>
+#include <QByteArray>
 #include <QString>
 
 # include <Base/BaseClass.h>
@@ -143,14 +142,8 @@ public:
     {
         _modelDirectory = cleanPath(directory);
     }
-    std::string getMaterialDirectoryPath() const
-    {
-        return QDir(QString::fromStdString(_materialDirectory)).absolutePath().toStdString();
-    }
-    std::string getModelDirectoryPath() const
-    {
-        return QDir(QString::fromStdString(_modelDirectory)).absolutePath().toStdString();
-    }
+    std::string getMaterialDirectoryPath() const;
+    std::string getModelDirectoryPath() const;
 
     bool operator==(const ManagedLibrary& library) const;
     bool operator!=(const ManagedLibrary& library) const

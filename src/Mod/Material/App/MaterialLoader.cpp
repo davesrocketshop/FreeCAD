@@ -21,8 +21,6 @@
  *                                                                         *
  **************************************************************************/
 
-#include <QDirIterator>
-#include <QFileInfo>
 #include <QList>
 #include <QMetaType>
 #include <QRegularExpression>
@@ -379,8 +377,8 @@ void MaterialYamlEntry::addToTree(
         }
     }
 
-    QString path = QDir(QString::fromStdString(directory)).absolutePath();
-    (*materialMap)[uuid] = library->addMaterial(finalModel, path.toStdString());
+    std::string path = Base::FileInfo::canonical(directory);
+    (*materialMap)[uuid] = library->addMaterial(finalModel, path);
 }
 
 //===
@@ -619,15 +617,15 @@ std::shared_ptr<std::list<std::string>> MaterialLoader::getMaterialFolders(
 )
 {
     std::shared_ptr<std::list<std::string>> pathList = std::make_shared<std::list<std::string>>();
-    QDirIterator it(QString::fromStdString(library.getDirectory()), QDirIterator::Subdirectories);
-    while (it.hasNext()) {
-        auto pathname = it.next();
-        QFileInfo file(pathname);
+    Base::FileInfo dirInfo(library.getDirectory());
+    for (auto file : dirInfo.getDirectoryContentRecursive()) {
         if (file.isDir()) {
-            QString path = QDir(QString::fromStdString(library.getDirectory())).relativeFilePath(file.absoluteFilePath());
-            if (!path.startsWith(QStringLiteral("."))) {
-                pathList->push_back(path.toStdString());
-            }
+            auto libraryPath = Base::FileInfo::stringToPath(library.getDirectory());
+            auto filePath = Base::FileInfo::stringToPath(file.filePath());
+            std::string path = Base::FileInfo::pathToString(fs::relative(libraryPath, filePath));
+            // if (!path.starts_with(".")) {
+                pathList->push_back(path);
+            // }
         }
     }
 

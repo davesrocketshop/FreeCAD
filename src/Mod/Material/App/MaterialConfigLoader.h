@@ -26,7 +26,6 @@
 
 #include <memory>
 
-#include <QDir>
 #include <QList>
 #include <QMap>
 #include <QSettings>

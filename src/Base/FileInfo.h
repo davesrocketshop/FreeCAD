@@ -165,6 +165,8 @@ public:
     static std::string pathToString(const std::filesystem::path& path);
     /// Convert from string to filesystem path
     static std::filesystem::path stringToPath(const std::string& str);
+    //// Convert to a canonical path
+    static std::string canonical(const std::string& path);
     //@}
 
 private:

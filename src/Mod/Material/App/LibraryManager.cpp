@@ -21,7 +21,6 @@
  *                                                                         *
  **************************************************************************/
 
-#include <QDirIterator>
 #include <QMutexLocker>
 
 #include <App/Application.h>
@@ -645,13 +644,13 @@ std::shared_ptr<std::vector<std::shared_ptr<ManagedLibrary>>> LibraryManager::ge
         auto libDisabled = group->GetBool("Disabled", false);
 
         if (libDir.length() > 0) {
-            QDir dir(QString::fromStdString(libDir));
-            if (dir.exists()) {
+            Base::FileInfo dir(libDir);
+            if (dir.isDir()) {
                 if (!libDisabled || includeDisabled) {
                     // Use the canonical path to prevent issues with symbolic links
                     auto libData = std::make_shared<ManagedLibrary>(
                         libName,
-                        dir.canonicalPath().toStdString(),
+                        dir.canonical(dir.filePath()),
                         libIcon,
                         libReadOnly
                     );
@@ -680,12 +679,12 @@ std::shared_ptr<std::vector<std::shared_ptr<ManagedLibrary>>> LibraryManager::ge
         auto materialDisabled = group->GetBool("ModuleMaterialDisabled", false);
 
         if (materialDir.length() > 0) {
-            QDir dir(QString::fromStdString(materialDir));
-            if (dir.exists()) {
+            Base::FileInfo dir(materialDir);
+            if (dir.isDir()) {
                 if (!materialDisabled || includeDisabled) {
                     auto libData = std::make_shared<ManagedLibrary>(
                         moduleName,
-                        dir.canonicalPath().toStdString(),
+                        dir.canonical(dir.filePath()),
                         materialIcon,
                         materialReadOnly
                     );

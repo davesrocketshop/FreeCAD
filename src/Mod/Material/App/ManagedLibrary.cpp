@@ -24,6 +24,7 @@
 #include <string>
 
 #include <App/Application.h>
+#include <Base/FileInfo.h>
 
 #include "Exceptions.h"
 #include "LibraryManager.h"
@@ -131,6 +132,16 @@ void ManagedLibrary::setModule(bool module)
     _module = module;
 }
 
+std::string ManagedLibrary::getMaterialDirectoryPath() const
+{
+    return Base::FileInfo::canonical(_materialDirectory);
+}
+
+std::string ManagedLibrary::getModelDirectoryPath() const
+{
+    return Base::FileInfo::canonical(_modelDirectory);
+}
+
 bool ManagedLibrary::operator==(const ManagedLibrary& library) const
 {
     return (isRepositoryName(library.getRepositoryName()))
@@ -232,8 +243,7 @@ std::string ManagedLibrary::getLibraryPath(const std::string& path, const std::s
 
 std::string ManagedLibrary::cleanPath(const std::string path)
 {
-    QString clean = QDir::cleanPath(QString::fromStdString(path));
-    return clean.toStdString();
+    return Base::FileInfo::canonical(path);
 }
 
 QString ManagedLibrary::cleanPath(const QString& path)

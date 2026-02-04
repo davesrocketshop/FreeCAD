@@ -21,7 +21,6 @@
  *                                                                         *
  **************************************************************************/
 
-#include <QDirIterator>
 #include <QMutexLocker>
 
 #include <App/Application.h>

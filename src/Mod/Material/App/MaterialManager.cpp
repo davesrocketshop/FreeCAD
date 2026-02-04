@@ -24,7 +24,6 @@
 #include <random>
 
 
-#include <QDirIterator>
 #include <QMutex>
 #include <QMutexLocker>
 

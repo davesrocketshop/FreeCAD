@@ -21,7 +21,6 @@
  *                                                                         *
  **************************************************************************/
 
-#include <QDirIterator>
 #include <QString>
 
 #include <App/Application.h>
@@ -252,19 +251,17 @@ void ModelLoader::loadLibrary(std::shared_ptr<ModelLibraryLocal> library)
         _modelEntryMap = std::make_unique<std::map<std::string, std::shared_ptr<ModelEntry>>>();
     }
 
-    QDirIterator it(QString::fromStdString(library->getDirectory()), QDirIterator::Subdirectories);
-    while (it.hasNext()) {
-        auto pathname = it.next();
-        Base::FileInfo file(pathname.toStdString());
+    Base::FileInfo dirInfo(library->getDirectory());
+    for (auto file: dirInfo.getDirectoryContentRecursive()) {
         if (file.isFile()) {
-            if (file.extension() == "yml") {
+            if (file.hasExtension("yml")) {
                 try {
                     auto model = getModelFromPath(library, file.filePath());
                     (*_modelEntryMap)[model->getUUID()] = model;
                     // showYaml(model->getModel());
                 }
                 catch (InvalidModel const&) {
-                    Base::Console().log("Invalid model '%s'\n", pathname.toStdString().c_str());
+                    Base::Console().log("Invalid model '%s'\n", file.filePath().c_str());
                 }
             }
         }

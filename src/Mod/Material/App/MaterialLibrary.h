@@ -24,10 +24,6 @@
 
 #include <memory>
 
-#include <QDir>
-#include <QString>
-#include <QVariant>
-
 #include <Base/BaseClass.h>
 #include <Mod/Material/MaterialGlobal.h>
 

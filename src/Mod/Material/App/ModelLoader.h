@@ -26,8 +26,6 @@
 
 #include <memory>
 
-#include <QDir>
-#include <QString>
 #include <yaml-cpp/yaml.h>
 
 #include "Model.h"

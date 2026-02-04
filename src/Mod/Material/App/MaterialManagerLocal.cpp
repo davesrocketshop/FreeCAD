@@ -23,7 +23,6 @@
 
 #include <random>
 
-#include <QDirIterator>
 #include <QMutex>
 #include <QMutexLocker>
 
@@ -145,15 +144,16 @@ std::shared_ptr<MaterialLibrary> MaterialManagerLocal::createLibrary(
     bool readOnly
 )
 {
-    QDir dir;
-    if (!dir.exists(QString::fromStdString(materialDirectory))) {
-        if (!dir.mkpath(QString::fromStdString(materialDirectory))) {
+    Base::FileInfo dir(materialDirectory);
+    if (!dir.isDir()) {
+        if (!dir.createDirectories()) {
             throw CreationError("Unable to create library path");
         }
     }
     if (!modelDirectory.empty()) {
-        if (!dir.exists(QString::fromStdString(modelDirectory))) {
-            if (!dir.mkpath(QString::fromStdString(modelDirectory))) {
+        dir.setFile(modelDirectory);
+        if (!dir.isDir()) {
+            if (!dir.createDirectories()) {
                 throw CreationError("Unable to create library model path");
             }
         }

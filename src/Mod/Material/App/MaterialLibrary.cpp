@@ -21,9 +21,6 @@
  *                                                                         *
  **************************************************************************/
 
-#include <QDirIterator>
-#include <QVector>
-
 #include <App/Application.h>
 #include <Base/FileInfo.h>
 
@@ -183,9 +180,9 @@ void MaterialLibraryLocal::createFolder(const std::string& path)
 {
     std::string filePath = getLocalPath(path);
 
-    QDir fileDir(QString::fromStdString(filePath));
-    if (!fileDir.exists()) {
-        if (!fileDir.mkpath(QString::fromStdString(filePath))) {
+    Base::FileInfo fileDir(filePath);
+    if (!fileDir.isDir()) {
+        if (!fileDir.createDirectories()) {
             Base::Console().error("Unable to create directory path '%s'\n",
                                   filePath.c_str());
         }
@@ -197,9 +194,9 @@ void MaterialLibraryLocal::renameFolder(const std::string& oldPath, const std::s
     std::string filePath = getLocalPath(oldPath);
     std::string newFilePath = getLocalPath(newPath);
 
-    QDir fileDir(QString::fromStdString(filePath));
-    if (fileDir.exists()) {
-        if (!fileDir.rename(QString::fromStdString(filePath), QString::fromStdString(newFilePath))) {
+    Base::FileInfo fileDir(filePath);
+    if (fileDir.isDir()) {
+        if (!fileDir.renameFile(newFilePath.c_str())) {
             Base::Console().error("Unable to rename directory path '%s'\n",
                                   filePath.c_str());
         }

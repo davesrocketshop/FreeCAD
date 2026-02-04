@@ -21,7 +21,6 @@
  *                                                                         *
  **************************************************************************/
 
-#include <QDirIterator>
 #include <QString>
 #include <QFile>
 #include <QIODevice>

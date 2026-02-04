@@ -26,7 +26,6 @@
 
 #include <memory>
 
-#include <QDir>
 #include <yaml-cpp/yaml.h>
 
 #include "Materials.h"
