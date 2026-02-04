@@ -120,7 +120,7 @@ std::string Library::getRelativePath(const std::string& path) const
     std::string prefix = "[" + getName() + "]";
     if (clean.starts_with(prefix)) {
         // Remove the library name from the path
-        filePath = clean.erase(clean.length() - prefix.length());
+        filePath = clean.erase(0, prefix.length());
     }
     else {
         filePath = clean;
@@ -129,7 +129,7 @@ std::string Library::getRelativePath(const std::string& path) const
     prefix = getDirectoryPath();
     if (filePath.starts_with(prefix)) {
         // Remove the library root from the path
-        filePath = filePath.erase(filePath.length() - prefix.length());
+        filePath = filePath.erase(0, prefix.length());
     }
 
     // Remove any leading '/'
@@ -144,10 +144,10 @@ std::string Library::getLibraryPath(const std::string& path, const std::string& 
 {
     std::string filePath(cleanPath(path));
     if (filePath.ends_with(filename)) {
-        filePath = filePath.erase(0, filePath.length() - filename.length());
+        filePath = filePath.erase(filePath.length() - filename.length());
     }
     if (filePath.ends_with("/")) {
-        filePath = filePath.erase(0, filePath.length() - 1);
+        filePath = filePath.erase(filePath.length() - 1);
     }
 
     return filePath;

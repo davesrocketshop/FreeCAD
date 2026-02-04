@@ -76,11 +76,6 @@ public:
     );
     void renameLibrary(const std::string& libraryName, const std::string& newName);
     void changeIcon(const std::string& libraryName, const QByteArray& icon);
-    // void updateLocalLibraryDirectories(
-    //     const Library& library,
-    //     const std::string& materialDirectory,
-    //     const std::string& modelDirectory
-    // );
     void removeLibrary(const std::string& libraryName, bool keepData);
     std::shared_ptr<std::vector<LibraryObject>> libraryMaterials(const std::string& libraryName);
     std::shared_ptr<std::vector<LibraryObject>> libraryMaterials(
@@ -88,8 +83,6 @@ public:
         const MaterialFilter& filter,
         const MaterialFilterOptions& options
     );
-    // void setDisabled(const std::string& libraryName, bool disabled);
-    // bool isDisabled(const std::string& libraryName);
     bool exists(const std::string& libraryName);
 
     // Folder management

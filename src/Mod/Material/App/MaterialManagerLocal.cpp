@@ -53,7 +53,6 @@ TYPESYSTEM_SOURCE(Materials::MaterialManagerLocal, Base::BaseClass)
 
 MaterialManagerLocal::MaterialManagerLocal()
 {
-    // TODO: Add a mutex or similar
     initLibraries();
 }
 

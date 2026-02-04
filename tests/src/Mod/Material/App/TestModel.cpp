@@ -34,7 +34,7 @@
 
 // clang-format off
 
-class DISABLED_TestModel : public ::testing::Test {
+class TestModel : public ::testing::Test {
 protected:
     static void SetUpTestSuite() {
         if (App::Application::GetARGC() == 0) {
@@ -60,12 +60,12 @@ protected:
     bool _useExternal {};
 };
 
-TEST_F(DISABLED_TestModel, TestApplication)
+TEST_F(TestModel, TestApplication)
 {
     ASSERT_NO_THROW(App::GetApplication());
 }
 
-TEST_F(DISABLED_TestModel, TestResources)
+TEST_F(TestModel, TestResources)
 {
     try {
         auto param = App::GetApplication().GetParameterGroupByPath(
@@ -78,7 +78,7 @@ TEST_F(DISABLED_TestModel, TestResources)
     }
 }
 
-TEST_F(DISABLED_TestModel, TestInstallation)
+TEST_F(TestModel, TestInstallation)
 {
     ASSERT_NE(_modelManager, nullptr);
 
@@ -91,7 +91,7 @@ TEST_F(DISABLED_TestModel, TestInstallation)
     ASSERT_GT(models->size(), 0);
 }
 
-TEST_F(DISABLED_TestModel, TestModelLoad)
+TEST_F(TestModel, TestModelLoad)
 {
     ASSERT_NE(_modelManager, nullptr);
 
@@ -103,29 +103,32 @@ TEST_F(DISABLED_TestModel, TestModelLoad)
     EXPECT_EQ(prop.getName(), QStringLiteral("Density"));
 }
 
-TEST_F(DISABLED_TestModel, TestModelByPath)
+TEST_F(TestModel, TestModelByPath)
 {
     ASSERT_NE(_modelManager, nullptr);
 
-    auto linearElastic = _modelManager->getModelByPath(
+    std::shared_ptr<Materials::Model> linearElastic;
+    ASSERT_NO_THROW(linearElastic = _modelManager->getModelByPath(
         "Mechanical/LinearElastic.yml",
-        "System");
+        "System"));
     EXPECT_NE(&linearElastic, nullptr);
     EXPECT_EQ(linearElastic->getName(), QStringLiteral("Linear Elastic"));
     EXPECT_EQ(linearElastic->getUUID(), QStringLiteral("7b561d1d-fb9b-44f6-9da9-56a4f74d7536"));
 
     // The same but with a leading '/'
-    auto linearElastic2 = _modelManager->getModelByPath(
+    std::shared_ptr<Materials::Model> linearElastic2;
+    ASSERT_NO_THROW(linearElastic2 = _modelManager->getModelByPath(
         "/Mechanical/LinearElastic.yml",
-        "System");
+        "System"));
     EXPECT_NE(&linearElastic2, nullptr);
     EXPECT_EQ(linearElastic2->getName(), QStringLiteral("Linear Elastic"));
     EXPECT_EQ(linearElastic2->getUUID(), QStringLiteral("7b561d1d-fb9b-44f6-9da9-56a4f74d7536"));
 
     // Same with the library name as a prefix
-    auto linearElastic3 = _modelManager->getModelByPath(
-        "/System/Mechanical/LinearElastic.yml",
-        "System");
+    std::shared_ptr<Materials::Model> linearElastic3;
+    ASSERT_NO_THROW(linearElastic3 = _modelManager->getModelByPath(
+        "[System]/Mechanical/LinearElastic.yml",
+        "System"));
     EXPECT_NE(&linearElastic3, nullptr);
     EXPECT_EQ(linearElastic3->getName(), QStringLiteral("Linear Elastic"));
     EXPECT_EQ(linearElastic3->getUUID(), QStringLiteral("7b561d1d-fb9b-44f6-9da9-56a4f74d7536"));

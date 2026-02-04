@@ -39,7 +39,7 @@
 
 // clang-format off
 
-class DISABLED_TestLibraries : public ::testing::Test {
+class TestLibraries : public ::testing::Test {
 protected:
     static void SetUpTestSuite()
     {
@@ -86,7 +86,7 @@ protected:
     std::map<std::string, bool> _libraries;
 };
 
-TEST_F(DISABLED_TestLibraries, TestDisabled)
+TEST_F(TestLibraries, TestDisabled)
 {
     auto libraries = _materialManager->getLibraries();
     ASSERT_EQ(libraries->size(), 0);
@@ -108,9 +108,13 @@ TEST_F(DISABLED_TestLibraries, TestDisabled)
     ASSERT_EQ(libraries->size(), 1);
 }
 
-TEST_F(DISABLED_TestLibraries, TestDisabledModels)
+TEST_F(TestLibraries, TestDisabledModels)
 {
     auto libraries = _modelManager->getLibraries();
+    for (auto lib: *libraries) {
+        std::string name = lib->getName();
+        Base::Console().log("Disabled: %s", name.c_str());
+    }
     ASSERT_EQ(libraries->size(), 0);
 
     auto library = _modelManager->getLibrary("System");
