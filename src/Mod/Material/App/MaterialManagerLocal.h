@@ -128,7 +128,7 @@ public:
     ) const;
 
     bool isMaterial(const fs::path& p) const;
-    bool isMaterial(const QFileInfo& file) const;
+    bool isMaterial(const Base::FileInfo& file) const;
 
     std::shared_ptr<std::map<std::string, std::shared_ptr<Material>>> materialsWithModel(
         const std::string& uuid

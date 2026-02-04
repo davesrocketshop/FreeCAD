@@ -53,11 +53,6 @@ public:
     static const int DEFAULT_CACHE_SIZE = 100;
 
     // Library management
-    std::shared_ptr<std::list<std::shared_ptr<ModelLibrary>>> getLibraries();
-    std::shared_ptr<ModelLibrary> getLibrary(const std::string& name) const;
-    void createLibrary(const std::string& libraryName,
-                       const QByteArray& icon,
-                       bool readOnly = true);
     std::shared_ptr<std::vector<LibraryObject>>
     libraryModels(const std::string& libraryName);
 

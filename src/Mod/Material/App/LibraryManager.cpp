@@ -43,6 +43,10 @@ std::shared_ptr<std::list<std::shared_ptr<ManagedLibrary>>> LibraryManager::_lib
 std::shared_ptr<std::multimap<std::string, std::shared_ptr<ManagedLibrary>>> LibraryManager::_libraryMap
     = nullptr;
 
+const std::string LibraryManager::RepositoryLocal = "Local";
+const std::string LibraryManager::RepositoryRemote = "Remote";
+
+
 LibraryManager::LibraryManager()
 {
     _hGrp = App::GetApplication().GetParameterGroupByPath(
@@ -84,7 +88,7 @@ void LibraryManager::initManagers()
         _libraryList = std::make_shared<std::list<std::shared_ptr<ManagedLibrary>>>();
     }
 
-    auto configured = getConfiguredLibraries(true); // Include disabled
+    auto configured = getConfiguredLibraries(true);  // Include disabled
 #if defined(BUILD_MATERIAL_EXTERNAL)
     if (_useExternal) {
         auto externalList = externalManager()->libraries();
@@ -119,12 +123,10 @@ void LibraryManager::OnChange(ParameterGrp::SubjectType& rCaller, ParameterGrp::
 }
 
 void LibraryManager::cleanup()
-{
-}
+{}
 
 void LibraryManager::refresh()
-{
-}
+{}
 
 //=====
 //
@@ -239,7 +241,10 @@ std::shared_ptr<std::vector<std::shared_ptr<MaterialLibrary>>> LibraryManager::g
     return libraries;
 }
 
-std::shared_ptr<ManagedLibrary> LibraryManager::getLibrary(const std::string& repositoryName, const std::string& name) const
+std::shared_ptr<ManagedLibrary> LibraryManager::getLibrary(
+    const std::string& repositoryName,
+    const std::string& name
+) const
 {
     auto range = _libraryMap->equal_range(name);
     for (auto it = range.first; it != range.second; ++it) {
@@ -278,15 +283,25 @@ std::shared_ptr<MaterialLibrary> LibraryManager::getMaterialLibrary(
 }
 
 void LibraryManager::createRemoteLibrary(
+    const std::string& repositoryName,
+    const std::string& libraryName,
+    const std::string& iconPath,
+    bool readOnly
+)
+{
+    auto icon = Materials::ManagedLibrary::getIcon(iconPath);
+    createRemoteLibrary(repositoryName, libraryName, icon, readOnly);
+}
+
+void LibraryManager::createRemoteLibrary(
     [[maybe_unused]] const std::string& repositoryName,
     [[maybe_unused]] const std::string& libraryName,
-    [[maybe_unused]] const std::string& iconPath,
+    [[maybe_unused]] const QByteArray& icon,
     [[maybe_unused]] bool readOnly
 )
 {
 #if defined(BUILD_MATERIAL_EXTERNAL)
     if (_useExternal) {
-        auto icon = Materials::ManagedLibrary::getIcon(iconPath);
         externalManager()->createLibrary(libraryName, icon, readOnly);
     }
     else {
@@ -306,32 +321,29 @@ std::shared_ptr<MaterialLibrary> LibraryManager::createLocalLibrary(
 )
 {
     try {
-        auto library = getLibrary("Local", libraryName);
+        auto library = getLibrary(RepositoryLocal, libraryName);
         throw CreationError("Library already exists");
     }
-    catch (const LibraryNotFound) {}
+    catch (const LibraryNotFound) {
+    }
 
-    QDir dir;
-    if (!dir.exists(QString::fromStdString(materialDirectory))) {
-        if (!dir.mkpath(QString::fromStdString(materialDirectory))) {
+    Base::FileInfo materialDir(materialDirectory);
+    if (!materialDir.exists()) {
+        if (!materialDir.createDirectories()) {
             throw CreationError("Unable to create library path");
         }
     }
     if (!modelDirectory.empty()) {
-        if (!dir.exists(QString::fromStdString(modelDirectory))) {
-            if (!dir.mkpath(QString::fromStdString(modelDirectory))) {
+        Base::FileInfo modelDir(materialDirectory);
+        if (!modelDir.exists()) {
+            if (!modelDir.createDirectories()) {
                 throw CreationError("Unable to create library model path");
             }
         }
     }
 
     auto path = Library::cleanPath(materialDirectory);
-    auto library = std::make_shared<MaterialLibraryLocal>(
-        libraryName,
-        path,
-        iconPath,
-        readOnly
-    );
+    auto library = std::make_shared<MaterialLibraryLocal>(libraryName, path, iconPath, readOnly);
     auto modelPath = Library::cleanPath(modelDirectory);
     library->proxy()->setModelDirectory(modelPath);
 
@@ -354,7 +366,11 @@ std::shared_ptr<MaterialLibrary> LibraryManager::createLocalLibrary(
     return library;
 }
 
-void LibraryManager::renameLibrary(const std::string& repositoryName,const std::string& libraryName, const std::string& newName)
+void LibraryManager::renameLibrary(
+    const std::string& repositoryName,
+    const std::string& libraryName,
+    const std::string& newName
+)
 {
     auto library = getLibrary(repositoryName, libraryName);
     if (library->isReadOnly()) {
@@ -366,7 +382,7 @@ void LibraryManager::renameLibrary(const std::string& repositoryName,const std::
     else {
         renameLibraryRemote(library, newName);
     }
-    
+
     library->setLibraryName(newName);
     updateLibraryMap();
 }
@@ -480,7 +496,9 @@ void LibraryManager::removeLibraryLocal(const std::shared_ptr<ManagedLibrary>& l
     if (library->isModule()) {
         throw DeleteError("Unable to remove a module defined library");
     }
-    ParameterGrp::handle param = App::GetApplication().GetParameterGroupByPath(getResourceRoot(library));
+    ParameterGrp::handle param = App::GetApplication().GetParameterGroupByPath(
+        getResourceRoot(library)
+    );
     if (!param->HasGroup(library->getLibraryName().c_str())) {
         // Nothing to do
         return;
@@ -505,12 +523,17 @@ bool LibraryManager::isLocalLibrary(const std::string& repositoryName, const std
             return true;
         }
     }
-    catch (const LibraryNotFound&) {}
+    catch (const LibraryNotFound&) {
+    }
 
     return false;
 }
 
-void LibraryManager::setDisabled(const std::string& repositoryName, const std::string& libraryName, bool disabled)
+void LibraryManager::setDisabled(
+    const std::string& repositoryName,
+    const std::string& libraryName,
+    bool disabled
+)
 {
     auto library = getLibrary(repositoryName, libraryName);
     setDisabled(library, disabled);
@@ -556,9 +579,7 @@ void LibraryManager::createSystemLibraryConfig()
     auto param = App::GetApplication().GetParameterGroupByPath(getResourceRootLocal());
     if (!param->HasGroup("System")) {
         Base::Console().log("No System library defined\n");
-        auto path = Library::cleanPath(
-            App::Application::getResourceDir() + "/Mod/Material/Resources"
-        );
+        auto path = Library::cleanPath(App::Application::getResourceDir() + "/Mod/Material/Resources");
         auto library = param->GetGroup("System");
 
         QDir resourceDir;

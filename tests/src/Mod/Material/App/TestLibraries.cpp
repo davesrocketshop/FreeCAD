@@ -31,6 +31,7 @@
 #include <Gui/MetaTypes.h>
 #include <src/App/InitApplication.h>
 
+#include <Mod/Material/App/LibraryManager.h>
 #include <Mod/Material/App/MaterialLibrary.h>
 #include <Mod/Material/App/MaterialManager.h>
 #include <Mod/Material/App/MaterialValue.h>
@@ -48,12 +49,13 @@ protected:
     }
 
     void SetUp() override {
+        _libraryManager = &(Materials::LibraryManager::getManager());
         _modelManager = &(Materials::ModelManager::getManager());
         _materialManager = &(Materials::MaterialManager::getManager());
 
         // Disable the external interface
-        _useExternal = _materialManager->useExternal();
-        _materialManager->setUseExternal(false);
+        _useExternal = _libraryManager->useExternal();
+       _libraryManager->setUseExternal(false);
 
         // Disable other libraries
         auto libraries = _materialManager->getLibraries(true);
@@ -73,11 +75,12 @@ protected:
         }
 
         // Restore the external interface AFTER the local libraries
-        _materialManager->setUseExternal(_useExternal);
+        _libraryManager->setUseExternal(_useExternal);
 
         // _materialManager->refresh();
     }
 
+    Materials::LibraryManager* _libraryManager {};
     Materials::ModelManager* _modelManager {};
     Materials::MaterialManager* _materialManager {};
 

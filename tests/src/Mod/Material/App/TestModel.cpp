@@ -27,6 +27,7 @@
 #include <App/Application.h>
 #include <src/App/InitApplication.h>
 
+#include <Mod/Material/App/LibraryManager.h>
 #include <Mod/Material/App/MaterialManager.h>
 #include <Mod/Material/App/Model.h>
 #include <Mod/Material/App/ModelManager.h>
@@ -43,16 +44,18 @@ protected:
 
     void SetUp() override {
         _modelManager = &(Materials::ModelManager::getManager());
+        _libraryManager = &(Materials::LibraryManager::getManager());
 
         // Disable the external interface
-        _useExternal = _modelManager->useExternal();
-        _modelManager->setUseExternal(false);
+        _useExternal = _libraryManager->useExternal();
+        _libraryManager->setUseExternal(false);
     }
 
     void TearDown() override {
-        _modelManager->setUseExternal(_useExternal);
+        _libraryManager->setUseExternal(_useExternal);
     }
 
+    Materials::LibraryManager* _libraryManager;
     Materials::ModelManager* _modelManager;
     bool _useExternal {};
 };

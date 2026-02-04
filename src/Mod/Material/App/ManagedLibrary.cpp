@@ -26,6 +26,7 @@
 #include <App/Application.h>
 
 #include "Exceptions.h"
+#include "LibraryManager.h"
 #include "ManagedLibrary.h"
 
 
@@ -34,7 +35,7 @@ using namespace Materials;
 TYPESYSTEM_SOURCE(Materials::ManagedLibrary, Base::BaseClass)
 
 ManagedLibrary::ManagedLibrary(const std::string& libraryName, const std::string& iconPath, bool readOnly)
-    : _repositoryName("Remote")
+    : _repositoryName(LibraryManager::RepositoryRemote)
     , _libraryName(libraryName)
     , _readOnly(readOnly)
     , _disabled(false)
@@ -48,7 +49,7 @@ ManagedLibrary::ManagedLibrary(const std::string& libraryName, const std::string
 }
 
 ManagedLibrary::ManagedLibrary(const std::string& libraryName, const QByteArray& icon, bool readOnly)
-    : _repositoryName("Remote")
+    : _repositoryName(LibraryManager::RepositoryRemote)
     , _libraryName(libraryName)
     , _icon(icon)
     , _readOnly(readOnly)
@@ -66,7 +67,7 @@ ManagedLibrary::ManagedLibrary(
     const std::string& iconPath,
     bool readOnly
 )
-    : _repositoryName("Remote")
+    : _repositoryName(LibraryManager::RepositoryRemote)
     , _libraryName(libraryName)
     , _materialDirectory(cleanPath(dir))
     , _readOnly(readOnly)
@@ -113,10 +114,10 @@ void ManagedLibrary::setLocal(bool local)
 {
     _local = local;
     if (local) {
-        setRepositoryName("Local");
+        setRepositoryName(LibraryManager::RepositoryLocal);
     }
     else {
-        setRepositoryName("Remote");
+        setRepositoryName(LibraryManager::RepositoryRemote);
     }
 }
 

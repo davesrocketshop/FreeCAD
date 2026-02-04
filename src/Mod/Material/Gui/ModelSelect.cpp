@@ -33,6 +33,8 @@
 #include <Gui/Command.h>
 #include <Gui/WaitCursor.h>
 
+#include <Mod/Material/App/LibraryManager.h>
+
 #include "MaterialsEditor.h"
 #include "ModelSelect.h"
 #include "ui_ModelSelect.h"
@@ -344,7 +346,7 @@ void ModelSelect::fillTree()
     addExpanded(tree, model, lib);
     addRecents(lib);
 
-    auto libraries = Materials::ModelManager::getManager().getLibraries();
+    auto libraries = Materials::LibraryManager::getManager().getLocalModelLibraries();
     for (auto& library : *libraries) {
         lib = new QStandardItem(QString::fromStdString(library->getName()));
         lib->setFlags(Qt::ItemIsEnabled | Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled);

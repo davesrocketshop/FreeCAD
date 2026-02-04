@@ -770,7 +770,7 @@ bool MaterialManager::isMaterial(const fs::path& p) const
     return _localManager->isMaterial(p);
 }
 
-bool MaterialManager::isMaterial(const QFileInfo& file) const
+bool MaterialManager::isMaterial(const Base::FileInfo& file) const
 {
     return _localManager->isMaterial(file);
 }

@@ -27,6 +27,11 @@
 #include <Base/Console.h>
 #include <Gui/WaitCursor.h>
 
+#include <Mod/Material/App/LibraryManager.h>
+#include <Mod/Material/App/ModelManager.h>
+#include <Mod/Material/App/MaterialManager.h>
+
+
 #include "TaskMigrateExternal.h"
 #include "ui_TaskMigrateExternal.h"
 
@@ -46,7 +51,7 @@ DlgMigrateExternal::DlgMigrateExternal(QWidget* parent)
 
 void DlgMigrateExternal::showLibraries()
 {
-    auto materialLibraries = Materials::MaterialManager::getManager().getLocalLibraries();
+    auto materialLibraries = Materials::LibraryManager::getManager().getLocalMaterialLibraries();
     for (auto library : *materialLibraries) {
         if (library->getName() != "User") {
             auto item = new QListWidgetItem(QString::fromStdString(library->getName()));
@@ -57,7 +62,7 @@ void DlgMigrateExternal::showLibraries()
         }
     }
 
-    auto modelLibraries = Materials::ModelManager::getManager().getLocalLibraries();
+    auto modelLibraries = Materials::LibraryManager::getManager().getLocalModelLibraries();
     for (auto library : *modelLibraries) {
         if (library->getName() != "User") {
             auto item = new QListWidgetItem(QString::fromStdString(library->getName()));

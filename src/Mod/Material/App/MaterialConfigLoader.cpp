@@ -22,7 +22,6 @@
  **************************************************************************/
 
 #include <QDirIterator>
-#include <QFileInfo>
 #include <QString>
 #include <QFile>
 #include <QIODevice>
@@ -34,6 +33,7 @@
 
 
 #include <App/Application.h>
+#include <Base/FileInfo.h>
 #include <Base/Interpreter.h>
 
 
@@ -1045,9 +1045,9 @@ MaterialConfigLoader::getMaterialFromPath(const std::shared_ptr<MaterialLibraryL
 
     // General section
     // std::string name = value(fcmat, "Name", ""); - always get the name from the filename
-    QFileInfo filepath(QString::fromStdString(path));
-    std::string name =
-        filepath.fileName().remove(QStringLiteral(".FCMat"), Qt::CaseInsensitive).toStdString();
+    Base::FileInfo filepath(path);
+    std::string name
+        = filepath.fileNamePure();
     std::string uuid = QUuid::createUuid().toString(QUuid::WithoutBraces).toStdString();
 
     std::string description = value(fcmat, "Description", "");

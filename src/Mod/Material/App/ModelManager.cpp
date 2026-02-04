@@ -129,11 +129,6 @@ void ModelManager::refresh()
 //
 //=====
 
-void ModelManager::setUseExternal(bool useExternal)
-{
-    LibraryManager::getManager().setUseExternal(useExternal);
-}
-
 std::shared_ptr<std::vector<std::shared_ptr<ModelLibrary>>> ModelManager::getLibraries(
     bool includeDisabled
 )
@@ -150,23 +145,7 @@ std::shared_ptr<std::vector<std::shared_ptr<ModelLibrary>>> ModelManager::getLoc
 
 std::shared_ptr<ModelLibrary> ModelManager::getLibrary(const std::string& name) const
 {
-    return LibraryManager::getManager().getModelLibrary("Local", name);
-}
-
-void ModelManager::renameLibrary(const std::string& libraryName, const std::string& newName)
-{
-    LibraryManager::getManager()
-        .renameLibrary("Local", libraryName, newName);
-}
-
-void ModelManager::changeIcon(const std::string& libraryName, const std::string& icon)
-{
-    LibraryManager::getManager().changeIcon("Local", libraryName, icon);
-}
-
-void ModelManager::removeLibrary(const std::string& libraryName)
-{
-    LibraryManager::getManager().removeLibrary("Local", libraryName);
+    return LibraryManager::getManager().getModelLibrary(LibraryManager::RepositoryLocal, name);
 }
 
 std::shared_ptr<std::vector<LibraryObject>> ModelManager::libraryModels(const std::string& libraryName)
@@ -186,17 +165,6 @@ std::shared_ptr<std::vector<LibraryObject>> ModelManager::libraryModels(const st
     }
 #endif
     return _localManager->libraryModels(libraryName);
-}
-
-bool ModelManager::isLocalLibrary(const std::string& libraryName)
-{
-    try {
-        LibraryManager::getManager().getLibrary("Local", libraryName);
-        return true;
-    }
-    catch (const LibraryNotFound&) {}
-
-    return false;
 }
 
 //=====
@@ -237,7 +205,10 @@ std::shared_ptr<std::map<std::string, std::shared_ptr<Model>>> ModelManager::get
     return localModels;
 }
 
-std::shared_ptr<Model> ModelManager::getModel(const std::string& /*libraryName*/, const std::string& uuid) const
+std::shared_ptr<Model> ModelManager::getModel(
+    const std::string& /*libraryName*/,
+    const std::string& uuid
+) const
 {
     // TODO: Search a specific library
     return getModel(uuid);
@@ -321,7 +292,12 @@ void ModelManager::dereference(const std::shared_ptr<Model>& model)
 void ModelManager::migrateToExternal(const std::shared_ptr<Materials::ModelLibrary>& library)
 {
     try {
-        _externalManager->createLibrary(library->getName(), library->getIcon(), library->isReadOnly());
+        LibraryManager::getManager().createRemoteLibrary(
+            LibraryManager::RepositoryRemote,
+            library->getName(),
+            library->getIcon(),
+            library->isReadOnly()
+        );
     }
     catch (const CreationError&) {
     }
@@ -333,12 +309,7 @@ void ModelManager::migrateToExternal(const std::shared_ptr<Materials::ModelLibra
         auto uuid = it.getUUID();
         auto path = it.getPath();
         auto name = it.getName();
-        Base::Console().log(
-            "\t('%s', '%s', '%s')\n",
-            uuid.c_str(),
-            path.c_str(),
-            name.c_str()
-        );
+        Base::Console().log("\t('%s', '%s', '%s')\n", uuid.c_str(), path.c_str(), name.c_str());
 
         auto model = _localManager->getModel(uuid);
         _externalManager->migrateModel(library->getName(), path, *model);
@@ -353,12 +324,7 @@ void ModelManager::validateMigration(const std::shared_ptr<Materials::ModelLibra
         auto uuid = it.getUUID();
         auto path = it.getPath();
         auto name = it.getName();
-        Base::Console().log(
-            "\t('%s', '%s', '%s')\n",
-            uuid.c_str(),
-            path.c_str(),
-            name.c_str()
-        );
+        Base::Console().log("\t('%s', '%s', '%s')\n", uuid.c_str(), path.c_str(), name.c_str());
 
         auto model = _localManager->getModel(uuid);
         auto externalModel = _externalManager->getModel(uuid);

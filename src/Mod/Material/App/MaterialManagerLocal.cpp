@@ -518,13 +518,13 @@ bool MaterialManagerLocal::isMaterial(const fs::path& p) const
     return false;
 }
 
-bool MaterialManagerLocal::isMaterial(const QFileInfo& file) const
+bool MaterialManagerLocal::isMaterial(const Base::FileInfo& file) const
 {
     if (!file.isFile()) {
         return false;
     }
     // check file extension
-    if (file.suffix() == QStringLiteral("FCMat")) {
+    if (file.hasExtension("FCMat")) {
         return true;
     }
     return false;

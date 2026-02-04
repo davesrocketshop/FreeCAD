@@ -25,8 +25,8 @@
 #define MATERIAL_LIBRARY_H
 
 #include <memory>
+#include <filesystem>
 
-#include <QDir>
 #include <QByteArray>
 #include <QString>
 
@@ -35,6 +35,8 @@
 #include <Mod/Material/MaterialGlobal.h>
 
 #include"ManagedLibrary.h"
+
+namespace fs = std::filesystem;
 
 namespace Materials
 {
@@ -119,7 +121,7 @@ public:
     }
     std::string getMaterialDirectoryPath() const
     {
-        return QDir(QString::fromStdString(_managedLibrary->getMaterialDirectory())).absolutePath().toStdString();
+        return fs::weakly_canonical(_managedLibrary->getMaterialDirectory()).string();
     }
 
     std::string getModelDirectory() const
@@ -128,7 +130,7 @@ public:
     }
     std::string getModelDirectoryPath() const
     {
-        return QDir(QString::fromStdString(_managedLibrary->getModelDirectory())).absolutePath().toStdString();
+        return fs::weakly_canonical(_managedLibrary->getModelDirectory()).string();
     }
 
     bool operator==(const Library& library) const;

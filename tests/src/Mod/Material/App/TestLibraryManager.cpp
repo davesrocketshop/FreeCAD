@@ -89,19 +89,19 @@ TEST_F(TestLibraryManager, TestInstallation)
     auto materials = _libraryManager->getLocalMaterialLibraries();
     ASSERT_GT(materials->size(), 0);
 
-    auto managed = _libraryManager->getLibrary("Local", "System");
+    auto managed = _libraryManager->getLibrary(Materials::LibraryManager::RepositoryLocal, "System");
     ASSERT_TRUE(managed);
-    managed = _libraryManager->getLibrary("Local", "User");
+    managed = _libraryManager->getLibrary(Materials::LibraryManager::RepositoryLocal, "User");
     ASSERT_TRUE(managed);
-    auto model = _libraryManager->getModelLibrary("Local", "System");
+    auto model = _libraryManager->getModelLibrary(Materials::LibraryManager::RepositoryLocal, "System");
     ASSERT_TRUE(model);
     // User folder may not have content
-    model = _libraryManager->getModelLibrary("Local", "User");
+    model = _libraryManager->getModelLibrary(Materials::LibraryManager::RepositoryLocal, "User");
     ASSERT_TRUE(model);
-    auto material = _libraryManager->getMaterialLibrary("Local", "System");
+    auto material = _libraryManager->getMaterialLibrary(Materials::LibraryManager::RepositoryLocal, "System");
     ASSERT_TRUE(material);
     // User folder may not have content
-    material = _libraryManager->getMaterialLibrary("Local", "User");
+    material = _libraryManager->getMaterialLibrary(Materials::LibraryManager::RepositoryLocal, "User");
     ASSERT_TRUE(material);
 }
 
@@ -117,17 +117,17 @@ TEST_F(TestLibraryManager, TestCreation)
 
         EXPECT_NO_THROW(library = _libraryManager->createLocalLibrary("TestLibrary", path, path, "icon path", false));
         ASSERT_TRUE(library);
-        EXPECT_NO_THROW(managed = _libraryManager->getLibrary("Local", "TestLibrary"));
+        EXPECT_NO_THROW(managed = _libraryManager->getLibrary(Materials::LibraryManager::RepositoryLocal, "TestLibrary"));
         ASSERT_TRUE(managed);
-        EXPECT_NO_THROW(model = _libraryManager->getModelLibrary("Local", "TestLibrary"));
+        EXPECT_NO_THROW(model = _libraryManager->getModelLibrary(Materials::LibraryManager::RepositoryLocal, "TestLibrary"));
         ASSERT_TRUE(model);
-        EXPECT_NO_THROW(material = _libraryManager->getMaterialLibrary("Local", "TestLibrary"));
+        EXPECT_NO_THROW(material = _libraryManager->getMaterialLibrary(Materials::LibraryManager::RepositoryLocal, "TestLibrary"));
         ASSERT_TRUE(material);
-        EXPECT_NO_THROW(_libraryManager->removeLibrary("Local", "TestLibrary"));
-        EXPECT_THROW(_libraryManager->getLibrary("Local", "TestLibrary"), Materials::LibraryNotFound);
+        EXPECT_NO_THROW(_libraryManager->removeLibrary(Materials::LibraryManager::RepositoryLocal, "TestLibrary"));
+        EXPECT_THROW(_libraryManager->getLibrary(Materials::LibraryManager::RepositoryLocal, "TestLibrary"), Materials::LibraryNotFound);
 
         // This should fail since the external interface is disabled
-        EXPECT_THROW(_libraryManager->createRemoteLibrary("Remote", "TestLibrary", "icon path", false), Materials::CreationError);
+        EXPECT_THROW(_libraryManager->createRemoteLibrary(Materials::LibraryManager::RepositoryRemote, "TestLibrary", "icon path", false), Materials::CreationError);
 
     }
 }
@@ -141,23 +141,23 @@ TEST_F(TestLibraryManager, TestRename)
         std::shared_ptr<Materials::ManagedLibrary> managed;
         std::shared_ptr<Materials::ModelLibrary> model;
         std::shared_ptr<Materials::MaterialLibrary> material;
-        
+
         EXPECT_NO_THROW(library = _libraryManager->createLocalLibrary("TestLibrary", path, path, "icon path", false));
         ASSERT_TRUE(library);
-        EXPECT_NO_THROW(managed = _libraryManager->getLibrary("Local", "TestLibrary"));
+        EXPECT_NO_THROW(managed = _libraryManager->getLibrary(Materials::LibraryManager::RepositoryLocal, "TestLibrary"));
         ASSERT_TRUE(managed);
-        EXPECT_NO_THROW(_libraryManager->renameLibrary("Local", "TestLibrary", "TestRenamedLibrary"));
-        EXPECT_THROW(managed = _libraryManager->getLibrary("Local", "TestLibrary"), Materials::LibraryNotFound);
+        EXPECT_NO_THROW(_libraryManager->renameLibrary(Materials::LibraryManager::RepositoryLocal, "TestLibrary", "TestRenamedLibrary"));
+        EXPECT_THROW(managed = _libraryManager->getLibrary(Materials::LibraryManager::RepositoryLocal, "TestLibrary"), Materials::LibraryNotFound);
 
-        EXPECT_NO_THROW(managed = _libraryManager->getLibrary("Local", "TestRenamedLibrary"));
+        EXPECT_NO_THROW(managed = _libraryManager->getLibrary(Materials::LibraryManager::RepositoryLocal, "TestRenamedLibrary"));
         ASSERT_TRUE(managed);
-        EXPECT_NO_THROW(model = _libraryManager->getModelLibrary("Local", "TestRenamedLibrary"));
+        EXPECT_NO_THROW(model = _libraryManager->getModelLibrary(Materials::LibraryManager::RepositoryLocal, "TestRenamedLibrary"));
         ASSERT_TRUE(model);
-        EXPECT_NO_THROW(material = _libraryManager->getMaterialLibrary("Local", "TestRenamedLibrary"));
+        EXPECT_NO_THROW(material = _libraryManager->getMaterialLibrary(Materials::LibraryManager::RepositoryLocal, "TestRenamedLibrary"));
         ASSERT_TRUE(material);
 
-        EXPECT_NO_THROW(_libraryManager->removeLibrary("Local", "TestRenamedLibrary"));
-        EXPECT_THROW(_libraryManager->getLibrary("Local", "TestRenamedLibrary"), Materials::LibraryNotFound);
+        EXPECT_NO_THROW(_libraryManager->removeLibrary(Materials::LibraryManager::RepositoryLocal, "TestRenamedLibrary"));
+        EXPECT_THROW(_libraryManager->getLibrary(Materials::LibraryManager::RepositoryLocal, "TestRenamedLibrary"), Materials::LibraryNotFound);
     }
 }
 
@@ -171,14 +171,14 @@ TEST_F(TestLibraryManager, TestChangeIcon)
         std::shared_ptr<Materials::ManagedLibrary> managed;
         std::shared_ptr<Materials::ModelLibrary> model;
         std::shared_ptr<Materials::MaterialLibrary> material;
-        
+
         EXPECT_NO_THROW(library = _libraryManager->createLocalLibrary("TestLibrary", path, path, "icon path", false));
         ASSERT_TRUE(library);
         auto icon = library->getIcon();
         EXPECT_EQ(icon.size(), 0); // The icon doesn't exist
 
-        EXPECT_NO_THROW(_libraryManager->removeLibrary("Local", "TestLibrary"));
-        EXPECT_THROW(_libraryManager->getLibrary("Local", "TestLibrary"), Materials::LibraryNotFound);
+        EXPECT_NO_THROW(_libraryManager->removeLibrary(Materials::LibraryManager::RepositoryLocal, "TestLibrary"));
+        EXPECT_THROW(_libraryManager->getLibrary(Materials::LibraryManager::RepositoryLocal, "TestLibrary"), Materials::LibraryNotFound);
     }
 }
 
@@ -191,12 +191,12 @@ TEST_F(TestLibraryManager, TestRemoveLibrary)
         std::shared_ptr<Materials::ManagedLibrary> managed;
         std::shared_ptr<Materials::ModelLibrary> model;
         std::shared_ptr<Materials::MaterialLibrary> material;
-        
+
         EXPECT_NO_THROW(library = _libraryManager->createLocalLibrary("TestLibrary", path, path, "icon path", false));
         ASSERT_TRUE(library);
 
-        EXPECT_THROW(_libraryManager->removeLibrary("Remote", "TestLibrary"), Materials::LibraryNotFound);
-        EXPECT_NO_THROW(_libraryManager->removeLibrary("Local", "TestLibrary"));
-        EXPECT_THROW(_libraryManager->getLibrary("Local", "TestLibrary"), Materials::LibraryNotFound);
+        EXPECT_THROW(_libraryManager->removeLibrary(Materials::LibraryManager::RepositoryRemote, "TestLibrary"), Materials::LibraryNotFound);
+        EXPECT_NO_THROW(_libraryManager->removeLibrary(Materials::LibraryManager::RepositoryLocal, "TestLibrary"));
+        EXPECT_THROW(_libraryManager->getLibrary(Materials::LibraryManager::RepositoryLocal, "TestLibrary"), Materials::LibraryNotFound);
     }
 }

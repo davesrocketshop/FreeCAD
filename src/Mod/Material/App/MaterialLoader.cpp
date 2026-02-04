@@ -30,6 +30,7 @@
 
 
 #include <App/Application.h>
+#include <Base/FileInfo.h>
 #include <Base/Interpreter.h>
 #include <Base/Stream.h>
 #include <Gui/MetaTypes.h>
@@ -42,6 +43,7 @@
 #include "Model.h"
 #include "ModelManager.h"
 
+namespace fs = std::filesystem;
 
 using namespace Materials;
 
@@ -414,8 +416,8 @@ std::shared_ptr<MaterialEntry> MaterialLoader::getMaterialFromYAML(
 
         // Always get the name from the filename
         std::string clean = Library::cleanPath(path);
-        QFileInfo filepath(QString::fromStdString(clean));
-        std::string name = filepath.fileName().remove(QStringLiteral(".FCMat"), Qt::CaseInsensitive).toStdString();
+        Base::FileInfo filepath(clean);
+        std::string name = filepath.fileNamePure();
 
         model = std::make_shared<MaterialYamlEntry>(
             library,
@@ -573,20 +575,21 @@ void MaterialLoader::loadLibrary(const std::shared_ptr<MaterialLibraryLocal>& li
         _materialEntryMap = std::make_unique<std::map<std::string, std::shared_ptr<MaterialEntry>>>();
     }
 
-    QDirIterator it(QString::fromStdString(library->getDirectory()), QDirIterator::Subdirectories);
-    while (it.hasNext()) {
-        auto pathname = Library::cleanPath(it.next());
-        QFileInfo file(pathname);
+    Base::FileInfo dirInfo(library->getDirectory());
+    auto dirList = dirInfo.getDirectoryContent();
+    for (auto file : dirList) {
         if (file.isFile()) {
-            if (file.suffix().toStdString() == "FCMat") {
+            if (file.hasExtension("FCMat")) {
                 try {
-                    auto model = getMaterialFromPath(library, file.canonicalFilePath().toStdString());
+                    auto model = getMaterialFromPath(library, fs::canonical(file.filePath()).string());
                     if (model) {
                         (*_materialEntryMap)[model->getUUID()] = model;
                     }
                 }
                 catch (const MaterialReadError&) {
                     // Ignore the file. Error messages should have already been logged
+                }
+                catch (fs::filesystem_error const& ex) {
                 }
             }
         }

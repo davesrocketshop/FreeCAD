@@ -55,7 +55,8 @@ ExternalManager::ExternalManager()
     : _instantiated(false)
 {
     _hGrp = App::GetApplication().GetParameterGroupByPath(
-        "User parameter:BaseApp/Preferences/Mod/Material/ExternalInterface");
+        "User parameter:BaseApp/Preferences/Mod/Material/ExternalInterface"
+    );
     _hGrp->Attach(this);
 
     getConfiguration();
@@ -79,16 +80,14 @@ void ExternalManager::OnChange(ParameterGrp::SubjectType& /*rCaller*/, Parameter
 
 void ExternalManager::getConfiguration()
 {
-    // _hGrp = App::GetApplication().GetParameterGroupByPath(
-    //     "User parameter:BaseApp/Preferences/Mod/Material/ExternalInterface");
     auto current = _hGrp->GetASCII("Current", "None");
     if (current == "None") {
         _moduleName = "";
         _className = "";
     }
     else {
-        auto groupName =
-            "User parameter:BaseApp/Preferences/Mod/Material/ExternalInterface/Interfaces/"
+        auto groupName
+            = "User parameter:BaseApp/Preferences/Mod/Material/ExternalInterface/Interfaces/"
             + current;
         auto hGrp = App::GetApplication().GetParameterGroupByPath(groupName.c_str());
         _moduleName = hGrp->GetASCII("Module", "");
@@ -172,8 +171,7 @@ bool ExternalManager::checkMaterialLibraryType(const Py::Object& entry)
     return entry.hasAttr("name") && entry.hasAttr("icon") && entry.hasAttr("readOnly");
 }
 
-std::shared_ptr<ManagedLibrary>
-ExternalManager::libraryFromObject(const Py::Object& entry)
+std::shared_ptr<ManagedLibrary> ExternalManager::libraryFromObject(const Py::Object& entry)
 {
     if (!checkMaterialLibraryType(entry)) {
         throw InvalidLibrary();
@@ -200,7 +198,7 @@ ExternalManager::libraryFromObject(const Py::Object& entry)
     // Library should already exist
     std::shared_ptr<ManagedLibrary> library;
     try {
-        library = LibraryManager::getManager().getLibrary("Remote", libraryName);
+        library = LibraryManager::getManager().getLibrary(LibraryManager::RepositoryRemote, libraryName);
     }
     catch (const LibraryNotFound&) {
         library = std::make_shared<ManagedLibrary>(libraryName, icon, readOnly);
@@ -237,8 +235,7 @@ LibraryObject ExternalManager::materialLibraryObjectTypeFromObject(const Py::Obj
     return LibraryObject(uuid, path, name);
 }
 
-std::shared_ptr<std::vector<std::shared_ptr<ManagedLibrary>>>
-ExternalManager::libraries()
+std::shared_ptr<std::vector<std::shared_ptr<ManagedLibrary>>> ExternalManager::libraries()
 {
     auto libList = std::make_shared<std::vector<std::shared_ptr<ManagedLibrary>>>();
 
@@ -457,8 +454,9 @@ void ExternalManager::removeLibrary(const std::string& libraryName)
     }
 }
 
-std::shared_ptr<std::vector<LibraryObject>>
-ExternalManager::libraryModels(const std::string& libraryName)
+std::shared_ptr<std::vector<LibraryObject>> ExternalManager::libraryModels(
+    const std::string& libraryName
+)
 {
     auto modelList = std::make_shared<std::vector<LibraryObject>>();
 
@@ -493,8 +491,9 @@ ExternalManager::libraryModels(const std::string& libraryName)
     return modelList;
 }
 
-std::shared_ptr<std::vector<LibraryObject>>
-ExternalManager::libraryMaterials(const std::string& libraryName)
+std::shared_ptr<std::vector<LibraryObject>> ExternalManager::libraryMaterials(
+    const std::string& libraryName
+)
 {
     auto materialList = std::make_shared<std::vector<LibraryObject>>();
 
@@ -529,10 +528,11 @@ ExternalManager::libraryMaterials(const std::string& libraryName)
     return materialList;
 }
 
-std::shared_ptr<std::vector<LibraryObject>>
-ExternalManager::libraryMaterials(const std::string& libraryName,
-                                  const MaterialFilter& filter,
-                                  const MaterialFilterOptions& options)
+std::shared_ptr<std::vector<LibraryObject>> ExternalManager::libraryMaterials(
+    const std::string& libraryName,
+    const MaterialFilter& filter,
+    const MaterialFilterOptions& options
+)
 {
     auto materialList = std::make_shared<std::vector<LibraryObject>>();
 
@@ -547,7 +547,8 @@ ExternalManager::libraryMaterials(const std::string& libraryName,
             args.setItem(1, Py::Object(new MaterialFilterPy(new MaterialFilter(filter)), true));
             args.setItem(
                 2,
-                Py::Object(new MaterialFilterOptionsPy(new MaterialFilterOptions(options)), true));
+                Py::Object(new MaterialFilterOptionsPy(new MaterialFilterOptions(options)), true)
+            );
             Py::List list(libraries.apply(args));
             for (auto library : list) {
                 auto entry = Py::Object(library);
@@ -639,9 +640,11 @@ void ExternalManager::createFolder(const std::string& libraryName, const std::st
     }
 }
 
-void ExternalManager::renameFolder(const std::string& libraryName,
-                                   const std::string& oldPath,
-                                   const std::string& newPath)
+void ExternalManager::renameFolder(
+    const std::string& libraryName,
+    const std::string& oldPath,
+    const std::string& newPath
+)
 {
     connect();
 
@@ -701,8 +704,7 @@ bool ExternalManager::checkModelObjectType(const Py::Object& entry)
     return entry.hasAttr("libraryName") && entry.hasAttr("model");
 }
 
-std::shared_ptr<Model> ExternalManager::modelFromObject(const Py::Object& entry,
-                                                        const std::string& uuid)
+std::shared_ptr<Model> ExternalManager::modelFromObject(const Py::Object& entry, const std::string& uuid)
 {
     if (!checkModelObjectType(entry)) {
         throw InvalidModel();
@@ -717,7 +719,8 @@ std::shared_ptr<Model> ExternalManager::modelFromObject(const Py::Object& entry,
     }
 
     // Using this call will use caching, whereas using our class function will not
-    auto library = LibraryManager::getManager().getModelLibrary("Remote", libraryName);
+    auto library
+        = LibraryManager::getManager().getModelLibrary(LibraryManager::RepositoryRemote, libraryName);
 
     Model* model = static_cast<ModelPy*>(*modelObject)->getModelPtr();
     model->setUUID(QString::fromStdString(uuid));
@@ -754,9 +757,7 @@ std::shared_ptr<Model> ExternalManager::getModel(const std::string& uuid)
     }
 }
 
-void ExternalManager::addModel(const std::string& libraryName,
-                               const std::string& path,
-                               const Model& model)
+void ExternalManager::addModel(const std::string& libraryName, const std::string& path, const Model& model)
 {
     connect();
 
@@ -781,9 +782,11 @@ void ExternalManager::addModel(const std::string& libraryName,
     }
 }
 
-void ExternalManager::migrateModel(const std::string& libraryName,
-                                   const std::string& path,
-                                   const Model& model)
+void ExternalManager::migrateModel(
+    const std::string& libraryName,
+    const std::string& path,
+    const Model& model
+)
 {
     connect();
 
@@ -808,9 +811,11 @@ void ExternalManager::migrateModel(const std::string& libraryName,
     }
 }
 
-void ExternalManager::updateModel(const std::string& libraryName,
-                                  const std::string& path,
-                                  const Model& model)
+void ExternalManager::updateModel(
+    const std::string& libraryName,
+    const std::string& path,
+    const Model& model
+)
 {
     connect();
 
@@ -835,9 +840,11 @@ void ExternalManager::updateModel(const std::string& libraryName,
     }
 }
 
-void ExternalManager::setModelPath(const std::string& libraryName,
-                                   const std::string& path,
-                                   const std::string& uuid)
+void ExternalManager::setModelPath(
+    const std::string& libraryName,
+    const std::string& path,
+    const std::string& uuid
+)
 {
     connect();
 
@@ -862,9 +869,11 @@ void ExternalManager::setModelPath(const std::string& libraryName,
     }
 }
 
-void ExternalManager::renameModel(const std::string& libraryName,
-                                  const std::string& name,
-                                  const std::string& uuid)
+void ExternalManager::renameModel(
+    const std::string& libraryName,
+    const std::string& name,
+    const std::string& uuid
+)
 {
     connect();
 
@@ -889,9 +898,11 @@ void ExternalManager::renameModel(const std::string& libraryName,
     }
 }
 
-void ExternalManager::moveModel(const std::string& libraryName,
-                                const std::string& path,
-                                const std::string& uuid)
+void ExternalManager::moveModel(
+    const std::string& libraryName,
+    const std::string& path,
+    const std::string& uuid
+)
 {
     connect();
 
@@ -950,8 +961,10 @@ bool ExternalManager::checkMaterialObjectType(const Py::Object& entry)
     return entry.hasAttr("libraryName") && entry.hasAttr("material");
 }
 
-std::shared_ptr<Material> ExternalManager::materialFromObject(const Py::Object& entry,
-                                                              const std::string& uuid)
+std::shared_ptr<Material> ExternalManager::materialFromObject(
+    const Py::Object& entry,
+    const std::string& uuid
+)
 {
     if (!checkMaterialObjectType(entry)) {
         throw InvalidMaterial();
@@ -966,7 +979,10 @@ std::shared_ptr<Material> ExternalManager::materialFromObject(const Py::Object& 
     }
 
     // Using this call will use caching, whereas using our class function will not
-    auto library = LibraryManager::getManager().getMaterialLibrary("Remote", libraryName);
+    auto library = LibraryManager::getManager().getMaterialLibrary(
+        LibraryManager::RepositoryRemote,
+        libraryName
+    );
 
     Material* material = static_cast<MaterialPy*>(*materialObject)->getMaterialPtr();
     material->setUUID(QString::fromStdString(uuid));
@@ -1003,9 +1019,11 @@ std::shared_ptr<Material> ExternalManager::getMaterial(const std::string& uuid)
     }
 }
 
-void ExternalManager::addMaterial(const std::string& libraryName,
-                                  const std::string& path,
-                                  const Material& material)
+void ExternalManager::addMaterial(
+    const std::string& libraryName,
+    const std::string& path,
+    const Material& material
+)
 {
     connect();
 
@@ -1030,9 +1048,11 @@ void ExternalManager::addMaterial(const std::string& libraryName,
     }
 }
 
-void ExternalManager::migrateMaterial(const std::string& libraryName,
-                                      const std::string& path,
-                                      const Material& material)
+void ExternalManager::migrateMaterial(
+    const std::string& libraryName,
+    const std::string& path,
+    const Material& material
+)
 {
     connect();
 
@@ -1058,9 +1078,11 @@ void ExternalManager::migrateMaterial(const std::string& libraryName,
     }
 }
 
-void ExternalManager::updateMaterial(const std::string& libraryName,
-                    const std::string& path,
-                    const Material& material)
+void ExternalManager::updateMaterial(
+    const std::string& libraryName,
+    const std::string& path,
+    const Material& material
+)
 {
     connect();
 
@@ -1085,9 +1107,11 @@ void ExternalManager::updateMaterial(const std::string& libraryName,
     }
 }
 
-void ExternalManager::setMaterialPath(const std::string& libraryName,
-                                      const std::string& path,
-                                      const std::string& uuid)
+void ExternalManager::setMaterialPath(
+    const std::string& libraryName,
+    const std::string& path,
+    const std::string& uuid
+)
 {
     connect();
 
@@ -1112,9 +1136,11 @@ void ExternalManager::setMaterialPath(const std::string& libraryName,
     }
 }
 
-void ExternalManager::renameMaterial(const std::string& libraryName,
-                                     const std::string& name,
-                                     const std::string& uuid)
+void ExternalManager::renameMaterial(
+    const std::string& libraryName,
+    const std::string& name,
+    const std::string& uuid
+)
 {
     connect();
 
@@ -1139,9 +1165,11 @@ void ExternalManager::renameMaterial(const std::string& libraryName,
     }
 }
 
-void ExternalManager::moveMaterial(const std::string& libraryName,
-                                   const std::string& path,
-                                   const std::string& uuid)
+void ExternalManager::moveMaterial(
+    const std::string& libraryName,
+    const std::string& path,
+    const std::string& uuid
+)
 {
     connect();
 

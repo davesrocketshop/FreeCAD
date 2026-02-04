@@ -55,17 +55,11 @@ public:
     void refresh();
 
     // Library management
-    bool useExternal() const { return _useExternal; }
-    void setUseExternal(bool useExternal);
     std::shared_ptr<std::vector<std::shared_ptr<ModelLibrary>>> getLibraries(bool includeDisabled = false);
     std::shared_ptr<std::vector<std::shared_ptr<ModelLibrary>>> getLocalLibraries(bool includeDisabled = false);
     std::shared_ptr<ModelLibrary> getLibrary(const std::string& name) const;
-    void renameLibrary(const std::string& libraryName, const std::string& newName);
-    void changeIcon(const std::string& libraryName, const std::string& icon);
-    void removeLibrary(const std::string& libraryName);
     std::shared_ptr<std::vector<LibraryObject>>
     libraryModels(const std::string& libraryName);
-    bool isLocalLibrary(const std::string& libraryName);
 
     // Folder management
 

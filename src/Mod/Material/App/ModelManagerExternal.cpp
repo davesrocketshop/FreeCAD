@@ -70,49 +70,6 @@ void ModelManagerExternal::refresh()
 //
 //=====
 
-std::shared_ptr<std::list<std::shared_ptr<ModelLibrary>>> ModelManagerExternal::getLibraries()
-{
-    auto libraryList = std::make_shared<std::list<std::shared_ptr<ModelLibrary>>>();
-    try {
-        auto externalLibraries = ExternalManager::getManager()->libraries();
-        for (auto& entry : *externalLibraries) {
-            auto library = std::make_shared<ModelLibrary>(entry);
-            libraryList->push_back(library);
-        }
-    }
-    catch (const LibraryNotFound& e) {
-    }
-    catch (const ConnectionError& e) {
-    }
-
-    return libraryList;
-}
-
-std::shared_ptr<ModelLibrary> ModelManagerExternal::getLibrary(const std::string& name) const
-{
-    try {
-        auto lib = ExternalManager::getManager()->getLibrary(name);
-        auto library = std::make_shared<ModelLibrary>(lib);
-        return library;
-    }
-    catch (const LibraryNotFound& e) {
-        throw LibraryNotFound(e);
-    }
-    catch (const ConnectionError& e) {
-        throw LibraryNotFound(e.what());
-    }
-    catch (...) {
-        throw LibraryNotFound("Unknown exception");
-    }
-}
-
-void ModelManagerExternal::createLibrary(const std::string& libraryName,
-                                         const QByteArray& icon,
-                                         bool readOnly)
-{
-    ExternalManager::getManager()->createLibrary(libraryName, icon, readOnly);
-}
-
 std::shared_ptr<std::vector<LibraryObject>>
 ModelManagerExternal::libraryModels(const std::string& libraryName)
 {

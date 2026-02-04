@@ -39,9 +39,6 @@
 
 namespace Materials
 {
-class ModelManagerLocal;
-class ModelManagerExternal;
-class MaterialManagerLocal;
 
 class MaterialsExport LibraryManager: public Base::BaseClass, ParameterGrp::ObserverType
 {
@@ -80,7 +77,10 @@ public:
     std::shared_ptr<std::vector<std::shared_ptr<MaterialLibrary>>> getLocalMaterialLibraries(
         bool includeDisabled = false
     );
-    std::shared_ptr<ManagedLibrary> getLibrary(const std::string& repositoryName, const std::string& name) const;
+    std::shared_ptr<ManagedLibrary> getLibrary(
+        const std::string& repositoryName,
+        const std::string& name
+    ) const;
     std::shared_ptr<ModelLibrary> getModelLibrary(
         const std::string& repositoryName,
         const std::string& name
@@ -95,6 +95,21 @@ public:
         const std::string& iconPath,
         bool readOnly
     );
+    void createRemoteLibrary(
+        const std::string& repositoryName,
+        const std::string& libraryName,
+        const char* iconPath,
+        bool readOnly
+    )
+    {
+        createRemoteLibrary(repositoryName, libraryName, std::string(iconPath), readOnly);
+    }
+    void createRemoteLibrary(
+        const std::string& repositoryName,
+        const std::string& libraryName,
+        const QByteArray& icon,
+        bool readOnly
+    );
     std::shared_ptr<MaterialLibrary> createLocalLibrary(
         const std::string& libraryName,
         const std::string& materialDirectory,
@@ -103,8 +118,16 @@ public:
         bool readOnly
     );
 
-    void renameLibrary(const std::string& repositoryName, const std::string& libraryName, const std::string& newName);
-    void changeIcon(const std::string& repositoryName, const std::string& libraryName, const std::string& iconPath);
+    void renameLibrary(
+        const std::string& repositoryName,
+        const std::string& libraryName,
+        const std::string& newName
+    );
+    void changeIcon(
+        const std::string& repositoryName,
+        const std::string& libraryName,
+        const std::string& iconPath
+    );
     void removeLibrary(const std::string& repositoryName, const std::string& libraryName);
     bool isLocalLibrary(const std::string& repositoryName, const std::string& libraryName);
 
@@ -115,6 +138,9 @@ public:
         bool includeDisabled = false
     );
 
+    static const std::string RepositoryLocal;
+    static const std::string RepositoryRemote;
+
 protected:
     void setDisabled(const std::string& repositoryName, const std::string& libraryName, bool disabled);
     void setDisabled(Library& library, bool disabled);
@@ -124,7 +150,6 @@ protected:
     bool isDisabled(const std::shared_ptr<ManagedLibrary>& library) const;
 
     friend class MaterialManager;
-    friend class ModelManagerLocal;
 
 private:
     LibraryManager();
@@ -152,7 +177,8 @@ private:
     void removeLibraryRemote(const std::shared_ptr<ManagedLibrary>& library);
 
 #if defined(BUILD_MATERIAL_EXTERNAL)
-    static ExternalManager* externalManager() {
+    static ExternalManager* externalManager()
+    {
         return ExternalManager::getManager();
     }
 #endif

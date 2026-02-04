@@ -176,5 +176,5 @@ std::shared_ptr<Model> ModelManagerLocal::getModelByPath(const std::string& path
 
 std::shared_ptr<ModelLibrary> ModelManagerLocal::getLibrary(const std::string& name) const
 {
-    return LibraryManager::getManager().getModelLibrary("Local", name);
+    return LibraryManager::getManager().getModelLibrary(LibraryManager::RepositoryLocal, name);
 }

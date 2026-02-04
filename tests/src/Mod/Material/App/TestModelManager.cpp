@@ -104,10 +104,10 @@ TEST_F(TestModelManager, TestSystemModels)
     ASSERT_FALSE(library->isDisabled());
     ASSERT_TRUE(library->isLocal());
     ASSERT_FALSE(library->isModule());
-    ASSERT_EQ(library->getRepositoryName(), "Local");
-    ASSERT_NE(library->getRepositoryName(), "Remote");
-    ASSERT_TRUE(library->isRepositoryName("Local"));
-    ASSERT_FALSE(library->isRepositoryName("Remote"));
+    ASSERT_EQ(library->getRepositoryName(), Materials::LibraryManager::RepositoryLocal);
+    ASSERT_NE(library->getRepositoryName(), Materials::LibraryManager::RepositoryRemote);
+    ASSERT_TRUE(library->isRepositoryName(Materials::LibraryManager::RepositoryLocal));
+    ASSERT_FALSE(library->isRepositoryName(Materials::LibraryManager::RepositoryRemote));
     // auto objects = _modelManager->libraryModels(QString::fromStdString(library->getName()));
 
 }
