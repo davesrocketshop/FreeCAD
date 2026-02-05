@@ -619,9 +619,9 @@ std::shared_ptr<std::list<std::string>> MaterialLoader::getMaterialFolders(
             auto libraryPath = Base::FileInfo::stringToPath(library.getDirectory());
             auto filePath = Base::FileInfo::stringToPath(file.filePath());
             std::string path = Base::FileInfo::pathToString(fs::relative(libraryPath, filePath));
-            // if (!path.starts_with(".")) {
+            if (!path.starts_with(".")) {
                 pathList->push_back(path);
-            // }
+            }
         }
     }
 
