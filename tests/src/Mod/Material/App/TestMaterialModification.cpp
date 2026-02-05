@@ -82,7 +82,7 @@ protected:
     }
 
     void TearDown() override {
-        ASSERT_NO_THROW(_materialManager->removeLibrary("TestMaterialCards", false)); // Remove the library
+        ASSERT_NO_THROW(_materialManager->removeLibrary("TestMaterialCards")); // Remove the library
         _materialManager->setUseExternal(_useExternal);
         _materialManager->refresh();
     }

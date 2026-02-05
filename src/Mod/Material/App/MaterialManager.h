@@ -102,7 +102,7 @@ public:
     }
     void renameLibrary(const std::string& libraryName, const std::string& newName);
     void changeIcon(const std::string& libraryName, const std::string& iconPath);
-    void removeLibrary(const std::string& libraryName, bool keepData = true);
+    void removeLibrary(const std::string& libraryName);
     std::shared_ptr<std::vector<LibraryObject>>
     libraryMaterials(const std::string& libraryName, bool local = false);
     std::shared_ptr<std::vector<LibraryObject>>
@@ -111,9 +111,9 @@ public:
                      const MaterialFilterOptions& options,
                      bool local = false);
     bool isLocalLibrary(const std::string& libraryName) const;
-    void setDisabled(const std::string& libraryName, bool disabled, bool isLocal);
+    void setDisabled(const std::string& libraryName, bool disabled);
     void setDisabled(Library& library, bool disabled);
-    bool isDisabled(const std::string& libraryName, bool isLocal) const;
+    bool isDisabled(const std::string& libraryName) const;
     bool isDisabled(const Library& library)const ;
 
     // Folder management

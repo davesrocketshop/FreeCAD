@@ -103,7 +103,7 @@ protected:
     void TearDown() override {
         // Restore other libraries
         for (auto& [name, disabled] : _libraries) {
-            _materialManager->setDisabled(name, disabled, true);
+            _materialManager->setDisabled(name, disabled);
         }
 
         // Restore the external interface AFTER the local libraries

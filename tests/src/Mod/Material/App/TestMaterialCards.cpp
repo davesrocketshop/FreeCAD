@@ -61,9 +61,9 @@ protected:
         _modelManager = &(Materials::ModelManager::getManager());
         _materialManager = &(Materials::MaterialManager::getManager());
 
-        _systemDisabled = _materialManager->isDisabled("System", true);
-        _materialManager->setDisabled("System", false, true);
-        if (_materialManager->isDisabled("System", true)) {
+        _systemDisabled = _materialManager->isDisabled("System");
+        _materialManager->setDisabled("System", false);
+        if (_materialManager->isDisabled("System")) {
             FAIL() << "System is disabled";
         }
 
@@ -84,8 +84,8 @@ protected:
     }
 
     void TearDown() override {
-        _materialManager->removeLibrary("TestMaterialCards", false); // Remove the library
-        _materialManager->setDisabled("System", _systemDisabled, true);
+        _materialManager->removeLibrary("TestMaterialCards"); // Remove the library
+        _materialManager->setDisabled("System", _systemDisabled);
         _materialManager->setUseExternal(_useExternal);
         _materialManager->refresh();
     }

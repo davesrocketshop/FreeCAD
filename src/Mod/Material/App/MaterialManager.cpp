@@ -310,7 +310,7 @@ void MaterialManager::changeIcon(const std::string& libraryName, const std::stri
     libraryManager().changeIcon(libraryName, iconPath);
 }
 
-void MaterialManager::removeLibrary(const std::string& libraryName, bool keepData)
+void MaterialManager::removeLibrary(const std::string& libraryName)
 {
     libraryManager().removeLibrary(libraryName);
 }
@@ -379,7 +379,7 @@ bool MaterialManager::isLocalLibrary(const std::string& /*libraryName*/) const
 }
 #endif
 
-void MaterialManager::setDisabled(const std::string& libraryName, bool disabled, bool isLocal)
+void MaterialManager::setDisabled(const std::string& libraryName, bool disabled)
 {
     libraryManager().setDisabled(libraryName, disabled);
 }
@@ -389,7 +389,7 @@ void MaterialManager::setDisabled(Library& library, bool disabled)
     libraryManager().setDisabled(library, disabled);
 }
 
-bool MaterialManager::isDisabled(const std::string& libraryName, bool isLocal) const
+bool MaterialManager::isDisabled(const std::string& libraryName) const
 {
     auto library = getLibrary(libraryName);
     return isDisabled(*library);

@@ -247,13 +247,12 @@ PyObject* MaterialManagerPy::createLocalLibrary(PyObject* args)
 PyObject* MaterialManagerPy::removeLibrary(PyObject* args)
 {
     char* name {};
-    PyObject* keepData = Py_True;
-    if (!PyArg_ParseTuple(args, "s|O!", &name, &PyBool_Type, &keepData)) {
+    if (!PyArg_ParseTuple(args, "s", &name)) {
         return nullptr;
     }
 
     try {
-        getMaterialManagerPtr()->removeLibrary(name, PyObject_IsTrue(keepData));
+        getMaterialManagerPtr()->removeLibrary(name);
     }
     catch (const LibraryNotFound&) {
         PyErr_SetString(PyExc_LookupError, "Unknown library");

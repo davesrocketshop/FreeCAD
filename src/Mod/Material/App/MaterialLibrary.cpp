@@ -235,7 +235,7 @@ void MaterialLibraryLocal::deleteRecursive(const std::string& path)
 }
 
 // This accepts the filesystem path as returned from getLocalPath
-void MaterialLibraryLocal::deleteDir(MaterialManager& manager, const std::string& path)
+void MaterialLibraryLocal::deleteDir([[maybe_unused]] MaterialManager& manager, const std::string& path)
 {
     Base::FileInfo file(path);
     if (file.isDir()) {
