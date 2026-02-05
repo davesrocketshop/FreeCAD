@@ -47,19 +47,25 @@ protected:
     }
 
     void SetUp() override {
+        // Disable the external interface
+        // Using the MaterialManager functions will cause a boot strapping issue so
+        // this needs to access the configuration directly
+        ParameterGrp::handle paramExternal = App::GetApplication().GetParameterGroupByPath(
+            "User parameter:BaseApp/Preferences/Mod/Material/ExternalInterface"
+        );
+
+        _useExternal = paramExternal->GetBool("UseExternal", false);
+        paramExternal->SetBool("UseExternal", false);
+
         _libraryManager = &(Materials::LibraryManager::getManager());
         _modelManager = &(Materials::ModelManager::getManager());
         _materialManager = &(Materials::MaterialManager::getManager());
-
-        // Disable the external interface
-        _useExternal = _libraryManager->useExternal();
-       _libraryManager->setUseExternal(false);
 
         // Disable other libraries
         auto libraries = _materialManager->getLibraries(true);
         _libraries.clear();
         for (auto& library : *libraries) {
-            _libraries.emplace(library->getName(), library->isDisabled());
+            _libraries.emplace(std::pair<std::string, std::string>{library->getRepositoryName(), library->getName()}, library->isDisabled());
             _materialManager->setDisabled(*library, true);
         }
 
@@ -69,7 +75,7 @@ protected:
     void TearDown() override {
         // Restore other libraries
         for (auto& [name, disabled] : _libraries) {
-            _materialManager->setDisabled(name, disabled, true);
+            _libraryManager->setDisabled(name.first, name.second, disabled);
         }
 
         // Restore the external interface AFTER the local libraries
@@ -83,7 +89,7 @@ protected:
     Materials::MaterialManager* _materialManager {};
 
     bool _useExternal {};
-    std::map<std::string, bool> _libraries;
+    std::map<std::pair<std::string, std::string>, bool> _libraries;
 };
 
 TEST_F(TestLibraries, TestDisabled)
@@ -111,10 +117,6 @@ TEST_F(TestLibraries, TestDisabled)
 TEST_F(TestLibraries, TestDisabledModels)
 {
     auto libraries = _modelManager->getLibraries();
-    for (auto lib: *libraries) {
-        std::string name = lib->getName();
-        Base::Console().log("Disabled: %s", name.c_str());
-    }
     ASSERT_EQ(libraries->size(), 0);
 
     auto library = _modelManager->getLibrary("System");
@@ -144,7 +146,7 @@ TEST_F(TestLibraries, TestDisabledModels)
     ASSERT_GT(models->size(), 0);
     for (auto [uuid, model] : *models) {
         ASSERT_FALSE(model->isDisabled());
-        ASSERT_EQ(model->getLibrary(), library);
+        ASSERT_EQ(*model->getLibrary(), *library);
     }
 
     _materialManager->setDisabled(*library, true);

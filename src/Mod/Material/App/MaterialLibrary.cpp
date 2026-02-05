@@ -292,7 +292,7 @@ MaterialLibraryLocal::saveMaterial(const std::shared_ptr<Material>& material,
     std::string filePath = getLocalPath(path);
     QFile file(QString::fromStdString(filePath));
 
-    Base::FileInfo info(path);
+    Base::FileInfo info(filePath);
     Base::FileInfo fileDir(info.dirPath());
     if (!fileDir.exists()) {
         if (!fileDir.createDirectories()) {

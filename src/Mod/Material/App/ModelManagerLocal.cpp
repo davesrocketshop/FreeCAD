@@ -80,6 +80,8 @@ void ModelManagerLocal::cleanup()
 
 void ModelManagerLocal::refresh()
 {
+    QMutexLocker locker(&_mutex);
+
     for (auto& it : *_modelMap) {
         // This is needed to resolve cyclic dependencies
         it.second->setLibrary(nullptr);

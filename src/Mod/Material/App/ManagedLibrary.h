@@ -27,9 +27,10 @@
 #include <QByteArray>
 #include <QString>
 
-# include <Base/BaseClass.h>
+#include <Base/BaseClass.h>
+#include <Base/Console.h>
 
-# include <Mod/Material/MaterialGlobal.h>
+#include <Mod/Material/MaterialGlobal.h>
 
 namespace Materials
 {
@@ -122,6 +123,9 @@ public:
     }
     void setDisabled(bool disabled)
     {
+        if (!disabled && getLibraryName() == "System") {
+            Base::Console().log("Enable System\n");
+        }
         _disabled = disabled;
     }
 

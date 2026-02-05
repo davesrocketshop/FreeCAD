@@ -108,133 +108,90 @@ void MaterialManagerLocal::refresh()
 //
 //=====
 
-std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>> MaterialManagerLocal::getLibraries()
-{
-    if (_libraryList == nullptr) {
-        initLibraries();
-    }
-    return _libraryList;
-}
+// std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>> MaterialManagerLocal::getLibraries()
+// {
+//     if (_libraryList == nullptr) {
+//         initLibraries();
+//     }
+//     return _libraryList;
+// }
 
-std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>> MaterialManagerLocal::getMaterialLibraries()
-{
-    if (_libraryList == nullptr) {
-        initLibraries();
-    }
-    return _libraryList;
-}
+// std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>> MaterialManagerLocal::getMaterialLibraries()
+// {
+//     if (_libraryList == nullptr) {
+//         initLibraries();
+//     }
+//     return _libraryList;
+// }
 
-std::shared_ptr<MaterialLibrary> MaterialManagerLocal::getLibrary(const std::string& name) const
-{
-    for (auto& library : *_libraryList) {
-        if (library->isLocal() && library->isName(name)) {
-            return library;
-        }
-    }
+// std::shared_ptr<MaterialLibrary> MaterialManagerLocal::getLibrary(const std::string& name) const
+// {
+//     for (auto& library : *_libraryList) {
+//         if (library->isLocal() && library->isName(name)) {
+//             return library;
+//         }
+//     }
 
-    throw LibraryNotFound();
-}
+//     throw LibraryNotFound();
+// }
 
-std::shared_ptr<MaterialLibrary> MaterialManagerLocal::createLibrary(
-    const std::string& libraryName,
-    const std::string& materialDirectory,
-    const std::string& modelDirectory,
-    const std::string& iconPath,
-    bool readOnly
-)
-{
-    Base::FileInfo dir(materialDirectory);
-    if (!dir.isDir()) {
-        if (!dir.createDirectories()) {
-            throw CreationError("Unable to create library path");
-        }
-    }
-    if (!modelDirectory.empty()) {
-        dir.setFile(modelDirectory);
-        if (!dir.isDir()) {
-            if (!dir.createDirectories()) {
-                throw CreationError("Unable to create library model path");
-            }
-        }
-    }
+// void MaterialManagerLocal::renameLibrary(const std::string& libraryName, const std::string& newName)
+// {
+//     for (auto& library : *_libraryList) {
+//         if (library->isLocal() && library->isName(libraryName)) {
+//             auto materialLibrary
+//                 = reinterpret_cast<const std::shared_ptr<Materials::MaterialLibraryLocal>&>(library);
+//             materialLibrary->setName(newName);
+//             return;
+//         }
+//     }
 
-    auto path = Library::cleanPath(materialDirectory);
-    auto library = std::make_shared<MaterialLibraryLocal>(libraryName, path, iconPath, readOnly);
-    _libraryList->push_back(library);
+//     throw LibraryNotFound();
+// }
 
-    // Persist
-    std::string libRoot("User parameter:BaseApp/Preferences/Mod/Material/Resources/Local/");
-    libRoot += libraryName;
+// void MaterialManagerLocal::changeIcon(const std::string& libraryName, const QByteArray& icon)
+// {
+//     for (auto& library : *_libraryList) {
+//         if (library->isLocal() && library->isName(libraryName)) {
+//             auto materialLibrary
+//                 = reinterpret_cast<const std::shared_ptr<Materials::MaterialLibraryLocal>&>(library);
+//             materialLibrary->setIcon(icon);
+//             return;
+//         }
+//     }
 
-    auto newParam = App::GetApplication().GetParameterGroupByPath(libRoot.c_str());
-    newParam->SetASCII("Directory", path.c_str());
-    if (!modelDirectory.empty()) {
-        newParam->SetASCII("ModelDirectory", Library::cleanPath(modelDirectory).c_str());
-    }
-    newParam->SetASCII("IconPath", iconPath.c_str());
-    newParam->SetBool("ReadOnly", readOnly);
-    newParam->SetBool("Disabled", false);
+//     throw LibraryNotFound();
+// }
 
-    return library;
-}
+// void MaterialManagerLocal::removeLibrary(const std::string& libraryName, bool keepData)
+// {
+//     for (auto& library : *_libraryList) {
+//         if (library->isLocal() && library->isName(libraryName)) {
+//             _libraryList->remove(library);
 
-void MaterialManagerLocal::renameLibrary(const std::string& libraryName, const std::string& newName)
-{
-    for (auto& library : *_libraryList) {
-        if (library->isLocal() && library->isName(libraryName)) {
-            auto materialLibrary
-                = reinterpret_cast<const std::shared_ptr<Materials::MaterialLibraryLocal>&>(library);
-            materialLibrary->setName(newName);
-            return;
-        }
-    }
+//             // Persist
+//             ParameterGrp::handle param = App::GetApplication().GetParameterGroupByPath(
+//                 "User parameter:BaseApp/Preferences/Mod/Material/Resources/Local"
+//             );
+//             param->RemoveGrp(libraryName.c_str());
 
-    throw LibraryNotFound();
-}
+//             // At this point we should rebuild the material map
+//             // for (auto it = _materialMap->begin(); it != _materialMap->end();) {
+//             //     if (it->second->getLibrary()->isName(libraryName)) {
+//             //         _materialMap->erase(it);
+//             //     }
+//             //     else {
+//             //         it++;
+//             //     }
+//             // }
+//             _materialMap->clear();
+//             MaterialLoader loader(_materialMap, _libraryList);
+//             return;
+//         }
+//     }
 
-void MaterialManagerLocal::changeIcon(const std::string& libraryName, const QByteArray& icon)
-{
-    for (auto& library : *_libraryList) {
-        if (library->isLocal() && library->isName(libraryName)) {
-            auto materialLibrary
-                = reinterpret_cast<const std::shared_ptr<Materials::MaterialLibraryLocal>&>(library);
-            materialLibrary->setIcon(icon);
-            return;
-        }
-    }
-
-    throw LibraryNotFound();
-}
-
-void MaterialManagerLocal::removeLibrary(const std::string& libraryName, bool keepData)
-{
-    for (auto& library : *_libraryList) {
-        if (library->isLocal() && library->isName(libraryName)) {
-            _libraryList->remove(library);
-
-            // Persist
-            ParameterGrp::handle param = App::GetApplication().GetParameterGroupByPath(
-                "User parameter:BaseApp/Preferences/Mod/Material/Resources/Local"
-            );
-            param->RemoveGrp(libraryName.c_str());
-
-            // At this point we should rebuild the material map
-            // for (auto it = _materialMap->begin(); it != _materialMap->end();) {
-            //     if (it->second->getLibrary()->isName(libraryName)) {
-            //         _materialMap->erase(it);
-            //     }
-            //     else {
-            //         it++;
-            //     }
-            // }
-            _materialMap->clear();
-            MaterialLoader loader(_materialMap, _libraryList);
-            return;
-        }
-    }
-
-    throw LibraryNotFound();
-}
+//     throw LibraryNotFound();
+// }
 
 std::shared_ptr<std::vector<LibraryObject>> MaterialManagerLocal::libraryMaterials(
     const std::string& libraryName
@@ -293,16 +250,16 @@ std::shared_ptr<std::vector<LibraryObject>> MaterialManagerLocal::libraryMateria
     return materials;
 }
 
-bool MaterialManagerLocal::exists(const std::string& libraryName)
-{
-    for (auto& library : *_libraryList) {
-        if (library->isLocal() && library->isName(libraryName)) {
-            return true;
-        }
-    }
+// bool MaterialManagerLocal::exists(const std::string& libraryName)
+// {
+//     for (auto& library : *_libraryList) {
+//         if (library->isLocal() && library->isName(libraryName)) {
+//             return true;
+//         }
+//     }
 
-    return false;
-}
+//     return false;
+// }
 
 //=====
 //
@@ -419,11 +376,13 @@ std::shared_ptr<Material> MaterialManagerLocal::getMaterialByPath(
     const std::string& lib
 ) const
 {
-    auto library = getLibrary(lib);  // May throw LibraryNotFound
+    auto library = LibraryManager::getManager().getLibrary(lib);  // May throw LibraryNotFound
     if (library->isLocal()) {
         auto materialLibrary
-            = reinterpret_cast<const std::shared_ptr<Materials::MaterialLibraryLocal>&>(library);
-        return materialLibrary->getMaterialByPath(path);  // May throw MaterialNotFound
+            = std::make_shared<Materials::MaterialLibraryLocal>(library);
+        if (materialLibrary) {
+            return materialLibrary->getMaterialByPath(path);  // May throw MaterialNotFound
+        }
     }
 
     throw LibraryNotFound();

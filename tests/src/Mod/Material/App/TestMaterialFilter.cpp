@@ -41,7 +41,7 @@
 
 // clang-format off
 
-class DISABLED_TestMaterialFilter : public ::testing::Test {
+class TestMaterialFilter : public ::testing::Test {
 protected:
     static void SetUpTestSuite()
     {
@@ -49,12 +49,18 @@ protected:
     }
 
     void SetUp() override {
+        // Disable the external interface
+        // Using the MaterialManager functions will cause a boot strapping issue so
+        // this needs to access the configuration directly
+        ParameterGrp::handle paramExternal = App::GetApplication().GetParameterGroupByPath(
+            "User parameter:BaseApp/Preferences/Mod/Material/ExternalInterface"
+        );
+
+        _useExternal = paramExternal->GetBool("UseExternal", false);
+        paramExternal->SetBool("UseExternal", false);
+
         _modelManager = &(Materials::ModelManager::getManager());
         _materialManager = &(Materials::MaterialManager::getManager());
-
-        // Disable the external interface
-        _useExternal = _materialManager->useExternal();
-        _materialManager->setUseExternal(false);
 
         // Create a custom library for our test files
         // Ensure the directory exists
@@ -91,7 +97,7 @@ protected:
 
         _materialManager->refresh();
 
-        _library = _materialManager->getLibrary("__UnitTest");
+        ASSERT_NO_THROW(_library = _materialManager->getLibrary("__UnitTest"));
     }
 
     void TearDown() override {
@@ -127,7 +133,7 @@ protected:
     const char* UUIDBrassAppearance = "fff3d5c8-98c3-4ee2-8fe5-7e17403c48fcc";
 };
 
-TEST_F(DISABLED_TestMaterialFilter, TestFilters)
+TEST_F(TestMaterialFilter, TestFilters)
 {
     ASSERT_NE(_modelManager, nullptr);
 
@@ -152,8 +158,8 @@ TEST_F(DISABLED_TestMaterialFilter, TestFilters)
     ASSERT_EQ(material->getName(), QStringLiteral("TestBrassAppearance"));
     ASSERT_EQ(material->getUUID(), QString::fromLatin1(UUIDBrassAppearance));
 
-    material = _materialManager->getMaterialByPath("TestAcrylicLegacy.FCMat",
-        "__UnitTest");
+    ASSERT_NO_THROW(material = _materialManager->getMaterialByPath("TestAcrylicLegacy.FCMat",
+        "__UnitTest"));
     ASSERT_TRUE(material);
     ASSERT_EQ(material->getName(), QStringLiteral("TestAcrylicLegacy"));
     ASSERT_EQ(material->getUUID().size(), 36); // We don't know the UUID

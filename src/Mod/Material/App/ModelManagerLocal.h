@@ -62,7 +62,6 @@ public:
     std::shared_ptr<Model> getModelByPath(const std::string& path) const;
     std::shared_ptr<Model> getModelByPath(const std::string& path, const std::string& lib) const;
     std::shared_ptr<ModelLibrary> getLibrary(const std::string& name) const;
-    void setDisabled(Library& library, bool disabled);
 
     static bool isModel(const std::string& file);
 

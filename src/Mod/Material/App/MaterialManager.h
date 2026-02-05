@@ -75,7 +75,7 @@ public:
     // Library management
     bool useExternal() const { return _useExternal; }
     void setUseExternal(bool useExternal);
-    std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>> getLibraries(bool includeDisabled = false, bool includeMasked = false);
+    std::shared_ptr<std::vector<std::shared_ptr<MaterialLibrary>>> getLibraries(bool includeDisabled = false, bool includeMasked = false);
     std::shared_ptr<std::vector<std::shared_ptr<MaterialLibrary>>> getLocalLibraries(
         bool includeDisabled = false
     );
@@ -196,10 +196,6 @@ private:
 
     static void initManagers();
     static LibraryManager& libraryManager();
-
-    std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>> getLibrariesMasked(
-        bool includeDisabled
-    );
 
     static MaterialManager* _manager;
 

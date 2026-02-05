@@ -43,12 +43,18 @@ protected:
     }
 
     void SetUp() override {
+        // Disable the external interface
+        // Using the MaterialManager functions will cause a boot strapping issue so
+        // this needs to access the configuration directly
+        ParameterGrp::handle paramExternal = App::GetApplication().GetParameterGroupByPath(
+            "User parameter:BaseApp/Preferences/Mod/Material/ExternalInterface"
+        );
+
+        _useExternal = paramExternal->GetBool("UseExternal", false);
+        paramExternal->SetBool("UseExternal", false);
+
         _modelManager = &(Materials::ModelManager::getManager());
         _libraryManager = &(Materials::LibraryManager::getManager());
-
-        // Disable the external interface
-        _useExternal = _libraryManager->useExternal();
-        _libraryManager->setUseExternal(false);
     }
 
     void TearDown() override {

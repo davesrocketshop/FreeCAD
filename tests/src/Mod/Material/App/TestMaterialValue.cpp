@@ -35,13 +35,13 @@
 
 // clang-format off
 
-class DISABLED_TestMaterialValue : public ::testing::Test {
- protected:
-  static void SetUpTestSuite() {
-  }
+class TestMaterialValue : public ::testing::Test {
+protected:
+    static void SetUpTestSuite() {
+    }
 };
 
-TEST_F(DISABLED_TestMaterialValue, TestNoneType)
+TEST_F(TestMaterialValue, TestNoneType)
 {
     auto mat1 = Materials::MaterialValue();
     EXPECT_EQ(mat1.getType(), Materials::MaterialValue::None);
@@ -54,7 +54,7 @@ TEST_F(DISABLED_TestMaterialValue, TestNoneType)
     EXPECT_EQ(variant.toString().size(), 0);
 }
 
-TEST_F(DISABLED_TestMaterialValue, TestStringType)
+TEST_F(TestMaterialValue, TestStringType)
 {
     auto mat1 = Materials::MaterialValue(Materials::MaterialValue::String);
     EXPECT_EQ(mat1.getType(), Materials::MaterialValue::String);
@@ -67,7 +67,7 @@ TEST_F(DISABLED_TestMaterialValue, TestStringType)
     EXPECT_EQ(variant.toString().size(), 0);
 }
 
-TEST_F(DISABLED_TestMaterialValue, TestBooleanType)
+TEST_F(TestMaterialValue, TestBooleanType)
 {
     auto mat1 = Materials::MaterialValue(Materials::MaterialValue::Boolean);
     EXPECT_EQ(mat1.getType(), Materials::MaterialValue::Boolean);
@@ -82,7 +82,7 @@ TEST_F(DISABLED_TestMaterialValue, TestBooleanType)
     EXPECT_EQ(variant.toBool(), false);
 }
 
-TEST_F(DISABLED_TestMaterialValue, TestIntegerType)
+TEST_F(TestMaterialValue, TestIntegerType)
 {
     auto mat1 = Materials::MaterialValue(Materials::MaterialValue::Integer);
     EXPECT_EQ(mat1.getType(), Materials::MaterialValue::Integer);
@@ -97,7 +97,7 @@ TEST_F(DISABLED_TestMaterialValue, TestIntegerType)
     EXPECT_EQ(variant.toInt(), 0);
 }
 
-TEST_F(DISABLED_TestMaterialValue, TestFloatType)
+TEST_F(TestMaterialValue, TestFloatType)
 {
     auto mat1 = Materials::MaterialValue(Materials::MaterialValue::Float);
     EXPECT_EQ(mat1.getType(), Materials::MaterialValue::Float);
@@ -112,7 +112,7 @@ TEST_F(DISABLED_TestMaterialValue, TestFloatType)
     EXPECT_EQ(variant.toFloat(), 0);
 }
 
-TEST_F(DISABLED_TestMaterialValue, TestQuantityType)
+TEST_F(TestMaterialValue, TestQuantityType)
 {
     auto mat1 = Materials::MaterialValue(Materials::MaterialValue::Quantity);
     EXPECT_EQ(mat1.getType(), Materials::MaterialValue::Quantity);
@@ -146,7 +146,7 @@ TEST_F(DISABLED_TestMaterialValue, TestQuantityType)
     EXPECT_TRUE(std::isnan(quantity.getValue()));
 }
 
-TEST_F(DISABLED_TestMaterialValue, TestListType)
+TEST_F(TestMaterialValue, TestListType)
 {
     auto mat1 = Materials::MaterialValue(Materials::MaterialValue::List);
     EXPECT_EQ(mat1.getType(), Materials::MaterialValue::List);
@@ -164,7 +164,7 @@ TEST_F(DISABLED_TestMaterialValue, TestListType)
     EXPECT_EQ(list.size(), 0);
 }
 
-TEST_F(DISABLED_TestMaterialValue, TestArray2DType)
+TEST_F(TestMaterialValue, TestArray2DType)
 {
     EXPECT_THROW(auto mat1 = Materials::MaterialValue(Materials::MaterialValue::Array2D), Materials::InvalidMaterialType);
 
@@ -174,7 +174,7 @@ TEST_F(DISABLED_TestMaterialValue, TestArray2DType)
     EXPECT_EQ(mat2.rows(), 0);
 }
 
-TEST_F(DISABLED_TestMaterialValue, TestArray3DType)
+TEST_F(TestMaterialValue, TestArray3DType)
 {
     EXPECT_THROW(auto mat1 = Materials::MaterialValue(Materials::MaterialValue::Array3D), Materials::InvalidMaterialType);
 

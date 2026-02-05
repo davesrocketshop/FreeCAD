@@ -144,7 +144,7 @@ std::shared_ptr<std::vector<std::shared_ptr<ModelLibrary>>> ModelManager::getLoc
 
 std::shared_ptr<ModelLibrary> ModelManager::getLibrary(const std::string& name) const
 {
-    return LibraryManager::getManager().getModelLibrary(LibraryManager::RepositoryLocal, name);
+    return LibraryManager::getManager().getModelLibrary(name);
 }
 
 std::shared_ptr<std::vector<LibraryObject>> ModelManager::libraryModels(const std::string& libraryName)

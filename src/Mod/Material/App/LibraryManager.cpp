@@ -255,6 +255,18 @@ std::shared_ptr<ManagedLibrary> LibraryManager::getLibrary(
     throw LibraryNotFound();
 }
 
+std::shared_ptr<ManagedLibrary> LibraryManager::getLibrary(
+    const std::string& name
+) const
+{
+    auto range = _libraryMap->equal_range(name);
+    for (auto it = range.first; it != range.second; ++it) {
+        return it->second;
+    }
+
+    throw LibraryNotFound();
+}
+
 std::shared_ptr<ModelLibrary> LibraryManager::getModelLibrary(
     const std::string& repositoryName,
     const std::string& name
@@ -268,12 +280,36 @@ std::shared_ptr<ModelLibrary> LibraryManager::getModelLibrary(
     throw LibraryNotFound();
 }
 
+std::shared_ptr<ModelLibrary> LibraryManager::getModelLibrary(
+    const std::string& name
+) const
+{
+    auto library = getLibrary(name);
+    if (library->isRemote() || !library->getModelDirectory().empty()) {
+        return std::make_shared<ModelLibrary>(library);
+    }
+
+    throw LibraryNotFound();
+}
+
 std::shared_ptr<MaterialLibrary> LibraryManager::getMaterialLibrary(
     const std::string& repositoryName,
     const std::string& name
 ) const
 {
     auto library = getLibrary(repositoryName, name);
+    if (!library->getMaterialDirectory().empty()) {
+        return std::make_shared<MaterialLibrary>(library);
+    }
+
+    throw LibraryNotFound();
+}
+
+std::shared_ptr<MaterialLibrary> LibraryManager::getMaterialLibrary(
+    const std::string& name
+) const
+{
+    auto library = getLibrary(name);
     if (!library->getMaterialDirectory().empty()) {
         return std::make_shared<MaterialLibrary>(library);
     }
@@ -372,6 +408,23 @@ void LibraryManager::renameLibrary(
 )
 {
     auto library = getLibrary(repositoryName, libraryName);
+    renameLibrary(library, newName);
+}
+
+void LibraryManager::renameLibrary(
+    const std::string& libraryName,
+    const std::string& newName
+)
+{
+    auto library = getLibrary(libraryName);
+    renameLibrary(library, newName);
+}
+
+void LibraryManager::renameLibrary(
+    const std::shared_ptr<ManagedLibrary>& library,
+    const std::string& newName
+)
+{
     if (library->isReadOnly()) {
         throw RenameError("Unable to rename read only library");
     }
@@ -428,6 +481,23 @@ void LibraryManager::changeIcon(
 )
 {
     auto library = getLibrary(repositoryName, libraryName);
+    changeIcon(library, iconPath);
+}
+
+void LibraryManager::changeIcon(
+    const std::string& libraryName,
+    const std::string& iconPath
+)
+{
+    auto library = getLibrary(libraryName);
+    changeIcon(library, iconPath);
+}
+
+void LibraryManager::changeIcon(
+    const std::shared_ptr<ManagedLibrary>& library,
+    const std::string& iconPath
+)
+{
     if (library->isReadOnly()) {
         throw UpdateError("Unable to change the icon for a read only library");
     }
@@ -466,6 +536,22 @@ void LibraryManager::changeIconRemote(
 #else
     throw UpdateError("External interface is not enabled");
 #endif
+}
+
+void LibraryManager::removeLibrary(const std::string& libraryName)
+{
+    auto library = getLibrary(libraryName);
+    if (library->isReadOnly()) {
+        throw DeleteError("Unable to remove a read only library");
+    }
+    if (library->isLocal()) {
+        removeLibraryLocal(library);
+    }
+    else {
+        removeLibraryRemote(library);
+    }
+    _libraryList->remove(library);
+    updateLibraryMap();
 }
 
 void LibraryManager::removeLibrary(const std::string& repositoryName, const std::string& libraryName)
@@ -518,6 +604,20 @@ bool LibraryManager::isLocalLibrary(const std::string& repositoryName, const std
 {
     try {
         auto library = getLibrary(repositoryName, libraryName);
+        if (library->isLocal()) {
+            return true;
+        }
+    }
+    catch (const LibraryNotFound&) {
+    }
+
+    return false;
+}
+
+bool LibraryManager::isLocalLibrary(const std::string& libraryName)
+{
+    try {
+        auto library = getLibrary(libraryName);
         if (library->isLocal()) {
             return true;
         }

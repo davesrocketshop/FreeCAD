@@ -39,7 +39,7 @@
 
 // clang-format off
 
-class DISABLED_TestMaterialCards : public ::testing::Test {
+class TestMaterialCards : public ::testing::Test {
 protected:
     static void SetUpTestSuite() {
         if (App::Application::GetARGC() == 0) {
@@ -48,12 +48,18 @@ protected:
     }
 
     void SetUp() override {
+        // Disable the external interface
+        // Using the MaterialManager functions will cause a boot strapping issue so
+        // this needs to access the configuration directly
+        ParameterGrp::handle paramExternal = App::GetApplication().GetParameterGroupByPath(
+            "User parameter:BaseApp/Preferences/Mod/Material/ExternalInterface"
+        );
+
+        _useExternal = paramExternal->GetBool("UseExternal", false);
+        paramExternal->SetBool("UseExternal", false);
+
         _modelManager = &(Materials::ModelManager::getManager());
         _materialManager = &(Materials::MaterialManager::getManager());
-
-        // Disable the external interface
-        _useExternal = _materialManager->useExternal();
-        _materialManager->setUseExternal(false);
 
         _systemDisabled = _materialManager->isDisabled("System", true);
         _materialManager->setDisabled("System", false, true);
@@ -62,15 +68,15 @@ protected:
         }
 
         // Create a temporary library
-        QString libPath = QDir::tempPath() + QStringLiteral("/DISABLED_TestMaterialCards");
+        QString libPath = QDir::tempPath() + QStringLiteral("/TestMaterialCards");
         QDir libDir(libPath);
         libDir.removeRecursively(); // Clear any old run data
         libDir.mkdir(libPath);
 
-        _library = _materialManager->createLocalLibrary("DISABLED_TestMaterialCards",
+        ASSERT_NO_THROW(_library = _materialManager->createLocalLibrary("TestMaterialCards",
                             libPath.toStdString(),
                             ":/icons/preferences-general.svg",
-                            false);
+                            false));
 
         // Test Material.FCMat
         _testMaterialUUID = QStringLiteral("c6c64159-19c1-40b5-859c-10561f20f979");
@@ -78,7 +84,7 @@ protected:
     }
 
     void TearDown() override {
-        _materialManager->removeLibrary("DISABLED_TestMaterialCards", false); // Remove the library
+        _materialManager->removeLibrary("TestMaterialCards", false); // Remove the library
         _materialManager->setDisabled("System", _systemDisabled, true);
         _materialManager->setUseExternal(_useExternal);
         _materialManager->refresh();
@@ -92,7 +98,7 @@ protected:
     bool _systemDisabled {};
 };
 
-TEST_F(DISABLED_TestMaterialCards, TestCopy)
+TEST_F(TestMaterialCards, TestCopy)
 {
     ASSERT_NE(_modelManager, nullptr);
     ASSERT_TRUE(_library);
@@ -255,7 +261,7 @@ TEST_F(DISABLED_TestMaterialCards, TestCopy)
     }
 }
 
-TEST_F(DISABLED_TestMaterialCards, TestColumns)
+TEST_F(TestMaterialCards, TestColumns)
 {
     ASSERT_NE(_modelManager, nullptr);
     ASSERT_TRUE(_library);

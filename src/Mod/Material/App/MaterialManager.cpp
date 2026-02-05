@@ -232,73 +232,12 @@ void MaterialManager::setUseExternal(bool useExternal)
     paramExternal->SetBool("UseExternal", useExternal);
 }
 
-std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>> MaterialManager::getLibraries(
+std::shared_ptr<std::vector<std::shared_ptr<MaterialLibrary>>> MaterialManager::getLibraries(
     bool includeDisabled,
     bool includeMasked
 )
 {
-    if (includeMasked) {
-        return getLibrariesMasked(includeDisabled);
-    }
-
-    // External libraries take precedence over local libraries
-    auto libMap = std::map<std::string, std::shared_ptr<MaterialLibrary>>();
-#if defined(BUILD_MATERIAL_EXTERNAL)
-    if (_useExternal) {
-        auto remoteLibraries = _externalManager->getLibraries();
-        for (auto& remote : *remoteLibraries) {
-            if (includeDisabled || !remote->isDisabled()) {
-                libMap.try_emplace(remote->getName(), remote);
-            }
-        }
-    }
-#endif
-    auto localLibraries = _localManager->getLibraries();
-    for (auto& local : *localLibraries) {
-        if (includeDisabled || !local->isDisabled()) {
-            libMap.try_emplace(local->getName(), local);
-        }
-    }
-
-    // Consolidate into a single list
-    auto libraries = std::make_shared<std::list<std::shared_ptr<MaterialLibrary>>>();
-    for (auto libEntry : libMap) {
-        libraries->push_back(libEntry.second);
-    }
-
-    return libraries;
-}
-
-std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>> MaterialManager::getLibrariesMasked(
-    bool includeDisabled
-)
-{
-    // External libraries take precedence over local libraries
-    auto libMap = std::multimap<std::string, std::shared_ptr<MaterialLibrary>>();
-#if defined(BUILD_MATERIAL_EXTERNAL)
-    if (_useExternal) {
-        auto remoteLibraries = _externalManager->getLibraries();
-        for (auto& remote : *remoteLibraries) {
-            if (includeDisabled || !remote->isDisabled()) {
-                // libMap.insert({remote->getName(), remote});
-            }
-        }
-    }
-#endif
-    auto localLibraries = _localManager->getLibraries();
-    for (auto& local : *localLibraries) {
-        if (includeDisabled || !local->isDisabled()) {
-            libMap.insert({local->getName(), local});
-        }
-    }
-
-    // Consolidate into a single sorted list
-    auto libraries = std::make_shared<std::list<std::shared_ptr<MaterialLibrary>>>();
-    for (auto libEntry : libMap) {
-        libraries->push_back(libEntry.second);
-    }
-
-    return libraries;
+    return libraryManager().getMaterialLibraries(includeDisabled);
 }
 
 std::shared_ptr<std::vector<std::shared_ptr<MaterialLibrary>>> MaterialManager::getLocalLibraries(
@@ -323,75 +262,57 @@ std::shared_ptr<std::vector<std::shared_ptr<MaterialLibrary>>> MaterialManager::
 
 std::shared_ptr<MaterialLibrary> MaterialManager::getLibrary(const std::string& name) const
 {
-#if defined(BUILD_MATERIAL_EXTERNAL)
-    if (_useExternal) {
-        try {
-            auto lib = _externalManager->getLibrary(name);
-            if (lib) {
-                return lib;
-            }
-        }
-        catch (const LibraryNotFound& e) {
-        }
-    }
-#endif
-    // We really want to return the local library if not found, such as for User folder models
-    return _localManager->getLibrary(name);
+    return libraryManager().getMaterialLibrary(name);
 }
 
 std::shared_ptr<MaterialLibrary> MaterialManager::createLibrary(
-    [[maybe_unused]] const std::string& libraryName,
-    [[maybe_unused]] const std::string& iconPath,
-    [[maybe_unused]] bool readOnly
-)
-{
-#if defined(BUILD_MATERIAL_EXTERNAL)
-    if (_useExternal) {
-        auto icon = Materials::ManagedLibrary::getIcon(iconPath);
-        return _externalManager->createLibrary(libraryName, icon, readOnly);
-    }
-#endif
-    throw CreationError("Local library requires a path");
-}
-
-std::shared_ptr<MaterialLibrary> MaterialManager::createLocalLibrary(
-    const std::string& materialDirectory,
-    const std::string& modelDirectory,
-    const std::string& directory,
+    const std::string& libraryName,
     const std::string& iconPath,
     bool readOnly
 )
 {
-    return _localManager->createLibrary(materialDirectory, modelDirectory, directory, iconPath, readOnly);
+    libraryManager().createRemoteLibrary(LibraryManager::RepositoryRemote, libraryName, iconPath, readOnly);
+    return libraryManager().getMaterialLibrary(LibraryManager::RepositoryRemote, libraryName);
+}
+
+std::shared_ptr<MaterialLibrary> MaterialManager::createLocalLibrary(const std::string& libraryName,
+    const std::string& materialDirectory,
+    const std::string& modelDirectory,
+    const std::string& iconPath,
+    bool readOnly
+)
+{
+    libraryManager().createLocalLibrary(libraryName, materialDirectory, modelDirectory, iconPath, readOnly);
+    return libraryManager().getMaterialLibrary(LibraryManager::RepositoryLocal, libraryName);
 }
 
 void MaterialManager::renameLibrary(const std::string& libraryName, const std::string& newName)
 {
-    auto library = getLibrary(libraryName);
-    if (library) {
-#if defined(BUILD_MATERIAL_EXTERNAL)
-        if (!library->isLocal()) {
-            if (_useExternal) {
-                _externalManager->renameLibrary(libraryName, newName);
-                return;
-            }
+    libraryManager().renameLibrary(libraryName, newName);
+//     auto library = getLibrary(libraryName);
+//     if (library) {
+// #if defined(BUILD_MATERIAL_EXTERNAL)
+//         if (!library->isLocal()) {
+//             if (_useExternal) {
+//                 _externalManager->renameLibrary(libraryName, newName);
+//                 return;
+//             }
 
-            throw Materials::RenameError();
-        }
-#endif
-        _localManager->renameLibrary(libraryName, newName);
-    }
+//             throw Materials::RenameError();
+//         }
+// #endif
+//         _localManager->renameLibrary(libraryName, newName);
+//     }
 }
 
 void MaterialManager::changeIcon(const std::string& libraryName, const std::string& iconPath)
 {
-    auto icon = Materials::ManagedLibrary::getIcon(iconPath);
-    _localManager->changeIcon(libraryName, icon);
+    libraryManager().changeIcon(libraryName, iconPath);
 }
 
 void MaterialManager::removeLibrary(const std::string& libraryName, bool keepData)
 {
-    _localManager->removeLibrary(libraryName, keepData);
+    libraryManager().removeLibrary(libraryName);
 }
 
 std::shared_ptr<std::vector<LibraryObject>> MaterialManager::libraryMaterials(

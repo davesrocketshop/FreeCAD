@@ -44,7 +44,7 @@
 
 // clang-format off
 
-class DISABLED_TestMaterialModification : public ::testing::Test {
+class TestMaterialModification : public ::testing::Test {
 
 protected:
     static void SetUpTestSuite() {
@@ -54,13 +54,18 @@ protected:
     }
 
     void SetUp() override {
-        Base::Interpreter().runString("import Part");
+        // Disable the external interface
+        // Using the MaterialManager functions will cause a boot strapping issue so
+        // this needs to access the configuration directly
+        ParameterGrp::handle paramExternal = App::GetApplication().GetParameterGroupByPath(
+            "User parameter:BaseApp/Preferences/Mod/Material/ExternalInterface"
+        );
+
+        _useExternal = paramExternal->GetBool("UseExternal", false);
+        paramExternal->SetBool("UseExternal", false);
+
         _modelManager = &(Materials::ModelManager::getManager());
         _materialManager = &(Materials::MaterialManager::getManager());
-
-        // Disable the external interface
-        _useExternal = _materialManager->useExternal();
-        _materialManager->setUseExternal(false);
 
         // Create a temporary library
         QString libPath = QDir::tempPath() + QStringLiteral("/TestMaterialCards");
@@ -68,16 +73,16 @@ protected:
         libDir.removeRecursively(); // Clear any old run data
         libDir.mkdir(libPath);
 
-        _library = _materialManager->createLocalLibrary("TestMaterialCards",
+        ASSERT_NO_THROW(_library = _materialManager->createLocalLibrary("TestMaterialCards",
                             libPath.toStdString(),
                             ":/icons/preferences-general.svg",
-                            false);
+                            false));
 
         _materialManager->refresh();
     }
 
     void TearDown() override {
-        _materialManager->removeLibrary("TestMaterialCards", false); // Remove the library
+        ASSERT_NO_THROW(_materialManager->removeLibrary("TestMaterialCards", false)); // Remove the library
         _materialManager->setUseExternal(_useExternal);
         _materialManager->refresh();
     }
@@ -88,7 +93,7 @@ protected:
     bool _useExternal {};
 };
 
-TEST_F(DISABLED_TestMaterialModification, TestNew)
+TEST_F(TestMaterialModification, TestNew)
 {
     auto library = _materialManager->getLibrary("User");
     ASSERT_NE(library, nullptr);
@@ -164,7 +169,7 @@ TEST_F(DISABLED_TestMaterialModification, TestNew)
     }
 }
 
-TEST_F(DISABLED_TestMaterialModification, TestAlter)
+TEST_F(TestMaterialModification, TestAlter)
 {
     auto library = _materialManager->getLibrary("User");
     ASSERT_NE(library, nullptr);

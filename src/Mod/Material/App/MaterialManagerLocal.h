@@ -64,26 +64,19 @@ public:
     static void refresh();
 
     // Library management
-    std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>> getLibraries();
-    std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>> getMaterialLibraries();
-    std::shared_ptr<MaterialLibrary> getLibrary(const std::string& name) const;
-    std::shared_ptr<MaterialLibrary> createLibrary(
-        const std::string& libraryName,
-        const std::string& materialDirectory,
-        const std::string& modelDirectory,
-        const std::string& iconPath,
-        bool readOnly = true
-    );
-    void renameLibrary(const std::string& libraryName, const std::string& newName);
-    void changeIcon(const std::string& libraryName, const QByteArray& icon);
-    void removeLibrary(const std::string& libraryName, bool keepData);
+    // std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>> getLibraries();
+    // std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>> getMaterialLibraries();
+    // std::shared_ptr<MaterialLibrary> getLibrary(const std::string& name) const;
+    // void renameLibrary(const std::string& libraryName, const std::string& newName);
+    // void changeIcon(const std::string& libraryName, const QByteArray& icon);
+    // void removeLibrary(const std::string& libraryName, bool keepData);
     std::shared_ptr<std::vector<LibraryObject>> libraryMaterials(const std::string& libraryName);
     std::shared_ptr<std::vector<LibraryObject>> libraryMaterials(
         const std::string& libraryName,
         const MaterialFilter& filter,
         const MaterialFilterOptions& options
     );
-    bool exists(const std::string& libraryName);
+    // bool exists(const std::string& libraryName);
 
     // Folder management
     std::shared_ptr<std::list<std::string>> getMaterialFolders(

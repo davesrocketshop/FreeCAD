@@ -44,26 +44,26 @@
 
 // clang-format off
 
-class DISABLED_TestMaterial : public ::testing::Test {
- protected:
-  static void SetUpTestSuite() {
-    if (App::Application::GetARGC() == 0) {
-        tests::initApplication();
+class TestMaterial : public ::testing::Test {
+protected:
+    static void SetUpTestSuite() {
+        if (App::Application::GetARGC() == 0) {
+            tests::initApplication();
+        }
     }
-  }
 
-  void SetUp() override {
-    Base::Interpreter().runString("import Part");
-    _modelManager = &(Materials::ModelManager::getManager());
-    _materialManager = &(Materials::MaterialManager::getManager());
-  }
+    void SetUp() override {
+        // Base::Interpreter().runString("import Part");
+        _modelManager = &(Materials::ModelManager::getManager());
+        _materialManager = &(Materials::MaterialManager::getManager());
+    }
 
   // void TearDown() override {}
   Materials::ModelManager* _modelManager;
   Materials::MaterialManager* _materialManager;
 };
 
-TEST_F(DISABLED_TestMaterial, TestInstallation)
+TEST_F(TestMaterial, TestInstallation)
 {
     ASSERT_NE(_modelManager, nullptr);
 
@@ -76,7 +76,7 @@ TEST_F(DISABLED_TestMaterial, TestInstallation)
     ASSERT_GT(materials->size(), 0);
 }
 
-TEST_F(DISABLED_TestMaterial, TestMaterialsWithModel)
+TEST_F(TestMaterial, TestMaterialsWithModel)
 {
     ASSERT_NE(_materialManager, nullptr);
 
@@ -99,35 +99,38 @@ TEST_F(DISABLED_TestMaterial, TestMaterialsWithModel)
     }
 }
 
-TEST_F(DISABLED_TestMaterial, TestMaterialByPath)
+TEST_F(TestMaterial, TestMaterialByPath)
 {
     ASSERT_NE(_materialManager, nullptr);
 
-    auto steel = _materialManager->getMaterialByPath(
+    std::shared_ptr<Materials::Material> steel;
+    ASSERT_NO_THROW(steel = _materialManager->getMaterialByPath(
         "Standard/Metal/Steel/CalculiX-Steel.FCMat",
-        "System");
-    EXPECT_NE(&steel, nullptr);
+        "System"));
+    ASSERT_NE(&steel, nullptr);
     EXPECT_EQ(steel->getName(), QStringLiteral("CalculiX-Steel"));
     EXPECT_EQ(steel->getUUID(), QStringLiteral("92589471-a6cb-4bbc-b748-d425a17dea7d"));
 
     // The same but with a leading '/'
-    auto steel2 = _materialManager->getMaterialByPath(
+    std::shared_ptr<Materials::Material> steel2;
+    ASSERT_NO_THROW(steel2 = _materialManager->getMaterialByPath(
         "/Standard/Metal/Steel/CalculiX-Steel.FCMat",
-        "System");
-    EXPECT_NE(&steel2, nullptr);
+        "System"));
+    ASSERT_NE(&steel2, nullptr);
     EXPECT_EQ(steel2->getName(), QStringLiteral("CalculiX-Steel"));
     EXPECT_EQ(steel2->getUUID(), QStringLiteral("92589471-a6cb-4bbc-b748-d425a17dea7d"));
 
     // Same with the library name as a prefix
-    auto steel3 = _materialManager->getMaterialByPath(
-        "/System/Standard/Metal/Steel/CalculiX-Steel.FCMat",
-        "System");
-    EXPECT_NE(&steel3, nullptr);
+    std::shared_ptr<Materials::Material> steel3;
+    ASSERT_NO_THROW(steel3 = _materialManager->getMaterialByPath(
+        "[System]/Standard/Metal/Steel/CalculiX-Steel.FCMat",
+        "System"));
+    ASSERT_NE(&steel3, nullptr);
     EXPECT_EQ(steel3->getName(), QStringLiteral("CalculiX-Steel"));
     EXPECT_EQ(steel3->getUUID(), QStringLiteral("92589471-a6cb-4bbc-b748-d425a17dea7d"));
 }
 
-TEST_F(DISABLED_TestMaterial, TestAddPhysicalModel)
+TEST_F(TestMaterial, TestAddPhysicalModel)
 {
     // Start with an empty material
     Materials::Material material;
@@ -172,7 +175,7 @@ TEST_F(DISABLED_TestMaterial, TestAddPhysicalModel)
     EXPECT_EQ(models->size(), 0);
 }
 
-TEST_F(DISABLED_TestMaterial, TestAddAppearanceModel)
+TEST_F(TestMaterial, TestAddAppearanceModel)
 {
     // Start with an empty material
     Materials::Material material;
@@ -224,7 +227,7 @@ QString parseQuantity(const std::string& value)
     return QString::fromStdString(quantity.getUserString());
 }
 
-TEST_F(DISABLED_TestMaterial, TestCalculiXSteel)
+TEST_F(TestMaterial, TestCalculiXSteel)
 {
     ASSERT_NE(_materialManager, nullptr);
 
@@ -345,7 +348,7 @@ TEST_F(DISABLED_TestMaterial, TestCalculiXSteel)
     EXPECT_EQ(steel->getPhysicalQuantity(QStringLiteral("ThermalExpansionCoefficient")).getUserString(), parseQuantity("12.00 µm/m/K").toStdString());
 }
 
-TEST_F(DISABLED_TestMaterial, TestColumns)
+TEST_F(TestMaterial, TestColumns)
 {
     // Start with an empty material
     Materials::Material testMaterial;

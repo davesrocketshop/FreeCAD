@@ -81,12 +81,21 @@ public:
         const std::string& repositoryName,
         const std::string& name
     ) const;
+    std::shared_ptr<ManagedLibrary> getLibrary(
+        const std::string& name
+    ) const;
     std::shared_ptr<ModelLibrary> getModelLibrary(
         const std::string& repositoryName,
         const std::string& name
     ) const;
+    std::shared_ptr<ModelLibrary> getModelLibrary(
+        const std::string& name
+    ) const;
     std::shared_ptr<MaterialLibrary> getMaterialLibrary(
         const std::string& repositoryName,
+        const std::string& name
+    ) const;
+    std::shared_ptr<MaterialLibrary> getMaterialLibrary(
         const std::string& name
     ) const;
     void createRemoteLibrary(
@@ -123,13 +132,38 @@ public:
         const std::string& libraryName,
         const std::string& newName
     );
+    void renameLibrary(
+        const std::string& libraryName,
+        const std::string& newName
+    );
+    void renameLibrary(
+        const std::shared_ptr<ManagedLibrary>& library,
+        const std::string& newName
+    );
     void changeIcon(
         const std::string& repositoryName,
         const std::string& libraryName,
         const std::string& iconPath
     );
+    void changeIcon(
+        const std::string& libraryName,
+        const std::string& iconPath
+    );
+    void changeIcon(
+        const std::shared_ptr<ManagedLibrary>& library,
+        const std::string& iconPath
+    );
     void removeLibrary(const std::string& repositoryName, const std::string& libraryName);
+    void removeLibrary(const std::string& libraryName);
     bool isLocalLibrary(const std::string& repositoryName, const std::string& libraryName);
+    bool isLocalLibrary(const std::string& libraryName);
+
+    void setDisabled(const std::string& repositoryName, const std::string& libraryName, bool disabled);
+    void setDisabled(Library& library, bool disabled);
+    void setDisabled(const std::shared_ptr<ManagedLibrary>& library, bool disabled);
+    bool isDisabled(const std::string& repositoryName, const std::string& libraryName) const;
+    bool isDisabled(const Library& library) const;
+    bool isDisabled(const std::shared_ptr<ManagedLibrary>& library) const;
 
     /// Observer message from the ParameterGrp
     void OnChange(ParameterGrp::SubjectType& rCaller, ParameterGrp::MessageType Reason) override;
@@ -140,16 +174,6 @@ public:
 
     static const std::string RepositoryLocal;
     static const std::string RepositoryRemote;
-
-protected:
-    void setDisabled(const std::string& repositoryName, const std::string& libraryName, bool disabled);
-    void setDisabled(Library& library, bool disabled);
-    void setDisabled(const std::shared_ptr<ManagedLibrary>& library, bool disabled);
-    bool isDisabled(const std::string& repositoryName, const std::string& libraryName) const;
-    bool isDisabled(const Library& library) const;
-    bool isDisabled(const std::shared_ptr<ManagedLibrary>& library) const;
-
-    friend class MaterialManager;
 
 private:
     LibraryManager();
