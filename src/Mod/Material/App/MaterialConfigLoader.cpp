@@ -38,6 +38,7 @@
 
 #include "Exceptions.h"
 #include "MaterialConfigLoader.h"
+#include "MaterialLibrary.h"
 #include "MaterialLoader.h"
 #include "Model.h"
 #include "ModelUuids.h"
@@ -1053,8 +1054,7 @@ MaterialConfigLoader::getMaterialFromPath(const std::shared_ptr<MaterialLibraryL
     std::string sourceReference = value(fcmat, "ReferenceSource", "");
     std::string sourceURL = value(fcmat, "SourceURL", "");
 
-    auto baseLibrary =
-        reinterpret_cast<const std::shared_ptr<Materials::MaterialLibrary>&>(library);
+    auto baseLibrary = std::make_shared<MaterialLibrary>(*library);
     std::shared_ptr<Material> finalModel = std::make_shared<Material>(
         baseLibrary,
         QString::fromStdString(path),

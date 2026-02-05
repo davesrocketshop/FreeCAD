@@ -113,7 +113,7 @@ std::shared_ptr<ModelEntry> ModelLoader::getModelFromPath(
         throw InvalidModel();
     }
 
-    auto localLibrary = std::static_pointer_cast<ModelLibraryLocal>(library);
+    auto localLibrary = std::make_shared<ModelLibraryLocal>(*library);
     std::shared_ptr<ModelEntry> model
         = std::make_shared<ModelEntry>(localLibrary, base, name, Library::cleanPath(path), uuid, yamlroot);
 
@@ -278,10 +278,8 @@ void ModelLoader::loadLibraries()
     auto libraries = LibraryManager::getManager().getLocalModelLibraries(false);
     if (libraries) {
         for (auto it = libraries->begin(); it != libraries->end(); it++) {
-            auto local = std::dynamic_pointer_cast<ModelLibraryLocal>(*it);
-            if (local) {
-                loadLibrary(local);
-            }
+            auto local = std::make_shared<ModelLibraryLocal>(**it);
+            loadLibrary(local);
         }
     }
 }

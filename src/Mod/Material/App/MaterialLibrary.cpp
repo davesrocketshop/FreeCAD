@@ -165,6 +165,12 @@ MaterialLibraryLocal::MaterialLibraryLocal(const std::shared_ptr<ManagedLibrary>
     setLocal(true);
 }
 
+MaterialLibraryLocal::MaterialLibraryLocal(const Library& other)
+    : MaterialLibrary(other)
+{
+    setLocal(true);
+}
+
 MaterialLibraryLocal::MaterialLibraryLocal(
     const std::string& libraryName,
     const std::string& dir,

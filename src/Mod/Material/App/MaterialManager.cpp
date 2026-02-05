@@ -412,9 +412,7 @@ std::shared_ptr<std::list<std::string>> MaterialManager::getMaterialFolders(
 ) const
 {
     if (library->isLocal()) {
-        auto materialLibrary
-            = reinterpret_cast<const std::shared_ptr<Materials::MaterialLibraryLocal>&>(library);
-
+        auto materialLibrary = std::make_shared<MaterialLibraryLocal>(*library);
         return _localManager->getMaterialFolders(materialLibrary);
     }
 
@@ -424,9 +422,7 @@ std::shared_ptr<std::list<std::string>> MaterialManager::getMaterialFolders(
 void MaterialManager::createFolder(const std::shared_ptr<MaterialLibrary>& library, const std::string& path)
 {
     if (library->isLocal()) {
-        auto materialLibrary
-            = reinterpret_cast<const std::shared_ptr<Materials::MaterialLibraryLocal>&>(library);
-
+        auto materialLibrary = std::make_shared<MaterialLibraryLocal>(*library);
         _localManager->createFolder(materialLibrary, path);
     }
 #if defined(BUILD_MATERIAL_EXTERNAL)
@@ -446,9 +442,7 @@ void MaterialManager::renameFolder(
 )
 {
     if (library->isLocal()) {
-        auto materialLibrary
-            = reinterpret_cast<const std::shared_ptr<Materials::MaterialLibraryLocal>&>(library);
-
+        auto materialLibrary = std::make_shared<MaterialLibraryLocal>(*library);
         _localManager->renameFolder(materialLibrary, oldPath, newPath);
     }
 #if defined(BUILD_MATERIAL_EXTERNAL)
@@ -464,9 +458,7 @@ void MaterialManager::renameFolder(
 void MaterialManager::deleteRecursive(const std::shared_ptr<MaterialLibrary>& library, const std::string& path)
 {
     if (library->isLocal()) {
-        auto materialLibrary
-            = reinterpret_cast<const std::shared_ptr<Materials::MaterialLibraryLocal>&>(library);
-
+        auto materialLibrary = std::make_shared<MaterialLibraryLocal>(*library);
         _localManager->deleteRecursive(materialLibrary, path);
     }
 #if defined(BUILD_MATERIAL_EXTERNAL)
@@ -672,10 +664,9 @@ void MaterialManager::saveMaterial(
 ) const
 {
     if (library->isLocal()) {
-        auto materialLibrary = reinterpret_cast<const std::shared_ptr<Materials::MaterialLibraryLocal>&>(
-            library
-        );
-        _localManager->saveMaterial(materialLibrary, material, path, overwrite, saveAsCopy, saveInherited);
+        auto materialLibrary = std::make_shared<MaterialLibraryLocal>(*library);
+        _localManager
+            ->saveMaterial(materialLibrary, material, path, overwrite, saveAsCopy, saveInherited);
     }
 #if defined(BUILD_MATERIAL_EXTERNAL)
     else {

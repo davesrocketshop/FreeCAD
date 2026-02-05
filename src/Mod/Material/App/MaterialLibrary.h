@@ -86,6 +86,7 @@ class MaterialsExport MaterialLibraryLocal: public MaterialLibrary
 
 public:
     MaterialLibraryLocal(const std::shared_ptr<ManagedLibrary>& library);
+    MaterialLibraryLocal(const Library& other);
     MaterialLibraryLocal(
         const std::string& libraryName,
         const std::string& dir,
@@ -134,7 +135,6 @@ protected:
     std::string getUUIDFromPath(const std::string& path) const;
 private:
     MaterialLibraryLocal();
-    MaterialLibraryLocal(const Library& other);
 };
 
 }  // namespace Materials

@@ -47,7 +47,7 @@ class MaterialsExport ModelLibrary: public Library,
 
 public:
     ModelLibrary(const std::shared_ptr<ManagedLibrary>& library);
-    ModelLibrary(const ModelLibrary& other) = default;
+    ModelLibrary(const Library& library);
     ~ModelLibrary() override = default;
 
     bool isRoot(const std::string& path) const override;
@@ -72,7 +72,6 @@ public:
 
 protected:
     ModelLibrary();
-    ModelLibrary(const Library& library);
     // ModelLibrary(
     //     const std::string& libraryName,
     //     const std::string& dir,
@@ -89,6 +88,7 @@ class MaterialsExport ModelLibraryLocal: public ModelLibrary
 
 public:
     ModelLibraryLocal(const std::shared_ptr<ManagedLibrary>& library);
+    ModelLibraryLocal(const Library& other);
     ModelLibraryLocal(const ModelLibraryLocal& other) = default;
     ~ModelLibraryLocal() override = default;
 
@@ -106,7 +106,6 @@ public:
 
 private:
     ModelLibraryLocal();
-    ModelLibraryLocal(const Library& other);
 
     friend class LibraryManager;
 

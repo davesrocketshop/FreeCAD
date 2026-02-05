@@ -70,8 +70,7 @@ Py::String MaterialPy::getLibraryName() const
 {
     auto library = getMaterialPtr()->getLibrary();
     if (library->isLocal()) {
-        auto materialLibrary =
-            reinterpret_cast<const std::shared_ptr<Materials::MaterialLibraryLocal>&>(library);
+        auto materialLibrary = std::make_shared<MaterialLibraryLocal>(*library);
         return {materialLibrary ? materialLibrary->getName() : ""};
     }
     return "";
@@ -81,8 +80,7 @@ Py::String MaterialPy::getLibraryRoot() const
 {
     auto library = getMaterialPtr()->getLibrary();
     if (library->isLocal()) {
-        auto materialLibrary =
-            reinterpret_cast<const std::shared_ptr<Materials::MaterialLibraryLocal>&>(library);
+        auto materialLibrary = std::make_shared<MaterialLibraryLocal>(*library);
         return {materialLibrary ? materialLibrary->getMaterialDirectoryPath() : ""};
     }
     return "";
@@ -92,8 +90,7 @@ Py::Object MaterialPy::getLibraryIcon() const
 {
     auto library = getMaterialPtr()->getLibrary();
     if (library->isLocal()) {
-        auto materialLibrary =
-            reinterpret_cast<const std::shared_ptr<Materials::MaterialLibraryLocal>&>(library);
+        auto materialLibrary = std::make_shared<MaterialLibraryLocal>(*library);
         auto icon = materialLibrary->getIcon();
         if (icon.isNull()) {
             return Py::Bytes();

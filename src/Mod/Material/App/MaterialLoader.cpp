@@ -436,17 +436,14 @@ std::shared_ptr<MaterialEntry> MaterialLoader::getMaterialFromPath(
 {
     std::string clean = Library::cleanPath(path);
     std::shared_ptr<MaterialEntry> material = nullptr;
-    auto materialLibrary = reinterpret_cast<const std::shared_ptr<Materials::MaterialLibraryLocal>&>(
-        library
-    );
 
     // Used for debugging
     std::string pathName = clean;
 
     if (MaterialConfigLoader::isConfigStyle(path)) {
-        auto material = MaterialConfigLoader::getMaterialFromPath(materialLibrary, clean);
+        auto material = MaterialConfigLoader::getMaterialFromPath(library, clean);
         if (material) {
-            (*_materialMap)[material->getUUID().toStdString()] = materialLibrary->addMaterial(material, clean);
+            (*_materialMap)[material->getUUID().toStdString()] = library->addMaterial(material, clean);
         }
 
         // Return the nullptr as there are no intermediate steps to take, such
@@ -465,7 +462,7 @@ std::shared_ptr<MaterialEntry> MaterialLoader::getMaterialFromPath(
     try {
         yamlroot = YAML::Load(fin);
 
-        material = getMaterialFromYAML(materialLibrary, yamlroot, clean);
+        material = getMaterialFromYAML(library, yamlroot, clean);
     }
     catch (YAML::Exception const& e) {
         Base::Console().error("YAML parsing error: '%s'\n", pathName.c_str());
@@ -599,8 +596,7 @@ void MaterialLoader::loadLibraries(
     if (libraryList) {
         for (auto& it : *libraryList) {
             if (it->isLocal() && !it->isDisabled()) {
-                auto materialLibrary
-                    = reinterpret_cast<const std::shared_ptr<Materials::MaterialLibraryLocal>&>(it);
+                auto materialLibrary = std::make_shared<MaterialLibraryLocal>(*it);
                 loadLibrary(materialLibrary);
             }
         }
