@@ -638,6 +638,15 @@ void LibraryManager::setDisabled(
     setDisabled(library, disabled);
 }
 
+void LibraryManager::setDisabled(
+    const std::string& libraryName,
+    bool disabled
+)
+{
+    auto library = getLibrary(libraryName);
+    setDisabled(library, disabled);
+}
+
 void LibraryManager::setDisabled(Library& library, bool disabled)
 {
     setDisabled(library.proxy(), disabled);

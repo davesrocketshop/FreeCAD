@@ -159,6 +159,7 @@ public:
     bool isLocalLibrary(const std::string& libraryName);
 
     void setDisabled(const std::string& repositoryName, const std::string& libraryName, bool disabled);
+    void setDisabled(const std::string& libraryName, bool disabled);
     void setDisabled(Library& library, bool disabled);
     void setDisabled(const std::shared_ptr<ManagedLibrary>& library, bool disabled);
     bool isDisabled(const std::string& repositoryName, const std::string& libraryName) const;

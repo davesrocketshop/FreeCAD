@@ -381,13 +381,12 @@ bool MaterialManager::isLocalLibrary(const std::string& /*libraryName*/) const
 
 void MaterialManager::setDisabled(const std::string& libraryName, bool disabled, bool isLocal)
 {
-    auto library = getLibrary(libraryName);
-    setDisabled(*library, disabled);
+    libraryManager().setDisabled(libraryName, disabled);
 }
 
 void MaterialManager::setDisabled(Library& library, bool disabled)
 {
-    LibraryManager::getManager().setDisabled(library, disabled);
+    libraryManager().setDisabled(library, disabled);
 }
 
 bool MaterialManager::isDisabled(const std::string& libraryName, bool isLocal) const
@@ -398,7 +397,7 @@ bool MaterialManager::isDisabled(const std::string& libraryName, bool isLocal) c
 
 bool MaterialManager::isDisabled(const Library& library) const
 {
-    return LibraryManager::getManager().isDisabled(library);
+    return libraryManager().isDisabled(library);
 }
 
 //=====
