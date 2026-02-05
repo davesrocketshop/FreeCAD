@@ -377,7 +377,7 @@ void MaterialYamlEntry::addToTree(
         }
     }
 
-    std::string path = Base::FileInfo::canonical(directory);
+    std::string path = ManagedLibrary::cleanPath(directory);
     (*materialMap)[uuid] = library->addMaterial(finalModel, path);
 }
 
@@ -570,7 +570,7 @@ void MaterialLoader::loadLibrary(const std::shared_ptr<MaterialLibraryLocal>& li
         if (file.isFile()) {
             if (file.hasExtension("FCMat")) {
                 try {
-                    auto model = getMaterialFromPath(library, Base::FileInfo::pathToString(fs::canonical(file.filePath())));
+                    auto model = getMaterialFromPath(library, ManagedLibrary::cleanPath(file.filePath()));
                     if (model) {
                         (*_materialEntryMap)[model->getUUID()] = model;
                     }

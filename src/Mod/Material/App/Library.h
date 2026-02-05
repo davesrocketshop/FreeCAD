@@ -121,7 +121,7 @@ public:
     }
     std::string getMaterialDirectoryPath() const
     {
-        return fs::weakly_canonical(_managedLibrary->getMaterialDirectory()).string();
+        return cleanPath(_managedLibrary->getMaterialDirectory());
     }
 
     std::string getModelDirectory() const
@@ -130,7 +130,7 @@ public:
     }
     std::string getModelDirectoryPath() const
     {
-        return fs::weakly_canonical(_managedLibrary->getModelDirectory()).string();
+        return cleanPath(_managedLibrary->getModelDirectory());
     }
 
     bool operator==(const Library& library) const;

@@ -134,12 +134,12 @@ void ManagedLibrary::setModule(bool module)
 
 std::string ManagedLibrary::getMaterialDirectoryPath() const
 {
-    return Base::FileInfo::canonical(_materialDirectory);
+    return cleanPath(_materialDirectory);
 }
 
 std::string ManagedLibrary::getModelDirectoryPath() const
 {
-    return Base::FileInfo::canonical(_modelDirectory);
+    return cleanPath(_modelDirectory);
 }
 
 bool ManagedLibrary::operator==(const ManagedLibrary& library) const
@@ -243,7 +243,9 @@ std::string ManagedLibrary::getLibraryPath(const std::string& path, const std::s
 
 std::string ManagedLibrary::cleanPath(const std::string path)
 {
-    return Base::FileInfo::canonical(path);
+    std::string clean = Base::FileInfo::canonical(path);
+    std::replace(clean.begin(), clean.end(), '\\', '/');
+    return clean;
 }
 
 QString ManagedLibrary::cleanPath(const QString& path)

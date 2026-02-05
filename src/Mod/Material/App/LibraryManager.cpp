@@ -825,10 +825,9 @@ std::shared_ptr<std::vector<std::shared_ptr<ManagedLibrary>>> LibraryManager::ge
             Base::FileInfo dir(libDir);
             if (dir.isDir()) {
                 if (!libDisabled || includeDisabled) {
-                    // Use the canonical path to prevent issues with symbolic links
                     auto libData = std::make_shared<ManagedLibrary>(
                         libName,
-                        dir.canonical(dir.filePath()),
+                        dir.filePath(),
                         libIcon,
                         libReadOnly
                     );
@@ -862,7 +861,7 @@ std::shared_ptr<std::vector<std::shared_ptr<ManagedLibrary>>> LibraryManager::ge
                 if (!materialDisabled || includeDisabled) {
                     auto libData = std::make_shared<ManagedLibrary>(
                         moduleName,
-                        dir.canonical(dir.filePath()),
+                        dir.filePath(),
                         materialIcon,
                         materialReadOnly
                     );
