@@ -33,6 +33,7 @@
 
 #include "Exceptions.h"
 #include "FolderTree.h"
+#include "LibraryManager.h"
 #include "Model.h"
 #include "ModelLibrary.h"
 
@@ -42,7 +43,7 @@ class ModelManagerLocal;
 class ModelManagerExternal;
 class MaterialManagerLocal;
 
-class MaterialsExport ModelManager: public Base::BaseClass, ParameterGrp::ObserverType
+class MaterialsExport ModelManager: public Base::BaseClass, ParameterGrp::ObserverType, LibraryManager::ObserverType
 {
     TYPESYSTEM_HEADER_WITH_OVERRIDE();
 
@@ -86,6 +87,8 @@ public:
 
     /// Observer message from the ParameterGrp
     void OnChange(ParameterGrp::SubjectType& rCaller, ParameterGrp::MessageType Reason) override;
+    /// Observer message from the LibraryManager
+    void OnChange(LibraryManager::SubjectType& manager, LibraryManager::MessageType reason) override;
 
 #if defined(BUILD_MATERIAL_EXTERNAL)
     void migrateToExternal(const std::shared_ptr<Materials::ModelLibrary>& library);

@@ -240,6 +240,60 @@ std::shared_ptr<std::vector<std::shared_ptr<MaterialLibrary>>> LibraryManager::g
     return libraries;
 }
 
+#if defined(BUILD_MATERIAL_EXTERNAL)
+std::shared_ptr<std::vector<std::shared_ptr<ManagedLibrary>>> LibraryManager::getRemoteLibraries(
+    bool includeDisabled
+)
+{
+    auto libraries = std::make_shared<std::vector<std::shared_ptr<ManagedLibrary>>>();
+    for (auto libEntry : *_libraryList) {
+        if (libEntry->isRemote()) {
+            if (includeDisabled || !libEntry->isDisabled()) {
+                libraries->push_back(libEntry);
+            }
+        }
+    }
+
+    return libraries;
+}
+
+std::shared_ptr<std::vector<std::shared_ptr<ModelLibrary>>> LibraryManager::getRemoteModelLibraries(
+    bool includeDisabled
+)
+{
+    auto libraries = std::make_shared<std::vector<std::shared_ptr<ModelLibrary>>>();
+    for (auto libEntry : *_libraryList) {
+        if (libEntry->isRemote()) {
+            if (includeDisabled || !libEntry->isDisabled()) {
+                if (!libEntry->getModelDirectory().empty()) {
+                    libraries->push_back(std::make_shared<ModelLibrary>(libEntry));
+                }
+            }
+        }
+    }
+
+    return libraries;
+}
+
+std::shared_ptr<std::vector<std::shared_ptr<MaterialLibrary>>> LibraryManager::getRemoteMaterialLibraries(
+    bool includeDisabled
+)
+{
+    auto libraries = std::make_shared<std::vector<std::shared_ptr<MaterialLibrary>>>();
+    for (auto libEntry : *_libraryList) {
+        if (libEntry->isRemote()) {
+            if (includeDisabled || !libEntry->isDisabled()) {
+                if (!libEntry->getMaterialDirectory().empty()) {
+                    libraries->push_back(std::make_shared<MaterialLibrary>(libEntry));
+                }
+            }
+        }
+    }
+
+    return libraries;
+}
+#endif
+
 std::shared_ptr<ManagedLibrary> LibraryManager::getLibrary(
     const std::string& repositoryName,
     const std::string& name
@@ -398,6 +452,9 @@ std::shared_ptr<MaterialLibrary> LibraryManager::createLocalLibrary(
     _libraryList->push_back(library->proxy());
     _manager->updateLibraryMap();
 
+    LibraryEvent event {library->proxy(), LibraryEventType::LibraryEventType_Create};
+    Notify(event);
+
     return library;
 }
 
@@ -437,6 +494,9 @@ void LibraryManager::renameLibrary(
 
     library->setLibraryName(newName);
     updateLibraryMap();
+
+    LibraryEvent event {library, LibraryEventType::LibraryEventType_Rename};
+    Notify(event);
 }
 
 void LibraryManager::renameLibraryLocal(
@@ -507,6 +567,9 @@ void LibraryManager::changeIcon(
     else {
         changeIconRemote(library, iconPath);
     }
+
+    LibraryEvent event {library, LibraryEventType::LibraryEventType_IconChange};
+    Notify(event);
 }
 
 void LibraryManager::changeIconLocal(
@@ -552,6 +615,9 @@ void LibraryManager::removeLibrary(const std::string& libraryName)
     }
     _libraryList->remove(library);
     updateLibraryMap();
+
+    LibraryEvent event {library, LibraryEventType::LibraryEventType_Remove};
+    Notify(event);
 }
 
 void LibraryManager::removeLibrary(const std::string& repositoryName, const std::string& libraryName)
@@ -569,6 +635,9 @@ void LibraryManager::removeLibrary(const std::string& repositoryName, const std:
             }
             _libraryList->remove(library);
             updateLibraryMap();
+
+            LibraryEvent event {library, LibraryEventType::LibraryEventType_Remove};
+            Notify(event);
             return;
         }
     }

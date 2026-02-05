@@ -33,6 +33,7 @@
 #include <Mod/Material/MaterialGlobal.h>
 
 #include "FolderTree.h"
+#include "LibraryManager.h"
 #include "Materials.h"
 
 #include "MaterialFilter.h"
@@ -49,13 +50,12 @@ class Material;
 
 namespace Materials
 {
-class LibraryManager;
 class MaterialManagerExternal;
 class MaterialManagerLocal;
 class MaterialFilter;
 class MaterialFilterOptions;
 
-class MaterialsExport MaterialManager: public Base::BaseClass, ParameterGrp::ObserverType
+class MaterialsExport MaterialManager: public Base::BaseClass, ParameterGrp::ObserverType, LibraryManager::ObserverType
 {
     TYPESYSTEM_HEADER_WITH_OVERRIDE();
 
@@ -104,12 +104,15 @@ public:
     void changeIcon(const std::string& libraryName, const std::string& iconPath);
     void removeLibrary(const std::string& libraryName);
     std::shared_ptr<std::vector<LibraryObject>>
-    libraryMaterials(const std::string& libraryName, bool local = false);
+    libraryMaterials(const std::string& libraryName);
     std::shared_ptr<std::vector<LibraryObject>>
     libraryMaterials(const std::string& libraryName,
                      const MaterialFilter& filter,
-                     const MaterialFilterOptions& options,
-                     bool local = false);
+                     const MaterialFilterOptions& options);
+    std::shared_ptr<std::vector<LibraryObject>>
+    libraryMaterials(const MaterialLibrary& library,
+                     const MaterialFilter& filter,
+                     const MaterialFilterOptions& options);
     bool isLocalLibrary(const std::string& libraryName) const;
     void setDisabled(const std::string& libraryName, bool disabled);
     void setDisabled(Library& library, bool disabled);
@@ -180,6 +183,8 @@ public:
 
     /// Observer message from the ParameterGrp
     void OnChange(ParameterGrp::SubjectType& rCaller, ParameterGrp::MessageType Reason) override;
+    /// Observer message from the LibraryManager
+    void OnChange(LibraryManager::SubjectType& manager, LibraryManager::MessageType reason) override;
 
 #if defined(BUILD_MATERIAL_EXTERNAL)
     void migrateToExternal(const std::shared_ptr<Materials::MaterialLibrary>& library);

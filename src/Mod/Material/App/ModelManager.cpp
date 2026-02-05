@@ -55,11 +55,13 @@ ModelManager::ModelManager()
     );
     _useExternal = _hGrp->GetBool("UseExternal", false);
     _hGrp->Attach(this);
+    LibraryManager::getManager().Attach(this);
 }
 
 ModelManager::~ModelManager()
 {
     _hGrp->Detach(this);
+    LibraryManager::getManager().Detach(this);
 }
 
 ModelManager& ModelManager::getManager()
@@ -98,7 +100,14 @@ void ModelManager::OnChange(ParameterGrp::SubjectType& rCaller, ParameterGrp::Me
     if (strcmp(Reason, "UseExternal") == 0) {
         Base::Console().log("Use external changed\n");
         _useExternal = rGrp.GetBool("UseExternal", false);
-        // _dbManager->refresh();
+    }
+}
+
+void ModelManager::OnChange(LibraryManager::SubjectType& manager, LibraryManager::MessageType reason)
+{
+    if (reason.eventType == LibraryEventType_Create) {
+        Base::Console().log("New library '%s'\n", reason.library->getLibraryName().c_str());
+        refresh();
     }
 }
 

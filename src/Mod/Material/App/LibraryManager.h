@@ -40,7 +40,23 @@
 namespace Materials
 {
 
-class MaterialsExport LibraryManager: public Base::BaseClass, ParameterGrp::ObserverType
+enum LibraryEventType
+{
+    LibraryEventType_Create,
+    LibraryEventType_Rename,
+    LibraryEventType_Remove,
+    LibraryEventType_IconChange
+};
+
+struct LibraryEvent {
+    std::shared_ptr<ManagedLibrary> library;
+    LibraryEventType eventType;
+};
+
+class MaterialsExport LibraryManager
+    : public Base::BaseClass
+    , public ParameterGrp::ObserverType
+    , public Base::Subject<LibraryEvent>
 {
     TYPESYSTEM_HEADER_WITH_OVERRIDE();
 
@@ -77,6 +93,17 @@ public:
     std::shared_ptr<std::vector<std::shared_ptr<MaterialLibrary>>> getLocalMaterialLibraries(
         bool includeDisabled = false
     );
+#if defined(BUILD_MATERIAL_EXTERNAL)
+    std::shared_ptr<std::vector<std::shared_ptr<ManagedLibrary>>> getRemoteLibraries(
+        bool includeDisabled = false
+    );
+    std::shared_ptr<std::vector<std::shared_ptr<ModelLibrary>>> getRemoteModelLibraries(
+        bool includeDisabled = false
+    );
+    std::shared_ptr<std::vector<std::shared_ptr<MaterialLibrary>>> getRemoteMaterialLibraries(
+        bool includeDisabled = false
+    );
+#endif
     std::shared_ptr<ManagedLibrary> getLibrary(
         const std::string& repositoryName,
         const std::string& name

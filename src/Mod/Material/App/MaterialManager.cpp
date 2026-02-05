@@ -70,6 +70,7 @@ MaterialManager::MaterialManager()
 #else
     _useExternal = false;
 #endif
+    LibraryManager::getManager().Attach(this);
 }
 
 MaterialManager::~MaterialManager()
@@ -77,6 +78,7 @@ MaterialManager::~MaterialManager()
 #if defined(BUILD_MATERIAL_EXTERNAL)
     _hGrp->Detach(this);
 #endif
+    LibraryManager::getManager().Detach(this);
 }
 
 MaterialManager& MaterialManager::getManager()
@@ -116,7 +118,15 @@ void MaterialManager::OnChange(ParameterGrp::SubjectType& rCaller, ParameterGrp:
     if (strcmp(Reason, "UseExternal") == 0) {
         Base::Console().log("Use external changed\n");
         _useExternal = rGrp.GetBool("UseExternal", false);
-        // _dbManager->refresh();
+    }
+}
+
+void MaterialManager::OnChange([[maybe_unused]] LibraryManager::SubjectType& manager, LibraryManager::MessageType reason)
+{
+    if (reason.eventType == LibraryEventType_Create) {
+        Base::Console().log("New library '%s'\n", reason.library->getLibraryName().c_str());
+        // _modelManager->refresh();
+        refresh();
     }
 }
 
@@ -245,7 +255,6 @@ std::shared_ptr<std::vector<std::shared_ptr<MaterialLibrary>>> MaterialManager::
 )
 {
     return libraryManager().getLocalMaterialLibraries(includeDisabled);
-    // return _localManager->getLibraries();
 }
 
 #if defined(BUILD_MATERIAL_EXTERNAL)
@@ -253,10 +262,7 @@ std::shared_ptr<std::vector<std::shared_ptr<MaterialLibrary>>> MaterialManager::
     bool includeDisabled
 )
 {
-    if (_useExternal) {
-        return _externalManager->getLibraries();
-    }
-    return std::make_shared<std::vector<std::shared_ptr<MaterialLibrary>>>();
+    return libraryManager().getRemoteMaterialLibraries(includeDisabled);
 }
 #endif
 
@@ -289,20 +295,6 @@ std::shared_ptr<MaterialLibrary> MaterialManager::createLocalLibrary(const std::
 void MaterialManager::renameLibrary(const std::string& libraryName, const std::string& newName)
 {
     libraryManager().renameLibrary(libraryName, newName);
-//     auto library = getLibrary(libraryName);
-//     if (library) {
-// #if defined(BUILD_MATERIAL_EXTERNAL)
-//         if (!library->isLocal()) {
-//             if (_useExternal) {
-//                 _externalManager->renameLibrary(libraryName, newName);
-//                 return;
-//             }
-
-//             throw Materials::RenameError();
-//         }
-// #endif
-//         _localManager->renameLibrary(libraryName, newName);
-//     }
 }
 
 void MaterialManager::changeIcon(const std::string& libraryName, const std::string& iconPath)
@@ -316,68 +308,73 @@ void MaterialManager::removeLibrary(const std::string& libraryName)
 }
 
 std::shared_ptr<std::vector<LibraryObject>> MaterialManager::libraryMaterials(
-    const std::string& libraryName,
-    [[maybe_unused]] bool local
+    const std::string& libraryName
 )
 {
+    try {
+        auto library = libraryManager().getLibrary(libraryName);
 #if defined(BUILD_MATERIAL_EXTERNAL)
-    if (_useExternal && !local) {
-        try {
+        if (_useExternal && library->isRemote()) {
             auto materials = _externalManager->libraryMaterials(libraryName);
             if (materials) {
                 return materials;
             }
         }
-        catch (const LibraryNotFound& e) {
+#endif
+        if (library->isLocal()) {
+            return _localManager->libraryMaterials(libraryName);
         }
     }
-#endif
-    return _localManager->libraryMaterials(libraryName);
+    catch (const LibraryNotFound& e) {
+    }
+    return std::make_shared<std::vector<LibraryObject>>();
 }
 
 std::shared_ptr<std::vector<LibraryObject>> MaterialManager::libraryMaterials(
     const std::string& libraryName,
     const MaterialFilter& filter,
-    const MaterialFilterOptions& options,
-    [[maybe_unused]] bool local
+    const MaterialFilterOptions& options
+)
+{
+    try {
+        auto library = libraryManager().getMaterialLibrary(libraryName);
+        return libraryMaterials(*library, filter, options);
+    }
+    catch (const LibraryNotFound& e) {
+    }
+    return std::make_shared<std::vector<LibraryObject>>();
+}
+
+std::shared_ptr<std::vector<LibraryObject>> MaterialManager::libraryMaterials(
+    const MaterialLibrary& library,
+    const MaterialFilter& filter,
+    const MaterialFilterOptions& options
 )
 {
 #if defined(BUILD_MATERIAL_EXTERNAL)
-    if (_useExternal && !local) {
-        try {
-            auto materials = _externalManager->libraryMaterials(libraryName, filter, options);
-            if (materials) {
-                return materials;
-            }
-        }
-        catch (const LibraryNotFound& e) {
+    if (_useExternal && !library.isLocal()) {
+        auto materials = _externalManager->libraryMaterials(library.getName(), filter, options);
+        if (materials) {
+            return materials;
         }
     }
 #endif
-    return _localManager->libraryMaterials(libraryName, filter, options);
+    if (library.isLocal()) {
+        return _localManager->libraryMaterials(library.getName(), filter, options);
+    }
+    return std::make_shared<std::vector<LibraryObject>>();
 }
 
-#if defined(BUILD_MATERIAL_EXTERNAL)
 bool MaterialManager::isLocalLibrary(const std::string& libraryName) const
 {
-    if (_useExternal) {
-        try {
-            auto lib = _externalManager->getLibrary(libraryName);
-            if (lib) {
-                return false;
-            }
-        }
-        catch (const LibraryNotFound& e) {
-        }
+    try {
+        auto library = libraryManager().getLibrary(libraryName);
+        return library->isLocal();
     }
-    return true;
+    catch (const LibraryNotFound& e) {
+    }
+    return false;
 }
-#else
-bool MaterialManager::isLocalLibrary(const std::string& /*libraryName*/) const
-{
-    return true;
-}
-#endif
 
 void MaterialManager::setDisabled(const std::string& libraryName, bool disabled)
 {
@@ -483,7 +480,6 @@ std::shared_ptr<std::map<std::string, std::shared_ptr<MaterialTreeNode>>> Materi
 {
     MaterialFilterOptions options;
     return library.getMaterialTree(filter, options);
-    // return std::shared_ptr<std::map<std::string, std::shared_ptr<MaterialTreeNode>>>();
 }
 
 std::shared_ptr<std::map<std::string, std::shared_ptr<MaterialTreeNode>>> MaterialManager::getMaterialTree(
@@ -493,7 +489,6 @@ std::shared_ptr<std::map<std::string, std::shared_ptr<MaterialTreeNode>>> Materi
 ) const
 {
     return library.getMaterialTree(filter, options);
-    // return std::shared_ptr<std::map<std::string, std::shared_ptr<MaterialTreeNode>>>();
 }
 
 std::shared_ptr<std::map<std::string, std::shared_ptr<MaterialTreeNode>>> MaterialManager::getMaterialTree(
@@ -503,7 +498,6 @@ std::shared_ptr<std::map<std::string, std::shared_ptr<MaterialTreeNode>>> Materi
     Materials::MaterialFilter filter;
     MaterialFilterOptions options;
     return library.getMaterialTree(filter, options);
-    // return std::make_shared<std::map<std::string, std::shared_ptr<MaterialTreeNode>>>();
 }
 
 //=====

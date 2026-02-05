@@ -76,7 +76,7 @@ MaterialLibrary::getMaterialTree(const Materials::MaterialFilter& filter,
     std::shared_ptr<std::map<std::string, std::shared_ptr<MaterialTreeNode>>> materialTree =
         std::make_shared<std::map<std::string, std::shared_ptr<MaterialTreeNode>>>();
 
-    auto materials = MaterialManager::getManager().libraryMaterials(getName(), filter, options, isLocal());
+    auto materials = MaterialManager::getManager().libraryMaterials(*this, filter, options);
     for (auto& it : *materials) {
         auto uuid = it.getUUID();
         auto path = it.getPath();
