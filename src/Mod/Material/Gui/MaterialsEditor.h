@@ -181,6 +181,7 @@ private:
     QAction _actionDeleteMaterial;
     QAction _actionDeleteFolder;
     QAction _actionDeleteLibrary;
+    QIcon _actionDeleteIcon;
     QAction _actionEnableDisable;
     QAction _actionLibraryProperties;
 
@@ -230,6 +231,7 @@ private:
     void addRecent(const QString& uuid);
     bool isRecent(const QString& uuid) const;
 
+    bool actionHasContext() const;
     const MaterialTreeModel* getActionModel() const;
     MaterialTreeItem* getActionItem() const;
     TreeFunctionType getActionFunction() const;
@@ -245,6 +247,7 @@ private:
     std::shared_ptr<Materials::MaterialLibrary> getLibraryForItem(const MaterialTreeItem* item) const;
     QString getDirectoryForItem(const MaterialTreeItem* item) const;
 
+    void resetActionContext();
     void favoriteContextMenu(QMenu& contextMenu);
     void recentContextMenu(QMenu& contextMenu);
     void libraryContextMenu(QMenu& contextMenu);
@@ -260,6 +263,7 @@ private:
 
     void onMenuNewLibrary(bool checked);
     void onMenuEnableDisable(bool checked);
+    void onMenuDelete(bool checked);
     void onMenuDeleteLibrary(bool checked);
     void onMenuNewFolder(bool checked);
     void onMenuDeleteFolder(bool checked);

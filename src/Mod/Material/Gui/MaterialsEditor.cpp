@@ -293,6 +293,8 @@ void MaterialsEditor::createActions()
     _actionNewLibrary.setToolTip(tr("New library"));
 
     _actionDeleteLibrary.setText(tr("Delete"));
+    _actionDeleteIcon = QIcon(QStringLiteral(":/icons/edit-delete.svg"));
+    _actionDeleteLibrary.setIcon(_actionDeleteIcon);
     _actionDeleteLibrary.setToolTip(tr("Delete the selected library"));
 
     _actionNewFolder.setText(tr("New folder"));
@@ -301,6 +303,7 @@ void MaterialsEditor::createActions()
     _actionNewFolder.setToolTip(tr("New folder"));
 
     _actionDeleteFolder.setText(tr("Delete"));
+    _actionDeleteFolder.setIcon(_actionDeleteIcon);
     _actionDeleteFolder.setToolTip(tr("Delete the selected folder"));
 
     _actionNewMaterial.setText(tr("New material"));
@@ -314,10 +317,10 @@ void MaterialsEditor::createActions()
     _actionInheritMaterial.setToolTip(
         tr("Create a new material based on the currently selected material"));
 
-    _actionFavorite.setText(tr("Add to favorites"));
+    _actionFavorite.setText(tr("Add to bookmarks"));
     _actionFavoriteIcon = QIcon(QStringLiteral(":/icons/Material_Favorite.svg"));
     _actionFavorite.setIcon(_actionFavoriteIcon);
-    _actionFavorite.setToolTip(tr("Add or remove material from favorites list"));
+    _actionFavorite.setToolTip(tr("Add or remove material from bookmarks list"));
 
     _actionChangeIcon.setText(tr("Change icon"));
 
@@ -337,18 +340,18 @@ void MaterialsEditor::createActions()
     _actionPaste.setToolTip(tr("Paste"));
 
     _actionRename.setText(tr("Rename"));
-    _actionDeleteFolder.setText(tr("Delete Folder"));
     _actionDeleteMaterial.setText(tr("Delete Material"));
+    _actionDeleteMaterial.setIcon(_actionDeleteIcon);
 
     _actionEnableDisable.setText(tr("Disable"));
     _actionEnableDisable.setToolTip(tr("Enable or disable a library"));
 
     _actionLibraryProperties.setText(tr("Properties..."));
 
-    _actionViewFavorites.setText(tr("Favorites"));
+    _actionViewFavorites.setText(tr("Bookmarks"));
     _actionViewFavorites.setCheckable(true);
     _actionViewFavorites.setChecked(includeFavorites());
-    _actionViewFavorites.setToolTip(tr("Show materials marked as favourite"));
+    _actionViewFavorites.setToolTip(tr("Show bookmarked materials"));
 
     _actionViewRecent.setText(tr("Recent"));
     _actionViewRecent.setCheckable(true);
@@ -509,7 +512,7 @@ void MaterialsEditor::saveRecents()
     auto param = App::GetApplication().GetParameterGroupByPath(
         "User parameter:BaseApp/Preferences/Mod/Material/Recent");
 
-    // Clear out the existing favorites
+    // Clear out the existing recents
     int count = param->GetInt("Recent", 0);
     for (int i = 0; static_cast<long>(i) < count; i++) {
         QString key = QStringLiteral("MRU%1").arg(i);
@@ -1194,7 +1197,7 @@ void MaterialsEditor::fillMaterialTree()
     auto model = tree->model();
 
     if (_filterOptions.includeFavorites()) {
-        auto lib = new MaterialTreeFavoriteItem(tr("Favorites"));
+        auto lib = new MaterialTreeFavoriteItem(tr("Bookmarks"));
         lib->setFlags(Qt::ItemIsEnabled);
         addExpanded(tree, model, lib, param);
         addFavorites(lib);
@@ -1358,6 +1361,14 @@ void MaterialsEditor::onSelectMaterial(const QItemSelection& selected,
         updateMaterial();
         _material->resetEditState();
     }
+}
+
+bool MaterialsEditor::actionHasContext() const
+{
+    if (!_actionIndex.isValid()) {
+        Base::Console().log("Not in a context menu!!\n");
+    }
+    return _actionIndex.isValid();
 }
 
 const MaterialTreeModel* MaterialsEditor::getActionModel() const
@@ -1588,16 +1599,32 @@ void MaterialsEditor::onContextMenu(const QPoint& pos)
     }
 
     contextMenu.exec(ui->treeMaterials->mapToGlobal(pos));
+
+    // The action is complete, or the menu was deselected
+    resetActionContext();
+}
+
+void MaterialsEditor::resetActionContext()
+{
+    _actionIndex = QModelIndex(); // An invalid index
+    _actionNewMaterial.setEnabled(true);
+    _actionChangeIcon.setEnabled(true);
+    _actionNewFolder.setEnabled(true);
+    _actionCut.setEnabled(true);
+    _actionPaste.setEnabled(true);
+    _actionRename.setEnabled(true);
+    _actionDeleteFolder.setEnabled(true);
+    _actionDeleteMaterial.setEnabled(true);
 }
 
 void MaterialsEditor::favoriteActionAdd()
 {
-    _actionFavorite.setText(tr("Add to favorites"));
+    _actionFavorite.setText(tr("Add to bookmarks"));
 }
 
 void MaterialsEditor::favoriteActionRemove()
 {
-    _actionFavorite.setText(tr("Remove from favorites"));
+    _actionFavorite.setText(tr("Remove from bookmarks"));
 }
 
 void MaterialsEditor::favoriteContextMenu(QMenu& contextMenu)
@@ -1609,7 +1636,7 @@ void MaterialsEditor::favoriteContextMenu(QMenu& contextMenu)
     contextMenu.addSeparator();
 
     auto item = getActionItem();
-    if (item->text() != tr("Favorites")) {
+    if (item->text() != tr("Bookmarks")) {
         favoriteActionRemove();
         contextMenu.addAction(&_actionFavorite);
     }
@@ -1836,9 +1863,22 @@ void MaterialsEditor::onMenuEnableDisable(bool checked)
     }
 }
 
+void MaterialsEditor::onMenuDelete(bool checked)
+{
+    Q_UNUSED(checked)
+
+    if (!actionHasContext()) {
+        return;
+    }
+}
+
 void MaterialsEditor::onMenuDeleteLibrary(bool checked)
 {
     Q_UNUSED(checked)
+
+    if (!actionHasContext()) {
+        return;
+    }
 
     auto item = getActionItem();
     if (item) {
@@ -1865,6 +1905,10 @@ void MaterialsEditor::onMenuNewFolder(bool checked)
 {
     Q_UNUSED(checked)
 
+    if (!actionHasContext()) {
+        return;
+    }
+
     // Find the library and path where we are
     auto item = getActionItem();
     auto path = getPath(item, QString());
@@ -1890,6 +1934,10 @@ void MaterialsEditor::onMenuNewFolder(bool checked)
 void MaterialsEditor::onMenuDeleteFolder(bool checked)
 {
     Q_UNUSED(checked)
+
+    if (!actionHasContext()) {
+        return;
+    }
 
     auto item = getActionItem();
     if (item) {
@@ -1926,6 +1974,10 @@ void MaterialsEditor::onMenuDeleteFolder(bool checked)
 void MaterialsEditor::onMenuNewMaterial(bool checked)
 {
     Q_UNUSED(checked)
+
+    if (!actionHasContext()) {
+        return;
+    }
 
     // Find the library and path where we are
     auto item = getActionItem();
@@ -1969,6 +2021,10 @@ void MaterialsEditor::onMenuInheritMaterial(bool checked)
 {
     Q_UNUSED(checked)
 
+    if (!actionHasContext()) {
+        return;
+    }
+
     // Find the library and path where we are
     auto item = getActionItem();
     auto parent = item->parent();
@@ -2007,6 +2063,10 @@ void MaterialsEditor::onMenuInheritMaterial(bool checked)
 void MaterialsEditor::onMenuDeleteMaterial(bool checked)
 {
     Q_UNUSED(checked)
+
+    if (!actionHasContext()) {
+        return;
+    }
 
     auto original = getActionMaterial();
     auto uuid = original->getUUID();
