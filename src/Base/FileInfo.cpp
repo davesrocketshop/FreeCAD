@@ -256,11 +256,6 @@ std::wstring FileInfo::toStdWString() const
 #endif
 }
 
-std::string FileInfo::canonical(const std::string& path)
-{
-    return pathToString(fs::weakly_canonical(stringToPath(path)));
-}
-
 std::string FileInfo::extension() const
 {
     std::string::size_type pos = FileName.find_last_of('.');

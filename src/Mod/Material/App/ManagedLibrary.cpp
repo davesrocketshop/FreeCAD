@@ -243,9 +243,9 @@ std::string ManagedLibrary::getLibraryPath(const std::string& path, const std::s
 
 std::string ManagedLibrary::cleanPath(const std::string path)
 {
-    std::string clean = Base::FileInfo::canonical(path);
-    std::replace(clean.begin(), clean.end(), '\\', '/');
-    return clean;
+    // QDir just does it better and simpler
+    QString clean = QDir::cleanPath(QString::fromStdString(path));
+    return clean.toStdString();
 }
 
 QString ManagedLibrary::cleanPath(const QString& path)
