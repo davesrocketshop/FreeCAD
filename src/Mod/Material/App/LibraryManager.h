@@ -125,6 +125,13 @@ public:
     std::shared_ptr<MaterialLibrary> getMaterialLibrary(
         const std::string& name
     ) const;
+
+    // These are the 'Default' locations used for saving and other operations
+    // when no library is explicitly specified
+    std::shared_ptr<ManagedLibrary> getDefaultLibrary() const;
+    std::shared_ptr<ModelLibrary> getDefaultModelLibrary() const;
+    std::shared_ptr<MaterialLibrary> getDefaultMaterialLibrary() const;
+
     void createRemoteLibrary(
         const std::string& repositoryName,
         const std::string& libraryName,

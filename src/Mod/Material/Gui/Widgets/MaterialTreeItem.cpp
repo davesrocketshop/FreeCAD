@@ -89,6 +89,14 @@ QString MaterialTreeItem::getUniqueName(const QString& name, TreeFunctionType fu
     return QString::fromStdString(uniqueName);
 }
 
+bool MaterialTreeItem::operator==(const MaterialTreeItem& item) const
+{
+    return (
+        parent() == item.parent() && getItemFunction() == item.getItemFunction()
+        && text() == item.text()
+    );
+}
+
 //===
 //
 // MaterialTreeLibraryItem
@@ -109,10 +117,7 @@ MaterialTreeLibraryItem::MaterialTreeLibraryItem(const QString& text)
     setData(QVariant(TreeFunctionType::TreeFunctionLibrary), TreeFunctionRole);
 }
 
-MaterialTreeLibraryItem::MaterialTreeLibraryItem(
-    const QIcon& icon,
-    const QString& text
-)
+MaterialTreeLibraryItem::MaterialTreeLibraryItem(const QIcon& icon, const QString& text)
     : MaterialTreeItem(icon, text)
 {
     setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsDropEnabled);

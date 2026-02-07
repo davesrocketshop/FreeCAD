@@ -371,6 +371,22 @@ std::shared_ptr<MaterialLibrary> LibraryManager::getMaterialLibrary(
     throw LibraryNotFound();
 }
 
+std::shared_ptr<ManagedLibrary> LibraryManager::getDefaultLibrary() const
+{
+    // Simple implementation for now
+    return getLibrary("User");
+}
+
+std::shared_ptr<ModelLibrary> LibraryManager::getDefaultModelLibrary() const
+{
+    return std::make_shared<ModelLibrary>(getDefaultLibrary());
+}
+
+std::shared_ptr<MaterialLibrary> LibraryManager::getDefaultMaterialLibrary() const
+{
+    return std::make_shared<MaterialLibrary>(getDefaultLibrary());
+}
+
 void LibraryManager::createRemoteLibrary(
     const std::string& repositoryName,
     const std::string& libraryName,

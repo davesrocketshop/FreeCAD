@@ -271,6 +271,11 @@ std::shared_ptr<MaterialLibrary> MaterialManager::getLibrary(const std::string& 
     return libraryManager().getMaterialLibrary(name);
 }
 
+std::shared_ptr<MaterialLibrary> MaterialManager::getDefaultLibrary() const
+{
+    return libraryManager().getDefaultMaterialLibrary();
+}
+
 std::shared_ptr<MaterialLibrary> MaterialManager::createLibrary(
     const std::string& libraryName,
     const std::string& iconPath,

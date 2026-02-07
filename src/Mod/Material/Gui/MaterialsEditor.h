@@ -178,9 +178,7 @@ private:
     QAction _actionPaste;
     QIcon _actionPasteIcon;
     QAction _actionRename;
-    QAction _actionDeleteMaterial;
-    QAction _actionDeleteFolder;
-    QAction _actionDeleteLibrary;
+    QAction _actionDelete;
     QIcon _actionDeleteIcon;
     QAction _actionEnableDisable;
     QAction _actionLibraryProperties;
@@ -246,6 +244,8 @@ private:
     MaterialTreeItem* getItemFromMaterial(const Materials::Material& material) const;
     std::shared_ptr<Materials::MaterialLibrary> getLibraryForItem(const MaterialTreeItem* item) const;
     QString getDirectoryForItem(const MaterialTreeItem* item) const;
+    bool isAncestor(const MaterialTreeItem* item, const Materials::Material& material) const;
+    bool isAncestor(const MaterialTreeItem* item, const MaterialTreeItem* child) const;
 
     void resetActionContext();
     void favoriteContextMenu(QMenu& contextMenu);
@@ -264,12 +264,12 @@ private:
     void onMenuNewLibrary(bool checked);
     void onMenuEnableDisable(bool checked);
     void onMenuDelete(bool checked);
-    void onMenuDeleteLibrary(bool checked);
+    void deleteLibrary(MaterialTreeItem* item);
+    void deleteFolder(MaterialTreeItem* item);
+    void deleteMaterial(MaterialTreeItem* item);
     void onMenuNewFolder(bool checked);
-    void onMenuDeleteFolder(bool checked);
     void onMenuNewMaterial(bool checked);
     void onMenuInheritMaterial(bool checked);
-    void onMenuDeleteMaterial(bool checked);
     void onMenuChangeIcon(bool checked);
     void onInherit(bool checked);
     void onInheritNew(bool checked);
@@ -294,6 +294,7 @@ private:
                             MaterialTreeModel* parent,
                             MaterialTreeItem* child,
                             const Base::Reference<ParameterGrp>& param);
+    static void removeItem(MaterialTreeItem* parent, MaterialTreeItem* child);
     void addRecents(MaterialTreeItem* parent);
     void addFavorites(MaterialTreeItem* parent);
     void createMaterialTree();

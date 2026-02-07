@@ -292,24 +292,23 @@ void MaterialsEditor::createActions()
     _actionNewLibrary.setIcon(_actionNewLibraryIcon);
     _actionNewLibrary.setToolTip(tr("New library"));
 
-    _actionDeleteLibrary.setText(tr("Delete"));
+    _actionDelete.setText(tr("Delete"));
     _actionDeleteIcon = QIcon(QStringLiteral(":/icons/edit-delete.svg"));
-    _actionDeleteLibrary.setIcon(_actionDeleteIcon);
-    _actionDeleteLibrary.setToolTip(tr("Delete the selected library"));
+    _actionDelete.setIcon(_actionDeleteIcon);
+    _actionDelete.setToolTip(tr("Delete the selected item"));
+    _actionDelete.setShortcut(Qt::Key_Delete);
 
     _actionNewFolder.setText(tr("New folder"));
     _actionNewFolderIcon = QIcon(QStringLiteral(":/icons/Group.svg"));
     _actionNewFolder.setIcon(_actionNewFolderIcon);
     _actionNewFolder.setToolTip(tr("New folder"));
-
-    _actionDeleteFolder.setText(tr("Delete"));
-    _actionDeleteFolder.setIcon(_actionDeleteIcon);
-    _actionDeleteFolder.setToolTip(tr("Delete the selected folder"));
+    _actionNewFolder.setShortcut(Qt::ControlModifier | Qt::ShiftModifier | Qt::Key_N);
 
     _actionNewMaterial.setText(tr("New material"));
     _actionNewMaterialIcon = QIcon(QStringLiteral(":/icons/Material_Edit.svg"));
     _actionNewMaterial.setIcon(_actionNewMaterialIcon);
     _actionNewMaterial.setToolTip(tr("New material"));
+    _actionNewMaterial.setShortcut(Qt::ControlModifier | Qt::Key_N);
 
     _actionInheritMaterial.setText(tr("New material from selected"));
     _actionInheritMaterialIcon = QIcon(QStringLiteral(":/icons/Material_Inherit.svg"));
@@ -328,20 +327,21 @@ void MaterialsEditor::createActions()
     _actionCutIcon = QIcon(QStringLiteral(":/icons/edit-cut.svg"));
     _actionCut.setIcon(_actionCutIcon);
     _actionCut.setToolTip(tr("Cut"));
+    _actionCut.setShortcut(Qt::ControlModifier | Qt::Key_X);
 
     _actionCopy.setText(tr("Copy"));
     _actionCopyIcon = QIcon(QStringLiteral(":/icons/edit-copy.svg"));
     _actionCopy.setIcon(_actionCopyIcon);
     _actionCopy.setToolTip(tr("Copy"));
+    _actionCopy.setShortcut(Qt::ControlModifier | Qt::Key_C);
 
     _actionPaste.setText(tr("Paste"));
     _actionPasteIcon = QIcon(QStringLiteral(":/icons/edit-paste.svg"));
     _actionPaste.setIcon(_actionPasteIcon);
     _actionPaste.setToolTip(tr("Paste"));
+    _actionPaste.setShortcut(Qt::ControlModifier | Qt::Key_P);
 
     _actionRename.setText(tr("Rename"));
-    _actionDeleteMaterial.setText(tr("Delete Material"));
-    _actionDeleteMaterial.setIcon(_actionDeleteIcon);
 
     _actionEnableDisable.setText(tr("Disable"));
     _actionEnableDisable.setToolTip(tr("Enable or disable a library"));
@@ -385,12 +385,10 @@ void MaterialsEditor::createActions()
 
     connect(&_actionNewLibrary, &QAction::triggered, this, &MaterialsEditor::onMenuNewLibrary);
     connect(&_actionEnableDisable, &QAction::triggered, this, &MaterialsEditor::onMenuEnableDisable);
-    connect(&_actionDeleteLibrary, &QAction::triggered, this, &MaterialsEditor::onMenuDeleteLibrary);
+    connect(&_actionDelete, &QAction::triggered, this, &MaterialsEditor::onMenuDelete);
     connect(&_actionNewFolder, &QAction::triggered, this, &MaterialsEditor::onMenuNewFolder);
-    connect(&_actionDeleteFolder, &QAction::triggered, this, &MaterialsEditor::onMenuDeleteFolder);
     connect(&_actionNewMaterial, &QAction::triggered, this, &MaterialsEditor::onMenuNewMaterial);
     connect(&_actionInheritMaterial, &QAction::triggered, this, &MaterialsEditor::onMenuInheritMaterial);
-    connect(&_actionDeleteMaterial, &QAction::triggered, this, &MaterialsEditor::onMenuDeleteMaterial);
     connect(&_actionFavorite, &QAction::triggered, this, &MaterialsEditor::onFavourite);
     connect(&_actionChangeIcon, &QAction::triggered, this, &MaterialsEditor::onMenuChangeIcon);
 
@@ -978,7 +976,7 @@ void MaterialsEditor::saveMaterial()
     else {
         Base::Console().log("Nothing to save\n");
     }
-    refreshMaterialTree();
+    // refreshMaterialTree();
 }
 
 void MaterialsEditor::accept()
@@ -1127,6 +1125,16 @@ void MaterialsEditor::addExpanded(MaterialTreeView* tree,
     auto text = child->originalName();
     auto expand = param->GetBool(text.toStdString().c_str(), true);
     tree->setExpanded(child->index(), expand);
+}
+
+void MaterialsEditor::removeItem(MaterialTreeItem* parent, MaterialTreeItem* child)
+{
+    for (int row = 0; row < parent->rowCount(); row++) {
+        if (*parent->child(row) == *child) {
+            parent->removeRow(row);
+            return;
+        }
+    }
 }
 
 QIcon MaterialsEditor::getIcon(const std::shared_ptr<Materials::Library>& library)
@@ -1389,7 +1397,7 @@ TreeFunctionType MaterialsEditor::getActionFunction() const
 {
     auto item = getActionItem();
     if (item) {
-        return getActionItem()->getItemFunction();
+        return item->getItemFunction();
     }
     throw ActionError();
 }
@@ -1476,6 +1484,10 @@ MaterialTreeItem* MaterialsEditor::getItemFromLibrary(const Materials::Library& 
 
 MaterialTreeItem* MaterialsEditor::getItemFromMaterial(const Materials::Material& material) const
 {
+    if (!material.getLibrary()) {
+        // A new dummy material won't have a library
+        return nullptr;
+    }
     auto libraryItem = getItemFromLibrary(*material.getLibrary());
     if (libraryItem) {
         MaterialTreeItem* folderItem = libraryItem;
@@ -1563,6 +1575,26 @@ QString MaterialsEditor::getDirectoryForItem(
     return QString();
 }
 
+bool MaterialsEditor::isAncestor(const MaterialTreeItem* item, const Materials::Material& material) const
+{
+    auto materialItem = getItemFromMaterial(material);
+    if (materialItem) {
+        return isAncestor(item, materialItem);
+    }
+    return false;
+}
+
+bool MaterialsEditor::isAncestor(const MaterialTreeItem* item, const MaterialTreeItem* child) const
+{
+    if (*getLibraryForItem(item) == *getLibraryForItem(child)) {
+        auto itemPath = getDirectoryForItem(item);
+        auto childPath = getDirectoryForItem(child);
+
+        return childPath.startsWith(itemPath);
+    }
+    return false;
+}
+
 void MaterialsEditor::onContextMenu(const QPoint& pos)
 {
     _actionIndex = ui->treeMaterials->indexAt(pos);
@@ -1613,8 +1645,7 @@ void MaterialsEditor::resetActionContext()
     _actionCut.setEnabled(true);
     _actionPaste.setEnabled(true);
     _actionRename.setEnabled(true);
-    _actionDeleteFolder.setEnabled(true);
-    _actionDeleteMaterial.setEnabled(true);
+    _actionDelete.setEnabled(true);
 }
 
 void MaterialsEditor::favoriteActionAdd()
@@ -1676,10 +1707,10 @@ void MaterialsEditor::libraryContextMenu(QMenu& contextMenu)
     _actionPaste.setEnabled(enabled);
     if (library->isLocal() && library->getName() == QStringLiteral("User")) {
         // We can't delete the user library
-        _actionDeleteLibrary.setEnabled(false);
+        _actionDelete.setEnabled(false);
     }
     else {
-        _actionDeleteLibrary.setEnabled(enabled);
+        _actionDelete.setEnabled(enabled);
     }
 
     contextMenu.addAction(&_actionNewMaterial);
@@ -1695,7 +1726,7 @@ void MaterialsEditor::libraryContextMenu(QMenu& contextMenu)
         _actionEnableDisable.setText(tr("Disable"));
     }
     contextMenu.addAction(&_actionEnableDisable);
-    contextMenu.addAction(&_actionDeleteLibrary);
+    contextMenu.addAction(&_actionDelete);
     contextMenu.addAction(&_actionLibraryProperties);
 
     addViewMenu(contextMenu);
@@ -1714,7 +1745,7 @@ void MaterialsEditor::folderContextMenu(QMenu& contextMenu)
     _actionCut.setEnabled(enabled);
     _actionPaste.setEnabled(enabled);
     _actionRename.setEnabled(enabled);
-    _actionDeleteFolder.setEnabled(enabled);
+    _actionDelete.setEnabled(enabled);
 
     contextMenu.addAction(&_actionNewMaterial);
     contextMenu.addAction(&_actionNewLibrary);
@@ -1726,7 +1757,7 @@ void MaterialsEditor::folderContextMenu(QMenu& contextMenu)
     contextMenu.addAction(&_actionPaste);
     contextMenu.addSeparator();
     contextMenu.addAction(&_actionRename);
-    contextMenu.addAction(&_actionDeleteFolder);
+    contextMenu.addAction(&_actionDelete);
 
     addViewMenu(contextMenu);
 }
@@ -1743,7 +1774,7 @@ void MaterialsEditor::materialContextMenu(QMenu& contextMenu)
     _actionCut.setEnabled(enabled);
     _actionPaste.setEnabled(enabled);
     _actionRename.setEnabled(enabled);
-    _actionDeleteMaterial.setEnabled(enabled);
+    _actionDelete.setEnabled(enabled);
 
     contextMenu.addAction(&_actionNewMaterial);
     contextMenu.addAction(&_actionInheritMaterial);
@@ -1765,7 +1796,7 @@ void MaterialsEditor::materialContextMenu(QMenu& contextMenu)
     contextMenu.addAction(&_actionPaste);
     contextMenu.addSeparator();
     contextMenu.addAction(&_actionRename);
-    contextMenu.addAction(&_actionDeleteMaterial);
+    contextMenu.addAction(&_actionDelete);
 
     addViewMenu(contextMenu);
 }
@@ -1867,50 +1898,132 @@ void MaterialsEditor::onMenuDelete(bool checked)
 {
     Q_UNUSED(checked)
 
-    if (!actionHasContext()) {
-        return;
+    MaterialTreeItem* item;
+    if (actionHasContext()) {
+        item = getActionItem();
+        if (!item) {
+            return;
+        }
+    }
+    else {
+        if (_material) {
+            item = getItemFromMaterial(*_material);
+        }
+        else {
+            return;
+        }
+    }
+    switch (item->getItemFunction()) {
+        case TreeFunctionLibrary:
+            deleteLibrary(item);
+            return;
+
+        case TreeFunctionFolder:
+            deleteFolder(item);
+            return;
+
+        case TreeFunctionMaterial:
+            deleteMaterial(item);
+            return;
     }
 }
 
-void MaterialsEditor::onMenuDeleteLibrary(bool checked)
+void MaterialsEditor::deleteLibrary(MaterialTreeItem* item)
 {
-    Q_UNUSED(checked)
+    auto library = getActionLibrary();
+    int ret = QMessageBox::warning(
+        this,
+        tr("Delete Library"),
+        tr("Deleting the library is immediate and permanent.\n"
+            "Are you sure?"),
+        QMessageBox::Yes | QMessageBox::No,
+        QMessageBox::No
+    );
+    if (ret == QMessageBox::Yes) {
+        Gui::WaitCursor wc;
 
-    if (!actionHasContext()) {
-        return;
+        getMaterialManager().removeLibrary(library->getName());
+        getMaterialManager().refresh();
+        refreshMaterialTree();
     }
+}
 
-    auto item = getActionItem();
-    if (item) {
-        auto library = getActionLibrary();
+void MaterialsEditor::deleteFolder(MaterialTreeItem* item)
+{
+    auto path = getPath(item, QString());
+    auto libraryName = getLibraryName(item);
+
+    Base::Console().log(
+        "Delete folder '%s' from '%s'\n",
+        path.toStdString().c_str(),
+        libraryName.toStdString().c_str()
+    );
+    auto library = getMaterialManager().getLibrary(libraryName.toStdString());
+
+    if (item->hasChildren()) {
         int ret = QMessageBox::warning(
             this,
-            tr("Delete Library"),
-            tr("Deleting the library is immediate and permanent.\n"
-               "Are you sure?"),
+            tr("Delete Folder"),
+            tr("Deleting the folder will also delete its contents. This is immediate and "
+                "permanent.\n"
+                "Are you sure?"),
             QMessageBox::Yes | QMessageBox::No,
             QMessageBox::No
         );
-        if (ret == QMessageBox::Yes) {
-            Gui::WaitCursor wc;
-
-            getMaterialManager().removeLibrary(library->getName());
-            getMaterialManager().refresh();
-            refreshMaterialTree();
+        if (ret != QMessageBox::Yes) {
+            return;
         }
     }
+
+    Gui::WaitCursor wc;
+    // Need to handle the case where the current material is a child
+    if (_material && isAncestor(item, *_material)) {
+        _material->resetEditState(); // We've already confirmed deletion
+
+        _material = std::make_shared<Materials::Material>();
+        _material->resetEditState();
+        updateMaterial();
+    }
+    getMaterialManager().deleteRecursive(library, path.toStdString());
+    removeItem(item->parent(), item);
+}
+
+void MaterialsEditor::deleteMaterial(MaterialTreeItem* item)
+{
+    auto original = getItemAsMaterial(item);
+    auto uuid = original->getUUID();
+    getMaterialManager().remove(uuid.toStdString());
+    if (_material->getUUID() == uuid) {
+        // Only if the deleted material is the current material
+        _material = std::make_shared<Materials::Material>();
+        _material->resetEditState();
+        updateMaterial();
+    }
+
+    removeItem(item->parent(), item);
 }
 
 void MaterialsEditor::onMenuNewFolder(bool checked)
 {
     Q_UNUSED(checked)
 
-    if (!actionHasContext()) {
-        return;
+    MaterialTreeItem* item;
+    if (actionHasContext()) {
+        auto item = getActionItem();
+    }
+    else {
+        try {
+            item = getItemFromLibrary(*getMaterialManager().getDefaultLibrary());
+            if (!item) {
+                return;
+            }
+        }
+        catch (...) {
+            return;
+        }
     }
 
     // Find the library and path where we are
-    auto item = getActionItem();
     auto path = getPath(item, QString());
     auto libraryName = getLibraryName(item);
     auto library = getMaterialManager().getLibrary(libraryName.toStdString());
@@ -1929,46 +2042,6 @@ void MaterialsEditor::onMenuNewFolder(bool checked)
     node->setFlags(flags);
 
     addExpanded(ui->treeMaterials, item, node);
-}
-
-void MaterialsEditor::onMenuDeleteFolder(bool checked)
-{
-    Q_UNUSED(checked)
-
-    if (!actionHasContext()) {
-        return;
-    }
-
-    auto item = getActionItem();
-    if (item) {
-        auto item = getActionItem();
-        auto path = getPath(item, QString());
-        auto libraryName = getLibraryName(item);
-
-        Base::Console().log("Delete folder '%s' from '%s'\n",
-            path.toStdString().c_str(),
-            libraryName.toStdString().c_str()
-        );
-        auto library = getMaterialManager().getLibrary(libraryName.toStdString());
-
-        if (item->hasChildren()) {
-            int ret = QMessageBox::warning(
-                this,
-                tr("Delete Folder"),
-                tr("Deleting the folder will also delete its contents. This is immediate and permanent.\n"
-                "Are you sure?"),
-                QMessageBox::Yes | QMessageBox::No,
-                QMessageBox::No
-            );
-            if (ret != QMessageBox::Yes) {
-                return;
-            }
-        }
-
-        Gui::WaitCursor wc;
-        getMaterialManager().deleteRecursive(library, path.toStdString());
-        refreshMaterialTree();
-    }
 }
 
 void MaterialsEditor::onMenuNewMaterial(bool checked)
@@ -2058,27 +2131,6 @@ void MaterialsEditor::onMenuInheritMaterial(bool checked)
         selectionModel->select(index, QItemSelectionModel::SelectCurrent);
         ui->treeMaterials->scrollTo(index);
     }
-}
-
-void MaterialsEditor::onMenuDeleteMaterial(bool checked)
-{
-    Q_UNUSED(checked)
-
-    if (!actionHasContext()) {
-        return;
-    }
-
-    auto original = getActionMaterial();
-    auto uuid = original->getUUID();
-    getMaterialManager().remove(uuid.toStdString());
-    if (_material->getUUID() == uuid) {
-        // Only if the deleted material is the current material
-        _material = std::make_shared<Materials::Material>();
-        _material->resetEditState();
-        updateMaterial();
-    }
-
-    refreshMaterialTree();
 }
 
 void MaterialsEditor::onMenuChangeIcon(bool checked)

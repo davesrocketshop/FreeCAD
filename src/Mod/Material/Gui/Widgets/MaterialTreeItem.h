@@ -67,6 +67,13 @@ public:
     QString originalName() const;
     void setOriginalName(const QString& name);
 
+    // This is a very superficial comparison that only works if its peers all have different names
+    bool operator==(const MaterialTreeItem& item) const;
+    bool operator!=(const MaterialTreeItem& item) const
+    {
+        return !operator==(item);
+    }
+
 private:
 
 };
