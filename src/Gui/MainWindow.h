@@ -28,12 +28,20 @@
 #include <QMainWindow>
 #include <QMdiArea>
 
+#if defined(BUILD_QTTESTING)
+class pqTestUtility;
+#endif
+
 #include "Window.h"
 #include "InputHint.h"
 
 class QMimeData;
 class QUrl;
 class QMdiSubWindow;
+
+#if defined(BUILD_QTTESTING)
+class pqTestUtility;
+#endif
 
 namespace App
 {
@@ -225,6 +233,12 @@ public:
 
     bool isRestoringWindowState() const;
 
+#if defined(BUILD_QTTESTING)
+    pqTestUtility* getTestUtility() const {
+        return qtTestUtility;
+    }
+#endif
+
 public Q_SLOTS:
     /**
      * Updates the standard actions of a text editor such as Cut, Copy, Paste, Undo and Redo.
@@ -395,6 +409,10 @@ private:
     /// some kind of singleton
     static MainWindow* instance;
     struct MainWindowP* d;
+
+#if defined(BUILD_QTTESTING)
+    pqTestUtility* qtTestUtility;
+#endif
 };
 
 inline MainWindow* getMainWindow()

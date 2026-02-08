@@ -64,6 +64,12 @@
 # endif
 #endif
 
+#if defined(BUILD_QTTESTING)
+#include <pqTestUtility.h>
+
+#include "QtTestUtility.h"
+#endif
+
 #include <algorithm>
 #include <boost/algorithm/string/predicate.hpp>
 
@@ -494,6 +500,12 @@ MainWindow::MainWindow(QWidget* parent, Qt::WindowFlags f)
     // accept drops on the window, get handled in dropEvent, dragEnterEvent
     setAcceptDrops(true);
 
+#if defined(BUILD_QTTESTING)
+    qtTestUtility = new pqTestUtility(this);
+    qtTestUtility->addEventObserver("xml", new XMLEventObserver(this));
+    qtTestUtility->addEventSource("xml", new XMLEventSource(this));
+#endif
+
     statusBar()->showMessage(tr("Ready"), 2001);
 }
 
@@ -502,6 +514,10 @@ MainWindow::~MainWindow()
     delete d->status;
     delete d;
     instance = nullptr;
+
+#if defined(BUILD_QTTESTING)
+    delete qtTestUtility;
+#endif
 }
 
 MainWindow* MainWindow::getInstance()

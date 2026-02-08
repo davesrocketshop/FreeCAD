@@ -1,0 +1,168 @@
+// SPDX-License-Identifier: LGPL-2.1-or-later
+/***************************************************************************
+ *   Copyright (c) 2026 David Carter <dcarter@david.carter.ca>             *
+ *                                                                         *
+ *   This file is part of the FreeCAD CAx development system.              *
+ *                                                                         *
+ *   This library is free software; you can redistribute it and/or         *
+ *   modify it under the terms of the GNU Library General Public           *
+ *   License as published by the Free Software Foundation; either          *
+ *   version 2 of the License, or (at your option) any later version.      *
+ *                                                                         *
+ *   This library  is distributed in the hope that it will be useful,      *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU Library General Public License for more details.                  *
+ *                                                                         *
+ *   You should have received a copy of the GNU Library General Public     *
+ *   License along with this library; see the file COPYING.LIB. If not,    *
+ *   write to the Free Software Foundation, Inc., 59 Temple Place,         *
+ *   Suite 330, Boston, MA  02111-1307, USA                                *
+ *                                                                         *
+ ***************************************************************************/
+
+// #include <QApplication>
+#include <QFileDialog>
+// #include <QHBoxLayout>
+// #include <QPushButton>
+// #include <QTextStream>
+// #include <QXmlStreamAttributes>
+// #include <QXmlStreamReader>
+// #include <QXmlStreamWriter>
+#include <QtDebug>
+
+#include "QtTestUtility.h"
+
+using namespace Gui;
+// using namespace std;
+
+XMLEventObserver::XMLEventObserver(QObject* p)
+    : pqEventObserver(p)
+{
+    xmlStream = NULL;
+}
+
+XMLEventObserver::~XMLEventObserver()
+{
+    delete xmlStream;
+}
+
+void XMLEventObserver::setStream(QTextStream* stream)
+{
+    if (xmlStream)
+    {
+        xmlStream->writeEndElement();
+        xmlStream->writeEndDocument();
+        delete xmlStream;
+        xmlStream = NULL;
+    }
+    if (this->Stream)
+    {
+        *this->Stream << xmlString;
+    }
+    xmlString = QString();
+    pqEventObserver::setStream(stream);
+    if (this->Stream)
+    {
+        xmlStream = new QXmlStreamWriter(&xmlString);
+        xmlStream->setAutoFormatting(true);
+        xmlStream->writeStartDocument();
+        xmlStream->writeStartElement("events");
+    }
+}
+
+void XMLEventObserver::onRecordEvent(const QString& widget, const QString& command, const QString& arguments,
+    const int& eventType)
+{
+    if (xmlStream)
+    {
+        xmlStream->writeStartElement("event");
+        xmlStream->writeAttribute("widget", widget);
+        if (eventType == pqEventTypes::ACTION_EVENT)
+        {
+            xmlStream->writeAttribute("command", command);
+        }
+        else // if(eventType == pqEventTypes::CHECK_EVENT)
+        {
+            xmlStream->writeAttribute("property", command);
+        }
+        xmlStream->writeAttribute("arguments", arguments);
+        xmlStream->writeEndElement();
+    }
+}
+
+
+XMLEventSource::XMLEventSource(QObject* p)
+    : pqEventSource(p)
+{
+    xmlStream = NULL;
+}
+
+XMLEventSource::~XMLEventSource()
+{
+    delete xmlStream;
+}
+
+void XMLEventSource::setContent(const QString& xmlfilename)
+{
+    delete xmlStream;
+    xmlStream = NULL;
+
+    QFile xml(xmlfilename);
+    if (!xml.open(QIODevice::ReadOnly))
+    {
+        qDebug() << "Failed to load " << xmlfilename;
+        return;
+    }
+    QByteArray data = xml.readAll();
+    xmlStream = new QXmlStreamReader(data);
+    /* This checked for valid event objects, but also caused the first event
+        * to get dropped. Commenting this out in the example. If you wish to report
+        * empty XML test files a flag indicating whether valid events were found is
+        * probably the best way to go.
+    while (!xmlStream->atEnd())
+        {
+        QXmlStreamReader::TokenType token = xmlStream->readNext();
+        if (token == QXmlStreamReader::StartElement)
+        {
+        if (xmlStream->name() == "event")
+            {
+            break;
+            }
+        }
+        } */
+    if (xmlStream->atEnd())
+    {
+        qDebug() << "Invalid xml\n";
+    }
+    return;
+}
+
+int XMLEventSource::getNextEvent(QString& widget, QString& command, QString& arguments, int& eventType)
+{
+    if (xmlStream->atEnd())
+    {
+        return DONE;
+    }
+    while (!xmlStream->atEnd())
+    {
+        QXmlStreamReader::TokenType token = xmlStream->readNext();
+        if (token == QXmlStreamReader::StartElement)
+        {
+        if (xmlStream->name() == "event")
+        {
+            break;
+        }
+        }
+    }
+    if (xmlStream->atEnd())
+    {
+        return DONE;
+    }
+    eventType = pqEventTypes::ACTION_EVENT;
+    widget = xmlStream->attributes().value("widget").toString();
+    command = xmlStream->attributes().value("command").toString();
+    arguments = xmlStream->attributes().value("arguments").toString();
+    return SUCCESS;
+}
+
