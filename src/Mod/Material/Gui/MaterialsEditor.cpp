@@ -1898,7 +1898,7 @@ void MaterialsEditor::onMenuDelete(bool checked)
 {
     Q_UNUSED(checked)
 
-    MaterialTreeItem* item;
+    MaterialTreeItem* item = nullptr;
     if (actionHasContext()) {
         item = getActionItem();
         if (!item) {
@@ -2007,9 +2007,9 @@ void MaterialsEditor::onMenuNewFolder(bool checked)
 {
     Q_UNUSED(checked)
 
-    MaterialTreeItem* item;
+    MaterialTreeItem* item = nullptr;
     if (actionHasContext()) {
-        auto item = getActionItem();
+        item = getActionItem();
     }
     else {
         try {
