@@ -21,15 +21,9 @@
  *                                                                         *
  ***************************************************************************/
 
-// #include <QApplication>
 #include <QFileDialog>
-// #include <QHBoxLayout>
-// #include <QPushButton>
-// #include <QTextStream>
-// #include <QXmlStreamAttributes>
-// #include <QXmlStreamReader>
-// #include <QXmlStreamWriter>
-#include <QtDebug>
+
+#include <Base/Console.h>
 
 #include "QtTestUtility.h"
 
@@ -49,44 +43,43 @@ XMLEventObserver::~XMLEventObserver()
 
 void XMLEventObserver::setStream(QTextStream* stream)
 {
-    if (xmlStream)
-    {
+    if (xmlStream) {
         xmlStream->writeEndElement();
         xmlStream->writeEndDocument();
         delete xmlStream;
         xmlStream = NULL;
     }
-    if (this->Stream)
-    {
+    if (this->Stream) {
         *this->Stream << xmlString;
     }
     xmlString = QString();
     pqEventObserver::setStream(stream);
-    if (this->Stream)
-    {
+    if (this->Stream) {
         xmlStream = new QXmlStreamWriter(&xmlString);
         xmlStream->setAutoFormatting(true);
         xmlStream->writeStartDocument();
-        xmlStream->writeStartElement("events");
+        xmlStream->writeStartElement(QStringLiteral("events"));
     }
 }
 
-void XMLEventObserver::onRecordEvent(const QString& widget, const QString& command, const QString& arguments,
-    const int& eventType)
+void XMLEventObserver::onRecordEvent(
+    const QString& widget,
+    const QString& command,
+    const QString& arguments,
+    const int& eventType
+)
 {
-    if (xmlStream)
-    {
-        xmlStream->writeStartElement("event");
-        xmlStream->writeAttribute("widget", widget);
-        if (eventType == pqEventTypes::ACTION_EVENT)
-        {
-            xmlStream->writeAttribute("command", command);
+    if (xmlStream) {
+        xmlStream->writeStartElement(QStringLiteral("event"));
+        xmlStream->writeAttribute(QStringLiteral("widget"), widget);
+        if (eventType == pqEventTypes::ACTION_EVENT) {
+            xmlStream->writeAttribute(QStringLiteral("command"), command);
         }
-        else // if(eventType == pqEventTypes::CHECK_EVENT)
+        else  // if(eventType == pqEventTypes::CHECK_EVENT)
         {
-            xmlStream->writeAttribute("property", command);
+            xmlStream->writeAttribute(QStringLiteral("property"), command);
         }
-        xmlStream->writeAttribute("arguments", arguments);
+        xmlStream->writeAttribute(QStringLiteral("arguments"), arguments);
         xmlStream->writeEndElement();
     }
 }
@@ -109,9 +102,8 @@ void XMLEventSource::setContent(const QString& xmlfilename)
     xmlStream = NULL;
 
     QFile xml(xmlfilename);
-    if (!xml.open(QIODevice::ReadOnly))
-    {
-        qDebug() << "Failed to load " << xmlfilename;
+    if (!xml.open(QIODevice::ReadOnly)) {
+        Base::Console().log("Failed to load %s\n", xmlfilename.toStdString().c_str());
         return;
     }
     QByteArray data = xml.readAll();
@@ -131,38 +123,31 @@ void XMLEventSource::setContent(const QString& xmlfilename)
             }
         }
         } */
-    if (xmlStream->atEnd())
-    {
-        qDebug() << "Invalid xml\n";
+    if (xmlStream->atEnd()) {
+        Base::Console().log("Invalid xml\n");
     }
     return;
 }
 
 int XMLEventSource::getNextEvent(QString& widget, QString& command, QString& arguments, int& eventType)
 {
-    if (xmlStream->atEnd())
-    {
+    if (xmlStream->atEnd()) {
         return DONE;
     }
-    while (!xmlStream->atEnd())
-    {
+    while (!xmlStream->atEnd()) {
         QXmlStreamReader::TokenType token = xmlStream->readNext();
-        if (token == QXmlStreamReader::StartElement)
-        {
-        if (xmlStream->name() == "event")
-        {
-            break;
-        }
+        if (token == QXmlStreamReader::StartElement) {
+            if (xmlStream->name() == QStringLiteral("event")) {
+                break;
+            }
         }
     }
-    if (xmlStream->atEnd())
-    {
+    if (xmlStream->atEnd()) {
         return DONE;
     }
     eventType = pqEventTypes::ACTION_EVENT;
-    widget = xmlStream->attributes().value("widget").toString();
-    command = xmlStream->attributes().value("command").toString();
-    arguments = xmlStream->attributes().value("arguments").toString();
+    widget = xmlStream->attributes().value(QStringLiteral("widget")).toString();
+    command = xmlStream->attributes().value(QStringLiteral("command")).toString();
+    arguments = xmlStream->attributes().value(QStringLiteral("arguments")).toString();
     return SUCCESS;
 }
-

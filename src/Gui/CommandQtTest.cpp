@@ -64,10 +64,13 @@ void StdCmdQtTestRecord::activated(int iMsg)
     Q_UNUSED(iMsg);
 
     auto mainWindow = getMainWindow();
-    QString filename =
-        QFileDialog::getSaveFileName(mainWindow, "Test File Name", QString(), "XML Files (*.xml)");
-    if (!filename.isEmpty())
-    {
+    QString filename = QFileDialog::getSaveFileName(
+        mainWindow,
+        QStringLiteral("Test File Name"),
+        QString(),
+        QStringLiteral("XML Files (*.xml)")
+    );
+    if (!filename.isEmpty()) {
         Base::Console().log("Recording to file '%s'\n", filename.toStdString().c_str());
         QApplication::setActiveWindow(mainWindow);
         auto testUtility = mainWindow->getTestUtility();
@@ -103,10 +106,13 @@ void StdCmdQtTestPlayback::activated(int iMsg)
     Q_UNUSED(iMsg);
 
     auto mainWindow = getMainWindow();
-    QString filename =
-        QFileDialog::getOpenFileName(mainWindow, "Test File Name", QString(), "XML Files (*.xml)");
-    if (!filename.isEmpty())
-    {
+    QString filename = QFileDialog::getOpenFileName(
+        mainWindow,
+        QStringLiteral("Test File Name"),
+        QString(),
+        QStringLiteral("XML Files (*.xml)")
+    );
+    if (!filename.isEmpty()) {
         Base::Console().log("Play back file '%s'\n", filename.toStdString().c_str());
         auto testUtility = mainWindow->getTestUtility();
         testUtility->playTests(filename);

@@ -41,7 +41,7 @@
 namespace Gui
 {
 
-class XMLEventObserver : public pqEventObserver
+class XMLEventObserver: public pqEventObserver
 {
 public:
     XMLEventObserver(QObject* p);
@@ -49,15 +49,19 @@ public:
 
 protected:
     void setStream(QTextStream* stream) override;
-    void onRecordEvent(const QString& widget, const QString& command, const QString& arguments,
-      const int& eventType) override;
+    void onRecordEvent(
+        const QString& widget,
+        const QString& command,
+        const QString& arguments,
+        const int& eventType
+    ) override;
 
 private:
     QXmlStreamWriter* xmlStream;
     QString xmlString;
 };
 
-class XMLEventSource : public pqEventSource
+class XMLEventSource: public pqEventSource
 {
 public:
     XMLEventSource(QObject* p);

@@ -502,8 +502,8 @@ MainWindow::MainWindow(QWidget* parent, Qt::WindowFlags f)
 
 #if defined(BUILD_QTTESTING)
     qtTestUtility = new pqTestUtility(this);
-    qtTestUtility->addEventObserver("xml", new XMLEventObserver(this));
-    qtTestUtility->addEventSource("xml", new XMLEventSource(this));
+    qtTestUtility->addEventObserver(QStringLiteral("xml"), new XMLEventObserver(this));
+    qtTestUtility->addEventSource(QStringLiteral("xml"), new XMLEventSource(this));
 #endif
 
     statusBar()->showMessage(tr("Ready"), 2001);
