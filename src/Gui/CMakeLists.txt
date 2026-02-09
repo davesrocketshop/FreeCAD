@@ -84,11 +84,12 @@ target_include_directories(
 )
 
 if(BUILD_QTTESTING)
-    target_include_directories(FreeCADGui PUBLIC ${CMAKE_SOURCE_DIR}/src/3rdParty/qttesting)
-    target_include_directories(FreeCADGui PUBLIC ${CMAKE_BINARY_DIR}/src/3rdParty/qttesting)
-            list(APPEND FreeCADGui_LIBS
-                PySide2::pyside2
-            )
+    target_include_directories(FreeCADGui PUBLIC ${QtTesting_INCLUDE_DIRS})
+    # target_include_directories(FreeCADGui PUBLIC ${CMAKE_BINARY_DIR}/src/3rdParty/qttesting)
+    # list(APPEND FreeCADGui_LIBS
+    #     hid
+    # )
+    # ${QtTesting_INCLUDE_DIRS}
 endif(BUILD_QTTESTING)
 
 target_include_directories(
@@ -134,7 +135,9 @@ else(MSVC)
 endif(MSVC)
 
 if(BUILD_QTTESTING)
-    list(APPEND FreeCADGui_LIBS qttesting)
+    list(APPEND FreeCADGui_LIBS
+        qttesting
+    )
 endif(BUILD_QTTESTING)
 
 if(BUILD_TRACY_FRAME_PROFILER)
