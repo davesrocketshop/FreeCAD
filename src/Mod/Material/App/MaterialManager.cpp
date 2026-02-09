@@ -26,6 +26,8 @@
 
 #include <QMutex>
 #include <QMutexLocker>
+#include <QRunnable>
+#include <QThreadPool>
 
 #include <App/Application.h>
 #include <App/Material.h>
@@ -59,6 +61,21 @@ std::unique_ptr<MaterialManagerLocal> MaterialManager::_localManager;
 std::unique_ptr<MaterialManagerExternal> MaterialManager::_externalManager;
 #endif
 
+class MaterialLoaderTask: public QRunnable
+{
+public:
+    void run() override
+    {
+        // Load the materials by getting the managers. This is protected by
+        // existing mutexes in the managers
+        Base::Console().log("Loading materials...\n");
+        LibraryManager::getManager();
+        ModelManager::getManager();
+        MaterialManager::getManager();
+        Base::Console().log("Materials loaded\n");
+    }
+};
+
 MaterialManager::MaterialManager()
 {
 #if defined(BUILD_MATERIAL_EXTERNAL)
@@ -81,9 +98,20 @@ MaterialManager::~MaterialManager()
     LibraryManager::getManager().Detach(this);
 }
 
+void MaterialManager::backgroundLoad()
+{
+    // Load the materials by getting the managers. This is protected by
+    // existing mutexes in the managers
+    QThreadPool::globalInstance()->start(new MaterialLoaderTask);
+}
+
 MaterialManager& MaterialManager::getManager()
 {
-    if (!_manager) {
+    if (!_manager || _localManager
+#if defined(BUILD_MATERIAL_EXTERNAL)
+        || (_useExternal && !_externalManager)
+#endif
+    ) {
         initManagers();
     }
     return *_manager;
@@ -97,13 +125,27 @@ void MaterialManager::initManagers()
         // Can't use smart pointers for this since the constructor is private
         _manager = new MaterialManager();
     }
-    if (!_localManager) {
-        _localManager = std::make_unique<MaterialManagerLocal>();
+    try {
+        if (!_localManager) {
+            _localManager = std::make_unique<MaterialManagerLocal>();
+        }
+    }
+    catch (...) {
+        Base::Console().log("Error initializing local material manager\n");
+        _localManager = nullptr;
     }
 
 #if defined(BUILD_MATERIAL_EXTERNAL)
-    if (!_externalManager) {
-        _externalManager = std::make_unique<MaterialManagerExternal>();
+    if (_useExternal) {
+        try {
+            if (!_externalManager) {
+                _externalManager = std::make_unique<MaterialManagerExternal>();
+            }
+        }
+        catch (...) {
+            Base::Console().log("Error initializing external material manager\n");
+            _externalManager = nullptr;
+        }
     }
 #endif
 }

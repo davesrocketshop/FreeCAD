@@ -66,7 +66,11 @@ ModelManager::~ModelManager()
 
 ModelManager& ModelManager::getManager()
 {
-    if (!_manager) {
+    if (!_manager || !_localManager
+#if defined(BUILD_MATERIAL_EXTERNAL)
+        || (_useExternal && !_externalManager)
+#endif
+    ) {
         initManagers();
     }
 
@@ -83,13 +87,27 @@ void ModelManager::initManagers()
         // Can't use smart pointers for this since the constructor is private
         _manager = new ModelManager();
     }
-    if (!_localManager) {
-        _localManager = std::make_unique<ModelManagerLocal>();
+    try {
+        if (!_localManager) {
+            _localManager = std::make_unique<ModelManagerLocal>();
+        }
+    }
+    catch (...) {
+        Base::Console().log("Error initializing local model manager\n");
+        _localManager = nullptr;
     }
 
 #if defined(BUILD_MATERIAL_EXTERNAL)
-    if (!_externalManager) {
-        _externalManager = std::make_unique<ModelManagerExternal>();
+    if (_useExternal) {
+        try {
+            if (!_externalManager) {
+                _externalManager = std::make_unique<ModelManagerExternal>();
+            }
+        }
+        catch (...) {
+            Base::Console().log("Error initializing external model manager\n");
+            _externalManager = nullptr;
+        }
     }
 #endif
 }

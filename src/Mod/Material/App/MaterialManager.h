@@ -65,6 +65,7 @@ public:
     ~MaterialManager() override;
 
     static MaterialManager& getManager();
+    static void backgroundLoad();
 
     static void cleanup();
     static void refresh();

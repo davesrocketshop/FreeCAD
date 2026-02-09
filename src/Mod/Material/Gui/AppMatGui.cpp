@@ -130,6 +130,8 @@ PyMOD_INIT_FUNC(MatGui)
     // Add custom widgets
     new Gui::WidgetProducer<MatGui::MaterialTreeWidget>;
 
+    // Preload the materials
+    Materials::MaterialManager::backgroundLoad();
 
     PyMOD_Return(matGuiModule);
 }

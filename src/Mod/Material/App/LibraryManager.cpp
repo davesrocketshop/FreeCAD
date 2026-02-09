@@ -90,10 +90,15 @@ void LibraryManager::initManagers()
     auto configured = getConfiguredLibraries(true);  // Include disabled
 #if defined(BUILD_MATERIAL_EXTERNAL)
     if (_useExternal) {
-        auto externalList = externalManager()->libraries();
-        // External libraries have priority so are added first
-        for (auto library : *externalList) {
-            _libraryList->push_back(library);
+        try {
+            auto externalList = externalManager()->libraries();
+            // External libraries have priority so are added first
+            for (auto library : *externalList) {
+                _libraryList->push_back(library);
+            }
+        }
+        catch (...) {
+            Base::Console().log("Error initializing external library manager\n");
         }
     }
 #endif
