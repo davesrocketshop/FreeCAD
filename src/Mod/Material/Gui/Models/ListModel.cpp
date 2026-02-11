@@ -42,7 +42,7 @@ ListModel::ListModel()
 {}
 
 ListModel::ListModel(std::shared_ptr<Materials::MaterialProperty> property,
-                     QList<QVariant>& value,
+                     std::vector<QVariant>& value,
                      QObject* parent)
     : QAbstractListModel(parent)
     , _property(property)
@@ -111,7 +111,7 @@ bool ListModel::insertRows(int row, int count, const QModelIndex& parent)
 
     QVariant newRow = QString();
     while (count--) {
-        _valuePtr->insert(row, newRow);
+        _valuePtr->insert(_valuePtr->begin() + row, newRow);
     }
 
     endInsertRows();
@@ -123,9 +123,7 @@ bool ListModel::removeRows(int row, int count, const QModelIndex& parent)
 {
     beginRemoveRows(parent, row, row + count - 1);
 
-    while (count--) {
-        _valuePtr->removeAt(row);
-    }
+    _valuePtr->erase(_valuePtr->begin() + row, _valuePtr->begin() + row + count - 1);
 
     endRemoveRows();
 

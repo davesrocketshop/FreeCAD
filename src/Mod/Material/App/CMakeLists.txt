@@ -125,6 +125,8 @@ SET(Materials_SRCS
     PropertyMaterial.h
     PyVariants.cpp
     PyVariants.h
+    StringUtility.cpp
+    StringUtility.h
     trim.h
 )
 

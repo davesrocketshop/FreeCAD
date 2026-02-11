@@ -181,7 +181,7 @@ void DlgInspectMaterial::update(std::vector<Gui::ViewProvider*>& views)
 
 void DlgInspectMaterial::updateMaterialTree(const Materials::Material& material)
 {
-    Base::Console().log("Material '%s'\n", material.getName().toStdString().c_str());
+    Base::Console().log("Material '%s'\n", material.getName().c_str());
 
     auto tree = ui->treeMaterials;
     auto model = qobject_cast<QStandardItemModel*>(tree->model());
@@ -196,7 +196,7 @@ void DlgInspectMaterial::addMaterial(
     const Materials::Material& material
 )
 {
-    auto card = clipItem(tr("Name: ") + material.getName());
+    auto card = clipItem(tr("Name: ") + QString::fromStdString(material.getName()));
     addExpanded(tree, parent, card);
 
     indent();
@@ -210,7 +210,7 @@ void DlgInspectMaterial::addMaterial(
     const Materials::Material& material
 )
 {
-    auto card = clipItem(tr("Name: ") + material.getName());
+    auto card = clipItem(tr("Name: ") + QString::fromStdString(material.getName()));
     addExpanded(tree, parent, card);
 
     indent();
@@ -218,16 +218,16 @@ void DlgInspectMaterial::addMaterial(
     unindent();
 }
 
-void DlgInspectMaterial::addModels(QTreeView* tree, QStandardItem* parent, const QSet<QString>* models)
+void DlgInspectMaterial::addModels(QTreeView* tree, QStandardItem* parent, const QSet<std::string>* models)
 {
     if (models->isEmpty()) {
         auto none = clipItem(tr("None"));
         addExpanded(tree, parent, none);
     }
     else {
-        for (const QString& uuid : *models) {
-            auto model = Materials::ModelManager::getManager().getModel(uuid.toStdString());
-            auto name = clipItem(tr("Name: ") + model->getName());
+        for (const std::string& uuid : *models) {
+            auto model = Materials::ModelManager::getManager().getModel(uuid);
+            auto name = clipItem(tr("Name: ") + QString::fromStdString(model->getName()));
             addExpanded(tree, parent, name);
 
             indent();
@@ -243,7 +243,7 @@ void DlgInspectMaterial::addModelDetails(
     std::shared_ptr<Materials::Model>& model
 )
 {
-    auto uuid = clipItem(tr("UUID: ") + model->getUUID());
+    auto uuid = clipItem(tr("UUID: ") + QString::fromStdString(model->getUUID()));
     addExpanded(tree, parent, uuid);
 
     auto library = clipItem(tr("Library: ") + QString::fromStdString(model->getLibrary()->getName()));
@@ -257,7 +257,7 @@ void DlgInspectMaterial::addModelDetails(
     );
     addExpanded(tree, parent, libraryType);
 
-    auto directory = clipItem(tr("Subdirectory: ") + model->getDirectory());
+    auto directory = clipItem(tr("Subdirectory: ") + QString::fromStdString(model->getDirectory()));
     addExpanded(tree, parent, directory);
 
     auto inherits = clipItem(tr("Inherits:"));
@@ -265,17 +265,17 @@ void DlgInspectMaterial::addModelDetails(
 
     auto& inheritedUuids = model->getInheritance();
     indent();
-    if (inheritedUuids.isEmpty()) {
+    if (inheritedUuids.empty()) {
         auto none = clipItem(tr("None"));
         addExpanded(tree, inherits, none);
     }
     else {
-        for (const QString& inherited : inheritedUuids) {
+        for (const std::string& inherited : inheritedUuids) {
             auto inheritedModel = Materials::ModelManager::getManager().getModel(
-                inherited.toStdString()
+                inherited
             );
 
-            auto name = clipItem(tr("Name: ") + inheritedModel->getName());
+            auto name = clipItem(tr("Name: ") + QString::fromStdString(inheritedModel->getName()));
             addExpanded(tree, inherits, name);
 
             indent();
@@ -289,7 +289,7 @@ void DlgInspectMaterial::addModelDetails(
 void DlgInspectMaterial::addProperties(
     QTreeView* tree,
     QStandardItem* parent,
-    const std::map<QString, std::shared_ptr<Materials::MaterialProperty>>& properties
+    const std::map<std::string, std::shared_ptr<Materials::MaterialProperty>>& properties
 )
 {
     if (properties.empty()) {
@@ -298,7 +298,7 @@ void DlgInspectMaterial::addProperties(
     }
     else {
         for (auto& property : properties) {
-            auto name = clipItem(tr("Name: ") + property.second->getName());
+            auto name = clipItem(tr("Name: ") + QString::fromStdString(property.second->getName()));
             addExpanded(tree, parent, name);
 
             indent();
@@ -314,9 +314,9 @@ void DlgInspectMaterial::addPropertyDetails(
     const std::shared_ptr<Materials::MaterialProperty>& property
 )
 {
-    auto uuid = clipItem(tr("Model UUID: ") + property->getModelUUID());
+    auto uuid = clipItem(tr("Model UUID: ") + QString::fromStdString(property->getModelUUID()));
     addExpanded(tree, parent, uuid);
-    auto type = clipItem(tr("Type: ") + property->getPropertyType());
+    auto type = clipItem(tr("Type: ") + QString::fromStdString(property->getPropertyType()));
     addExpanded(tree, parent, type);
     auto hasValue = clipItem(tr("Has value: ") + (property->isNull() ? tr("No") : tr("Yes")));
     addExpanded(tree, parent, hasValue);
@@ -328,7 +328,7 @@ void DlgInspectMaterial::addMaterialDetails(
     const Materials::Material& material
 )
 {
-    auto uuid = clipItem(tr("UUID: ") + material.getUUID());
+    auto uuid = clipItem(tr("UUID: ") + QString::fromStdString(material.getUUID()));
     addExpanded(tree, parent, uuid);
     auto library = clipItem(tr("Library: ") + QString::fromStdString(material.getLibrary()->getName()));
     addExpanded(tree, parent, library);
@@ -338,16 +338,16 @@ void DlgInspectMaterial::addMaterialDetails(
         tr("Library type: ") + (material.getLibrary()->isLocal() ? tr("Local") : tr("Remote"))
     );
     addExpanded(tree, parent, libraryType);
-    auto directory = clipItem(tr("Sub directory: ") + material.getDirectory());
+    auto directory = clipItem(tr("Sub directory: ") + QString::fromStdString(material.getDirectory()));
     addExpanded(tree, parent, directory);
     auto inherits = clipItem(tr("Inherits:"));
     addExpanded(tree, parent, inherits);
 
     indent();
     auto parentUUID = material.getParentUUID();
-    if (!parentUUID.isEmpty()) {
+    if (!parentUUID.empty()) {
         auto parentMaterial = Materials::MaterialManager::getManager().getMaterial(
-            material.getParentUUID().toStdString()
+            material.getParentUUID()
         );
         addMaterial(tree, inherits, *parentMaterial);
     }

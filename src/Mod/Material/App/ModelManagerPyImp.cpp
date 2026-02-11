@@ -71,7 +71,7 @@ PyObject* ModelManagerPy::getModel(PyObject* args)
         error += "ModelMap:\n";
         for (auto itp = _modelMap->begin(); itp != _modelMap->end(); itp++) {
             error += "\t_modelMap[" + itp->first
-                + "] = '" + itp->second->getName().toStdString()
+                + "] = '" + itp->second->getName()
                 + "'\n";
         }
         error += "\tuuid = '" + std::string(uuid) + "'\n";

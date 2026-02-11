@@ -132,7 +132,7 @@ void ModelManagerExternal::addModel(const std::string& libraryName,
                                     const std::string& path,
                                     const Model& model)
 {
-    _cache.erase(model.getUUID().toStdString());
+    _cache.erase(model.getUUID());
     ExternalManager::getManager()->addModel(libraryName, path, model);
 }
 
@@ -140,7 +140,7 @@ void ModelManagerExternal::migrateModel(const std::string& libraryName,
                                     const std::string& path,
                                     const Model& model)
 {
-    _cache.erase(model.getUUID().toStdString());
+    _cache.erase(model.getUUID());
     ExternalManager::getManager()->migrateModel(libraryName, path, model);
 }
 

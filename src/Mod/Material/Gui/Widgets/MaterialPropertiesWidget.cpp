@@ -72,9 +72,24 @@ void MaterialPropertiesWidget::setup()
 void MaterialPropertiesWidget::setupButtons()
 {
     connect(ui->buttonPhysicalAdd, &QPushButton::clicked, this, &MaterialPropertiesWidget::onPhysicalAdd);
-    connect(ui->buttonPhysicalRemove, &QPushButton::clicked, this, &MaterialPropertiesWidget::onPhysicalRemove);
-    connect(ui->buttonAppearanceAdd, &QPushButton::clicked, this, &MaterialPropertiesWidget::onAppearanceAdd);
-    connect(ui->buttonAppearanceRemove, &QPushButton::clicked, this, &MaterialPropertiesWidget::onAppearanceRemove);
+    connect(
+        ui->buttonPhysicalRemove,
+        &QPushButton::clicked,
+        this,
+        &MaterialPropertiesWidget::onPhysicalRemove
+    );
+    connect(
+        ui->buttonAppearanceAdd,
+        &QPushButton::clicked,
+        this,
+        &MaterialPropertiesWidget::onAppearanceAdd
+    );
+    connect(
+        ui->buttonAppearanceRemove,
+        &QPushButton::clicked,
+        this,
+        &MaterialPropertiesWidget::onAppearanceRemove
+    );
 
     connect(ui->editName, &QLineEdit::textEdited, this, &MaterialPropertiesWidget::onName);
     connect(ui->editAuthor, &QLineEdit::textEdited, this, &MaterialPropertiesWidget::onAuthor);
@@ -139,13 +154,13 @@ void MaterialPropertiesWidget::onAppearanceRemove()
     }
 }
 
-QString MaterialPropertiesWidget::getColorHash(const QString& colorString, int colorRange) const
+QString MaterialPropertiesWidget::getColorHash(const std::string& colorString, int colorRange) const
 {
     /*
         returns a '#000000' string from a '(0.1,0.2,0.3)' string. Optionally the string
         has a fourth value for alpha (transparency)
     */
-    std::stringstream stream(colorString.toStdString());
+    std::stringstream stream(colorString);
 
     char c;
     stream >> c;  // read "("
@@ -163,16 +178,21 @@ QString MaterialPropertiesWidget::getColorHash(const QString& colorString, int c
         stream >> alpha;
     }
 
-    QColor color(static_cast<int>(red * colorRange),
-                 static_cast<int>(green * colorRange),
-                 static_cast<int>(blue * colorRange),
-                 static_cast<int>(alpha * colorRange));
+    QColor color(
+        static_cast<int>(red * colorRange),
+        static_cast<int>(green * colorRange),
+        static_cast<int>(blue * colorRange),
+        static_cast<int>(alpha * colorRange)
+    );
     return color.name();
 }
 
-void MaterialPropertiesWidget::addExpanded(QTreeView* tree,
-                                           QStandardItemModel* parent,
-                                           QStandardItem* child)
+QString MaterialPropertiesWidget::getColorHash(const QString& colorString, int colorRange) const
+{
+    return getColorHash(colorString.toStdString(), colorRange);
+}
+
+void MaterialPropertiesWidget::addExpanded(QTreeView* tree, QStandardItemModel* parent, QStandardItem* child)
 {
     parent->appendRow(child);
     tree->setExpanded(child->index(), true);
@@ -199,10 +219,7 @@ void MaterialPropertiesWidget::createPhysicalTree()
     auto delegate = new MaterialDelegate(this);
     tree->setItemDelegateForColumn(1, delegate);
 
-    connect(delegate,
-            &MaterialDelegate::propertyChange,
-            this,
-            &MaterialPropertiesWidget::onPropertyChange);
+    connect(delegate, &MaterialDelegate::propertyChange, this, &MaterialPropertiesWidget::onPropertyChange);
 }
 
 void MaterialPropertiesWidget::createPreviews()
@@ -234,10 +251,7 @@ void MaterialPropertiesWidget::createAppearanceTree()
     auto delegate = new MaterialDelegate(this);
     tree->setItemDelegateForColumn(1, delegate);
 
-    connect(delegate,
-            &MaterialDelegate::propertyChange,
-            this,
-            &MaterialPropertiesWidget::onPropertyChange);
+    connect(delegate, &MaterialDelegate::propertyChange, this, &MaterialPropertiesWidget::onPropertyChange);
 }
 
 void MaterialPropertiesWidget::updateMaterial(const std::shared_ptr<Materials::Material>& material)
@@ -261,26 +275,25 @@ void MaterialPropertiesWidget::updateMaterialGeneral()
         QString parentString;
         try {
             auto parent = getMaterialManager().getParent(_material);
-            parentString = parent->getLibraryPath();
+            parentString = QString::fromStdString(parent->getLibraryPath());
         }
         catch (const Materials::MaterialNotFound&) {
         }
 
         // Update the general information
-        ui->editName->setText(_material->getName());
-        ui->editAuthor->setText(_material->getAuthor());
-        ui->editLicense->setText(_material->getLicense());
+        ui->editName->setText(QString::fromStdString(_material->getName()));
+        ui->editAuthor->setText(QString::fromStdString(_material->getAuthor()));
+        ui->editLicense->setText(QString::fromStdString(_material->getLicense()));
         ui->editParent->setText(parentString);
         ui->editParent->setReadOnly(true);
-        ui->editSourceURL->setText(_material->getURL());
-        ui->editSourceReference->setText(_material->getReference());
+        ui->editSourceURL->setText(QString::fromStdString(_material->getURL()));
+        ui->editSourceReference->setText(QString::fromStdString(_material->getReference()));
         std::vector<QString> tags;
-        for (auto tag : _material->getTags())
-        {
-            tags.push_back(tag);
+        for (auto tag : _material->getTags()) {
+            tags.push_back(QString::fromStdString(tag));
         }
         ui->editTags->setTags(tags);
-        ui->editDescription->setText(_material->getDescription());
+        ui->editDescription->setText(QString::fromStdString(_material->getDescription()));
     }
     else {
         ui->editName->clear();
@@ -328,39 +341,49 @@ void MaterialPropertiesWidget::updateMaterialAppearance()
         auto models = _material->getAppearanceModels();
         if (models) {
             for (auto it = models->begin(); it != models->end(); it++) {
-                QString uuid = *it;
+                QString uuid = QString::fromStdString(*it);
                 try {
                     auto model = Materials::ModelManager::getManager().getModel(uuid.toStdString());
-                    QString name = model->getName();
+                    QString name = QString::fromStdString(model->getName());
 
                     auto modelRoot = new QStandardItem(name);
-                    modelRoot->setFlags(Qt::ItemIsEditable | Qt::ItemIsEnabled |
-                    Qt::ItemIsDragEnabled
-                                        | Qt::ItemIsDropEnabled);
+                    modelRoot->setFlags(
+                        Qt::ItemIsEditable | Qt::ItemIsEnabled | Qt::ItemIsDragEnabled
+                        | Qt::ItemIsDropEnabled
+                    );
                     addExpanded(tree, treeModel, modelRoot);
                     for (auto itp = model->begin(); itp != model->end(); itp++) {
                         QList<QStandardItem*> items;
 
-                        QString key = itp->first;
+                        QString key = QString::fromStdString(itp->first);
                         // auto propertyItem = new QStandardItem(key);
-                        auto propertyItem = new QStandardItem(itp->second.getDisplayName());
+                        auto propertyItem = new QStandardItem(
+                            QString::fromStdString(itp->second.getDisplayName())
+                        );
                         propertyItem->setData(key);
-                        propertyItem->setToolTip(itp->second.getDescription());
+                        propertyItem->setToolTip(QString::fromStdString(itp->second.getDescription()));
                         items.append(propertyItem);
 
-                        auto valueItem = new
-                        QStandardItem(_material->getAppearanceValueString(key));
-                        valueItem->setToolTip(itp->second.getDescription());
+                        auto valueItem = new QStandardItem(
+                            QString::fromStdString(
+                                _material->getAppearanceValueString(key.toStdString())
+                            )
+                        );
+                        valueItem->setToolTip(QString::fromStdString(itp->second.getDescription()));
                         QVariant variant;
                         // variant.setValue(_material->getAppearanceValueString(key));
                         variant.setValue(_material);
                         valueItem->setData(variant);
                         items.append(valueItem);
 
-                        auto typeItem = new QStandardItem(itp->second.getPropertyType());
+                        auto typeItem = new QStandardItem(
+                            QString::fromStdString(itp->second.getPropertyType())
+                        );
                         items.append(typeItem);
 
-                        auto unitsItem = new QStandardItem(itp->second.getUnits());
+                        auto unitsItem = new QStandardItem(
+                            QString::fromStdString(itp->second.getUnits())
+                        );
                         items.append(unitsItem);
 
                         modelRoot->appendRow(items);
@@ -399,39 +422,49 @@ void MaterialPropertiesWidget::updateMaterialProperties()
         auto models = _material->getPhysicalModels();
         if (models) {
             for (auto it = models->begin(); it != models->end(); it++) {
-                QString uuid = *it;
+                QString uuid = QString::fromStdString(*it);
                 try {
                     auto model = Materials::ModelManager::getManager().getModel(uuid.toStdString());
-                    QString name = model->getName();
+                    QString name = QString::fromStdString(model->getName());
 
                     auto modelRoot = new QStandardItem(name);
-                    modelRoot->setFlags(Qt::ItemIsEnabled | Qt::ItemIsDragEnabled
-                                        | Qt::ItemIsDropEnabled);
+                    modelRoot->setFlags(
+                        Qt::ItemIsEnabled | Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled
+                    );
                     addExpanded(tree, treeModel, modelRoot);
                     for (auto itp = model->begin(); itp != model->end(); itp++) {
                         QList<QStandardItem*> items;
 
-                        QString key = itp->first;
-                        Materials::ModelProperty modelProperty =
-                            static_cast<Materials::ModelProperty>(itp->second);
+                        QString key = QString::fromStdString(itp->first);
+                        Materials::ModelProperty modelProperty
+                            = static_cast<Materials::ModelProperty>(itp->second);
                         // auto propertyItem = new QStandardItem(key);
-                        auto propertyItem = new QStandardItem(modelProperty.getDisplayName());
+                        auto propertyItem = new QStandardItem(
+                            QString::fromStdString(modelProperty.getDisplayName())
+                        );
                         propertyItem->setData(key);
-                        propertyItem->setToolTip(modelProperty.getDescription());
+                        propertyItem->setToolTip(
+                            QString::fromStdString(modelProperty.getDescription())
+                        );
                         items.append(propertyItem);
 
-                        auto valueItem = new
-                        QStandardItem(_material->getPhysicalValueString(key));
-                        valueItem->setToolTip(modelProperty.getDescription());
+                        auto valueItem = new QStandardItem(
+                            QString::fromStdString(_material->getPhysicalValueString(key.toStdString()))
+                        );
+                        valueItem->setToolTip(QString::fromStdString(modelProperty.getDescription()));
                         QVariant variant;
                         variant.setValue(_material);
                         valueItem->setData(variant);
                         items.append(valueItem);
 
-                        auto typeItem = new QStandardItem(modelProperty.getPropertyType());
+                        auto typeItem = new QStandardItem(
+                            QString::fromStdString(modelProperty.getPropertyType())
+                        );
                         items.append(typeItem);
 
-                        auto unitsItem = new QStandardItem(modelProperty.getUnits());
+                        auto unitsItem = new QStandardItem(
+                            QString::fromStdString(modelProperty.getUnits())
+                        );
                         items.append(unitsItem);
 
                         // addExpanded(tree, modelRoot, propertyItem);
@@ -463,11 +496,13 @@ bool MaterialPropertiesWidget::updateTexturePreview() const
     if (_material->hasModel(Materials::ModelUUIDs::ModelUUID_Rendering_Texture)) {
         // First try loading an embedded image
         try {
-            auto property = _material->getAppearanceProperty(QStringLiteral("TextureImage"));
+            auto property = _material->getAppearanceProperty("TextureImage");
             if (!property->isNull()) {
                 auto propertyValue = property->getString();
-                if (!propertyValue.isEmpty()) {
-                    QByteArray by = QByteArray::fromBase64(propertyValue.toUtf8());
+                if (!propertyValue.empty()) {
+                    QByteArray by = QByteArray::fromBase64(
+                        QString::fromStdString(propertyValue).toUtf8()
+                    );
                     image = QImage::fromData(by);
                     hasImage = !image.isNull();
                 }
@@ -479,13 +514,12 @@ bool MaterialPropertiesWidget::updateTexturePreview() const
         // If no embedded image, load from a path
         if (!hasImage) {
             try {
-                auto property = _material->getAppearanceProperty(QStringLiteral("TexturePath"));
+                auto property = _material->getAppearanceProperty("TexturePath");
                 if (!property->isNull()) {
                     // Base::Console().log("Has 'TexturePath'\n");
                     auto filePath = property->getString();
-                    if (!image.load(filePath)) {
-                        Base::Console().log("Unable to load image '%s'\n",
-                                            filePath.toStdString().c_str());
+                    if (!image.load(QString::fromStdString(filePath))) {
+                        Base::Console().log("Unable to load image '%s'\n", filePath.c_str());
                         hasImage = false;
                     }
                     else {
@@ -499,7 +533,7 @@ bool MaterialPropertiesWidget::updateTexturePreview() const
 
         // Apply any scaling
         try {
-            auto property = _material->getAppearanceProperty(QStringLiteral("TextureScaling"));
+            auto property = _material->getAppearanceProperty("TextureScaling");
             if (!property->isNull()) {
                 // scaling = property->getFloat();
                 //  Base::Console().log("Has 'TextureScaling' = %g\n", scaling);
@@ -518,43 +552,43 @@ bool MaterialPropertiesWidget::updateTexturePreview() const
 
 bool MaterialPropertiesWidget::updateMaterialPreview() const
 {
-    if (_material->hasAppearanceProperty(QStringLiteral("AmbientColor"))) {
-        QString color = _material->getAppearanceValueString(QStringLiteral("AmbientColor"));
+    if (_material->hasAppearanceProperty("AmbientColor")) {
+        auto color = _material->getAppearanceValueString("AmbientColor");
         _rendered->setAmbientColor(getColorHash(color, 255));
     }
     else {
         _rendered->resetAmbientColor();
     }
-    if (_material->hasAppearanceProperty(QStringLiteral("DiffuseColor"))) {
-        QString color = _material->getAppearanceValueString(QStringLiteral("DiffuseColor"));
+    if (_material->hasAppearanceProperty("DiffuseColor")) {
+        auto color = _material->getAppearanceValueString("DiffuseColor");
         _rendered->setDiffuseColor(getColorHash(color, 255));
     }
     else {
         _rendered->resetDiffuseColor();
     }
-    if (_material->hasAppearanceProperty(QStringLiteral("SpecularColor"))) {
-        QString color = _material->getAppearanceValueString(QStringLiteral("SpecularColor"));
+    if (_material->hasAppearanceProperty("SpecularColor")) {
+        auto color = _material->getAppearanceValueString("SpecularColor");
         _rendered->setSpecularColor(getColorHash(color, 255));
     }
     else {
         _rendered->resetSpecularColor();
     }
-    if (_material->hasAppearanceProperty(QStringLiteral("EmissiveColor"))) {
-        QString color = _material->getAppearanceValueString(QStringLiteral("EmissiveColor"));
+    if (_material->hasAppearanceProperty("EmissiveColor")) {
+        auto color = _material->getAppearanceValueString("EmissiveColor");
         _rendered->setEmissiveColor(getColorHash(color, 255));
     }
     else {
         _rendered->resetEmissiveColor();
     }
-    if (_material->hasAppearanceProperty(QStringLiteral("Shininess"))) {
-        double value = _material->getAppearanceValue(QStringLiteral("Shininess")).toDouble();
+    if (_material->hasAppearanceProperty("Shininess")) {
+        auto value = _material->getAppearanceValue("Shininess").toDouble();
         _rendered->setShininess(value);
     }
     else {
         _rendered->resetShininess();
     }
-    if (_material->hasAppearanceProperty(QStringLiteral("Transparency"))) {
-        double value = _material->getAppearanceValue(QStringLiteral("Transparency")).toDouble();
+    if (_material->hasAppearanceProperty("Transparency")) {
+        auto value = _material->getAppearanceValue("Transparency").toDouble();
         _rendered->setTransparency(value);
     }
     else {
@@ -564,7 +598,7 @@ bool MaterialPropertiesWidget::updateMaterialPreview() const
     return true;
 }
 
-void MaterialPropertiesWidget::onPropertyChange(const QString& property, const QVariant& value)
+void MaterialPropertiesWidget::_onPropertyChange(const std::string& property, const QVariant& value)
 {
     if (_material->hasPhysicalProperty(property)) {
         _material->setPhysicalValue(property, value);
@@ -574,6 +608,11 @@ void MaterialPropertiesWidget::onPropertyChange(const QString& property, const Q
         updatePreview();
     }
     update();
+}
+
+void MaterialPropertiesWidget::onPropertyChange(const QString& property, const QVariant& value)
+{
+    _onPropertyChange(property.toStdString(), value);
 }
 
 void MaterialPropertiesWidget::onName(const QString& text)

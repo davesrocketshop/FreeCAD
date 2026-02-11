@@ -79,7 +79,7 @@ protected:
                             false));
 
         // Test Material.FCMat
-        _testMaterialUUID = QStringLiteral("c6c64159-19c1-40b5-859c-10561f20f979");
+        _testMaterialUUID = "c6c64159-19c1-40b5-859c-10561f20f979";
         _materialManager->refresh();
     }
 
@@ -133,7 +133,7 @@ TEST_F(TestMaterialCards, TestCopy)
                         true,  // saveAsCopy
                         false); // saveInherited
         EXPECT_EQ(newMaterial->getUUID(), _testMaterialUUID);
-        EXPECT_EQ(newMaterial->getName(), QStringLiteral("Test Material2"));
+        EXPECT_EQ(newMaterial->getName(), "Test Material2");
     }
     catch (...) {
         FAIL() << "An unknown exception has occured 2\n";
@@ -149,7 +149,7 @@ TEST_F(TestMaterialCards, TestCopy)
                         false) // saveInherited
                         , Materials::MaterialExists);
         EXPECT_EQ(newMaterial->getUUID(), _testMaterialUUID);
-        EXPECT_EQ(newMaterial->getName(), QStringLiteral("Test Material2"));
+        EXPECT_EQ(newMaterial->getName(), "Test Material2");
     }
     catch (...) {
         FAIL() << "An unknown exception has occured 3\n";
@@ -164,7 +164,7 @@ TEST_F(TestMaterialCards, TestCopy)
                         true,  // saveAsCopy
                         false);// saveInherited
         EXPECT_EQ(newMaterial->getUUID(), _testMaterialUUID);
-        EXPECT_EQ(newMaterial->getName(), QStringLiteral("Test Material2"));
+        EXPECT_EQ(newMaterial->getName(), "Test Material2");
     }
     catch (...) {
         FAIL() << "An unknown exception has occured 4\n";
@@ -179,14 +179,14 @@ TEST_F(TestMaterialCards, TestCopy)
                         true,  // saveAsCopy
                         true);// saveInherited
         EXPECT_EQ(newMaterial->getUUID(), _testMaterialUUID);
-        EXPECT_EQ(newMaterial->getName(), QStringLiteral("Test Material3"));
+        EXPECT_EQ(newMaterial->getName(), "Test Material3");
     }
     catch (...) {
         FAIL() << "An unknown exception has occured 5\n";
     }
 
         // Save to a new file, inheritance mode. no copy
-    QString uuid1;
+    std::string uuid1;
     try {
         _materialManager->saveMaterial(_library,
                         newMaterial,
@@ -195,7 +195,7 @@ TEST_F(TestMaterialCards, TestCopy)
                         false,  // saveAsCopy
                         true);// saveInherited
         EXPECT_NE(newMaterial->getUUID(), _testMaterialUUID);
-        EXPECT_EQ(newMaterial->getName(), QStringLiteral("Test Material4"));
+        EXPECT_EQ(newMaterial->getName(), "Test Material4");
         uuid1 = newMaterial->getUUID();
     }
     catch (...) {
@@ -211,7 +211,7 @@ TEST_F(TestMaterialCards, TestCopy)
                         true,  // saveAsCopy
                         true);// saveInherited
         EXPECT_EQ(newMaterial->getUUID(), uuid1);
-        EXPECT_EQ(newMaterial->getName(), QStringLiteral("Test Material5"));
+        EXPECT_EQ(newMaterial->getName(), "Test Material5");
     }
     catch (...) {
         FAIL() << "An unknown exception has occured 7\n";
@@ -225,7 +225,7 @@ TEST_F(TestMaterialCards, TestCopy)
                         true,  // saveAsCopy
                         true);// saveInherited
         EXPECT_EQ(newMaterial->getUUID(), uuid1);
-        EXPECT_EQ(newMaterial->getName(), QStringLiteral("Test Material5"));
+        EXPECT_EQ(newMaterial->getName(), "Test Material5");
     }
     catch (...) {
         FAIL() << "An unknown exception has occured 8\n";
@@ -240,7 +240,7 @@ TEST_F(TestMaterialCards, TestCopy)
                         true,  // saveAsCopy
                         true);// saveInherited
         EXPECT_EQ(newMaterial->getUUID(), uuid1);
-        EXPECT_EQ(newMaterial->getName(), QStringLiteral("Test Material6"));
+        EXPECT_EQ(newMaterial->getName(), "Test Material6");
     }
     catch (...) {
         FAIL() << "An unknown exception has occured 9\n";
@@ -254,7 +254,7 @@ TEST_F(TestMaterialCards, TestCopy)
                         false,  // saveAsCopy
                         true);// saveInherited
         EXPECT_EQ(newMaterial->getUUID(), uuid1);
-        EXPECT_EQ(newMaterial->getName(), QStringLiteral("Test Material6"));
+        EXPECT_EQ(newMaterial->getName(), "Test Material6");
     }
     catch (...) {
         FAIL() << "An unknown exception has occured 10\n";
@@ -268,18 +268,18 @@ TEST_F(TestMaterialCards, TestColumns)
 
     auto testMaterial = _materialManager->getMaterial(_testMaterialUUID.toStdString());
 
-    EXPECT_TRUE(testMaterial->hasPhysicalProperty(QStringLiteral("TestArray2D")));
-    auto array2d = testMaterial->getPhysicalProperty(QStringLiteral("TestArray2D"))->getMaterialValue();
+    EXPECT_TRUE(testMaterial->hasPhysicalProperty("TestArray2D"));
+    auto array2d = testMaterial->getPhysicalProperty("TestArray2D")->getMaterialValue();
     EXPECT_TRUE(array2d);
     EXPECT_EQ(dynamic_cast<Materials::Array2D &>(*array2d).columns(), 2);
 
-    EXPECT_TRUE(testMaterial->hasPhysicalProperty(QStringLiteral("TestArray2D3Column")));
-    auto array2d3Column = testMaterial->getPhysicalProperty(QStringLiteral("TestArray2D3Column"))->getMaterialValue();
+    EXPECT_TRUE(testMaterial->hasPhysicalProperty("TestArray2D3Column"));
+    auto array2d3Column = testMaterial->getPhysicalProperty("TestArray2D3Column")->getMaterialValue();
     EXPECT_TRUE(array2d3Column);
     EXPECT_EQ(dynamic_cast<Materials::Array2D &>(*array2d3Column).columns(), 3);
 
-    EXPECT_TRUE(testMaterial->hasPhysicalProperty(QStringLiteral("TestArray3D")));
-    auto array3d = testMaterial->getPhysicalProperty(QStringLiteral("TestArray3D"))->getMaterialValue();
+    EXPECT_TRUE(testMaterial->hasPhysicalProperty("TestArray3D"));
+    auto array3d = testMaterial->getPhysicalProperty("TestArray3D")->getMaterialValue();
     EXPECT_TRUE(array3d);
     EXPECT_EQ(dynamic_cast<Materials::Array3D &>(*array3d).columns(), 2);
 }

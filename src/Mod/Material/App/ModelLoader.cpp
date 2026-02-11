@@ -62,14 +62,13 @@ ModelLoader::ModelLoader(std::shared_ptr<std::multimap<std::string, std::shared_
 
 const std::string ModelLoader::getUUIDFromPath(const std::string& path)
 {
-    QFile file(Library::cleanPath(QString::fromStdString(path)));
+    Base::FileInfo file(Library::cleanPath(path));
     if (!file.exists()) {
         throw ModelNotFound();
     }
 
     try {
-        Base::FileInfo fi(path);
-        Base::ifstream str(fi);
+        Base::ifstream str(file);
         YAML::Node yamlroot = YAML::Load(str);
         std::string base = "Model";
         if (yamlroot["AppearanceModel"]) {
@@ -89,7 +88,7 @@ std::shared_ptr<ModelEntry> ModelLoader::getModelFromPath(
     const std::string& path
 ) const
 {
-    QFile file(Library::cleanPath(QString::fromStdString(path)));
+    Base::FileInfo file(Library::cleanPath(path));
     if (!file.exists()) {
         throw ModelNotFound();
     }
@@ -99,8 +98,7 @@ std::shared_ptr<ModelEntry> ModelLoader::getModelFromPath(
     std::string uuid;
     std::string name;
     try {
-        Base::FileInfo fi(path);
-        Base::ifstream str(fi);
+        Base::ifstream str(file);
         yamlroot = YAML::Load(str);
         if (yamlroot["AppearanceModel"]) {
             base = "AppearanceModel";
@@ -171,19 +169,19 @@ void ModelLoader::addToTree(std::shared_ptr<ModelEntry> model)
     Model finalModel(
         library,
         type,
-        QString::fromStdString(name),
-        QString::fromStdString(directory),
-        QString::fromStdString(uuid),
-        QString::fromStdString(description),
-        QString::fromStdString(url),
-        QString::fromStdString(doi)
+        name,
+        directory,
+        uuid,
+        description,
+        url,
+        doi
     );
 
     // Add inheritance list
     if (yamlModel[base]["Inherits"]) {
         auto inherits = yamlModel[base]["Inherits"];
         for (auto it = inherits.begin(); it != inherits.end(); it++) {
-            QString nodeName = QString::fromStdString((*it)["UUID"].as<std::string>());
+            auto nodeName = (*it)["UUID"].as<std::string>();
 
             finalModel.addInheritance(nodeName);
         }
@@ -204,15 +202,15 @@ void ModelLoader::addToTree(std::shared_ptr<ModelEntry> model)
             // auto inherits = yamlValue(yamlProp, "Inherits", "");
 
             ModelProperty property(
-                QString::fromStdString(propName),
-                QString::fromStdString(propDisplayName),
-                QString::fromStdString(propType),
-                QString::fromStdString(propUnits),
-                QString::fromStdString(propURL),
-                QString::fromStdString(propDescription)
+                propName,
+                propDisplayName,
+                propType,
+                propUnits,
+                propURL,
+                propDescription
             );
 
-            if (propType == QStringLiteral("2DArray") || propType == QStringLiteral("3DArray")) {
+            if (propType == "2DArray" || propType == "3DArray") {
                 // Read the columns
                 auto cols = yamlProp["Columns"];
                 for (const auto& col : cols) {
@@ -225,12 +223,12 @@ void ModelLoader::addToTree(std::shared_ptr<ModelEntry> model)
                     auto colPropURL = yamlValue(colProp, "URL", "");
                     auto colPropDescription = yamlValue(colProp, "Description", "");
                     ModelProperty colProperty(
-                        QString::fromStdString(colName),
-                        QString::fromStdString(colPropDisplayName),
-                        QString::fromStdString(colPropType),
-                        QString::fromStdString(colPropUnits),
-                        QString::fromStdString(colPropURL),
-                        QString::fromStdString(colPropDescription)
+                        colName,
+                        colPropDisplayName,
+                        colPropType,
+                        colPropUnits,
+                        colPropURL,
+                        colPropDescription
                     );
 
                     property.addColumn(colProperty);

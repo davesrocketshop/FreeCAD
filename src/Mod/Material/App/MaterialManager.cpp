@@ -206,12 +206,12 @@ std::shared_ptr<Material> MaterialManager::defaultMaterial()
         material = getManager().getMaterial("7f9fd73b-50c9-41d8-b7b2-575a030c1eeb");
     }
     if (material->hasAppearanceModel(ModelUUIDs::ModelUUID_Rendering_Basic)) {
-        material->getAppearanceProperty(QStringLiteral("DiffuseColor"))->setColor(mat->diffuseColor);
-        material->getAppearanceProperty(QStringLiteral("AmbientColor"))->setColor(mat->ambientColor);
-        material->getAppearanceProperty(QStringLiteral("EmissiveColor"))->setColor(mat->emissiveColor);
-        material->getAppearanceProperty(QStringLiteral("SpecularColor"))->setColor(mat->specularColor);
-        material->getAppearanceProperty(QStringLiteral("Transparency"))->setFloat(mat->transparency);
-        material->getAppearanceProperty(QStringLiteral("Shininess"))->setFloat(mat->shininess);
+        material->getAppearanceProperty("DiffuseColor")->setColor(mat->diffuseColor);
+        material->getAppearanceProperty("AmbientColor")->setColor(mat->ambientColor);
+        material->getAppearanceProperty("EmissiveColor")->setColor(mat->emissiveColor);
+        material->getAppearanceProperty("SpecularColor")->setColor(mat->specularColor);
+        material->getAppearanceProperty("Transparency")->setFloat(mat->transparency);
+        material->getAppearanceProperty("Shininess")->setFloat(mat->shininess);
     }
 
     return material;
@@ -544,18 +544,18 @@ std::shared_ptr<Material> MaterialManager::getMaterialByPath(const std::string& 
 
 std::shared_ptr<Material> MaterialManager::getParent(const std::shared_ptr<Material>& material) const
 {
-    if (material->getParentUUID().isEmpty()) {
+    if (material->getParentUUID().empty()) {
         throw MaterialNotFound();
     }
 
-    return getMaterial(material->getParentUUID().toStdString());
+    return getMaterial(material->getParentUUID());
 }
 
 std::shared_ptr<Material> MaterialManager::copyNew(const Material& original, const std::string& name) const
 {
     auto newMaterial = std::make_shared<Material>(original);
     newMaterial->newUuid();
-    newMaterial->setName(QString::fromStdString(name));
+    newMaterial->setName(name);
 
     return newMaterial;
 }
@@ -599,13 +599,13 @@ void MaterialManager::move(
         // Remote to local
         auto newMaterial = std::make_shared<Material>(*original);
         saveMaterial(library, newMaterial, path, false, false, true);
-        _externalManager->remove(original->getUUID().toStdString());
+        _externalManager->remove(original->getUUID());
     }
     else if (original->getLibrary()->isLocal()) {
         // Local to remote
         auto newMaterial = std::make_shared<Material>(*original);
         saveMaterial(library, newMaterial, path, false, false, true);
-        _localManager->remove(original->getUUID().toStdString());
+        _localManager->remove(original->getUUID());
     }
     else {
         // Remote to remote

@@ -102,11 +102,11 @@ TEST_F(TestModel, TestModelLoad)
     ASSERT_NE(_modelManager, nullptr);
 
     auto density = _modelManager->getModel("454661e5-265b-4320-8e6f-fcf6223ac3af");
-    EXPECT_EQ(density->getName(), QStringLiteral("Density"));
-    EXPECT_EQ(density->getUUID(), QStringLiteral("454661e5-265b-4320-8e6f-fcf6223ac3af"));
+    EXPECT_EQ(density->getName(), "Density");
+    EXPECT_EQ(density->getUUID(), "454661e5-265b-4320-8e6f-fcf6223ac3af");
 
-    auto& prop = (*density)[QStringLiteral("Density")];
-    EXPECT_EQ(prop.getName(), QStringLiteral("Density"));
+    auto& prop = (*density)["Density"];
+    EXPECT_EQ(prop.getName(), "Density");
 }
 
 TEST_F(TestModel, TestModelByPath)
@@ -118,8 +118,8 @@ TEST_F(TestModel, TestModelByPath)
         "Mechanical/LinearElastic.yml",
         "System"));
     EXPECT_NE(&linearElastic, nullptr);
-    EXPECT_EQ(linearElastic->getName(), QStringLiteral("Linear Elastic"));
-    EXPECT_EQ(linearElastic->getUUID(), QStringLiteral("7b561d1d-fb9b-44f6-9da9-56a4f74d7536"));
+    EXPECT_EQ(linearElastic->getName(), "Linear Elastic");
+    EXPECT_EQ(linearElastic->getUUID(), "7b561d1d-fb9b-44f6-9da9-56a4f74d7536");
 
     // The same but with a leading '/'
     std::shared_ptr<Materials::Model> linearElastic2;
@@ -127,8 +127,8 @@ TEST_F(TestModel, TestModelByPath)
         "/Mechanical/LinearElastic.yml",
         "System"));
     EXPECT_NE(&linearElastic2, nullptr);
-    EXPECT_EQ(linearElastic2->getName(), QStringLiteral("Linear Elastic"));
-    EXPECT_EQ(linearElastic2->getUUID(), QStringLiteral("7b561d1d-fb9b-44f6-9da9-56a4f74d7536"));
+    EXPECT_EQ(linearElastic2->getName(), "Linear Elastic");
+    EXPECT_EQ(linearElastic2->getUUID(), "7b561d1d-fb9b-44f6-9da9-56a4f74d7536");
 
     // Same with the library name as a prefix
     std::shared_ptr<Materials::Model> linearElastic3;
@@ -136,8 +136,8 @@ TEST_F(TestModel, TestModelByPath)
         "[System]/Mechanical/LinearElastic.yml",
         "System"));
     EXPECT_NE(&linearElastic3, nullptr);
-    EXPECT_EQ(linearElastic3->getName(), QStringLiteral("Linear Elastic"));
-    EXPECT_EQ(linearElastic3->getUUID(), QStringLiteral("7b561d1d-fb9b-44f6-9da9-56a4f74d7536"));
+    EXPECT_EQ(linearElastic3->getName(), "Linear Elastic");
+    EXPECT_EQ(linearElastic3->getUUID(), "7b561d1d-fb9b-44f6-9da9-56a4f74d7536");
 
     // Test with the file system path
     ASSERT_NO_THROW(linearElastic->getLibrary());
@@ -149,8 +149,8 @@ TEST_F(TestModel, TestModelByPath)
     ASSERT_NO_THROW(_modelManager->getModelByPath(path));
     auto linearElastic4 = _modelManager->getModelByPath(path);
     EXPECT_NE(&linearElastic4, nullptr);
-    EXPECT_EQ(linearElastic4->getName(), QStringLiteral("Linear Elastic"));
-    EXPECT_EQ(linearElastic4->getUUID(), QStringLiteral("7b561d1d-fb9b-44f6-9da9-56a4f74d7536"));
+    EXPECT_EQ(linearElastic4->getName(), "Linear Elastic");
+    EXPECT_EQ(linearElastic4->getUUID(), "7b561d1d-fb9b-44f6-9da9-56a4f74d7536");
 }
 
 // clang-format on

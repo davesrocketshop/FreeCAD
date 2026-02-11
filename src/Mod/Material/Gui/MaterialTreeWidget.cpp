@@ -222,7 +222,7 @@ void MaterialTreeWidget::fillFilterCombo()
     m_filterCombo->clear();
     if (hasMultipleFilters()) {
         for (auto const& filter : *_filterList) {
-            m_filterCombo->addItem(filter->name());
+            m_filterCombo->addItem(QString::fromStdString(filter->name()));
         }
     }
 }
@@ -249,7 +249,7 @@ void MaterialTreeWidget::editorClicked(bool checked)
         // _materialSelected = true;
         auto material = dialog.getMaterial();
         updateMaterialTree();
-        setMaterial(material->getUUID());
+        setMaterial(QString::fromStdString(material->getUUID()));
     }
 
     // Gui::Application::Instance->commandManager().runCommandByName("Material_Edit");
@@ -274,7 +274,7 @@ void MaterialTreeWidget::updateMaterial(const QString& uuid)
         Base::Console().log("*** Unable to load material '%s'\n", uuid.toStdString().c_str());
     }
 
-    m_materialDisplay = material->getName();
+    m_materialDisplay = QString::fromStdString(material->getName());
     m_material->setText(m_materialDisplay);
 }
 
@@ -418,7 +418,7 @@ void MaterialTreeWidget::getFavorites()
     for (int i = 0; static_cast<long>(i) < count; i++) {
         QString key = QStringLiteral("FAV%1").arg(i);
         QString uuid = QString::fromStdString(param->GetASCII(key.toStdString().c_str(), ""));
-        if (_filter.modelIncluded(uuid)) {
+        if (_filter.modelIncluded(uuid.toStdString())) {
             _favorites.push_back(uuid);
         }
     }
@@ -435,7 +435,7 @@ void MaterialTreeWidget::getRecents()
     for (int i = 0; static_cast<long>(i) < count; i++) {
         QString key = QStringLiteral("MRU%1").arg(i);
         QString uuid = QString::fromStdString(param->GetASCII(key.toStdString().c_str(), ""));
-        if (_filter.modelIncluded(uuid)) {
+        if (_filter.modelIncluded(uuid.toStdString())) {
             _recents.push_back(uuid);
         }
     }
@@ -608,7 +608,7 @@ void MaterialTreeWidget::addRecents(QStandardItem* parent)
         try {
             auto material = getMaterialManager().getMaterial(uuid.toStdString());
             auto icon = MaterialsEditor::getIcon(material->getLibrary());
-            auto card = new QStandardItem(icon, material->getName());
+            auto card = new QStandardItem(icon, QString::fromStdString(material->getName()));
             card->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
             card->setData(QVariant(uuid), Qt::UserRole);
 
@@ -625,7 +625,7 @@ void MaterialTreeWidget::addFavorites(QStandardItem* parent)
         try {
             auto material = getMaterialManager().getMaterial(uuid.toStdString());
             auto icon = MaterialsEditor::getIcon(material->getLibrary());
-            auto card = new QStandardItem(icon, material->getName());
+            auto card = new QStandardItem(icon, QString::fromStdString(material->getName()));
             card->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
             card->setData(QVariant(uuid), Qt::UserRole);
 

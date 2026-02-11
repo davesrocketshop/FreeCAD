@@ -100,9 +100,9 @@ private:
 
     static std::string
     yamlValue(const YAML::Node& node, const std::string& key, const std::string& defaultValue);
-    static std::shared_ptr<QList<QVariant>> readList(const YAML::Node& node,
+    static std::shared_ptr<std::vector<QVariant>> readList(const YAML::Node& node,
                                                      bool isImageList = false);
-    static std::shared_ptr<QList<QVariant>> readImageList(const YAML::Node& node);
+    static std::shared_ptr<std::vector<QVariant>> readImageList(const YAML::Node& node);
     static std::shared_ptr<Array2D> read2DArray(const YAML::Node& node, int columns);
     static std::shared_ptr<Array3D> read3DArray(const YAML::Node& node, int columns);
 

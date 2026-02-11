@@ -124,7 +124,7 @@ PyObject* MaterialManagerPy::inheritMaterial(PyObject* args)
 
         // Found the parent. Create a new material with this as parent
         auto material = new Material();
-        material->setParentUUID(QString::fromLatin1(uuid));
+        material->setParentUUID(uuid);
         return new MaterialPy(material);  // Transfers ownership
     }
     catch (const MaterialNotFound&) {

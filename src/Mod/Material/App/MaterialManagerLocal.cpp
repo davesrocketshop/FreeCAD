@@ -119,7 +119,7 @@ std::shared_ptr<std::vector<LibraryObject>> MaterialManagerLocal::libraryMateria
         auto library = it.second->getLibrary();
         if (library->isName(libraryName)) {
             materials->push_back(
-                LibraryObject(it.first, it.second->getDirectory().toStdString(), it.second->getName().toStdString())
+                LibraryObject(it.first, it.second->getDirectory(), it.second->getName())
             );
         }
     }
@@ -156,7 +156,7 @@ std::shared_ptr<std::vector<LibraryObject>> MaterialManagerLocal::libraryMateria
         if (library->isName(libraryName)) {
             if (passFilter(*it.second, filter, options)) {
                 materials->push_back(
-                    LibraryObject(it.first, it.second->getDirectory().toStdString(), it.second->getName().toStdString())
+                    LibraryObject(it.first, it.second->getDirectory(), it.second->getName())
                 );
             }
         }
@@ -258,7 +258,7 @@ std::shared_ptr<Material> MaterialManagerLocal::getMaterialByPath(const std::str
                         auto material
                             = MaterialConfigLoader::getMaterialFromPath(materialLibrary, path);
                         if (material) {
-                            (*_materialMap)[material->getUUID().toStdString()]
+                            (*_materialMap)[material->getUUID()]
                                 = materialLibrary->addMaterial(material, path);
                         }
 
@@ -339,17 +339,18 @@ void MaterialManagerLocal::move(
     if (*library != *original->getLibrary()) {
         original->setLibrary(library);
     }
-    original->setDirectory(QString::fromStdString(path));
+    original->setDirectory(path);
 }
 
 void MaterialManagerLocal::remove(const std::string& uuid)
 {
     auto material = getMaterial(uuid);
     auto path = material->getLibrary()->getDirectory() + "/"
-        + material->getDirectory().toStdString() + "/" + material->getName().toStdString()
+        + material->getDirectory() + "/" + material->getName()
         + ".FCMat";
 
-    if (!QFile::remove(QString::fromStdString(path))) {
+    Base::FileInfo file(path);
+    if (!file.deleteFile()) {
         Base::Console().log("Unable to remove '%s'\n", path.c_str());
     }
     _materialMap->erase(uuid);
@@ -367,7 +368,7 @@ void MaterialManagerLocal::saveMaterial(
     if (library->isLocal()) {
         auto newMaterial = library->saveMaterial(material, path, overwrite, saveAsCopy, saveInherited);
         newMaterial->resetEditState();
-        (*_materialMap)[newMaterial->getUUID().toStdString()] = newMaterial;
+        (*_materialMap)[newMaterial->getUUID()] = newMaterial;
     }
     else {
         throw LibraryNotFound();
@@ -409,7 +410,7 @@ std::shared_ptr<std::map<std::string, std::shared_ptr<Material>>> MaterialManage
         std::string key = it.first;
         auto material = it.second;
 
-        if (material->hasModel(QString::fromStdString(uuid))) {
+        if (material->hasModel(uuid)) {
             (*dict)[key] = material;
         }
     }
@@ -428,7 +429,7 @@ std::shared_ptr<std::map<std::string, std::shared_ptr<Material>>> MaterialManage
         std::string key = it.first;
         auto material = it.second;
 
-        if (material->isModelComplete(QString::fromStdString(uuid))) {
+        if (material->isModelComplete(uuid)) {
             (*dict)[key] = material;
         }
     }

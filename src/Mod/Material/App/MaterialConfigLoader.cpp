@@ -21,14 +21,15 @@
  *                                                                         *
  **************************************************************************/
 
+#include <memory>
+#include <fstream>
+#include <ranges>
+
 #include <QString>
 #include <QFile>
 #include <QIODevice>
 #include <QTextStream>
 #include <QUuid>
-#include <memory>
-#include <fstream>
-
 
 
 #include <App/Application.h>
@@ -42,6 +43,7 @@
 #include "MaterialLoader.h"
 #include "Model.h"
 #include "ModelUuids.h"
+#include "StringUtility.h"
 
 
 using namespace Materials;
@@ -75,7 +77,7 @@ bool MaterialConfigLoader::isConfigStyle(const std::string& path)
     return true;
 }
 
-bool MaterialConfigLoader::readFile(const std::string& path, QMap<std::string, std::string>& map)
+bool MaterialConfigLoader::readFile(const std::string& path, std::map<std::string, std::string>& map)
 {
     // This function is necessary as the built in routines don't always return the full value string
     QFile infile(QString::fromStdString(path));
@@ -181,7 +183,7 @@ std::string MaterialConfigLoader::getAuthorAndLicense(const std::string& path)
     return noAuthor;
 }
 
-void MaterialConfigLoader::addVectorRendering(const QMap<std::string, std::string>& fcmat,
+void MaterialConfigLoader::addVectorRendering(std::map<std::string, std::string>& fcmat,
                                               const std::shared_ptr<Material>& finalModel)
 {
     std::string sectionFillPattern = value(fcmat, "VectorRendering/SectionFillPattern", "");
@@ -213,7 +215,7 @@ void MaterialConfigLoader::addVectorRendering(const QMap<std::string, std::strin
     }
 }
 
-void MaterialConfigLoader::addRendering(const QMap<std::string, std::string>& fcmat,
+void MaterialConfigLoader::addRendering(std::map<std::string, std::string>& fcmat,
                                         const std::shared_ptr<Material>& finalModel)
 {
     std::string ambientColor = value(fcmat, "Rendering/AmbientColor", "");
@@ -277,11 +279,11 @@ void MaterialConfigLoader::addRendering(const QMap<std::string, std::string>& fc
     setAppearanceValue(finalModel, "VertexShader", vertexShader);
 }
 
-std::string MaterialConfigLoader::multiLineKey(QMap<std::string, std::string>& fcmat, const std::string& prefix)
+std::string MaterialConfigLoader::multiLineKey(std::map<std::string, std::string>& fcmat, const std::string& prefix)
 {
     // fcmat.beginGroup(QStringLiteral("Render"));
     std::string multiLineString;
-    auto keys = fcmat.keys();
+    auto keys = std::views::keys(fcmat);
     for (const auto& key : keys) {
         if (key.starts_with(prefix) || key.starts_with("Render/" + prefix)) {
             std::string string = value(fcmat, key, "");
@@ -298,7 +300,7 @@ std::string MaterialConfigLoader::multiLineKey(QMap<std::string, std::string>& f
     return multiLineString;
 }
 
-void MaterialConfigLoader::addRenderAppleseed(QMap<std::string, std::string>& fcmat,
+void MaterialConfigLoader::addRenderAppleseed(std::map<std::string, std::string>& fcmat,
                                               const std::shared_ptr<Material>& finalModel)
 {
     std::string prefix = "Render.Appleseed";
@@ -312,7 +314,7 @@ void MaterialConfigLoader::addRenderAppleseed(QMap<std::string, std::string>& fc
     }
 }
 
-void MaterialConfigLoader::addRenderCarpaint(QMap<std::string, std::string>& fcmat,
+void MaterialConfigLoader::addRenderCarpaint(std::map<std::string, std::string>& fcmat,
                                              const std::shared_ptr<Material>& finalModel)
 {
     std::string renderBaseColorValue = value(fcmat, "Render/Render.Carpaint.BaseColor", "");
@@ -343,7 +345,7 @@ void MaterialConfigLoader::addRenderCarpaint(QMap<std::string, std::string>& fcm
     }
 }
 
-void MaterialConfigLoader::addRenderCycles(QMap<std::string, std::string>& fcmat,
+void MaterialConfigLoader::addRenderCycles(std::map<std::string, std::string>& fcmat,
                                            const std::shared_ptr<Material>& finalModel)
 {
     std::string prefix = "Render.Cycles";
@@ -356,7 +358,7 @@ void MaterialConfigLoader::addRenderCycles(QMap<std::string, std::string>& fcmat
     }
 }
 
-void MaterialConfigLoader::addRenderDiffuse(QMap<std::string, std::string>& fcmat,
+void MaterialConfigLoader::addRenderDiffuse(std::map<std::string, std::string>& fcmat,
                                             const std::shared_ptr<Material>& finalModel)
 {
     std::string renderBump = value(fcmat, "Render/Render.Diffuse.Bump", "");
@@ -384,7 +386,7 @@ void MaterialConfigLoader::addRenderDiffuse(QMap<std::string, std::string>& fcma
     }
 }
 
-void MaterialConfigLoader::addRenderDisney(QMap<std::string, std::string>& fcmat,
+void MaterialConfigLoader::addRenderDisney(std::map<std::string, std::string>& fcmat,
                                            const std::shared_ptr<Material>& finalModel)
 {
     std::string renderAnisotropicValue = value(fcmat, "Render/Render.Disney.Anisotropic", "");
@@ -500,7 +502,7 @@ void MaterialConfigLoader::addRenderDisney(QMap<std::string, std::string>& fcmat
     }
 }
 
-void MaterialConfigLoader::addRenderEmission(QMap<std::string, std::string>& fcmat,
+void MaterialConfigLoader::addRenderEmission(std::map<std::string, std::string>& fcmat,
                                              const std::shared_ptr<Material>& finalModel)
 {
     std::string renderBump = value(fcmat, "Render/Render.Emission.Bump", "");
@@ -532,7 +534,7 @@ void MaterialConfigLoader::addRenderEmission(QMap<std::string, std::string>& fcm
     }
 }
 
-void MaterialConfigLoader::addRenderGlass(QMap<std::string, std::string>& fcmat,
+void MaterialConfigLoader::addRenderGlass(std::map<std::string, std::string>& fcmat,
                                           const std::shared_ptr<Material>& finalModel)
 {
     std::string renderBump = value(fcmat, "Render/Render.Glass.Bump", "");
@@ -565,7 +567,7 @@ void MaterialConfigLoader::addRenderGlass(QMap<std::string, std::string>& fcmat,
     }
 }
 
-void MaterialConfigLoader::addRenderLuxcore(QMap<std::string, std::string>& fcmat,
+void MaterialConfigLoader::addRenderLuxcore(std::map<std::string, std::string>& fcmat,
                                             const std::shared_ptr<Material>& finalModel)
 {
     std::string prefix = "Render.Luxcore";
@@ -579,7 +581,7 @@ void MaterialConfigLoader::addRenderLuxcore(QMap<std::string, std::string>& fcma
     }
 }
 
-void MaterialConfigLoader::addRenderLuxrender(QMap<std::string, std::string>& fcmat,
+void MaterialConfigLoader::addRenderLuxrender(std::map<std::string, std::string>& fcmat,
                                               const std::shared_ptr<Material>& finalModel)
 {
     std::string prefix = "Render.Luxrender";
@@ -593,7 +595,7 @@ void MaterialConfigLoader::addRenderLuxrender(QMap<std::string, std::string>& fc
     }
 }
 
-void MaterialConfigLoader::addRenderMixed(QMap<std::string, std::string>& fcmat,
+void MaterialConfigLoader::addRenderMixed(std::map<std::string, std::string>& fcmat,
                                           const std::shared_ptr<Material>& finalModel)
 {
     std::string renderBump = value(fcmat, "Render/Render.Mixed.Bump", "");
@@ -654,7 +656,7 @@ void MaterialConfigLoader::addRenderMixed(QMap<std::string, std::string>& fcmat,
     }
 }
 
-void MaterialConfigLoader::addRenderOspray(QMap<std::string, std::string>& fcmat,
+void MaterialConfigLoader::addRenderOspray(std::map<std::string, std::string>& fcmat,
                                            const std::shared_ptr<Material>& finalModel)
 {
     std::string prefix = "Render.Ospray";
@@ -668,7 +670,7 @@ void MaterialConfigLoader::addRenderOspray(QMap<std::string, std::string>& fcmat
     }
 }
 
-void MaterialConfigLoader::addRenderPbrt(QMap<std::string, std::string>& fcmat,
+void MaterialConfigLoader::addRenderPbrt(std::map<std::string, std::string>& fcmat,
                                          const std::shared_ptr<Material>& finalModel)
 {
     std::string prefix = "Render.Pbrt";
@@ -682,7 +684,7 @@ void MaterialConfigLoader::addRenderPbrt(QMap<std::string, std::string>& fcmat,
     }
 }
 
-void MaterialConfigLoader::addRenderPovray(QMap<std::string, std::string>& fcmat,
+void MaterialConfigLoader::addRenderPovray(std::map<std::string, std::string>& fcmat,
                                            const std::shared_ptr<Material>& finalModel)
 {
     std::string prefix = "Render.Povray";
@@ -696,7 +698,7 @@ void MaterialConfigLoader::addRenderPovray(QMap<std::string, std::string>& fcmat
     }
 }
 
-void MaterialConfigLoader::addRenderSubstancePBR(QMap<std::string, std::string>& fcmat,
+void MaterialConfigLoader::addRenderSubstancePBR(std::map<std::string, std::string>& fcmat,
                                                  const std::shared_ptr<Material>& finalModel)
 {
     std::string renderBaseColorValue = value(fcmat, "Render/Render.Substance_PBR.BaseColor", "");
@@ -753,36 +755,36 @@ void MaterialConfigLoader::addRenderSubstancePBR(QMap<std::string, std::string>&
     }
 }
 
-void MaterialConfigLoader::addRenderTexture(QMap<std::string, std::string>& fcmat,
+void MaterialConfigLoader::addRenderTexture(std::map<std::string, std::string>& fcmat,
                                             const std::shared_ptr<Material>& finalModel)
 {
     std::string renderName;
-    auto renderImage = std::make_shared<QList<QVariant>>();
+    auto renderImage = std::make_shared<std::vector<QVariant>>();
     std::string renderScale;
     std::string renderRotation;
     std::string renderTranslationU;
     std::string renderTranslationV;
 
-    auto keys = fcmat.keys();
+    auto keys = std::views::keys(fcmat);
     for (const auto& key : keys) {
         if (key.starts_with("Render/Render.Textures.")) {
-            QStringList list1 = QString::fromStdString(key).split(QLatin1Char('.'));
+            auto list1 = split(key, '.');
             if (renderName.empty()) {
-                renderName = list1[2].toStdString();
+                renderName = list1[2];
             }
-            if (list1[3] == QStringLiteral("Images")) {
+            if (list1[3] == "Images") {
                 // renderImage->push_back(value(fcmat, key, "")); TODO: fix
             }
-            else if (list1[3] == QStringLiteral("Scale")) {
+            else if (list1[3] == "Scale") {
                 renderScale = value(fcmat, key, "");
             }
-            else if (list1[3] == QStringLiteral("Rotation")) {
+            else if (list1[3] == "Rotation") {
                 renderRotation = value(fcmat, key, "");
             }
-            else if (list1[3] == QStringLiteral("TranslationU")) {
+            else if (list1[3] == "TranslationU") {
                 renderTranslationU = value(fcmat, key, "");
             }
-            else if (list1[3] == QStringLiteral(" TranslationV")) {
+            else if (list1[3] == " TranslationV") {
                 renderTranslationV = value(fcmat, key, "");
             }
         }
@@ -801,7 +803,7 @@ void MaterialConfigLoader::addRenderTexture(QMap<std::string, std::string>& fcma
     }
 }
 
-void MaterialConfigLoader::addRenderWB(QMap<std::string, std::string>& fcmat,
+void MaterialConfigLoader::addRenderWB(std::map<std::string, std::string>& fcmat,
                                        const std::shared_ptr<Material>& finalModel)
 {
     std::string useObjectColor = value(fcmat, "General/UseObjectColor", "");
@@ -832,7 +834,7 @@ void MaterialConfigLoader::addRenderWB(QMap<std::string, std::string>& fcmat,
     addRenderTexture(fcmat, finalModel);
 }
 
-void MaterialConfigLoader::addCosts(const QMap<std::string, std::string>& fcmat,
+void MaterialConfigLoader::addCosts(std::map<std::string, std::string>& fcmat,
                                     const std::shared_ptr<Material>& finalModel)
 {
     std::string productURL = value(fcmat, "Cost/ProductURL", "");
@@ -849,7 +851,7 @@ void MaterialConfigLoader::addCosts(const QMap<std::string, std::string>& fcmat,
     }
 }
 
-void MaterialConfigLoader::addArchitectural(const QMap<std::string, std::string>& fcmat,
+void MaterialConfigLoader::addArchitectural(std::map<std::string, std::string>& fcmat,
                                             const std::shared_ptr<Material>& finalModel)
 {
     std::string color = value(fcmat, "Architectural/Color", "");
@@ -884,7 +886,7 @@ void MaterialConfigLoader::addArchitectural(const QMap<std::string, std::string>
     setAppearanceValue(finalModel, "Finish", finish);
 }
 
-void MaterialConfigLoader::addElectromagnetic(const QMap<std::string, std::string>& fcmat,
+void MaterialConfigLoader::addElectromagnetic(std::map<std::string, std::string>& fcmat,
                                               const std::shared_ptr<Material>& finalModel)
 {
     std::string relativePermittivity = value(fcmat, "Electromagnetic/RelativePermittivity", "");
@@ -903,7 +905,7 @@ void MaterialConfigLoader::addElectromagnetic(const QMap<std::string, std::strin
     }
 }
 
-void MaterialConfigLoader::addThermal(const QMap<std::string, std::string>& fcmat,
+void MaterialConfigLoader::addThermal(std::map<std::string, std::string>& fcmat,
                                       const std::shared_ptr<Material>& finalModel)
 {
     std::string specificHeat = value(fcmat, "Thermal/SpecificHeat", "");
@@ -921,7 +923,7 @@ void MaterialConfigLoader::addThermal(const QMap<std::string, std::string>& fcma
     }
 }
 
-void MaterialConfigLoader::addFluid(const QMap<std::string, std::string>& fcmat,
+void MaterialConfigLoader::addFluid(std::map<std::string, std::string>& fcmat,
                                     const std::shared_ptr<Material>& finalModel)
 {
     std::string density = value(fcmat, "Fluidic/Density", "");
@@ -953,7 +955,7 @@ void MaterialConfigLoader::addFluid(const QMap<std::string, std::string>& fcmat,
     setPhysicalValue(finalModel, "PrandtlNumber", prandtlNumber);
 }
 
-void MaterialConfigLoader::addMechanical(const QMap<std::string, std::string>& fcmat,
+void MaterialConfigLoader::addMechanical(std::map<std::string, std::string>& fcmat,
                                          const std::shared_ptr<Material>& finalModel)
 {
     std::string density = value(fcmat, "Mechanical/Density", "");
@@ -1015,17 +1017,18 @@ void MaterialConfigLoader::addMechanical(const QMap<std::string, std::string>& f
     setPhysicalValue(finalModel, "Stiffness", stiffness);
 }
 
-void MaterialConfigLoader::addLegacy(const QMap<std::string, std::string>& fcmat,
+void MaterialConfigLoader::addLegacy(std::map<std::string, std::string>& fcmat,
                                      const std::shared_ptr<Material>& finalModel)
 {
-    for (auto const& legacy : fcmat.keys()) {
-        auto name = legacy;
+    // auto keys_view = std::views::keys(fcmat);
+    for (auto const& legacy : std::views::keys(fcmat)) {
+        std::string name = legacy;
         int last = name.rfind("/");
         if (last > 0) {
             name = name.substr(last + 1);
         }
 
-        if (!finalModel->hasNonLegacyProperty(QString::fromStdString(name))) {
+        if (!finalModel->hasNonLegacyProperty(name)) {
             setLegacyValue(finalModel, name, fcmat[legacy]);
         }
     }
@@ -1037,7 +1040,7 @@ MaterialConfigLoader::getMaterialFromPath(const std::shared_ptr<MaterialLibraryL
 {
     std::string author = getAuthorAndLicense(path);  // Place them both in the author field
 
-    QMap<std::string, std::string> fcmat;
+    std::map<std::string, std::string> fcmat;
     if (!readFile(path, fcmat)) {
         Base::Console().log("Error reading '%s'\n", path.c_str());
         throw MaterialReadError();
@@ -1057,16 +1060,16 @@ MaterialConfigLoader::getMaterialFromPath(const std::shared_ptr<MaterialLibraryL
     auto baseLibrary = std::make_shared<MaterialLibrary>(*library);
     std::shared_ptr<Material> finalModel = std::make_shared<Material>(
         baseLibrary,
-        QString::fromStdString(path),
-        QString::fromStdString(uuid),
-        QString::fromStdString(name)
+        path,
+        uuid,
+        name
     );
     finalModel->setOldFormat(true);
 
-    finalModel->setAuthor(QString::fromStdString(author));
-    finalModel->setDescription(QString::fromStdString(description));
-    finalModel->setReference(QString::fromStdString(sourceReference));
-    finalModel->setURL(QString::fromStdString(sourceURL));
+    finalModel->setAuthor(author);
+    finalModel->setDescription(description);
+    finalModel->setReference(sourceReference);
+    finalModel->setURL(sourceURL);
 
     std::string father = value(fcmat, "Father", "");
     if (!father.empty()) {

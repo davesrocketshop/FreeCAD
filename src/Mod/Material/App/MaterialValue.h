@@ -25,8 +25,9 @@
 #define MATERIAL_MATERIALVALUE_H
 
 #include <memory>
+#include <map>
+#include <vector>
 
-#include <QList>
 #include <QMetaType>
 #include <QVariant>
 
@@ -84,13 +85,13 @@ public:
     {
         return _value;
     }
-    QList<QVariant> getList()
+    std::vector<QVariant> getList()
     {
-        return _value.value<QList<QVariant>>();
+        return _value.value<std::vector<QVariant>>();
     }
-    const QList<QVariant> getList() const
+    const std::vector<QVariant> getList() const
     {
-        return _value.value<QList<QVariant>>();
+        return _value.value<std::vector<QVariant>>();
     }
     virtual bool isNull() const;
     virtual bool isEmpty() const;
@@ -104,11 +105,12 @@ public:
     {
         _value = value;
     }
-    void setList(const QList<QVariant>& value);
+    void setList(const std::vector<QVariant>& value);
 
-    virtual QString getYAMLString() const;
-    static QString escapeString(const QString& source);
-    static ValueType mapType(const QString& stringType);
+    virtual std::string getYAMLString() const;
+    static void replaceAll(std::string& source, const std::string& from, const std::string& to);
+    static std::string escapeString(const std::string& source);
+    static ValueType mapType(const std::string& stringType);
 
     static const Base::QuantityFormat getQuantityFormat();
 
@@ -116,6 +118,21 @@ public:
     static const int PRECISION = 6;
 
     void validate(const MaterialValue& other) const;
+
+    static std::string value(
+        std::map<std::string, std::string>& fcmat,
+        const std::string& name,
+        const std::string& defaultValue
+    )
+    {
+        try {
+            return fcmat[name];
+        }
+        catch (const std::out_of_range&) {
+        }
+
+        return defaultValue;
+    }
 
 protected:
     MaterialValue(ValueType type, ValueType inherited);
@@ -126,16 +143,16 @@ protected:
     }
     void setInitialValue(ValueType inherited);
 
-    QString getYAMLStringImage() const;
-    QString getYAMLStringList() const;
-    QString getYAMLStringImageList() const;
-    QString getYAMLStringMultiLine() const;
+    std::string getYAMLStringImage() const;
+    std::string getYAMLStringList() const;
+    std::string getYAMLStringImageList() const;
+    std::string getYAMLStringMultiLine() const;
 
     ValueType _valueType;
     QVariant _value;
 
 private:
-    static QMap<QString, ValueType> _typeMap;
+    static std::map<std::string, ValueType> _typeMap;
 };
 
 class MaterialsExport Array2D: public MaterialValue
@@ -152,7 +169,7 @@ public:
     bool isNull() const override;
     bool isEmpty() const override;
 
-    const QList<std::shared_ptr<QList<QVariant>>>& getArray() const
+    const std::vector<std::shared_ptr<std::vector<QVariant>>>& getArray() const
     {
         return _rows;
     }
@@ -161,8 +178,8 @@ public:
     void validateColumn(int column) const;
     void validate(const Array2D& other) const;
 
-    std::shared_ptr<QList<QVariant>> getRow(int row) const;
-    std::shared_ptr<QList<QVariant>> getRow(int row);
+    std::shared_ptr<std::vector<QVariant>> getRow(int row) const;
+    std::shared_ptr<std::vector<QVariant>> getRow(int row);
     int rows() const
     {
         return _rows.size();
@@ -175,24 +192,24 @@ public:
     {
         _columns = size;
     }
-    void addRow(const std::shared_ptr<QList<QVariant>>& row);
-    void insertRow(int index, const std::shared_ptr<QList<QVariant>>& row);
+    void addRow(const std::shared_ptr<std::vector<QVariant>>& row);
+    void insertRow(int index, const std::shared_ptr<std::vector<QVariant>>& row);
     void deleteRow(int row);
     void setRows(int rowCount);
 
     void setValue(int row, int column, const QVariant& value);
     QVariant getValue(int row, int column) const;
 
-    QString getYAMLString() const override;
+    std::string getYAMLString() const override;
 
 protected:
     void deepCopy(const Array2D& other);
 
-    QList<std::shared_ptr<QList<QVariant>>> _rows;
+    std::vector<std::shared_ptr<std::vector<QVariant>>> _rows;
     int _columns;
 
 private:
-    static void dumpRow(const std::shared_ptr<QList<QVariant>>& row);
+    static void dumpRow(const std::shared_ptr<std::vector<QVariant>>& row);
     void dump() const;
 };
 
@@ -210,8 +227,8 @@ public:
     bool isNull() const override;
     bool isEmpty() const override;
 
-    const QList<
-        std::pair<Base::Quantity, std::shared_ptr<QList<std::shared_ptr<QList<Base::Quantity>>>>>>&
+    const std::vector<
+        std::pair<Base::Quantity, std::shared_ptr<std::vector<std::shared_ptr<std::vector<Base::Quantity>>>>>>&
     getArray() const
     {
         return _rowMap;
@@ -222,21 +239,21 @@ public:
     void validateRow(int level, int row) const;
     void validate(const Array3D& other) const;
 
-    const std::shared_ptr<QList<std::shared_ptr<QList<Base::Quantity>>>>&
+    const std::shared_ptr<std::vector<std::shared_ptr<std::vector<Base::Quantity>>>>&
     getTable(const Base::Quantity& depth) const;
-    const std::shared_ptr<QList<std::shared_ptr<QList<Base::Quantity>>>>&
+    const std::shared_ptr<std::vector<std::shared_ptr<std::vector<Base::Quantity>>>>&
     getTable(int depthIndex) const;
-    std::shared_ptr<QList<Base::Quantity>> getRow(int depth, int row) const;
-    std::shared_ptr<QList<Base::Quantity>> getRow(int row) const;
-    std::shared_ptr<QList<Base::Quantity>> getRow(int depth, int row);
-    std::shared_ptr<QList<Base::Quantity>> getRow(int row);
-    void addRow(int depth, const std::shared_ptr<QList<Base::Quantity>>& row);
-    void addRow(const std::shared_ptr<QList<Base::Quantity>>& row);
+    std::shared_ptr<std::vector<Base::Quantity>> getRow(int depth, int row) const;
+    std::shared_ptr<std::vector<Base::Quantity>> getRow(int row) const;
+    std::shared_ptr<std::vector<Base::Quantity>> getRow(int depth, int row);
+    std::shared_ptr<std::vector<Base::Quantity>> getRow(int row);
+    void addRow(int depth, const std::shared_ptr<std::vector<Base::Quantity>>& row);
+    void addRow(const std::shared_ptr<std::vector<Base::Quantity>>& row);
     int addDepth(int depth, const Base::Quantity& value);
     int addDepth(const Base::Quantity& value);
     void deleteDepth(int depth);
-    void insertRow(int depth, int row, const std::shared_ptr<QList<Base::Quantity>>& rowData);
-    void insertRow(int row, const std::shared_ptr<QList<Base::Quantity>>& rowData);
+    void insertRow(int depth, int row, const std::shared_ptr<std::vector<Base::Quantity>>& rowData);
+    void insertRow(int row, const std::shared_ptr<std::vector<Base::Quantity>>& rowData);
     void deleteRow(int depth, int row);
     void deleteRow(int row);
     void deleteRows(int depth);
@@ -272,12 +289,12 @@ public:
     int currentDepth() const;
     void setCurrentDepth(int depth);
 
-    QString getYAMLString() const override;
+    std::string getYAMLString() const override;
 
 protected:
     void deepCopy(const Array3D& other);
 
-    QList<std::pair<Base::Quantity, std::shared_ptr<QList<std::shared_ptr<QList<Base::Quantity>>>>>>
+    std::vector<std::pair<Base::Quantity, std::shared_ptr<std::vector<std::shared_ptr<std::vector<Base::Quantity>>>>>>
         _rowMap;
     int _currentDepth;
     int _columns;

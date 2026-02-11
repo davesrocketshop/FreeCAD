@@ -89,7 +89,7 @@ protected:
         auto libraries = _materialManager->getLibraries(true);
         _libraries.clear();
         for (auto& library : *libraries) {
-            if (library->getName() != QStringLiteral("__UnitTest")) {
+            if (library->getName() != "__UnitTest") {
                 _libraries.emplace(library->getName(), library->isDisabled());
                 _materialManager->setDisabled(*library, true);
             }
@@ -140,28 +140,28 @@ TEST_F(TestMaterialFilter, TestFilters)
     // First check that our materials are loading
     auto material = _materialManager->getMaterial(UUIDAluminumAppearance);
     ASSERT_TRUE(material);
-    ASSERT_EQ(material->getName(), QStringLiteral("TestAluminumAppearance"));
-    ASSERT_EQ(material->getUUID(), QString::fromLatin1(UUIDAluminumAppearance));
+    ASSERT_EQ(material->getName(), "TestAluminumAppearance");
+    ASSERT_EQ(material->getUUID(), UUIDAluminumAppearance);
 
     material = _materialManager->getMaterial(UUIDAluminumMixed);
     ASSERT_TRUE(material);
-    ASSERT_EQ(material->getName(), QStringLiteral("TestAluminumMixed"));
-    ASSERT_EQ(material->getUUID(), QString::fromLatin1(UUIDAluminumMixed));
+    ASSERT_EQ(material->getName(), "TestAluminumMixed");
+    ASSERT_EQ(material->getUUID(), UUIDAluminumMixed);
 
     material = _materialManager->getMaterial(UUIDAluminumPhysical);
     ASSERT_TRUE(material);
-    ASSERT_EQ(material->getName(), QStringLiteral("TestAluminumPhysical"));
-    ASSERT_EQ(material->getUUID(), QString::fromLatin1(UUIDAluminumPhysical));
+    ASSERT_EQ(material->getName(), "TestAluminumPhysical");
+    ASSERT_EQ(material->getUUID(), UUIDAluminumPhysical);
 
     material = _materialManager->getMaterial(UUIDBrassAppearance);
     ASSERT_TRUE(material);
-    ASSERT_EQ(material->getName(), QStringLiteral("TestBrassAppearance"));
-    ASSERT_EQ(material->getUUID(), QString::fromLatin1(UUIDBrassAppearance));
+    ASSERT_EQ(material->getName(), "TestBrassAppearance");
+    ASSERT_EQ(material->getUUID(), UUIDBrassAppearance);
 
     ASSERT_NO_THROW(material = _materialManager->getMaterialByPath("TestAcrylicLegacy.FCMat",
         "__UnitTest"));
     ASSERT_TRUE(material);
-    ASSERT_EQ(material->getName(), QStringLiteral("TestAcrylicLegacy"));
+    ASSERT_EQ(material->getName(), "TestAcrylicLegacy");
     ASSERT_EQ(material->getUUID().size(), 36); // We don't know the UUID
 
     // Create an empty filter
@@ -178,7 +178,7 @@ TEST_F(TestMaterialFilter, TestFilters)
     ASSERT_EQ(tree->size(), 5);
 
     // Create a basic rendering filter
-    filter.setName(QStringLiteral("Basic Appearance"));
+    filter.setName("Basic Appearance");
     filter.addRequiredComplete(Materials::ModelUUIDs::ModelUUID_Rendering_Basic);
     options.setIncludeLegacy(false);
 
@@ -191,7 +191,7 @@ TEST_F(TestMaterialFilter, TestFilters)
 
     // Create an advanced rendering filter
     filter.clear();
-    filter.setName(QStringLiteral("Advanced Appearance"));
+    filter.setName("Advanced Appearance");
     filter.addRequiredComplete(Materials::ModelUUIDs::ModelUUID_Rendering_Advanced);
     options.setIncludeLegacy(false);
 
@@ -204,7 +204,7 @@ TEST_F(TestMaterialFilter, TestFilters)
 
     // Create a Density filter
     filter.clear();
-    filter.setName(QStringLiteral("Density"));
+    filter.setName("Density");
     filter.addRequiredComplete(Materials::ModelUUIDs::ModelUUID_Mechanical_Density);
     options.setIncludeLegacy(false);
 
@@ -217,7 +217,7 @@ TEST_F(TestMaterialFilter, TestFilters)
 
     // Create a Hardness filter
     filter.clear();
-    filter.setName(QStringLiteral("Hardness"));
+    filter.setName("Hardness");
     filter.addRequiredComplete(Materials::ModelUUIDs::ModelUUID_Mechanical_Hardness);
     options.setIncludeLegacy(false);
 
@@ -230,7 +230,7 @@ TEST_F(TestMaterialFilter, TestFilters)
 
     // Create a Density and Basic Rendering filter
     filter.clear();
-    filter.setName(QStringLiteral("Density and Basic Rendering"));
+    filter.setName("Density and Basic Rendering");
     filter.addRequiredComplete(Materials::ModelUUIDs::ModelUUID_Rendering_Basic);
     filter.addRequiredComplete(Materials::ModelUUIDs::ModelUUID_Mechanical_Density);
     options.setIncludeLegacy(false);
@@ -244,7 +244,7 @@ TEST_F(TestMaterialFilter, TestFilters)
 
     // Create a Linear Elastic filter
     filter.clear();
-    filter.setName(QStringLiteral("Linear Elastic"));
+    filter.setName("Linear Elastic");
     filter.addRequiredComplete(Materials::ModelUUIDs::ModelUUID_Mechanical_LinearElastic);
     options.setIncludeLegacy(false);
 
@@ -256,7 +256,7 @@ TEST_F(TestMaterialFilter, TestFilters)
     ASSERT_EQ(tree->size(), 0);
 
     filter.clear();
-    filter.setName(QStringLiteral("Linear Elastic"));
+    filter.setName("Linear Elastic");
     filter.addRequired(Materials::ModelUUIDs::ModelUUID_Mechanical_LinearElastic);
     options.setIncludeLegacy(false);
 

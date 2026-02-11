@@ -43,7 +43,7 @@ class ListModel: public QAbstractListModel
 public:
     ListModel();
     ListModel(std::shared_ptr<Materials::MaterialProperty> property,
-              QList<QVariant>& value,
+              std::vector<QVariant>& value,
               QObject* parent = nullptr);
     ~ListModel() override = default;
 
@@ -63,7 +63,7 @@ public:
 
 private:
     std::shared_ptr<Materials::MaterialProperty> _property;
-    QList<QVariant>* _valuePtr;
+    std::vector<QVariant>* _valuePtr;
 };
 
 }  // namespace MatGui
