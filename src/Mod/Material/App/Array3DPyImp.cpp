@@ -22,7 +22,6 @@
  **************************************************************************/
 
 
-#include <QList>
 #include <QMetaType>
 
 #include <Base/Quantity.h>

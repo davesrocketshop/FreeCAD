@@ -75,6 +75,7 @@ private:
         return Materials::MaterialManager::getManager();
     }
 
+    QString getColorHash(const std::string& colorString, int colorRange = 255) const;
     QString getColorHash(const QString& colorString, int colorRange = 255) const;
 
     void addExpanded(QTreeView* tree, QStandardItemModel* parent, QStandardItem* child);
@@ -94,6 +95,7 @@ private:
     bool updateTexturePreview() const;
     bool updateMaterialPreview() const;
 
+    void _onPropertyChange(const std::string& property, const QVariant& value);
     void onPropertyChange(const QString& property, const QVariant& value);
     void onPhysicalAdd();
     void onPhysicalRemove();

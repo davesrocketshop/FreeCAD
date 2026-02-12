@@ -277,7 +277,7 @@ void ModelManager::dereference(Model& model)
 
     auto inherits = model.getInheritance();
     for (auto& uuid : inherits) {
-        auto parent = getManager().getModel(uuid.toStdString());  // This will dereference it
+        auto parent = getManager().getModel(uuid);  // This will dereference it
         for (auto& parentProperty : *parent) {
             if (!model.hasProperty(parentProperty.second.getName())) {
                 ModelProperty inheritedProperty(parentProperty.second);

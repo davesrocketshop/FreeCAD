@@ -30,6 +30,7 @@
 #include "Model.h"
 #include "ModelLibrary.h"
 #include "ModelManager.h"
+#include "StringUtility.h"
 
 
 using namespace Materials;
@@ -73,22 +74,22 @@ ModelLibrary::getModelTree(ModelFilter filter) const
 
         auto model = ModelManager::getManager().getModel(getName(), uuid);
         if (ModelManager::passFilter(filter, model->getType())) {
-            QStringList list = QString::fromStdString(path).split(QLatin1Char('/'));
+            auto list = split(path, '/');
 
             // Start at the root
             std::shared_ptr<std::map<std::string, std::shared_ptr<ModelTreeNode>>> node = modelTree;
             for (auto& itp : list) {
                 // Add the folder only if it's not already there
-                if (!node->contains(itp.toStdString())) {
+                if (!node->contains(itp)) {
                     auto mapPtr =
                         std::make_shared<std::map<std::string, std::shared_ptr<ModelTreeNode>>>();
                     std::shared_ptr<ModelTreeNode> child = std::make_shared<ModelTreeNode>();
                     child->setFolder(mapPtr);
-                    (*node)[itp.toStdString()] = child;
+                    (*node)[itp] = child;
                     node = mapPtr;
                 }
                 else {
-                    node = (*node)[itp.toStdString()]->getFolder();
+                    node = (*node)[itp]->getFolder();
                 }
             }
             std::shared_ptr<ModelTreeNode> child = std::make_shared<ModelTreeNode>();
@@ -138,8 +139,8 @@ std::shared_ptr<Model> ModelLibraryLocal::addModel(const Model& model, const std
     Base::FileInfo info(filePath);
     std::shared_ptr<Model> newModel = std::make_shared<Model>(model);
     newModel->setLibrary(getptr());
-    newModel->setDirectory(QString::fromStdString(getLibraryPath(filePath, info.fileName())));
-    newModel->setFilename(QString::fromStdString(info.fileName()));
+    newModel->setDirectory(getLibraryPath(filePath, info.fileName()));
+    newModel->setFilename(info.fileName());
 
     (*proxy()->_modelPathMap)[filePath] = newModel;
 

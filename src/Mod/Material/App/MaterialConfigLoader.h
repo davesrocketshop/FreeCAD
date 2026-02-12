@@ -25,11 +25,9 @@
 #define MATERIAL_MATERIALCONFIGLOADER_H
 
 #include <memory>
+#include <map>
 
-#include <QList>
-#include <QMap>
 #include <QSettings>
-#include <QString>
 #include <QVariant>
 
 #include "Materials.h"
@@ -51,7 +49,7 @@ public:
     getMaterialFromPath(const std::shared_ptr<MaterialLibraryLocal>& library, const std::string& path);
 
 private:
-    static std::string value(const QMap<std::string, std::string>& fcmat,
+    static std::string value(std::map<std::string, std::string>& fcmat,
                          const std::string& name,
                          const std::string& defaultValue)
     {
@@ -69,7 +67,7 @@ private:
                                  const std::string& value)
     {
         if (!value.empty()) {
-            finalModel->setPhysicalValue(QString::fromStdString(name), QString::fromStdString(value));
+            finalModel->setPhysicalValue(name, value);
         }
     }
     static void setAppearanceValue(const std::shared_ptr<Material>& finalModel,
@@ -77,15 +75,15 @@ private:
                                    const std::string& value)
     {
         if (!value.empty()) {
-            finalModel->setAppearanceValue(QString::fromStdString(name), QString::fromStdString(value));
+            finalModel->setAppearanceValue(name, value);
         }
     }
     static void setAppearanceValue(const std::shared_ptr<Material>& finalModel,
                                    const std::string& name,
-                                   const std::shared_ptr<QList<QVariant>>& value)
+                                   const std::shared_ptr<std::vector<QVariant>>& value)
     {
         if (!value->empty()) {
-            finalModel->setAppearanceValue(QString::fromStdString(name), value);
+            finalModel->setAppearanceValue(name, value);
         }
     }
     static void setLegacyValue(const std::shared_ptr<Material>& finalModel,
@@ -93,7 +91,7 @@ private:
                                    const std::string& value)
     {
         if (!value.empty()) {
-            finalModel->setLegacyValue(QString::fromStdString(name), QString::fromStdString(value));
+            finalModel->setLegacyValue(name, value);
         }
     }
 
@@ -102,63 +100,63 @@ private:
         return value.find("Texture") != std::string::npos;
     }
 
-    static bool readFile(const std::string& path, QMap<std::string, std::string>& map);
+    static bool readFile(const std::string& path, std::map<std::string, std::string>& map);
     static void splitTexture(const std::string& value, std::string* texture, std::string* remain);
     static void
     splitTextureObject(const std::string& value, std::string* texture, std::string* remain, std::string* object);
 
     static std::string getAuthorAndLicense(const std::string& path);
-    static void addMechanical(const QMap<std::string, std::string>& fcmat,
+    static void addMechanical(std::map<std::string, std::string>& fcmat,
                               const std::shared_ptr<Material>& finalModel);
-    static void addFluid(const QMap<std::string, std::string>& fcmat,
+    static void addFluid(std::map<std::string, std::string>& fcmat,
                          const std::shared_ptr<Material>& finalModel);
-    static void addThermal(const QMap<std::string, std::string>& fcmat,
+    static void addThermal(std::map<std::string, std::string>& fcmat,
                            const std::shared_ptr<Material>& finalModel);
-    static void addElectromagnetic(const QMap<std::string, std::string>& fcmat,
+    static void addElectromagnetic(std::map<std::string, std::string>& fcmat,
                                    const std::shared_ptr<Material>& finalModel);
-    static void addArchitectural(const QMap<std::string, std::string>& fcmat,
+    static void addArchitectural(std::map<std::string, std::string>& fcmat,
                                  const std::shared_ptr<Material>& finalModel);
-    static void addCosts(const QMap<std::string, std::string>& fcmat,
+    static void addCosts(std::map<std::string, std::string>& fcmat,
                          const std::shared_ptr<Material>& finalModel);
-    static void addRendering(const QMap<std::string, std::string>& fcmat,
+    static void addRendering(std::map<std::string, std::string>& fcmat,
                              const std::shared_ptr<Material>& finalModel);
-    static void addVectorRendering(const QMap<std::string, std::string>& fcmat,
+    static void addVectorRendering(std::map<std::string, std::string>& fcmat,
                                    const std::shared_ptr<Material>& finalModel);
 
-    static std::string multiLineKey(QMap<std::string, std::string>& fcmat, const std::string& prefix);
-    static void addRenderAppleseed(QMap<std::string, std::string>& fcmat,
+    static std::string multiLineKey(std::map<std::string, std::string>& fcmat, const std::string& prefix);
+    static void addRenderAppleseed(std::map<std::string, std::string>& fcmat,
                                    const std::shared_ptr<Material>& finalModel);
-    static void addRenderCarpaint(QMap<std::string, std::string>& fcmat,
+    static void addRenderCarpaint(std::map<std::string, std::string>& fcmat,
                                   const std::shared_ptr<Material>& finalModel);
-    static void addRenderCycles(QMap<std::string, std::string>& fcmat,
+    static void addRenderCycles(std::map<std::string, std::string>& fcmat,
                                 const std::shared_ptr<Material>& finalModel);
-    static void addRenderDiffuse(QMap<std::string, std::string>& fcmat,
+    static void addRenderDiffuse(std::map<std::string, std::string>& fcmat,
                                  const std::shared_ptr<Material>& finalModel);
-    static void addRenderDisney(QMap<std::string, std::string>& fcmat,
+    static void addRenderDisney(std::map<std::string, std::string>& fcmat,
                                 const std::shared_ptr<Material>& finalModel);
-    static void addRenderEmission(QMap<std::string, std::string>& fcmat,
+    static void addRenderEmission(std::map<std::string, std::string>& fcmat,
                                   const std::shared_ptr<Material>& finalModel);
-    static void addRenderGlass(QMap<std::string, std::string>& fcmat,
+    static void addRenderGlass(std::map<std::string, std::string>& fcmat,
                                const std::shared_ptr<Material>& finalModel);
-    static void addRenderLuxcore(QMap<std::string, std::string>& fcmat,
+    static void addRenderLuxcore(std::map<std::string, std::string>& fcmat,
                                  const std::shared_ptr<Material>& finalModel);
-    static void addRenderLuxrender(QMap<std::string, std::string>& fcmat,
+    static void addRenderLuxrender(std::map<std::string, std::string>& fcmat,
                                    const std::shared_ptr<Material>& finalModel);
-    static void addRenderMixed(QMap<std::string, std::string>& fcmat,
+    static void addRenderMixed(std::map<std::string, std::string>& fcmat,
                                const std::shared_ptr<Material>& finalModel);
-    static void addRenderOspray(QMap<std::string, std::string>& fcmat,
+    static void addRenderOspray(std::map<std::string, std::string>& fcmat,
                                 const std::shared_ptr<Material>& finalModel);
-    static void addRenderPbrt(QMap<std::string, std::string>& fcmat,
+    static void addRenderPbrt(std::map<std::string, std::string>& fcmat,
                               const std::shared_ptr<Material>& finalModel);
-    static void addRenderPovray(QMap<std::string, std::string>& fcmat,
+    static void addRenderPovray(std::map<std::string, std::string>& fcmat,
                                 const std::shared_ptr<Material>& finalModel);
-    static void addRenderSubstancePBR(QMap<std::string, std::string>& fcmat,
+    static void addRenderSubstancePBR(std::map<std::string, std::string>& fcmat,
                                       const std::shared_ptr<Material>& finalModel);
-    static void addRenderTexture(QMap<std::string, std::string>& fcmat,
+    static void addRenderTexture(std::map<std::string, std::string>& fcmat,
                                  const std::shared_ptr<Material>& finalModel);
-    static void addRenderWB(QMap<std::string, std::string>& fcmat,
+    static void addRenderWB(std::map<std::string, std::string>& fcmat,
                             const std::shared_ptr<Material>& finalModel);
-    static void addLegacy(const QMap<std::string, std::string>& fcmat,
+    static void addLegacy(std::map<std::string, std::string>& fcmat,
                             const std::shared_ptr<Material>& finalModel);
 };
 

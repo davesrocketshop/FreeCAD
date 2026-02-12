@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: LGPL-2.1-or-later
 
 /***************************************************************************
- *   Copyright (c) 2023 David Carter <dcarter@david.carter.ca>             *
+ *   Copyright (c) 2026 David Carter <dcarter@david.carter.ca>             *
  *                                                                         *
  *   This file is part of FreeCAD.                                         *
  *                                                                         *
@@ -21,66 +21,21 @@
  *                                                                         *
  **************************************************************************/
 
-#ifndef MATERIAL_TRIM_H
-#define MATERIAL_TRIM_H
+#ifndef MATERIAL_STRINGUTILITY_H
+#define MATERIAL_STRINGUTILITY_H
 
-#include <algorithm>
+#include <Mod/Material/MaterialGlobal.h>
+
 #include <string>
+#include <string_view>
+
+#include "trim.h"
 
 namespace Materials
 {
 
-// trim from start (in place)
-static inline void ltrim(std::string& s)
-{
-    s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](unsigned char ch) {
-                return !std::isspace(ch);
-            }));
-}
-
-// trim from end (in place)
-static inline void rtrim(std::string& s)
-{
-    s.erase(std::find_if(s.rbegin(),
-                         s.rend(),
-                         [](unsigned char ch) {
-                             return !std::isspace(ch);
-                         })
-                .base(),
-            s.end());
-}
-
-// trim from both ends (in place)
-static inline void trim(std::string& s)
-{
-    rtrim(s);
-    ltrim(s);
-}
-
-// trim from start (copying)
-static inline std::string ltrim_copy(const std::string s)
-{
-    std::string copy = s;
-    ltrim(copy);
-    return copy;
-}
-
-// trim from end (copying)
-static inline std::string rtrim_copy(const std::string s)
-{
-    std::string copy = s;
-    rtrim(copy);
-    return copy;
-}
-
-// trim from both ends (copying)
-static inline std::string trim_copy(const std::string s)
-{
-    std::string copy = s;
-    trim(copy);
-    return copy;
-}
+extern MaterialsExport std::vector<std::string> split(std::string_view str, char delimiter);
 
 }  // namespace Materials
 
-#endif  // MATERIAL_TRIM_H
+#endif  // MATERIAL_STRINGUTILITY_H

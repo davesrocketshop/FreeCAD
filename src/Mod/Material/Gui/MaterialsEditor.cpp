@@ -421,7 +421,7 @@ void MaterialsEditor::getFavorites()
     for (int i = 0; static_cast<long>(i) < count; i++) {
         QString key = QStringLiteral("FAV%1").arg(i);
         QString uuid = QString::fromStdString(param->GetASCII(key.toStdString().c_str(), ""));
-        if (_filter.modelIncluded(uuid)) {
+        if (_filter.modelIncluded(uuid.toStdString())) {
             _favorites.push_back(uuid);
         }
     }
@@ -499,7 +499,7 @@ void MaterialsEditor::getRecents()
     for (int i = 0; static_cast<long>(i) < count; i++) {
         QString key = QStringLiteral("MRU%1").arg(i);
         QString uuid = QString::fromStdString(param->GetASCII(key.toStdString().c_str(), ""));
-        if (_filter.modelIncluded(uuid)) {
+        if (_filter.modelIncluded(uuid.toStdString())) {
             _recents.push_back(uuid);
         }
     }
@@ -615,7 +615,7 @@ void MaterialsEditor::onTreeItemDropped(
     );
     Base::Console().log(
         "Path '%s' -> '%s'\n",
-        material->getDirectory().toStdString().c_str(),
+        material->getDirectory().c_str(),
         destinationFolder.toStdString().c_str()
     );
     Base::Console().log("Drop Action\n");
@@ -653,27 +653,27 @@ void MaterialsEditor::onName(const QString& name)
 
 void MaterialsEditor::onAuthor(const QString& author)
 {
-    _material->setAuthor(author);
+    _material->setAuthor(author.toStdString());
 }
 
 void MaterialsEditor::onLicense(const QString& license)
 {
-    _material->setLicense(license);
+    _material->setLicense(license.toStdString());
 }
 
 void MaterialsEditor::onSourceURL(const QString& url)
 {
-    _material->setURL(url);
+    _material->setURL(url.toStdString());
 }
 
 void MaterialsEditor::onSourceReference(const QString& reference)
 {
-    _material->setReference(reference);
+    _material->setReference(reference.toStdString());
 }
 
 void MaterialsEditor::onDescription(const QString& description)
 {
-    _material->setDescription(description);
+    _material->setDescription(description.toStdString());
 }
 
 void MaterialsEditor::onPhysicalAdd()
@@ -682,7 +682,7 @@ void MaterialsEditor::onPhysicalAdd()
     dialog.setModal(true);
     if (dialog.exec() == QDialog::Accepted) {
         QString selected = dialog.selectedModel();
-        _material->addPhysical(selected);
+        _material->addPhysical(selected.toStdString());
         updateMaterial();
     }
     else {
@@ -692,7 +692,7 @@ void MaterialsEditor::onPhysicalAdd()
 
 void MaterialsEditor::onPhysicalRemove(const QString& propertyName)
 {
-    QString uuid = _material->getModelByName(propertyName);
+    auto uuid = _material->getModelByName(propertyName.toStdString());
     _material->removePhysical(uuid);
     updateMaterial();
 }
@@ -703,7 +703,7 @@ void MaterialsEditor::onAppearanceAdd()
     dialog.setModal(true);
     if (dialog.exec() == QDialog::Accepted) {
         QString selected = dialog.selectedModel();
-        _material->addAppearance(selected);
+        _material->addAppearance(selected.toStdString());
         auto model = Materials::ModelManager::getManager().getModel(selected.toStdString());
         if (selected == Materials::ModelUUIDs::ModelUUID_Rendering_Basic
             || model->inherits(Materials::ModelUUIDs::ModelUUID_Rendering_Basic)) {
@@ -720,7 +720,7 @@ void MaterialsEditor::onAppearanceAdd()
 
 void MaterialsEditor::onAppearanceRemove(const QString& propertyName)
 {
-    QString uuid = _material->getModelByName(propertyName);
+    auto uuid = _material->getModelByName(propertyName.toStdString());
     _material->removeAppearance(uuid);
     updateMaterial();
 }
@@ -729,7 +729,7 @@ void MaterialsEditor::onFavourite(bool checked)
 {
     Q_UNUSED(checked)
 
-    auto selected = _material->getUUID();
+    auto selected = QString::fromStdString(_material->getUUID());
     if (isFavorite(selected)) {
         removeFavorite(selected);
     }
@@ -770,11 +770,11 @@ void MaterialsEditor::setMaterialPropertyState()
 
 void MaterialsEditor::setMaterialDefaults()
 {
-    _material->setName(tr("Unnamed"));
+    _material->setName(tr("Unnamed").toStdString());
     std::string Author = App::GetApplication()
                              .GetParameterGroupByPath("User parameter:BaseApp/Preferences/Document")
                              ->GetASCII("prefAuthor", "");
-    _material->setAuthor(QString::fromStdString(Author));
+    _material->setAuthor(Author);
 
     // license stuff
     auto paramGrp {App::GetApplication().GetParameterGroupByPath(
@@ -783,7 +783,7 @@ void MaterialsEditor::setMaterialDefaults()
     const char* name = App::licenseItems.at(index).at(App::posnOfFullName);
     // const char* url = App::licenseItems.at(index).at(App::posnOfUrl);
     // std::string licenseUrl = (paramGrp->GetASCII("prefLicenseUrl", url));
-    _material->setLicense(QLatin1String(name));
+    _material->setLicense(name);
 
     // Empty materials will have no parent
     getMaterialManager().dereference(_material);
@@ -921,7 +921,7 @@ MaterialSaveResult MaterialsEditor::overwriteOrCopy()
 
 void MaterialsEditor::saveMaterial()
 {
-    Base::Console().log("Material path %s\n", _material->getDirectory().toStdString().c_str());
+    Base::Console().log("Material path %s\n", _material->getDirectory().c_str());
     bool overwrite = true;
     bool saveAsCopy = false;
     bool saveInherited = true;
@@ -939,8 +939,10 @@ void MaterialsEditor::saveMaterial()
                     return;
                 }
 
-                auto uniqueName
-                    = item->parent()->getUniqueName(_material->getName(), TreeFunctionMaterial);
+                auto uniqueName = item->parent()->getUniqueName(
+                    QString::fromStdString(_material->getName()),
+                    TreeFunctionMaterial
+                );
                 if (ret == MaterialSave_New) {
                     _material = getMaterialManager().copyNew(*_material, uniqueName.toStdString());
                 }
@@ -956,11 +958,14 @@ void MaterialsEditor::saveMaterial()
         }
 
         auto library = _material->getLibrary();
-        QFileInfo filepath(_material->getDirectory() + QStringLiteral("/") + _material->getName() + QStringLiteral(".FCMat"));
+        QFileInfo filepath(
+            QString::fromStdString(_material->getDirectory()) + QStringLiteral("/")
+            + QString::fromStdString(_material->getName()) + QStringLiteral(".FCMat")
+        );
         if (!library || library->isReadOnly()) {
             Base::Console().log("No library assigned\n");
             library = getMaterialManager().getLibrary("User");
-            filepath = QFileInfo(_material->getName() + QStringLiteral(".FCMat"));
+            filepath = QFileInfo(QString::fromStdString(_material->getName()) + QStringLiteral(".FCMat"));
         }
         Base::Console().log("Using library '%s'\n", library->getName().c_str());
         Base::Console().log("\tPath '%s'\n", filepath.filePath().toStdString().c_str());
@@ -987,7 +992,7 @@ void MaterialsEditor::accept()
 
         return;
     }
-    addRecent(_material->getUUID());
+    addRecent(QString::fromStdString(_material->getUUID()));
     saveState();
     QDialog::accept();
 }
@@ -1171,7 +1176,11 @@ void MaterialsEditor::addRecents(MaterialTreeItem* parent)
         try {
             auto material = getMaterialManager().getMaterial(uuid.toStdString());
             QIcon icon = getIcon(material->getLibrary());
-            auto card = new MaterialTreeFavoriteItem(icon, material->getLibraryPath(), uuid);
+            auto card = new MaterialTreeFavoriteItem(
+                icon,
+                QString::fromStdString(material->getLibraryPath()),
+                uuid
+            );
 
             addExpanded(tree, parent, card);
         }
@@ -1187,7 +1196,11 @@ void MaterialsEditor::addFavorites(MaterialTreeItem* parent)
         try {
             auto material = getMaterialManager().getMaterial(uuid.toStdString());
             QIcon icon = getIcon(material->getLibrary());
-            auto card = new MaterialTreeFavoriteItem(icon, material->getLibraryPath(), uuid);
+            auto card = new MaterialTreeFavoriteItem(
+                icon,
+                QString::fromStdString(material->getLibraryPath()),
+                uuid
+            );
 
             addExpanded(tree, parent, card);
         }
@@ -1491,7 +1504,7 @@ MaterialTreeItem* MaterialsEditor::getItemFromMaterial(const Materials::Material
     auto libraryItem = getItemFromLibrary(*material.getLibrary());
     if (libraryItem) {
         MaterialTreeItem* folderItem = libraryItem;
-        auto directory = material.getDirectory();
+        auto directory = QString::fromStdString(material.getDirectory());
         if (!(directory.isEmpty() || directory == QStringLiteral("/"))) {
             Base::Console().log("Checking directory '%s'\n", directory.toStdString().c_str());
             auto path = directory.split(QStringLiteral("/"));
@@ -1502,7 +1515,7 @@ MaterialTreeItem* MaterialsEditor::getItemFromMaterial(const Materials::Material
                 while (item) {
                     if (item->getItemFunction() == TreeFunctionFolder) {
                         auto folderName = item->originalName();
-                        if (folderName == folder) {
+                        if (folderName == folder.toStdString()) {
                             Base::Console().log(
                                 "Folder '%s'\n",
                                 folderName.toStdString().c_str()
@@ -1525,11 +1538,11 @@ MaterialTreeItem* MaterialsEditor::getItemFromMaterial(const Materials::Material
         while (item) {
             if (item->getItemFunction() == TreeFunctionMaterial) {
                 auto materialItem = static_cast<MaterialTreeMaterialItem*>(item);
-                auto uuid = materialItem->getUUID();
+                auto uuid = materialItem->getUUID().toStdString();
                 if (uuid == material.getUUID()) {
                     Base::Console().log(
                         "Material '%s'\n",
-                        material.getName().toStdString().c_str()
+                        material.getName().c_str()
                     );
                     return materialItem;
                 }
@@ -1682,7 +1695,7 @@ void MaterialsEditor::recentContextMenu(QMenu& contextMenu)
     contextMenu.addSeparator();
     auto item = getActionItem();
     if (item->text() != tr("Recent")) {
-        auto selected = _material->getUUID();
+        auto selected = QString::fromStdString(_material->getUUID());
         if (isFavorite(selected)) {
             favoriteActionRemove();
         }
@@ -1782,7 +1795,7 @@ void MaterialsEditor::materialContextMenu(QMenu& contextMenu)
     contextMenu.addSeparator();
     contextMenu.addAction(&_actionNewFolder);
     contextMenu.addSeparator();
-    auto selected = _material->getUUID();
+    auto selected = QString::fromStdString(_material->getUUID());
     if (isFavorite(selected)) {
         favoriteActionRemove();
     }
@@ -2068,12 +2081,16 @@ void MaterialsEditor::onMenuNewMaterial(bool checked)
     // _material->setEditStateInvariantChanged();
     setMaterialDefaults();
     _material->setLibrary(library);
-    _material->setName(uniqueName);
-    _material->setDirectory(path);
-    Base::Console().log("uuid(%s)\n", _material->getUUID().toStdString().c_str());
+    _material->setName(uniqueName.toStdString());
+    _material->setDirectory(path.toStdString());
+    Base::Console().log("uuid(%s)\n", _material->getUUID().c_str());
 
     QIcon matIcon = getIcon(library);
-    auto card = new MaterialTreeMaterialItem(matIcon, _material->getName(), _material->getUUID());
+    auto card = new MaterialTreeMaterialItem(
+        matIcon,
+        QString::fromStdString(_material->getName()),
+        QString::fromStdString(_material->getUUID())
+    );
 
     addExpanded(ui->treeMaterials, item, card);
 
@@ -2104,19 +2121,24 @@ void MaterialsEditor::onMenuInheritMaterial(bool checked)
     auto original = getItemAsMaterial(item);
 
     // Create a new material
-    auto uniqueName = parent->getUniqueName(original->getName(), TreeFunctionMaterial);
+    auto uniqueName
+        = parent->getUniqueName(QString::fromStdString(original->getName()), TreeFunctionMaterial);
     _material = getMaterialManager().copyInherited(*original, uniqueName.toStdString());
     _material->setEditStateNew();
 
     if (_material->getLibrary()->isReadOnly()) {
         auto library = getMaterialManager().getLibrary("User");
         _material->setLibrary(library);
-        _material->setDirectory(QStringLiteral(""));
+        _material->setDirectory("");
         parent = getItemFromLibrary(*library);
     }
 
     QIcon matIcon = getIcon(_material->getLibrary());
-    auto card = new MaterialTreeMaterialItem(matIcon, _material->getName(), _material->getUUID());
+    auto card = new MaterialTreeMaterialItem(
+        matIcon,
+        QString::fromStdString(_material->getName()),
+        QString::fromStdString(_material->getUUID())
+    );
 
     addExpanded(ui->treeMaterials, parent, card);
 
@@ -2281,12 +2303,12 @@ void MaterialsEditor::renameFolder(MaterialTreeItem* item)
         item->setOriginalName(newName);
 
         // Update the current material
-        QString currentPath = _material->getDirectory();
+        QString currentPath = QString::fromStdString(_material->getDirectory());
         oldPath = stripLeadingSeparator(oldPath);
         newPath = stripLeadingSeparator(newPath);
         if (currentPath.startsWith(oldPath)) {
             currentPath = newPath + currentPath.remove(0, oldPath.size());
-            _material->setDirectory(currentPath);
+            _material->setDirectory(currentPath.toStdString());
         }
     }
 }
@@ -2310,7 +2332,7 @@ void MaterialsEditor::renameMaterial(MaterialTreeItem* item)
     if (originalName != newName) {
         auto oldPath = path + originalName;
         auto newPath = path + newName;
-        _material->setName(newName);
+        _material->setName(newName.toStdString());
         item->setOriginalName(newName);
         updateMaterial();
 
@@ -2324,7 +2346,7 @@ void MaterialsEditor::updateMaterialTreeName(const QString& name)
     auto item = getItemFromMaterial(*_material);
     if (item) {
         if (_material->getName() != name) {
-            _material->setName(name);
+            _material->setName(name.toStdString());
         }
         if (item->text() != name) {
             item->setText(name);
@@ -2360,7 +2382,10 @@ void MaterialsEditor::updateRecentsName(const QString& uuid, const QString& name
 
 void MaterialsEditor::updateRecentsName()
 {
-    updateRecentsName(_material->getUUID(), _material->getLibraryPath());
+    updateRecentsName(
+        QString::fromStdString(_material->getUUID()),
+        QString::fromStdString(_material->getLibraryPath())
+    );
 }
 
 void MaterialsEditor::updateFavoritesName(const QString& uuid, const QString& name)
@@ -2370,7 +2395,10 @@ void MaterialsEditor::updateFavoritesName(const QString& uuid, const QString& na
 
 void MaterialsEditor::updateFavoritesName()
 {
-    updateFavoritesName(_material->getUUID(), _material->getLibraryPath());
+    updateFavoritesName(
+        QString::fromStdString(_material->getUUID()),
+        QString::fromStdString(_material->getLibraryPath())
+    );
 }
 
 #include "moc_MaterialsEditor.cpp"

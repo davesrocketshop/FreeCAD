@@ -278,7 +278,7 @@ void MaterialManagerExternal::addMaterial(const std::string& libraryName,
                                           const std::string& path,
                                           const Material& material)
 {
-    _cache.erase(material.getUUID().toStdString());
+    _cache.erase(material.getUUID());
     auto stripped = stripFilename(path, material);
     ExternalManager::getManager()->addMaterial(libraryName, stripped, material);
 }
@@ -287,7 +287,7 @@ void MaterialManagerExternal::migrateMaterial(const std::string& libraryName,
                                               const std::string& path,
                                               const Material& material)
 {
-    _cache.erase(material.getUUID().toStdString());
+    _cache.erase(material.getUUID());
     auto stripped = stripFilename(path, material);
     ExternalManager::getManager()->migrateMaterial(libraryName, stripped, material);
 }
@@ -311,10 +311,10 @@ void MaterialManagerExternal::move(
     std::shared_ptr<Material> original
 )
 {
-    _cache.erase(original->getUUID().toStdString());
+    _cache.erase(original->getUUID());
     auto stripped = stripFilename(path, *original);
     ExternalManager::getManager()
-        ->moveMaterial(library->getName(), stripped, original->getUUID().toStdString());
+        ->moveMaterial(library->getName(), stripped, original->getUUID());
 }
 
 void MaterialManagerExternal::remove(const std::string& uuid)
@@ -330,11 +330,11 @@ void MaterialManagerExternal::saveMaterial(
     bool overwrite
 ) const
 {
-    _cache.erase(material->getUUID().toStdString());
+    _cache.erase(material->getUUID());
 
     auto stripped = stripFilename(path, *material);
     if (ExternalManager::getManager()
-            ->materialExists(library->getName(), material->getUUID().toStdString())) {
+            ->materialExists(library->getName(), material->getUUID())) {
         if (overwrite) {
             ExternalManager::getManager()->updateMaterial(library->getName(), stripped, *material);
         }
@@ -370,7 +370,7 @@ double MaterialManagerExternal::materialHitRate()
 std::string MaterialManagerExternal::stripFilename(const std::string& path, const Material& material) const
 {
     auto stripped = path;
-    auto filename = material.getName().toStdString() + ".FCMat";
+    auto filename = material.getName() + ".FCMat";
     if (stripped.ends_with(filename)) {
         stripped.erase(filename.size() + 1);  // Allow for the separator
         Base::Console()

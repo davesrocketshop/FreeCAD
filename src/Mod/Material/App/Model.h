@@ -26,19 +26,16 @@
 
 #include <memory>
 
-#include <QDir>
-#include <QString>
-#include <QStringList>
-#include <QTextStream>
-
 #include <Base/BaseClass.h>
 #include <Base/Quantity.h>
+#include <Base/Stream.h>
 
 #include <Mod/Material/MaterialGlobal.h>
 
 #include "FolderTree.h"
 #include "MaterialValue.h"
 // #include "ModelLibrary.h"
+#include "StringUtility.h"
 
 namespace Materials
 {
@@ -58,37 +55,37 @@ class MaterialsExport ModelProperty: public Base::BaseClass
 
 public:
     ModelProperty();
-    ModelProperty(const QString& name,
-                  const QString& header,
-                  const QString& type,
-                  const QString& units,
-                  const QString& url,
-                  const QString& description);
+    ModelProperty(const std::string& name,
+                  const std::string& header,
+                  const std::string& type,
+                  const std::string& units,
+                  const std::string& url,
+                  const std::string& description);
     ModelProperty(const ModelProperty& other);
     ~ModelProperty() override = default;
 
-    const QString getName() const
+    const std::string getName() const
     {
         return _name;
     }
-    const QString getDisplayName() const;
-    const QString getPropertyType() const
+    const std::string getDisplayName() const;
+    const std::string getPropertyType() const
     {
         return _propertyType;
     }
-    const QString getUnits() const
+    const std::string getUnits() const
     {
         return _units;
     }
-    const QString getURL() const
+    const std::string getURL() const
     {
         return _url;
     }
-    const QString getDescription() const
+    const std::string getDescription() const
     {
         return _description;
     }
-    const QString getInheritance() const
+    const std::string getInheritance() const
     {
         return _inheritance;
     }
@@ -97,31 +94,31 @@ public:
         return (_inheritance.length() > 0);
     }
 
-    void setName(const QString& name)
+    void setName(const std::string& name)
     {
         _name = name;
     }
-    void setDisplayName(const QString& header)
+    void setDisplayName(const std::string& header)
     {
         _displayName = header;
     }
-    virtual void setPropertyType(const QString& type)
+    virtual void setPropertyType(const std::string& type)
     {
         _propertyType = type;
     }
-    void setUnits(const QString& units)
+    void setUnits(const std::string& units)
     {
         _units = units;
     }
-    void setURL(const QString& url)
+    void setURL(const std::string& url)
     {
         _url = url;
     }
-    void setDescription(const QString& description)
+    void setDescription(const std::string& description)
     {
-        _description = description;
+        _description = trim_copy(description);
     }
-    void setInheritance(const QString& uuid)
+    void setInheritance(const std::string& uuid)
     {
         _inheritance = uuid;
     }
@@ -149,13 +146,13 @@ public:
     void validate(const ModelProperty& other) const;
 
 private:
-    QString _name;
-    QString _displayName;
-    QString _propertyType;
-    QString _units;
-    QString _url;
-    QString _description;
-    QString _inheritance;
+    std::string _name;
+    std::string _displayName;
+    std::string _propertyType;
+    std::string _units;
+    std::string _url;
+    std::string _description;
+    std::string _inheritance;
     std::vector<ModelProperty> _columns;
 };
 
@@ -173,12 +170,12 @@ public:
     Model();
     Model(std::shared_ptr<ModelLibrary> library,
           ModelType type,
-          const QString& name,
-          const QString& directory,
-          const QString& uuid,
-          const QString& description,
-          const QString& url,
-          const QString& doi);
+          const std::string& name,
+          const std::string& directory,
+          const std::string& uuid,
+          const std::string& description,
+          const std::string& url,
+          const std::string& doi);
     ~Model() override = default;
 
     std::shared_ptr<ModelLibrary> getLibrary() const
@@ -186,12 +183,12 @@ public:
         return _library;
     }
     bool isDisabled() const;
-    QString getBase() const
+    std::string getBase() const
     {
-        return (_type == ModelType_Physical) ? QStringLiteral("Model")
-                                             : QStringLiteral("AppearanceModel");
+        return (_type == ModelType_Physical) ? "Model"
+                                             : "AppearanceModel";
     }
-    QString getName() const
+    std::string getName() const
     {
         return _name;
     }
@@ -199,22 +196,22 @@ public:
     {
         return _type;
     }
-    QString getDirectory() const;
-    QString getFilename() const;
-    QString getFilePath() const;
-    QString getUUID() const
+    std::string getDirectory() const;
+    std::string getFilename() const;
+    std::string getFilePath() const;
+    std::string getUUID() const
     {
         return _uuid;
     }
-    QString getDescription() const
+    std::string getDescription() const
     {
         return _description;
     }
-    QString getURL() const
+    std::string getURL() const
     {
         return _url;
     }
-    QString getDOI() const
+    std::string getDOI() const
     {
         return _doi;
     }
@@ -227,40 +224,44 @@ public:
     {
         _type = type;
     }
-    void setName(const QString& name)
+    void setName(const std::string& name)
     {
         _name = name;
     }
-    void setDirectory(const QString& directory);
-    void setFilename(const QString& filename);
-    void setUUID(const QString& uuid)
+    void setDirectory(const std::string& directory);
+    void setFilename(const std::string& filename);
+    void setUUID(const std::string& uuid)
     {
         _uuid = uuid;
     }
-    void setDescription(const QString& description)
+    void setDescription(const std::string& description)
     {
         _description = description;
     }
-    void setURL(const QString& url)
+    void setURL(const std::string& url)
     {
         _url = url;
     }
-    void setDOI(const QString& doi)
+    void setDOI(const std::string& doi)
     {
         _doi = doi;
     }
 
-    void addInheritance(const QString& uuid)
+    void addInheritance(const std::string& uuid)
     {
-        _inheritedUuids << uuid;
+        _inheritedUuids.push_back(uuid);
     }
-    const QStringList& getInheritance() const
+    const std::vector<std::string>& getInheritance() const
     {
         return _inheritedUuids;
     }
-    bool inherits(const QString& uuid) const
+    bool inherits(const std::string& uuid) const
     {
-        return _inheritedUuids.contains(uuid);
+        auto it = std::find(_inheritedUuids.cbegin(), _inheritedUuids.cend(), uuid);
+        if (it != _inheritedUuids.cend()) {
+            return true;
+        }
+        return false;
     }
 
     bool operator==(const Model& m) const
@@ -272,15 +273,15 @@ public:
         return !operator==(m);
     }
 
-    bool hasProperty(const QString& name) const;
-    ModelProperty& operator[](const QString& key);
+    bool hasProperty(const std::string& name) const;
+    ModelProperty& operator[](const std::string& key);
     void addProperty(ModelProperty& property)
     {
         _properties[property.getName()] = property;
     }
 
-    using iterator = typename std::map<QString, ModelProperty>::iterator;
-    using const_iterator = typename std::map<QString, ModelProperty>::const_iterator;
+    using iterator = typename std::map<std::string, ModelProperty>::iterator;
+    using const_iterator = typename std::map<std::string, ModelProperty>::const_iterator;
     iterator begin()
     {
         return _properties.begin();
@@ -307,7 +308,7 @@ public:
     }
 
     void validate(Model& other) const;
-    void save(QTextStream& stream);
+    void save(Base::TextOutputStream& stream);
 
     bool isDereferenced() const
     {
@@ -338,22 +339,22 @@ public:
 private:
     std::shared_ptr<ModelLibrary> _library;
     ModelType _type;
-    QString _name;
-    QString _directory;
-    QString _filename;
-    QString _uuid;
-    QString _description;
-    QString _url;
-    QString _doi;
-    QStringList _inheritedUuids;
-    std::map<QString, ModelProperty> _properties;
+    std::string _name;
+    std::string _directory;
+    std::string _filename;
+    std::string _uuid;
+    std::string _description;
+    std::string _url;
+    std::string _doi;
+    std::vector<std::string> _inheritedUuids;
+    std::map<std::string, ModelProperty> _properties;
 
     bool _dereferenced;
     bool _dereferencing;
 
-    void saveGeneral(QTextStream& stream) const;
-    void saveInherits(QTextStream& stream) const;
-    void saveProperties(QTextStream& stream) const;
+    void saveGeneral(Base::TextOutputStream& stream) const;
+    void saveInherits(Base::TextOutputStream& stream) const;
+    void saveProperties(Base::TextOutputStream& stream) const;
 };
 
 typedef FolderTreeNode<Model> ModelTreeNode;

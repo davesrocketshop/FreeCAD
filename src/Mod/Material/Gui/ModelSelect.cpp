@@ -250,7 +250,7 @@ void ModelSelect::addModels(
                 nodePtr->setData(model);
             }
 
-            auto card = new QStandardItem(icon, model->getName());
+            auto card = new QStandardItem(icon, QString::fromStdString(model->getName()));
             card->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsDragEnabled
                            | Qt::ItemIsDropEnabled);
             card->setData(QVariant(uuid), Qt::UserRole);
@@ -276,7 +276,7 @@ void ModelSelect::addRecents(QStandardItem* parent)
 
             if (Materials::ModelManager::getManager().passFilter(_filter, model->getType())) {
                 auto icon = MaterialsEditor::getIcon(model->getLibrary());
-                auto card = new QStandardItem(icon, model->getName());
+                auto card = new QStandardItem(icon, QString::fromStdString(model->getName()));
                 card->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsDragEnabled
                                | Qt::ItemIsDropEnabled);
                 card->setData(QVariant(uuid), Qt::UserRole);
@@ -298,7 +298,7 @@ void ModelSelect::addFavorites(QStandardItem* parent)
 
             if (Materials::ModelManager::getManager().passFilter(_filter, model->getType())) {
                 auto icon = MaterialsEditor::getIcon(model->getLibrary());
-                auto card = new QStandardItem(icon, model->getName());
+                auto card = new QStandardItem(icon, QString::fromStdString(model->getName()));
                 card->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsDragEnabled
                                | Qt::ItemIsDropEnabled);
                 card->setData(QVariant(uuid), Qt::UserRole);
@@ -405,7 +405,7 @@ void ModelSelect::updateModelProperties(std::shared_ptr<Materials::Model> model)
     for (auto& itp : *model) {
         QList<QStandardItem*> items;
 
-        QString key = itp.first;
+        QString key = QString::fromStdString(itp.first);
         const Materials::ModelProperty modelProperty =
             static_cast<const Materials::ModelProperty>(itp.second);
 
@@ -417,13 +417,13 @@ void ModelSelect::updateModelProperties(std::shared_ptr<Materials::Model> model)
         auto propertyItem = new QStandardItem(key);
         items.append(propertyItem);
 
-        auto unitsItem = new QStandardItem(modelProperty.getUnits());
+        auto unitsItem = new QStandardItem(QString::fromStdString(modelProperty.getUnits()));
         items.append(unitsItem);
 
-        auto descriptionItem = new QStandardItem(modelProperty.getDescription());
+        auto descriptionItem = new QStandardItem(QString::fromStdString(modelProperty.getDescription()));
         items.append(descriptionItem);
 
-        auto urlItem = new QStandardItem(modelProperty.getURL());
+        auto urlItem = new QStandardItem(QString::fromStdString(modelProperty.getURL()));
         items.append(urlItem);
 
         // addExpanded(tree, modelRoot, propertyItem);
@@ -436,10 +436,10 @@ void ModelSelect::updateMaterialModel(const QString& uuid)
     auto model = Materials::ModelManager::getManager().getModel(uuid.toStdString());
 
     // Update the general information
-    ui->editName->setText(model->getName());
-    ui->editURL->setText(model->getURL());
-    ui->editDOI->setText(model->getDOI());
-    ui->editDescription->setText(model->getDescription());
+    ui->editName->setText(QString::fromStdString(model->getName()));
+    ui->editURL->setText(QString::fromStdString(model->getURL()));
+    ui->editDOI->setText(QString::fromStdString(model->getDOI()));
+    ui->editDescription->setText(QString::fromStdString(model->getDescription()));
 
     if (model->getType() == Materials::Model::ModelType_Physical) {
         ui->tabWidget->setTabText(1, tr("Properties"));

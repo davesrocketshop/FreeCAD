@@ -723,7 +723,7 @@ std::shared_ptr<Model> ExternalManager::modelFromObject(const Py::Object& entry,
         = LibraryManager::getManager().getModelLibrary(LibraryManager::RepositoryRemote, libraryName);
 
     Model* model = static_cast<ModelPy*>(*modelObject)->getModelPtr();
-    model->setUUID(QString::fromStdString(uuid));
+    model->setUUID(uuid);
     model->setLibrary(library);
     auto shared = std::make_shared<Model>(*model);
 
@@ -985,7 +985,7 @@ std::shared_ptr<Material> ExternalManager::materialFromObject(
     );
 
     Material* material = static_cast<MaterialPy*>(*materialObject)->getMaterialPtr();
-    material->setUUID(QString::fromStdString(uuid));
+    material->setUUID(uuid);
     material->setLibrary(library);
     auto shared = std::make_shared<Material>(*material);
 

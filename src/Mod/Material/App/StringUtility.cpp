@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: LGPL-2.1-or-later
 
 /***************************************************************************
- *   Copyright (c) 2023 David Carter <dcarter@david.carter.ca>             *
+ *   Copyright (c) 2026 David Carter <dcarter@david.carter.ca>             *
  *                                                                         *
  *   This file is part of FreeCAD.                                         *
  *                                                                         *
@@ -20,67 +20,23 @@
  *   <https://www.gnu.org/licenses/>.                                      *
  *                                                                         *
  **************************************************************************/
+#include <ranges>
+#include <vector>
+#include <string_view>
 
-#ifndef MATERIAL_TRIM_H
-#define MATERIAL_TRIM_H
+#include "StringUtility.h"
 
-#include <algorithm>
-#include <string>
+using namespace Materials;
 
-namespace Materials
+std::vector<std::string> Materials::split(std::string_view str, char delimiter)
 {
+    auto tokens_view = std::views::split(str, delimiter);
+    std::vector<std::string> parts;
 
-// trim from start (in place)
-static inline void ltrim(std::string& s)
-{
-    s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](unsigned char ch) {
-                return !std::isspace(ch);
-            }));
+    for (const auto& token_range : tokens_view) {
+        // Convert range to string or string_view for output/storage
+        std::string_view token(token_range.begin(), token_range.end());
+        parts.emplace_back(token);  // Efficiently adds string views to the vector
+    }
+    return parts;
 }
-
-// trim from end (in place)
-static inline void rtrim(std::string& s)
-{
-    s.erase(std::find_if(s.rbegin(),
-                         s.rend(),
-                         [](unsigned char ch) {
-                             return !std::isspace(ch);
-                         })
-                .base(),
-            s.end());
-}
-
-// trim from both ends (in place)
-static inline void trim(std::string& s)
-{
-    rtrim(s);
-    ltrim(s);
-}
-
-// trim from start (copying)
-static inline std::string ltrim_copy(const std::string s)
-{
-    std::string copy = s;
-    ltrim(copy);
-    return copy;
-}
-
-// trim from end (copying)
-static inline std::string rtrim_copy(const std::string s)
-{
-    std::string copy = s;
-    rtrim(copy);
-    return copy;
-}
-
-// trim from both ends (copying)
-static inline std::string trim_copy(const std::string s)
-{
-    std::string copy = s;
-    trim(copy);
-    return copy;
-}
-
-}  // namespace Materials
-
-#endif  // MATERIAL_TRIM_H

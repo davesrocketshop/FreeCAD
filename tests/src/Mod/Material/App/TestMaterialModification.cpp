@@ -107,48 +107,48 @@ TEST_F(TestMaterialModification, TestNew)
     // Set the library and path
     material->setLibrary(library);
     ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_New);
-    material->setDirectory(QStringLiteral("a/b/c"));
+    material->setDirectory("a/b/c");
     ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_New);
 
     // Modify basic properties
-    material->setName(QStringLiteral("Name"));
+    material->setName("Name");
     ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_New);
-    material->setAuthor(QStringLiteral("Author"));
+    material->setAuthor("Author");
     ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_New);
-    material->setLicense(QStringLiteral("License"));
+    material->setLicense("License");
     ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_New);
-    material->setParentUUID(QStringLiteral("Author"));
+    material->setParentUUID("Author");
     ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_New);
-    material->setDescription(QStringLiteral("Description"));
+    material->setDescription("Description");
     ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_New);
-    material->setURL(QStringLiteral("URL"));
+    material->setURL("URL");
     ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_New);
-    material->setReference(QStringLiteral("Reference"));
+    material->setReference("Reference");
     ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_New);
 
     // Test tags
-    material->addTag(QStringLiteral("Henry"));
-    material->addTag(QStringLiteral("Ralph"));
+    material->addTag("Henry");
+    material->addTag("Ralph");
     ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_New);
-    material->removeTag(QStringLiteral("Henry"));
+    material->removeTag("Henry");
     ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_New);
 
     // Test adding a model
-    material->addPhysical(QStringLiteral("454661e5-265b-4320-8e6f-fcf6223ac3af")); // Density
+    material->addPhysical("454661e5-265b-4320-8e6f-fcf6223ac3af"); // Density
     ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_New);
-    material->addAppearance(QStringLiteral("f006c7e4-35b7-43d5-bbf9-c5d572309e6e")); // BasicRendering
+    material->addAppearance("f006c7e4-35b7-43d5-bbf9-c5d572309e6e"); // BasicRendering
     ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_New);
 
     // Test modifying a property
-    material->setPhysicalValue(QStringLiteral("Density"), QStringLiteral("1.0 kg/m^3"));
+    material->setPhysicalValue("Density", std::string("1.0 kg/m^3"));
     ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_New);
-    material->setAppearanceValue(QStringLiteral("DiffuseColor"), QStringLiteral("(0.7804, 0.5686, 0.1137, 1.0)"));
+    material->setAppearanceValue("DiffuseColor", std::string("(0.7804, 0.5686, 0.1137, 1.0)"));
     ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_New);
 
     // Test removing a model
-    material->removePhysical(QStringLiteral("454661e5-265b-4320-8e6f-fcf6223ac3af")); // Density
+    material->removePhysical("454661e5-265b-4320-8e6f-fcf6223ac3af"); // Density
     ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_New);
-    material->removeAppearance(QStringLiteral("f006c7e4-35b7-43d5-bbf9-c5d572309e6e")); // BasicRendering
+    material->removeAppearance("f006c7e4-35b7-43d5-bbf9-c5d572309e6e"); // BasicRendering
     ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_New);
 
     // Test save
@@ -159,9 +159,9 @@ TEST_F(TestMaterialModification, TestNew)
                         false, // overwrite
                         true,  // saveAsCopy
                         false); // saveInherited
-        ASSERT_FALSE(material->getUUID().isEmpty());
+        ASSERT_FALSE(material->getUUID().empty());
         ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_None);
-        auto reload = _materialManager->getMaterial(material->getUUID().toStdString());
+        auto reload = _materialManager->getMaterial(material->getUUID());
         ASSERT_EQ(reload->getEditState(), Materials::Material::MaterialEdit_None);
     }
     catch (...) {
@@ -185,112 +185,112 @@ TEST_F(TestMaterialModification, TestAlter)
     material->setLibrary(library);
     ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_Changed);
     material->resetEditState();
-    material->setDirectory(QStringLiteral("a/b/c"));
+    material->setDirectory("a/b/c");
     ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_Changed);
     material->resetEditState();
 
     // Modify basic properties
-    material->setName(QStringLiteral("Name"));
+    material->setName("Name");
     ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_Changed);
     material->resetEditState();
-    material->setAuthor(QStringLiteral("Author"));
+    material->setAuthor("Author");
     ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_Changed);
     material->resetEditState();
-    material->setLicense(QStringLiteral("License"));
+    material->setLicense("License");
     ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_Changed);
     material->resetEditState();
-    material->setParentUUID(QStringLiteral("Author"));
+    material->setParentUUID("Author");
     ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_Changed);
     material->resetEditState();
-    material->setDescription(QStringLiteral("Description"));
+    material->setDescription("Description");
     ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_Changed);
     material->resetEditState();
-    material->setURL(QStringLiteral("URL"));
+    material->setURL("URL");
     ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_Changed);
     material->resetEditState();
-    material->setReference(QStringLiteral("Reference"));
+    material->setReference("Reference");
     ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_Changed);
     material->resetEditState();
 
     // Test tags
-    material->addTag(QStringLiteral("Henry"));
-    material->addTag(QStringLiteral("Ralph"));
+    material->addTag("Henry");
+    material->addTag("Ralph");
     ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_Changed);
     material->resetEditState();
-    material->removeTag(QStringLiteral("Henry"));
+    material->removeTag("Henry");
     ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_Changed);
     material->resetEditState();
 
     // Test adding a model
-    material->addPhysical(QStringLiteral("454661e5-265b-4320-8e6f-fcf6223ac3af")); // Density
+    material->addPhysical("454661e5-265b-4320-8e6f-fcf6223ac3af"); // Density
     ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_Changed);
     material->resetEditState();
-    material->addAppearance(QStringLiteral("f006c7e4-35b7-43d5-bbf9-c5d572309e6e")); // BasicRendering
+    material->addAppearance("f006c7e4-35b7-43d5-bbf9-c5d572309e6e"); // BasicRendering
     ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_None); // Part of Test Material.FCMat
-    material->addAppearance(QStringLiteral("bbdcc65b-67ca-489c-bd5c-a36e33d1c160")); // TextureRendering
+    material->addAppearance("bbdcc65b-67ca-489c-bd5c-a36e33d1c160"); // TextureRendering
     ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_Changed);
     material->resetEditState();
 
     // Test modifying a property
-    material->setPhysicalValue(QStringLiteral("Density"), QStringLiteral("1.0 kg/m^3")); // No previous value
+    material->setPhysicalValue("Density", std::string("1.0 kg/m^3")); // No previous value
     ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_Changed);
     material->resetEditState();
-    material->setPhysicalValue(QStringLiteral("TestQuantity"), QStringLiteral("1.0 kg/m^3"));
+    material->setPhysicalValue("TestQuantity", std::string("1.0 kg/m^3"));
     ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_InvariantChanged);
     material->resetEditState();
-    material->setAppearanceValue(QStringLiteral("TextureScaling"), QStringLiteral("1.0")); // No previous value
+    material->setAppearanceValue("TextureScaling", std::string("1.0")); // No previous value
     ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_Changed);
     material->resetEditState();
 
     // Test removing a model
-    material->removePhysical(QStringLiteral("454661e5-265b-4320-8e6f-fcf6223ac3af")); // Density
+    material->removePhysical("454661e5-265b-4320-8e6f-fcf6223ac3af"); // Density
     ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_InvariantChanged);
     material->resetEditState();
-    material->removeAppearance(QStringLiteral("f006c7e4-35b7-43d5-bbf9-c5d572309e6e")); // BasicRendering
+    material->removeAppearance("f006c7e4-35b7-43d5-bbf9-c5d572309e6e"); // BasicRendering
     ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_None); // Still used by TextureRendering
-    material->removeAppearance(QStringLiteral("bbdcc65b-67ca-489c-bd5c-a36e33d1c160")); // TextureRendering
+    material->removeAppearance("bbdcc65b-67ca-489c-bd5c-a36e33d1c160"); // TextureRendering
     ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_InvariantChanged);
     material->resetEditState();
 
     // Test adding and modifying a model
-    material->addPhysical(QStringLiteral("454661e5-265b-4320-8e6f-fcf6223ac3af")); // Density
+    material->addPhysical("454661e5-265b-4320-8e6f-fcf6223ac3af"); // Density
     ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_Changed);
-    material->addAppearance(QStringLiteral("f006c7e4-35b7-43d5-bbf9-c5d572309e6e")); // BasicRendering
+    material->addAppearance("f006c7e4-35b7-43d5-bbf9-c5d572309e6e"); // BasicRendering
     ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_Changed);
-    material->addAppearance(QStringLiteral("bbdcc65b-67ca-489c-bd5c-a36e33d1c160")); // TextureRendering
+    material->addAppearance("bbdcc65b-67ca-489c-bd5c-a36e33d1c160"); // TextureRendering
     ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_Changed);
-    material->setPhysicalValue(QStringLiteral("Density"), QStringLiteral("1.0 kg/m^3")); // No previous value
+    material->setPhysicalValue("Density", std::string("1.0 kg/m^3")); // No previous value
     ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_Changed);
-    material->setPhysicalValue(QStringLiteral("TestQuantity"), QStringLiteral("1.0 kg/m^3"));
+    material->setPhysicalValue("TestQuantity", std::string("1.0 kg/m^3"));
     ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_InvariantChanged);
     material->resetEditState();
-    material->setAppearanceValue(QStringLiteral("TextureScaling"), QStringLiteral("1.0")); // No previous value
+    material->setAppearanceValue("TextureScaling", std::string("1.0")); // No previous value
     ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_Changed);
-    material->removePhysical(QStringLiteral("454661e5-265b-4320-8e6f-fcf6223ac3af")); // Density
+    material->removePhysical("454661e5-265b-4320-8e6f-fcf6223ac3af"); // Density
     ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_InvariantChanged);
     material->resetEditState();
-    material->removeAppearance(QStringLiteral("f006c7e4-35b7-43d5-bbf9-c5d572309e6e")); // BasicRendering
+    material->removeAppearance("f006c7e4-35b7-43d5-bbf9-c5d572309e6e"); // BasicRendering
     ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_None); // Still used by TextureRendering
-    material->removeAppearance(QStringLiteral("bbdcc65b-67ca-489c-bd5c-a36e33d1c160")); // TextureRendering
+    material->removeAppearance("bbdcc65b-67ca-489c-bd5c-a36e33d1c160"); // TextureRendering
     ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_InvariantChanged);
     material->resetEditState();
 
     // Test adding and modifying a model with existing values
-    material->addPhysical(QStringLiteral("454661e5-265b-4320-8e6f-fcf6223ac3af")); // Density
+    material->addPhysical("454661e5-265b-4320-8e6f-fcf6223ac3af"); // Density
     ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_Changed);
-    material->addAppearance(QStringLiteral("f006c7e4-35b7-43d5-bbf9-c5d572309e6e")); // BasicRendering
+    material->addAppearance("f006c7e4-35b7-43d5-bbf9-c5d572309e6e"); // BasicRendering
     ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_Changed);
-    material->setPhysicalValue(QStringLiteral("Density"), QStringLiteral("1.0 kg/m^3")); // No previous value
+    material->setPhysicalValue("Density", std::string("1.0 kg/m^3")); // No previous value
     ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_Changed);
-    material->setPhysicalValue(QStringLiteral("TestQuantity"), QStringLiteral("1.0 kg/m^3"));
+    material->setPhysicalValue("TestQuantity", std::string("1.0 kg/m^3"));
     ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_InvariantChanged);
-    material->setAppearanceValue(QStringLiteral("DiffuseColor"), QStringLiteral("(0.7804, 0.5686, 0.1137, 1.0)")); // No previous value
+    material->setAppearanceValue("DiffuseColor", std::string("(0.7804, 0.5686, 0.1137, 1.0)")); // No previous value
     ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_InvariantChanged);
-    material->setPhysicalValue(QStringLiteral("TestQuantity"), QStringLiteral("1.0 kg/m^3"));
+    material->setPhysicalValue("TestQuantity", std::string("1.0 kg/m^3"));
     ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_InvariantChanged);
-    material->removePhysical(QStringLiteral("454661e5-265b-4320-8e6f-fcf6223ac3af")); // Density
+    material->removePhysical("454661e5-265b-4320-8e6f-fcf6223ac3af"); // Density
     ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_InvariantChanged);
-    material->removeAppearance(QStringLiteral("f006c7e4-35b7-43d5-bbf9-c5d572309e6e")); // BasicRendering
+    material->removeAppearance("f006c7e4-35b7-43d5-bbf9-c5d572309e6e"); // BasicRendering
     ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_InvariantChanged);
     material->resetEditState();
 
@@ -302,9 +302,9 @@ TEST_F(TestMaterialModification, TestAlter)
                         false, // overwrite
                         true,  // saveAsCopy
                         false); // saveInherited
-        ASSERT_FALSE(material->getUUID().isEmpty());
+        ASSERT_FALSE(material->getUUID().empty());
         ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_None);
-        auto reload = _materialManager->getMaterial(material->getUUID().toStdString());
+        auto reload = _materialManager->getMaterial(material->getUUID());
         ASSERT_EQ(reload->getEditState(), Materials::Material::MaterialEdit_None);
     }
     catch (...) {

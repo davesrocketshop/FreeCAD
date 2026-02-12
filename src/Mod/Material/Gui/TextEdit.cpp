@@ -47,18 +47,18 @@ TextEdit::TextEdit(const QString& propertyName,
 {
     ui->setupUi(this);
 
-    if (material->hasPhysicalProperty(propertyName)) {
-        _property = material->getPhysicalProperty(propertyName);
+    if (material->hasPhysicalProperty(propertyName.toStdString())) {
+        _property = material->getPhysicalProperty(propertyName.toStdString());
     }
-    else if (material->hasAppearanceProperty(propertyName)) {
-        _property = material->getAppearanceProperty(propertyName);
+    else if (material->hasAppearanceProperty(propertyName.toStdString())) {
+        _property = material->getAppearanceProperty(propertyName.toStdString());
     }
     else {
         Base::Console().log("Property '%s' not found\n", propertyName.toStdString().c_str());
         _property = nullptr;
     }
     if (_property) {
-        _value = _property->getString();
+        _value = QString::fromStdString(_property->getString());
     }
     else {
         Base::Console().log("No value loaded\n");

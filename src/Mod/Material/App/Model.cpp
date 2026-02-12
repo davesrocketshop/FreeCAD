@@ -39,12 +39,12 @@ TYPESYSTEM_SOURCE(Materials::ModelProperty, Base::BaseClass)
 ModelProperty::ModelProperty()
 {}
 
-ModelProperty::ModelProperty(const QString& name,
-                             const QString& header,
-                             const QString& type,
-                             const QString& units,
-                             const QString& url,
-                             const QString& description)
+ModelProperty::ModelProperty(const std::string& name,
+                             const std::string& header,
+                             const std::string& type,
+                             const std::string& units,
+                             const std::string& url,
+                             const std::string& description)
     : _name(name)
     , _displayName(header)
     , _propertyType(type)
@@ -67,9 +67,9 @@ ModelProperty::ModelProperty(const ModelProperty& other)
     }
 }
 
-const QString ModelProperty::getDisplayName() const
+const std::string ModelProperty::getDisplayName() const
 {
-    if (_displayName.isEmpty()) {
+    if (_displayName.empty()) {
         return getName();
     }
     return _displayName;
@@ -114,9 +114,9 @@ void ModelProperty::validate(const ModelProperty& other) const
         throw InvalidProperty("Model names don't match");
     }
     if (getDisplayName() != other.getDisplayName()) {
-        Base::Console().log("Local display name '%s'\n", getDisplayName().toStdString().c_str());
+        Base::Console().log("Local display name '%s'\n", getDisplayName().c_str());
         Base::Console().log("Remote display name '%s'\n",
-                            other.getDisplayName().toStdString().c_str());
+                            other.getDisplayName().c_str());
         throw InvalidProperty("Model display names don't match");
     }
     if (_propertyType != other._propertyType) {
@@ -155,12 +155,12 @@ Model::Model()
 Model::Model(
     std::shared_ptr<ModelLibrary> library,
     ModelType type,
-    const QString& name,
-    const QString& directory,
-    const QString& uuid,
-    const QString& description,
-    const QString& url,
-    const QString& doi
+    const std::string& name,
+    const std::string& directory,
+    const std::string& uuid,
+    const std::string& description,
+    const std::string& url,
+    const std::string& doi
 )
     : _library(library)
     , _type(type)
@@ -179,37 +179,37 @@ bool Model::isDisabled() const
     return _library->isDisabled();
 }
 
-QString Model::getDirectory() const
+std::string Model::getDirectory() const
 {
     return _directory;
 }
 
-void Model::setDirectory(const QString& directory)
+void Model::setDirectory(const std::string& directory)
 {
     _directory = directory;
 }
 
-QString Model::getFilename() const
+std::string Model::getFilename() const
 {
     return _filename;
 }
 
-void Model::setFilename(const QString& filename)
+void Model::setFilename(const std::string& filename)
 {
     _filename = filename;
 }
 
-QString Model::getFilePath() const
+std::string Model::getFilePath() const
 {
-    return QDir(_directory + QStringLiteral("/") + _filename).absolutePath();
+    return QDir(QString::fromStdString(_directory + "/" + _filename)).absolutePath().toStdString();
 }
 
-bool Model::hasProperty(const QString& name) const
+bool Model::hasProperty(const std::string& name) const
 {
     return _properties.contains(name);
 }
 
-ModelProperty& Model::operator[](const QString& key)
+ModelProperty& Model::operator[](const std::string& key)
 {
     try {
         return _properties.at(key);
@@ -229,7 +229,7 @@ void Model::validate(Model& other) const
         throw InvalidModel(e.what());
     }
 
-    // std::map<QString, ModelProperty> _properties;
+    // std::map<std::string, ModelProperty> _properties;
     if (_type != other._type) {
         throw InvalidModel("Model types don't match");
     }
@@ -239,7 +239,7 @@ void Model::validate(Model& other) const
     if (_directory != other._directory) {
         throw InvalidModel("Model directories don't match");
     }
-    if (!other._filename.isEmpty()) {
+    if (!other._filename.empty()) {
         throw InvalidModel("Remote filename is not empty");
     }
     if (_uuid != other._uuid) {
@@ -268,67 +268,67 @@ void Model::validate(Model& other) const
     }
 }
 
-void Model::save(QTextStream& stream)
+void Model::save(Base::TextOutputStream& stream)
 {
     stream << "---\n";
-    stream << "# File created by " << QString::fromStdString(App::Application::Config()["ExeName"])
-           << " " << QString::fromStdString(App::Application::Config()["ExeVersion"])
-           << " Revision: " << QString::fromStdString(App::Application::Config()["BuildRevision"])
+    stream << "# File created by " << App::Application::Config()["ExeName"]
+           << " " << App::Application::Config()["ExeVersion"]
+           << " Revision: " << App::Application::Config()["BuildRevision"]
            << "\n";
     saveGeneral(stream);
     saveInherits(stream);
     saveProperties(stream);
 }
 
-void Model::saveGeneral(QTextStream& stream) const
+void Model::saveGeneral(Base::TextOutputStream& stream) const
 {
     stream << "General:\n";
     stream << "  UUID: \"" << _uuid << "\"\n";
     stream << "  Name: \"" << MaterialValue::escapeString(_name) << "\"\n";
-    if (!_description.isEmpty()) {
+    if (!_description.empty()) {
         stream << "  Description: \"" << MaterialValue::escapeString(_description) << "\"\n";
     }
-    if (!_url.isEmpty()) {
+    if (!_url.empty()) {
         stream << "  URL: \"" << MaterialValue::escapeString(_url) << "\"\n";
     }
-    if (!_doi.isEmpty()) {
+    if (!_doi.empty()) {
         stream << "  DOI: \"" << MaterialValue::escapeString(_doi) << "\"\n";
     }
 }
 
-void Model::saveInherits(QTextStream& stream) const
+void Model::saveInherits(Base::TextOutputStream& stream) const
 {
     if (!_inheritedUuids.empty()) {
         stream << "Inherits:\n";
         for (auto const& uuid : _inheritedUuids) {
-            auto model = ModelManager::getManager().getModel(uuid.toStdString());
+            auto model = ModelManager::getManager().getModel(uuid);
             stream << "  - " << model->getName() << ":\n";
             stream << "    UUID: \"" << uuid << "\"\n";
         }
     }
 }
 
-void Model::saveProperties(QTextStream& stream) const
+void Model::saveProperties(Base::TextOutputStream& stream) const
 {
     for (auto& it : _properties) {
         // auto& name = it.first;
         auto& property = it.second;
         stream << property.getName() << ":\n";
-        if (!property.getDisplayName().isEmpty()) {
+        if (!property.getDisplayName().empty()) {
             stream << "    DisplayName: \""
                    << MaterialValue::escapeString(property.getDisplayName()) << "\"\n";
         }
-        if (!property.getPropertyType().isEmpty()) {
+        if (!property.getPropertyType().empty()) {
             stream << "    Type: \"" << MaterialValue::escapeString(property.getPropertyType())
                    << "\"\n";
         }
-        if (!property.getUnits().isEmpty()) {
+        if (!property.getUnits().empty()) {
             stream << "    Units: \"" << MaterialValue::escapeString(property.getUnits()) << "\"\n";
         }
-        if (!property.getURL().isEmpty()) {
+        if (!property.getURL().empty()) {
             stream << "    URL: \"" << MaterialValue::escapeString(property.getURL()) << "\"\n";
         }
-        if (!property.getDescription().isEmpty()) {
+        if (!property.getDescription().empty()) {
             stream << "    Description: \""
                    << MaterialValue::escapeString(property.getDescription()) << "\"\n";
         }

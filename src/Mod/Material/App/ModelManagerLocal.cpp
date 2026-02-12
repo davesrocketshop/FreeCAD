@@ -101,8 +101,8 @@ std::shared_ptr<std::vector<LibraryObject>> ModelManagerLocal::libraryModels(con
         if (it.second->getLibrary()->isName(libraryName)) {
             models->push_back(LibraryObject(
                 it.first,
-                it.second->getDirectory().toStdString(),
-                it.second->getName().toStdString()
+                it.second->getDirectory(),
+                it.second->getName()
             ));
         }
     }

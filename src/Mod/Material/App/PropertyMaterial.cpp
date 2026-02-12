@@ -83,7 +83,7 @@ void PropertyMaterial::setPyObject(PyObject* value)
 void PropertyMaterial::Save(Base::Writer& writer) const
 {
     writer.Stream() << writer.ind() << "<PropertyMaterial uuid=\""
-                    << _material.getUUID().toStdString() << "\"/>" << std::endl;
+                    << _material.getUUID() << "\"/>" << std::endl;
 }
 
 void PropertyMaterial::Restore(Base::XMLReader& reader)
