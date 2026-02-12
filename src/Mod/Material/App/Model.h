@@ -35,6 +35,7 @@
 #include "FolderTree.h"
 #include "MaterialValue.h"
 // #include "ModelLibrary.h"
+#include "StringUtility.h"
 
 namespace Materials
 {
@@ -115,7 +116,7 @@ public:
     }
     void setDescription(const std::string& description)
     {
-        _description = description;
+        _description = trim_copy(description);
     }
     void setInheritance(const std::string& uuid)
     {

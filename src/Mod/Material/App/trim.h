@@ -58,24 +58,27 @@ static inline void trim(std::string& s)
 }
 
 // trim from start (copying)
-static inline std::string ltrim_copy(std::string s)
+static inline std::string ltrim_copy(const std::string s)
 {
-    ltrim(s);
-    return s;
+    std::string copy = s;
+    ltrim(copy);
+    return copy;
 }
 
 // trim from end (copying)
-static inline std::string rtrim_copy(std::string s)
+static inline std::string rtrim_copy(const std::string s)
 {
-    rtrim(s);
-    return s;
+    std::string copy = s;
+    rtrim(copy);
+    return copy;
 }
 
 // trim from both ends (copying)
-static inline std::string trim_copy(std::string s)
+static inline std::string trim_copy(const std::string s)
 {
-    trim(s);
-    return s;
+    std::string copy = s;
+    trim(copy);
+    return copy;
 }
 
 }  // namespace Materials

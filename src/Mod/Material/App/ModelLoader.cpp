@@ -159,9 +159,9 @@ void ModelLoader::addToTree(std::shared_ptr<ModelEntry> model)
     auto directory = model->getDirectory();
     auto uuid = model->getUUID();
 
-    std::string description = yamlValue(yamlModel[base], "Description", "");
-    std::string url = yamlValue(yamlModel[base], "URL", "");
-    std::string doi = yamlValue(yamlModel[base], "DOI", "");
+    std::string description = trim_copy(yamlValue(yamlModel[base], "Description", ""));
+    std::string url = trim_copy(yamlValue(yamlModel[base], "URL", ""));
+    std::string doi = trim_copy(yamlValue(yamlModel[base], "DOI", ""));
 
     Model::ModelType type = (base == "Model") ? Model::ModelType_Physical
                                               : Model::ModelType_Appearance;
@@ -194,11 +194,11 @@ void ModelLoader::addToTree(std::shared_ptr<ModelEntry> model)
         if (!exclude.contains(propName)) {
             // showYaml(it->second);
             auto yamlProp = yamlProperties[propName];
-            auto propDisplayName = yamlValue(yamlProp, "DisplayName", "");
-            auto propType = yamlValue(yamlProp, "Type", "");
-            auto propUnits = yamlValue(yamlProp, "Units", "");
-            auto propURL = yamlValue(yamlProp, "URL", "");
-            auto propDescription = yamlValue(yamlProp, "Description", "");
+            auto propDisplayName = trim_copy(yamlValue(yamlProp, "DisplayName", ""));
+            auto propType = trim_copy(yamlValue(yamlProp, "Type", ""));
+            auto propUnits = trim_copy(yamlValue(yamlProp, "Units", ""));
+            auto propURL = trim_copy(yamlValue(yamlProp, "URL", ""));
+            auto propDescription = trim_copy(yamlValue(yamlProp, "Description", ""));
             // auto inherits = yamlValue(yamlProp, "Inherits", "");
 
             ModelProperty property(
@@ -217,11 +217,11 @@ void ModelLoader::addToTree(std::shared_ptr<ModelEntry> model)
                     std::string colName = col.first.as<std::string>();
 
                     auto colProp = cols[colName];
-                    auto colPropDisplayName = yamlValue(colProp, "DisplayName", "");
-                    auto colPropType = yamlValue(colProp, "Type", "");
-                    auto colPropUnits = yamlValue(colProp, "Units", "");
-                    auto colPropURL = yamlValue(colProp, "URL", "");
-                    auto colPropDescription = yamlValue(colProp, "Description", "");
+                    auto colPropDisplayName = trim_copy(yamlValue(colProp, "DisplayName", ""));
+                    auto colPropType = trim_copy(yamlValue(colProp, "Type", ""));
+                    auto colPropUnits = trim_copy(yamlValue(colProp, "Units", ""));
+                    auto colPropURL = trim_copy(yamlValue(colProp, "URL", ""));
+                    auto colPropDescription = trim_copy(yamlValue(colProp, "Description", ""));
                     ModelProperty colProperty(
                         colName,
                         colPropDisplayName,

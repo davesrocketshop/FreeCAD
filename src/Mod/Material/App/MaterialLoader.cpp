@@ -240,11 +240,11 @@ void MaterialYamlEntry::addToTree(
                     try {
                         if (type == MaterialValue::List || type == MaterialValue::FileList) {
                             auto list = readList(itp->second);
-                            finalModel->setPhysicalValue(propertyName, QVariant::fromValue(list));
+                            finalModel->setPhysicalValue(propertyName, list);
                         }
                         else if (type == MaterialValue::ImageList) {
                             auto list = readImageList(itp->second);
-                            finalModel->setPhysicalValue(propertyName, QVariant::fromValue(list));
+                            finalModel->setPhysicalValue(propertyName, list);
                         }
                         else if (type == MaterialValue::Array2D) {
                             auto array2d = read2DArray(itp->second, prop->columns());

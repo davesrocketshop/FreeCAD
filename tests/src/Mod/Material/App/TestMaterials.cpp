@@ -316,12 +316,12 @@ TEST_F(TestMaterial, TestCalculiXSteel)
     EXPECT_EQ(properties["SpecificHeat"]->getString(), parseQuantity("590.00 J/kg/K"));
     EXPECT_EQ(properties["ThermalConductivity"]->getString(), parseQuantity("43.00 W/m/K"));
     EXPECT_EQ(properties["ThermalExpansionCoefficient"]->getString(), parseQuantity("12.00 µm/m/K"));
-    EXPECT_EQ(properties1["AmbientColor"]->getString(), QStringLiteral("(0.0020, 0.0020, 0.0020, 1.0)"));
-    EXPECT_EQ(properties1["DiffuseColor"]->getString(), QStringLiteral("(0.0000, 0.0000, 0.0000, 1.0)"));
-    EXPECT_EQ(properties1["EmissiveColor"]->getString(), QStringLiteral("(0.0000, 0.0000, 0.0000, 1.0)"));
+    EXPECT_EQ(properties1["AmbientColor"]->getString(), "(0.0020, 0.0020, 0.0020, 1.0)");
+    EXPECT_EQ(properties1["DiffuseColor"]->getString(), "(0.0000, 0.0000, 0.0000, 1.0)");
+    EXPECT_EQ(properties1["EmissiveColor"]->getString(), "(0.0000, 0.0000, 0.0000, 1.0)");
     EXPECT_EQ(properties1["Shininess"]->getString(), locale.toString(0.06));
-    EXPECT_EQ(properties1["SpecularColor"]->getString(), QStringLiteral("(0.9800, 0.9800, 0.9800, 1.0)"));
-    EXPECT_EQ(properties1["Transparency"]->getString(), QStringLiteral("0"));
+    EXPECT_EQ(properties1["SpecularColor"]->getString(), "(0.9800, 0.9800, 0.9800, 1.0)");
+    EXPECT_EQ(properties1["Transparency"]->getString(), "0");
 
     EXPECT_TRUE(properties["BulkModulus"]->getString().empty());
     EXPECT_TRUE(properties["ShearModulus"]->getString().empty());
@@ -334,11 +334,11 @@ TEST_F(TestMaterial, TestCalculiXSteel)
     EXPECT_DOUBLE_EQ(steel->getPhysicalQuantity("SpecificHeat").getValue(), 590000000.0);
     EXPECT_DOUBLE_EQ(steel->getPhysicalQuantity("ThermalConductivity").getValue(), 43000.0);
     EXPECT_DOUBLE_EQ(steel->getPhysicalQuantity("ThermalExpansionCoefficient").getValue(), 1.2e-05);
-    EXPECT_EQ(steel->getAppearanceValue("AmbientColor"), QStringLiteral("(0.0020, 0.0020, 0.0020, 1.0)"));
-    EXPECT_EQ(steel->getAppearanceValue("DiffuseColor"), QStringLiteral("(0.0000, 0.0000, 0.0000, 1.0)"));
-    EXPECT_EQ(steel->getAppearanceValue("EmissiveColor"), QStringLiteral("(0.0000, 0.0000, 0.0000, 1.0)"));
+    EXPECT_EQ(steel->getAppearanceValue("AmbientColor"), "(0.0020, 0.0020, 0.0020, 1.0)");
+    EXPECT_EQ(steel->getAppearanceValue("DiffuseColor"), "(0.0000, 0.0000, 0.0000, 1.0)");
+    EXPECT_EQ(steel->getAppearanceValue("EmissiveColor"), "(0.0000, 0.0000, 0.0000, 1.0)");
     EXPECT_NEAR(steel->getAppearanceValue("Shininess").toDouble(), 0.06, 1e-6);
-    EXPECT_EQ(steel->getAppearanceValue("SpecularColor"), QStringLiteral("(0.9800, 0.9800, 0.9800, 1.0)"));
+    EXPECT_EQ(steel->getAppearanceValue("SpecularColor"), "(0.9800, 0.9800, 0.9800, 1.0)");
     EXPECT_DOUBLE_EQ(steel->getAppearanceValue("Transparency").toDouble(), 0.0);
 
     EXPECT_EQ(steel->getPhysicalQuantity("Density").getUserString(), parseQuantity("7900.00 kg/m^3").toStdString());
@@ -375,6 +375,166 @@ TEST_F(TestMaterial, TestColumns)
     auto array3d = testMaterial.getPhysicalProperty("TestArray3D")->getMaterialValue();
     EXPECT_TRUE(array3d);
     EXPECT_EQ(dynamic_cast<Materials::Array3D &>(*array3d).columns(), 2);
+}
+
+TEST_F(TestMaterial, TestTestMaterial)
+{
+    auto testMaterial = _materialManager->getMaterial("c6c64159-19c1-40b5-859c-10561f20f979");
+    EXPECT_EQ(testMaterial->getName(), "Test Material");
+    EXPECT_EQ(testMaterial->getUUID(), "c6c64159-19c1-40b5-859c-10561f20f979");
+    EXPECT_EQ(testMaterial->getLibrary()->getName(), "System");
+    EXPECT_FALSE(testMaterial->isDisabled());
+    EXPECT_EQ(testMaterial->getDirectory(), "Test");
+    // EXPECT_EQ(testMaterial->getFilePath(), ""); - this is installation dependent
+    EXPECT_EQ(testMaterial->getLibraryPath(), "[System]/Test/Test Material");
+    EXPECT_EQ(testMaterial->getAuthorAndLicense(), "David Carter LGPL-2.1-or-later");
+    EXPECT_EQ(testMaterial->getAuthor(), "David Carter");
+    EXPECT_EQ(testMaterial->getLicense(), "LGPL-2.1-or-later");
+    EXPECT_EQ(testMaterial->getParentUUID(), "5dbb7be6-8b63-479b-ab4c-87be02ead973"); // Default appearance
+    EXPECT_EQ(testMaterial->getDescription(), "This material is for testing purposes only. It does not describe any real material.");
+    EXPECT_EQ(testMaterial->getURL(), "");
+    EXPECT_EQ(testMaterial->getReference(), "");
+
+    EXPECT_TRUE(testMaterial->hasPhysicalProperty("TestArray2D"));
+    auto array2d = testMaterial->getPhysicalProperty("TestArray2D")->getMaterialValue();
+    ASSERT_TRUE(array2d);
+    EXPECT_EQ(array2d->getType(), Materials::MaterialValue::Array2D);
+    auto actual2D = dynamic_cast<Materials::Array2D &>(*array2d);
+    EXPECT_EQ(actual2D.rows(), 3);
+    EXPECT_EQ(actual2D.columns(), 2);
+    EXPECT_TRUE(actual2D.getValue(0, 0).canConvert<Base::Quantity>());
+    EXPECT_THROW(actual2D.getValue(-1, 0), Materials::InvalidIndex);
+    EXPECT_THROW(actual2D.getValue(0, -1), Materials::InvalidIndex);
+    EXPECT_EQ(actual2D.getValue(0, 0).value<Base::Quantity>(), Base::Quantity::parse("10.00 C"));
+    EXPECT_EQ(actual2D.getValue(0, 1).value<Base::Quantity>(), Base::Quantity::parse("10.00 kg/m^3"));
+    EXPECT_THROW(actual2D.getValue(0, 3), Materials::InvalidIndex);
+    EXPECT_EQ(actual2D.getValue(1, 0).value<Base::Quantity>(), Base::Quantity::parse("20.00 C"));
+    EXPECT_EQ(actual2D.getValue(1, 1).value<Base::Quantity>(), Base::Quantity::parse("20.00 kg/m^3"));
+    EXPECT_THROW(actual2D.getValue(1, 3), Materials::InvalidIndex);
+    EXPECT_EQ(actual2D.getValue(2, 0).value<Base::Quantity>(), Base::Quantity::parse("30.00 C"));
+    EXPECT_EQ(actual2D.getValue(2, 1).value<Base::Quantity>(), Base::Quantity::parse("30.00 kg/m^3"));
+    EXPECT_THROW(actual2D.getValue(2, 3), Materials::InvalidIndex);
+    EXPECT_THROW(actual2D.getValue(3, 0), Materials::InvalidIndex);
+
+    EXPECT_TRUE(testMaterial->hasPhysicalProperty("TestArray2D3Column"));
+    auto array2d3c = testMaterial->getPhysicalProperty("TestArray2D3Column")->getMaterialValue();
+    ASSERT_TRUE(array2d3c);
+    EXPECT_EQ(array2d3c->getType(), Materials::MaterialValue::Array2D);
+    auto actual2d3c = dynamic_cast<Materials::Array2D &>(*array2d3c);
+    EXPECT_EQ(actual2d3c.rows(), 3);
+    EXPECT_EQ(actual2d3c.columns(), 3);
+    EXPECT_TRUE(actual2d3c.getValue(0, 0).canConvert<Base::Quantity>());
+    EXPECT_THROW(actual2d3c.getValue(-1, 0), Materials::InvalidIndex);
+    EXPECT_THROW(actual2d3c.getValue(0, -1), Materials::InvalidIndex);
+    EXPECT_EQ(actual2d3c.getValue(0, 0).value<Base::Quantity>(), Base::Quantity::parse("10.00 C"));
+    EXPECT_EQ(actual2d3c.getValue(0, 1).value<Base::Quantity>(), Base::Quantity::parse("11.00 kg/m^3"));
+    EXPECT_EQ(actual2d3c.getValue(0, 2).value<Base::Quantity>(), Base::Quantity::parse("12.00 Pa"));
+    EXPECT_THROW(actual2d3c.getValue(0, 3), Materials::InvalidIndex);
+    EXPECT_EQ(actual2d3c.getValue(1, 0).value<Base::Quantity>(), Base::Quantity::parse("20.00 C"));
+    EXPECT_EQ(actual2d3c.getValue(1, 1).value<Base::Quantity>(), Base::Quantity::parse("21.00 kg/m^3"));
+    EXPECT_EQ(actual2d3c.getValue(1, 2).value<Base::Quantity>(), Base::Quantity::parse("22.00 Pa"));
+    EXPECT_THROW(actual2d3c.getValue(1, 3), Materials::InvalidIndex);
+    EXPECT_EQ(actual2d3c.getValue(2, 0).value<Base::Quantity>(), Base::Quantity::parse("30.00 C"));
+    EXPECT_EQ(actual2d3c.getValue(2, 1).value<Base::Quantity>(), Base::Quantity::parse("31.00 kg/m^3"));
+    EXPECT_EQ(actual2d3c.getValue(2, 2).value<Base::Quantity>(), Base::Quantity::parse("32.00 Pa"));
+    EXPECT_THROW(actual2d3c.getValue(2, 3), Materials::InvalidIndex);
+    EXPECT_THROW(actual2d3c.getValue(3, 0), Materials::InvalidIndex);
+
+    EXPECT_TRUE(testMaterial->hasPhysicalProperty("TestArray3D"));
+    auto array3d = testMaterial->getPhysicalProperty("TestArray3D")->getMaterialValue();
+    ASSERT_TRUE(array3d);
+    EXPECT_EQ(array3d->getType(), Materials::MaterialValue::Array3D);
+    auto actual3d = dynamic_cast<Materials::Array3D &>(*array3d);
+    EXPECT_EQ(actual3d.depth(), 3);
+    EXPECT_EQ(actual3d.rows(0), 2);
+    EXPECT_EQ(actual3d.rows(1), 0);
+    EXPECT_EQ(actual3d.rows(2), 3);
+    EXPECT_EQ(actual3d.columns(), 2);
+    EXPECT_EQ(actual3d.getDepthValue(0), Base::Quantity::parse("10.00 C"));
+    EXPECT_THROW(actual3d.getValue(-1, 0, 0), Materials::InvalidIndex);
+    EXPECT_THROW(actual3d.getValue(0, -1, 0), Materials::InvalidIndex);
+    EXPECT_THROW(actual3d.getValue(0, 0, -1), Materials::InvalidIndex);
+    EXPECT_EQ(actual3d.getValue(0, 0, 0), Base::Quantity::parse("11.00 Pa"));
+    EXPECT_EQ(actual3d.getValue(0, 0, 1), Base::Quantity::parse("12.00 Pa"));
+    EXPECT_EQ(actual3d.getValue(0, 1, 0), Base::Quantity::parse("21.00 Pa"));
+    EXPECT_EQ(actual3d.getValue(0, 1, 1), Base::Quantity::parse("22.00 Pa"));
+    EXPECT_THROW(actual3d.getValue(0, 0, 2), Materials::InvalidIndex);
+    EXPECT_THROW(actual3d.getValue(0, 2, 0), Materials::InvalidIndex);
+    EXPECT_EQ(actual3d.getDepthValue(1), Base::Quantity::parse("20.00 C"));
+    EXPECT_THROW(actual3d.getValue(1, 0, 0), Materials::InvalidIndex);
+    EXPECT_EQ(actual3d.getDepthValue(2), Base::Quantity::parse("30.00 C"));
+    EXPECT_EQ(actual3d.getValue(2, 0, 0), Base::Quantity::parse("10.00 Pa"));
+    EXPECT_EQ(actual3d.getValue(2, 0, 1), Base::Quantity::parse("11.00 Pa"));
+    EXPECT_EQ(actual3d.getValue(2, 1, 0), Base::Quantity::parse("20.00 Pa"));
+    EXPECT_EQ(actual3d.getValue(2, 1, 1), Base::Quantity::parse("21.00 Pa"));
+    EXPECT_EQ(actual3d.getValue(2, 2, 0), Base::Quantity::parse("30.00 Pa"));
+    EXPECT_EQ(actual3d.getValue(2, 2, 1), Base::Quantity::parse("31.00 Pa"));
+    EXPECT_THROW(actual3d.getValue(2, 0, 2), Materials::InvalidIndex);
+    EXPECT_THROW(actual3d.getValue(2, 3, 0), Materials::InvalidIndex);
+    EXPECT_THROW(actual3d.getValue(3, 0, 0), Materials::InvalidIndex);
+
+    EXPECT_TRUE(testMaterial->hasPhysicalProperty("TestBoolean"));
+    auto boolean = testMaterial->getPhysicalProperty("TestBoolean")->getMaterialValue();
+    EXPECT_EQ(boolean->getType(), Materials::MaterialValue::Boolean);
+    EXPECT_TRUE(boolean->getValue().canConvert<bool>());
+    EXPECT_EQ(boolean->getValue().toBool(), true);
+
+    EXPECT_TRUE(testMaterial->hasPhysicalProperty("TestColor"));
+    auto color = testMaterial->getPhysicalProperty("TestColor")->getMaterialValue();
+    EXPECT_EQ(color->getType(), Materials::MaterialValue::Color);
+    EXPECT_EQ(color->getValue().toString().toStdString(), "(1,0,0,1)");
+
+    EXPECT_TRUE(testMaterial->hasPhysicalProperty("TestFloat"));
+    auto floatNumber = testMaterial->getPhysicalProperty("TestFloat")->getMaterialValue();
+    EXPECT_EQ(floatNumber->getType(), Materials::MaterialValue::Float);
+    EXPECT_TRUE(floatNumber->getValue().canConvert<double>());
+    EXPECT_EQ(floatNumber->getValue().toDouble(), QString::fromStdString("32.17").toFloat());
+
+    EXPECT_TRUE(testMaterial->hasPhysicalProperty("TestInteger"));
+    auto integerNumber = testMaterial->getPhysicalProperty("TestInteger")->getMaterialValue();
+    EXPECT_EQ(integerNumber->getType(), Materials::MaterialValue::Integer);
+    EXPECT_TRUE(integerNumber->getValue().canConvert<int>());
+    EXPECT_EQ(integerNumber->getValue().toInt(), 42);
+
+    EXPECT_TRUE(testMaterial->hasPhysicalProperty("TestList"));
+    auto list = testMaterial->getPhysicalProperty("TestList")->getMaterialValue();
+    ASSERT_TRUE(list);
+    EXPECT_EQ(list->getType(), Materials::MaterialValue::List);
+    EXPECT_TRUE(list->getValue().canConvert<std::vector<QVariant>>());
+    auto actualList = list->getList();
+    ASSERT_FALSE(actualList.empty());
+    EXPECT_EQ(actualList.size(), 6);
+    EXPECT_EQ(actualList.at(0).toString().toStdString(), "Now is the time for all good men to come to the aid of the party");
+    EXPECT_EQ(actualList.at(1).toString().toStdString(), "The quick brown fox jumps over the lazy dogs back");
+    EXPECT_EQ(actualList.at(2).toString().toStdString(), "Lore Ipsum");
+    EXPECT_EQ(actualList.at(3).toString().toStdString(), "Single quote '");
+    EXPECT_EQ(actualList.at(4).toString().toStdString(), "Double quote \"");
+    EXPECT_EQ(actualList.at(5).toString().toStdString(), "Backslash \\");
+
+    EXPECT_TRUE(testMaterial->hasPhysicalProperty("TestMultiLineString"));
+    auto multiline = testMaterial->getPhysicalProperty("TestMultiLineString")->getMaterialValue();
+    EXPECT_EQ(multiline->getType(), Materials::MaterialValue::MultiLineString);
+    EXPECT_EQ(multiline->getValue().toString().toStdString(), 
+        "Now is the time for 'all' \\  <good> \"men\" come to the aid of the party\n"
+        "  Indentation is significant\n"
+        "Similar to Python\n"
+    );
+
+    EXPECT_TRUE(testMaterial->hasPhysicalProperty("TestQuantity"));
+    auto quantity = testMaterial->getPhysicalProperty("TestQuantity")->getMaterialValue();
+    EXPECT_TRUE(quantity->getValue().canConvert<Base::Quantity>());
+    EXPECT_EQ(quantity->getType(), Materials::MaterialValue::Quantity);
+    EXPECT_EQ(quantity->getValue().value<Base::Quantity>(), Base::Quantity::parse("19.76 kg/m^3"));
+
+    EXPECT_TRUE(testMaterial->hasPhysicalProperty("TestString"));
+    auto stringValue = testMaterial->getPhysicalProperty("TestString")->getMaterialValue();
+    EXPECT_EQ(stringValue->getType(), Materials::MaterialValue::String);
+    EXPECT_EQ(stringValue->getValue().toString().toStdString(), "Now is the time for 'all' \\  <good> \"men\" come to the aid of the party");
+
+    EXPECT_TRUE(testMaterial->hasPhysicalProperty("TestURL"));
+    auto url = testMaterial->getPhysicalProperty("TestURL")->getMaterialValue();
+    EXPECT_EQ(url->getType(), Materials::MaterialValue::URL);
+    EXPECT_EQ(url->getValue().toString().toStdString(), "https://www.freecad.org/");
 }
 
 // clang-format on

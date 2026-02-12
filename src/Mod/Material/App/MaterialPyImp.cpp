@@ -571,7 +571,7 @@ PyObject* MaterialPy::setValue(PyObject* args)
         for (auto itemObj : list) {
             Py::String item(itemObj);
             std::string value(item.as_string());
-            QVariant variant = QVariant::fromValue(value);
+            QVariant variant = QString::fromStdString(value);
             variantList.push_back(variant);
         }
 

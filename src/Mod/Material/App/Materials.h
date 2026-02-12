@@ -299,35 +299,21 @@ public:
     void newUuid();
 
     void setPhysicalValue(const std::string& name, const std::string& value);
-    // void setPhysicalValue(const char* name, const char* value);
     void setPhysicalValue(const std::string& name, int value);
-    // void setPhysicalValue(const char* name, int value);
     void setPhysicalValue(const std::string& name, double value);
-    // void setPhysicalValue(const char* name, double value);
     void setPhysicalValue(const std::string& name, const Base::Quantity& value);
-    // void setPhysicalValue(const char* name, const Base::Quantity& value);
     void setPhysicalValue(const std::string& name, const std::shared_ptr<MaterialValue>& value);
-    // void setPhysicalValue(const char* name, const std::shared_ptr<MaterialValue>& value);
     void setPhysicalValue(const std::string& name, const std::shared_ptr<std::vector<QVariant>>& value);
-    // void setPhysicalValue(const char* name, const std::shared_ptr<std::vector<QVariant>>& value);
     void setPhysicalValue(const std::string& name, const QVariant& value);
-    // void setPhysicalValue(const char* name, const QVariant& value);
 
     void setAppearanceValue(const std::string& name, const std::string& value);
-    // void setAppearanceValue(const char* name, const char* value);
     void setAppearanceValue(const std::string& name, const std::shared_ptr<MaterialValue>& value);
-    // void setAppearanceValue(const char* name, const std::shared_ptr<MaterialValue>& value);
     void setAppearanceValue(const std::string& name, const std::shared_ptr<std::vector<QVariant>>& value);
-    // void setAppearanceValue(const char* name, const std::shared_ptr<std::vector<QVariant>>& value);
     void setAppearanceValue(const std::string& name, const QVariant& value);
-    // void setAppearanceValue(const char* name, const QVariant& value);
 
     void setValue(const std::string& name, const std::string& value);
-    // void setValue(const char* name, const std::string& value);
     void setValue(const std::string& name, const QVariant& value);
-    // void setValue(const char* name, const QVariant& value);
     void setValue(const std::string& name, const std::shared_ptr<MaterialValue>& value);
-    // void setValue(const char* name, const std::shared_ptr<MaterialValue>& value);
 
     /*
      * Legacy values are thosed contained in old format files that don't fit in the new

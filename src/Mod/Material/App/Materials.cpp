@@ -281,7 +281,7 @@ QVariant MaterialProperty::getColumnNull(int column) const
             break;
     }
 
-    return QVariant::fromValue(std::string());
+    return QString();
 }
 
 void MaterialProperty::setValue(const QVariant& value)
@@ -344,12 +344,12 @@ void MaterialProperty::setValue(const std::shared_ptr<MaterialValue>& value)
 
 void MaterialProperty::setString(const std::string& value)
 {
-    _valuePtr->setValue(QVariant::fromValue(value));
+    _valuePtr->setValue(QString::fromStdString(value));
 }
 
 // void MaterialProperty::setString(const std::string& value)
 // {
-//     _valuePtr->setValue(QVariant::fromValue(value));
+//     _valuePtr->setValue(QString::fromStdString(value));
 // }
 
 void MaterialProperty::setBoolean(bool value)
@@ -627,7 +627,7 @@ std::string Material::getAuthorAndLicense() const
         authorAndLicense = _license;
     }
 
-    return _license;
+    return authorAndLicense;
 }
 
 void Material::addModel(const std::string& uuid)
@@ -701,7 +701,7 @@ void Material::setParentUUID(const std::string& uuid)
 
 void Material::setDescription(const std::string& description)
 {
-    _description = description;
+    _description = trim_copy(description);
     setEditStateChanged();
 }
 
