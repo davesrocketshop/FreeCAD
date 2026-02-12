@@ -2005,7 +2005,7 @@ void MaterialsEditor::deleteMaterial(MaterialTreeItem* item)
 {
     auto original = getItemAsMaterial(item);
     auto uuid = original->getUUID();
-    getMaterialManager().remove(uuid.toStdString());
+    getMaterialManager().remove(uuid);
     if (_material->getUUID() == uuid) {
         // Only if the deleted material is the current material
         _material = std::make_shared<Materials::Material>();
