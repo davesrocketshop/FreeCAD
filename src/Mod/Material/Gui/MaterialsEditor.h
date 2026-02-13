@@ -156,7 +156,6 @@ private:
     QIcon _warningIcon;
     Materials::MaterialFilter _filter;
     Materials::MaterialFilterOptions _filterOptions;
-    MaterialTreeItem* _newItem;
 
     // Actions
     QModelIndex _actionIndex;

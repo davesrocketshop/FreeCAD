@@ -344,16 +344,21 @@ void MaterialManagerLocal::move(
 
 void MaterialManagerLocal::remove(const std::string& uuid)
 {
-    auto material = getMaterial(uuid);
-    auto path = material->getLibrary()->getDirectory() + "/"
-        + material->getDirectory() + "/" + material->getName()
-        + ".FCMat";
+    try {
+        auto material = getMaterial(uuid);
+        auto path = material->getLibrary()->getDirectory() + "/"
+            + material->getDirectory() + "/" + material->getName()
+            + ".FCMat";
 
-    Base::FileInfo file(path);
-    if (!file.deleteFile()) {
-        Base::Console().log("Unable to remove '%s'\n", path.c_str());
+        Base::FileInfo file(path);
+        if (!file.deleteFile()) {
+            Base::Console().log("Unable to remove '%s'\n", path.c_str());
+        }
+        _materialMap->erase(uuid);
     }
-    _materialMap->erase(uuid);
+    catch (const MaterialNotFound &) {
+        // Nothing to remove
+    }
 }
 
 void MaterialManagerLocal::saveMaterial(

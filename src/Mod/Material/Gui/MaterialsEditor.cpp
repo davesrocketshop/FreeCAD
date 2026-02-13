@@ -797,8 +797,9 @@ void MaterialsEditor::onNewMaterial(bool checked)
     Q_UNUSED(checked)
 
     // Ensure data is saved (or discarded) before changing materials
-    if (_material->getEditState() != Materials::Material::MaterialEdit_None
-        && _material->getEditState() != Materials::Material::MaterialEdit_New) {
+    // if (_material->getEditState() != Materials::Material::MaterialEdit_None
+    //     && _material->getEditState() != Materials::Material::MaterialEdit_New) {
+    if (_material->getEditState() != Materials::Material::MaterialEdit_None) {
         // Prompt the user to save or discard changes
         int res = confirmSave(this);
         if (res == QMessageBox::Cancel) {
@@ -1436,6 +1437,10 @@ std::shared_ptr<Materials::Material> MaterialsEditor::getItemAsMaterial(const Ma
     if (item && item->getItemFunction() == TreeFunctionMaterial) {
         auto material = static_cast<const MaterialTreeMaterialItem*>(item);
         auto uuid = material->getUUID();
+        if (uuid == _material->getUUID()) {
+            // A new material won't be managed by the MaterialManager yet
+            return _material;
+        }
         return getMaterialManager().getMaterial(uuid.toStdString());
     }
     throw ActionError();
@@ -2005,14 +2010,9 @@ void MaterialsEditor::deleteMaterial(MaterialTreeItem* item)
 {
     auto original = getItemAsMaterial(item);
     auto uuid = original->getUUID();
-    getMaterialManager().remove(uuid);
-    if (_material->getUUID() == uuid) {
-        // Only if the deleted material is the current material
-        _material = std::make_shared<Materials::Material>();
-        _material->resetEditState();
-        updateMaterial();
-    }
 
+    _material->resetEditState();
+    getMaterialManager().remove(uuid);
     removeItem(item->parent(), item);
 }
 
@@ -2065,6 +2065,19 @@ void MaterialsEditor::onMenuNewMaterial(bool checked)
         return;
     }
 
+    // Ensure data is saved (or discarded) before changing materials
+    if (_material->getEditState() != Materials::Material::MaterialEdit_None) {
+        // Prompt the user to save or discard changes
+        int res = confirmSave(this);
+        if (res == QMessageBox::Cancel) {
+            return;
+        }
+        else if (res == QMessageBox::Discard) {
+            discardIfNew();
+        }
+        _material->resetEditState();
+    }
+
     // Find the library and path where we are
     auto item = getActionItem();
     auto path = getPath(item, QString());
@@ -2095,14 +2108,13 @@ void MaterialsEditor::onMenuNewMaterial(bool checked)
     addExpanded(ui->treeMaterials, item, card);
 
     setMaterialSelected(true);
-    _newItem = card;
     updateMaterial();
 
     // Now select the material in the tree
     auto index = card->index();
     if (index.isValid()) {
         QItemSelectionModel* selectionModel = ui->treeMaterials->selectionModel();
-        selectionModel->select(index, QItemSelectionModel::SelectCurrent);
+        selectionModel->select(index, QItemSelectionModel::ClearAndSelect);
         ui->treeMaterials->scrollTo(index);
     }
 }
@@ -2113,6 +2125,19 @@ void MaterialsEditor::onMenuInheritMaterial(bool checked)
 
     if (!actionHasContext()) {
         return;
+    }
+
+    // Ensure data is saved (or discarded) before changing materials
+    if (_material->getEditState() != Materials::Material::MaterialEdit_None) {
+        // Prompt the user to save or discard changes
+        int res = confirmSave(this);
+        if (res == QMessageBox::Cancel) {
+            return;
+        }
+        else if (res == QMessageBox::Discard) {
+            discardIfNew();
+        }
+        _material->resetEditState();
     }
 
     // Find the library and path where we are
@@ -2143,14 +2168,13 @@ void MaterialsEditor::onMenuInheritMaterial(bool checked)
     addExpanded(ui->treeMaterials, parent, card);
 
     setMaterialSelected(true);
-    _newItem = card;
     updateMaterial();
 
     // Now select the material in the tree
     auto index = card->index();
     if (index.isValid()) {
         QItemSelectionModel* selectionModel = ui->treeMaterials->selectionModel();
-        selectionModel->select(index, QItemSelectionModel::SelectCurrent);
+        selectionModel->select(index, QItemSelectionModel::ClearAndSelect);
         ui->treeMaterials->scrollTo(index);
     }
 }
@@ -2215,15 +2239,11 @@ void MaterialsEditor::onMenuViewMasked(bool checked)
 void MaterialsEditor::discardIfNew()
 {
     // If the material we're discarding is a new one, remove it from the tree
-    if (_newItem) {
-        auto parent = _newItem->parent();
-        if (parent) {
-            parent->removeRow(_newItem->row());
-        }
-        _newItem = nullptr;
+    auto item = getItemFromMaterial(*_material);
+    if (_material->getEditState() != Materials::Material::MaterialEdit_New) {
+        _material->resetEditState();
+        removeItem(item->parent(), item);
     }
-
-    // If it's an existing one, restore the original name
 }
 
 int MaterialsEditor::confirmSave(QWidget* parent)
