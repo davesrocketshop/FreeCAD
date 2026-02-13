@@ -70,7 +70,7 @@ MaterialManager::MaterialManager()
 #else
     _useExternal = false;
 #endif
-    LibraryManager::getManager().Attach(this);
+    // LibraryManager::getManager().Attach(this);
 }
 
 MaterialManager::~MaterialManager()
@@ -78,7 +78,7 @@ MaterialManager::~MaterialManager()
 #if defined(BUILD_MATERIAL_EXTERNAL)
     _hGrp->Detach(this);
 #endif
-    LibraryManager::getManager().Detach(this);
+    // LibraryManager::getManager().Detach(this);
 }
 
 MaterialManager& MaterialManager::getManager()

@@ -224,19 +224,18 @@ void MaterialLibraryLocal::deleteRecursive(const std::string& path)
     }
 
     std::string filePath = getLocalPath(path);
-    auto& manager = MaterialManager::getManager();
 
     Base::FileInfo info(filePath);
     if (info.isDir()) {
-        deleteDir(manager, filePath);
+        deleteDir(filePath);
     }
     else {
-        deleteFile(manager, filePath);
+        deleteFile(filePath);
     }
 }
 
 // This accepts the filesystem path as returned from getLocalPath
-void MaterialLibraryLocal::deleteDir([[maybe_unused]] MaterialManager& manager, const std::string& path)
+void MaterialLibraryLocal::deleteDir(const std::string& path)
 {
     Base::FileInfo file(path);
     if (file.isDir()) {
@@ -245,7 +244,7 @@ void MaterialLibraryLocal::deleteDir([[maybe_unused]] MaterialManager& manager, 
 }
 
 // This accepts the filesystem path as returned from getLocalPath
-void MaterialLibraryLocal::deleteFile(MaterialManager& manager, const std::string& path)
+void MaterialLibraryLocal::deleteFile(const std::string& path)
 {
     Base::FileInfo file(path);
     if (file.deleteFile()) {
@@ -253,7 +252,7 @@ void MaterialLibraryLocal::deleteFile(MaterialManager& manager, const std::strin
         std::string rPath = getRelativePath(path);
         try {
             auto material = getMaterialByPath(rPath);
-            manager.remove(material->getUUID());
+            MaterialManager::getManager().remove(material->getUUID());
         }
         catch (const MaterialNotFound&) {
             Base::Console().log("Unable to remove file from materials list\n");

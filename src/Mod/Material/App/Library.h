@@ -41,9 +41,6 @@ namespace fs = std::filesystem;
 namespace Materials
 {
 
-class ModelLoader;
-class ModelManagerLocal;
-class MaterialManagerLocal;
 class LibraryManager;
 
 class MaterialsExport Library: public Base::BaseClass
@@ -166,9 +163,6 @@ protected:
         _managedLibrary->setMaterialDirectory(cleanPath(directory));
     }
 
-    // friend class ModelLoader;
-    // friend class ModelManagerLocal;
-    // friend class MaterialManagerLocal;
     friend class LibraryManager;
 
     std::shared_ptr<ManagedLibrary> proxy() const {

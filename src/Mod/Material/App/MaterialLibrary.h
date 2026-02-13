@@ -29,14 +29,11 @@
 
 #include "Library.h"
 #include "Materials.h"
-#include "Model.h"
-#include "ModelLibrary.h"
 
 namespace Materials
 {
 
 class Material;
-class MaterialManager;
 class MaterialFilter;
 class MaterialFilterOptions;
 
@@ -128,8 +125,8 @@ public:
     }
 
 protected:
-    void deleteDir(MaterialManager& manager, const std::string& path);
-    void deleteFile(MaterialManager& manager, const std::string& path);
+    void deleteDir(const std::string& path);
+    void deleteFile(const std::string& path);
     void updatePaths(const std::string& oldPath, const std::string& newPath);
 
     std::string getUUIDFromPath(const std::string& path) const;

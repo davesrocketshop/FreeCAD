@@ -55,13 +55,13 @@ ModelManager::ModelManager()
     );
     _useExternal = _hGrp->GetBool("UseExternal", false);
     _hGrp->Attach(this);
-    LibraryManager::getManager().Attach(this);
+    // LibraryManager::getManager().Attach(this);
 }
 
 ModelManager::~ModelManager()
 {
     _hGrp->Detach(this);
-    LibraryManager::getManager().Detach(this);
+    // LibraryManager::getManager().Detach(this);
 }
 
 ModelManager& ModelManager::getManager()
