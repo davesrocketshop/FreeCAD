@@ -792,57 +792,6 @@ void MaterialsEditor::setMaterialDefaults()
     _material->resetEditState();
 }
 
-void MaterialsEditor::onNewMaterial(bool checked)
-{
-    Q_UNUSED(checked)
-
-    // Ensure data is saved (or discarded) before changing materials
-    // if (_material->getEditState() != Materials::Material::MaterialEdit_None
-    //     && _material->getEditState() != Materials::Material::MaterialEdit_New) {
-    if (_material->getEditState() != Materials::Material::MaterialEdit_None) {
-        // Prompt the user to save or discard changes
-        int res = confirmSave(this);
-        if (res == QMessageBox::Cancel) {
-            return;
-        }
-        else if (res == QMessageBox::Discard) {
-            discardIfNew();
-        }
-    }
-
-    // Create a new material
-    _material = std::make_shared<Materials::Material>();
-    _material->setEditStateNew();
-    setMaterialDefaults();
-    setMaterialSelected(false);
-}
-
-void MaterialsEditor::onInheritNewMaterial(bool checked)
-{
-    Q_UNUSED(checked)
-
-    // Save the current UUID to use as out parent
-    auto parent = _material->getUUID();
-
-    // Ensure data is saved (or discarded) before changing materials
-    if (_material->getEditState() != Materials::Material::MaterialEdit_None) {
-        // Prompt the user to save or discard changes
-        int res = confirmSave(this);
-        if (res == QMessageBox::Cancel) {
-            return;
-        }
-        else if (res == QMessageBox::Discard) {
-            discardIfNew();
-        }
-    }
-
-    // Create a new material
-    _material = std::make_shared<Materials::Material>();
-    _material->setEditStateNew();
-    _material->setParentUUID(parent);
-    setMaterialDefaults();
-}
-
 void MaterialsEditor::onOk(bool checked)
 {
     Q_UNUSED(checked)

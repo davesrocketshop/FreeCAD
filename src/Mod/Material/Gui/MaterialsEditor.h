@@ -105,8 +105,6 @@ public:
     void onSourceReference(const QString& reference);
     void onDescription(const QString& description);
 
-    void onInheritNewMaterial(bool checked);
-    void onNewMaterial(bool checked);
     void onFavourite(bool checked);
     void onAdvancedSearch(bool checked);
     void onPhysicalAdd();
