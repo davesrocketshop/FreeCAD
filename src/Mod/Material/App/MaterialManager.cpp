@@ -244,7 +244,7 @@ void MaterialManager::setUseExternal(bool useExternal)
 
 std::shared_ptr<std::vector<std::shared_ptr<MaterialLibrary>>> MaterialManager::getLibraries(
     bool includeDisabled,
-    bool includeMasked
+    [[maybe_unused]] bool includeMasked
 )
 {
     return libraryManager().getMaterialLibraries(includeDisabled);

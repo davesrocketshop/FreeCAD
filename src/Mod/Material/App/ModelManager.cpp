@@ -103,7 +103,10 @@ void ModelManager::OnChange(ParameterGrp::SubjectType& rCaller, ParameterGrp::Me
     }
 }
 
-void ModelManager::OnChange(LibraryManager::SubjectType& manager, LibraryManager::MessageType reason)
+void ModelManager::OnChange(
+    [[maybe_unused]] LibraryManager::SubjectType& manager,
+    LibraryManager::MessageType reason
+)
 {
     if (reason.eventType == LibraryEventType_Create) {
         Base::Console().log("New library '%s'\n", reason.library->getLibraryName().c_str());
