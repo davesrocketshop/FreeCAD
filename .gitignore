@@ -61,6 +61,7 @@ Testing
 compile_commands.json
 *.sublime-project
 *.sublime-workspace
+callgrind.*
 
 # crowdin file
 src/Tools/freecad.zip

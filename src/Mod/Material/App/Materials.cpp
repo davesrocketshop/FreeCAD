@@ -80,12 +80,9 @@ void MaterialProperty::copyValuePtr(const std::shared_ptr<MaterialValue>& value)
 MaterialProperty::MaterialProperty(const MaterialProperty& other)
     : ModelProperty(other)
     , _modelUUID(other._modelUUID)
+    , _columns(other._columns)
 {
     copyValuePtr(other._valuePtr);
-
-    for (auto& it : other._columns) {
-        _columns.push_back(it);
-    }
 }
 
 MaterialProperty::MaterialProperty(const std::shared_ptr<MaterialProperty>& other)
@@ -456,12 +453,8 @@ MaterialProperty& MaterialProperty::operator=(const MaterialProperty& other)
     ModelProperty::operator=(other);
 
     _modelUUID = other._modelUUID;
+    _columns = other._columns;
     copyValuePtr(other._valuePtr);
-
-    _columns.clear();
-    for (auto& it : other._columns) {
-        _columns.push_back(it);
-    }
 
     return *this;
 }

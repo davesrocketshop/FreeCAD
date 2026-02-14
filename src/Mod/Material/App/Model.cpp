@@ -61,11 +61,8 @@ ModelProperty::ModelProperty(const ModelProperty& other)
     , _url(other._url)
     , _description(other._description)
     , _inheritance(other._inheritance)
-{
-    for (auto it = other._columns.begin(); it != other._columns.end(); it++) {
-        _columns.push_back(*it);
-    }
-}
+    , _columns(other._columns)
+{}
 
 const std::string ModelProperty::getDisplayName() const
 {
@@ -88,10 +85,7 @@ ModelProperty& ModelProperty::operator=(const ModelProperty& other)
     _url = other._url;
     _description = other._description;
     _inheritance = other._inheritance;
-    _columns.clear();
-    for (auto it = other._columns.begin(); it != other._columns.end(); it++) {
-        _columns.push_back(*it);
-    }
+    _columns = other._columns;
 
     return *this;
 }
@@ -136,8 +130,6 @@ void ModelProperty::validate(const ModelProperty& other) const
     }
 
     if (_columns.size() != other._columns.size()) {
-        Base::Console().log("Local property column count %d\n", _columns.size());
-        Base::Console().log("Remote property column count %d\n", other._columns.size());
         throw InvalidProperty("Model property column counts don't match");
     }
     for (size_t i = 0; i < _columns.size(); i++) {
