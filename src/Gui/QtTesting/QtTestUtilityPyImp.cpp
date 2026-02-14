@@ -22,11 +22,15 @@
  *                                                                         *
  ***************************************************************************/
 
+#include <Python.h>
+#include <Base/PyWrapParseTupleAndKeywords.h>
 
-#include "QtTestUtility.h"
+#include "MainWindow.h"
 
-#include "QtTestUtilityPy.h"
-#include "QtTestUtilityPy.cpp"
+#include "QtTesting/QtTestUtility.h"
+
+#include "QtTesting/QtTestUtilityPy.h"
+#include "QtTesting/QtTestUtilityPy.cpp"
 
 
 using namespace QtTesting;
@@ -49,34 +53,36 @@ int QtTestUtilityPy::setCustomAttributes(const char* /*attr*/, PyObject* /*obj*/
 }
 
 
-PyObject* QtTestUtilityPy::play(PyObject* args)
+PyObject* QtTestUtilityPy::play(PyObject* args, PyObject* kwds)
 {
     QStringList tests;
 
-    PyObject* listObj = Py_None;
-    char *name, *label;
-
-    if (PyArg_ParseTuple(args, "s", &name)) {
-        tests.append(QString::fromStdString(name));
-    }
-    else {
-        PyErr_Clear();
-        if (PyArg_ParseTuple(args, "O!", &PyList_Type, &listObj)) {
-            Py::List list(listObj);
-            for (auto itemObj : list) {
-                Py::String item(itemObj);
-                QString value(QString::fromStdString(item.as_string()));
-                tests.append(value);
+    PyObject* filePy = Py_None;
+    static const std::array<const char*, 2> kwds_record {"file", nullptr};
+    if (Base::Wrapped_ParseTupleAndKeywords(args, kwds, "O", kwds_record, &filePy)) {
+        if (PyUnicode_Check(filePy)) {
+            Py::String pyName(filePy);
+            if (!pyName.isNone()) {
+                tests.append(QString::fromStdString(pyName.as_string()));
             }
         }
-        else {
-            Py_Return;
+        else if (PyList_Check(filePy)) {
+
+        }
+        else if (filePy != Py_None) {
+            throw Py::TypeError("Expected string, list, or None");
         }
     }
+    else {
+        throw Py::TypeError("Expected string, list, or None");
+    }
 
-    auto mainWindow = getMainWindow();
+    auto mainWindow = Gui::getMainWindow();
     auto& testUtility = mainWindow->getTestUtility();
-    auto pass = testUtility.playTests(tests);
+    bool pass = false;
+    if (!tests.isEmpty()) {
+        pass = testUtility.playTests(tests);
+    }
 
     if (pass) {
         Py_RETURN_TRUE;
@@ -84,9 +90,9 @@ PyObject* QtTestUtilityPy::play(PyObject* args)
     Py_RETURN_FALSE;
 }
 
-PyObject* QtTestUtilityPy::playingTest()
+PyObject* QtTestUtilityPy::playingTest(PyObject *args)
 {
-    auto mainWindow = getMainWindow();
+    auto mainWindow = Gui::getMainWindow();
     auto& testUtility = mainWindow->getTestUtility();
     auto playing = testUtility.playingTest();
 
@@ -96,11 +102,11 @@ PyObject* QtTestUtilityPy::playingTest()
     Py_RETURN_FALSE;
 }
 
-PyObject* QtTestUtilityPy::stopTests()
+PyObject* QtTestUtilityPy::stopTests(PyObject *args)
 {
     Base::Console().log("Stopping recording\n");
 
-    auto mainWindow = getMainWindow();
+    auto mainWindow = Gui::getMainWindow();
     auto& testUtility = mainWindow->getTestUtility();
     testUtility.stopTests();
 
@@ -108,64 +114,70 @@ PyObject* QtTestUtilityPy::stopTests()
 }
 
 
-PyObject* QtTestUtilityPy::record(PyObject* args)
+PyObject* QtTestUtilityPy::record(PyObject* args, PyObject* kwds)
 {
-    PyObject* pyObj = Py_None;
-    char *name;
     QString filename;
-    if (!PyArg_ParseTuple(args, "s", &name)) {
-        PyErr_Clear();
-        if (PyArg_ParseTuple(args, "O", &pyObj)) {
-            if (!Py_IsNone(pyObj)) {
-                Py_Return;
+    PyObject* filePy = Py_None;
+    static const std::array<const char*, 2> kwds_record {"file", nullptr};
+    if (Base::Wrapped_ParseTupleAndKeywords(args, kwds, "|O", kwds_record, &filePy)) {
+        if (PyUnicode_Check(filePy)) {
+            Py::String pyName(filePy);
+            if (!pyName.isNone()) {
+                filename = QString::fromStdString(pyName.as_string());
             }
         }
-        else {
-                Py_Return;
-        }
-    }
-
-    filename = QString::fromStdString(name);
-    auto mainWindow = getMainWindow();
-    QApplication::setActiveWindow(mainWindow);
-    auto& testUtility = mainWindow->getTestUtility();
-    if (!filename.isEmpty()) {
-        testUtility.recordTests(filename);
     }
     else {
-        testUtility.recordTests();
+        throw Py::TypeError("Expected string or None");
+    }
+
+    auto mainWindow = Gui::getMainWindow();
+    auto& testUtility = mainWindow->getTestUtility();
+    if (filename.isEmpty()) {
+        filename = QFileDialog::getSaveFileName(
+            mainWindow,
+            QStringLiteral("Test File Name"),
+            QString(),
+            QStringLiteral("XML Files (*.xml)")
+        );
+    }
+    if (!filename.isEmpty()) {
+        QApplication::setActiveWindow(mainWindow);
+        testUtility.recordTests(filename);
     }
 
     Py_RETURN_NONE;
 }
 
-PyObject* QtTestUtilityPy::stopRecording()
+PyObject* QtTestUtilityPy::stopRecording(PyObject *args)
 {
     Base::Console().log("Stopping recording\n");
 
-    auto mainWindow = getMainWindow();
+    auto mainWindow = Gui::getMainWindow();
     auto& testUtility = mainWindow->getTestUtility();
-    testUtility.stopRecords(1);
+    if (testUtility.recorder()->isRecording()) {
+        testUtility.stopRecords(1);
+    }
 
     Py_RETURN_NONE;
 }
 
-PyObject* QtTestUtilityPy::pauseRecording()
+PyObject* QtTestUtilityPy::pauseRecording(PyObject *args)
 {
     Base::Console().log("Pausing recording\n");
 
-    auto mainWindow = getMainWindow();
+    auto mainWindow = Gui::getMainWindow();
     auto& testUtility = mainWindow->getTestUtility();
     testUtility.pauseRecords(true);
 
     Py_RETURN_NONE;
 }
 
-PyObject* QtTestUtilityPy::resumeRecording()
+PyObject* QtTestUtilityPy::resumeRecording(PyObject *args)
 {
     Base::Console().log("Resuming recording\n");
 
-    auto mainWindow = getMainWindow();
+    auto mainWindow = Gui::getMainWindow();
     auto& testUtility = mainWindow->getTestUtility();
     testUtility.pauseRecords(false);
 

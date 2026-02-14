@@ -8,7 +8,7 @@ from typing import Final
 
 
 @export(
-    Include="Gui/QtTestUtility.h",
+    Include="Gui/QtTesting/QtTestUtility.h",
     Namespace="QtTesting",
     Constructor=False,
     Delete=False,
@@ -26,6 +26,9 @@ class QtTestUtility(BaseClass):
         """
         Playback a previously recorded test file or list of .xml files.
 
+        The library uses the file extension to match the player. As a result files without
+        an explicit .xml extension will not be played.
+
         Returns True if the tests were successful
         """
 
@@ -42,9 +45,15 @@ class QtTestUtility(BaseClass):
         """
 
     @staticmethod
-    def record(file : str | None = None) -> None:
+    def record(filename : str | None = None) -> None:
         """
-        Open the recorder interface and save events in the specified .xml file
+        Open the recorder interface and save events.
+
+        If no file is specified a file browser will be opened. Otherwise the events
+        are saved in the specified .xml file.
+
+        The library uses the file extension to match the recorder. As a result files without
+        an explicit .xml extension will not be recorded.
         """
 
     @staticmethod
