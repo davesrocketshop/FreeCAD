@@ -23,6 +23,10 @@
  ***************************************************************************/
 
 #include <Python.h>
+
+#include <QApplication>
+#include <QFileDialog>
+
 #include <Base/PyWrapParseTupleAndKeywords.h>
 
 #include "MainWindow.h"
@@ -104,7 +108,7 @@ PyObject* QtTestUtilityPy::playingTest(PyObject *args)
 
 PyObject* QtTestUtilityPy::stopTests(PyObject *args)
 {
-    Base::Console().log("Stopping recording\n");
+    Base::Console().log("Stopping playback\n");
 
     auto mainWindow = Gui::getMainWindow();
     auto& testUtility = mainWindow->getTestUtility();
@@ -156,7 +160,8 @@ PyObject* QtTestUtilityPy::stopRecording(PyObject *args)
     auto mainWindow = Gui::getMainWindow();
     auto& testUtility = mainWindow->getTestUtility();
     if (testUtility.recorder()->isRecording()) {
-        testUtility.stopRecords(1);
+        // testUtility.stopRecords(1);
+        testUtility.recorder()->stop(1);
     }
 
     Py_RETURN_NONE;
