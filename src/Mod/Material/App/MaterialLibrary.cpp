@@ -203,10 +203,18 @@ void MaterialLibraryLocal::renameFolder(const std::string& oldPath, const std::s
 
     Base::FileInfo fileDir(filePath);
     if (fileDir.isDir()) {
+        Base::FileInfo newDir(newFilePath);
+        if (newDir.exists()) {
+            throw RenameError("Destination already exists");
+        }
         if (!fileDir.renameFile(newFilePath.c_str())) {
             Base::Console().error("Unable to rename directory path '%s'\n",
                                   filePath.c_str());
+            throw RenameError();
         }
+    }
+    else {
+        throw RenameError("Source doesn't exist");
     }
 
     Base::Console().log(

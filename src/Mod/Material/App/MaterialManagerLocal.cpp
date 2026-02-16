@@ -217,18 +217,19 @@ void MaterialManagerLocal::moveFolderLocal(
         throw MoveError("Non-local folder move");
     }
     auto from = sourceLibrary->getLocalPath(sourcePath);
-    auto to = destinationLibrary->getLocalPath(destinationPath);
+    Base::FileInfo fromInfo(from);
+    auto to = destinationLibrary->getLocalPath(destinationPath + "/" + fromInfo.fileName());
     try {
-        // 1. Copy the directory recursively
+        std::cout << "Copy from " << from << " to " << to << "\n";
+        // Copy the directory recursively (works across file systems)
         fs::copy(from, to, fs::copy_options::recursive | fs::copy_options::overwrite_existing);
-        std::cout << "Copied directory from " << from << " to " << to << std::endl;
 
-        // // 2. Remove the original directory
-        // fs::remove_all(from);
-        // std::cout << "Removed original directory: " << from << std::endl;
+        // Remove the original directory
+        fs::remove_all(from);
     }
     catch (const fs::filesystem_error& e) {
-        std::cerr << "Error moving directory: " << e.what() << std::endl;
+        std::cout << e.what() << "\n";
+        throw MoveError(e.what());
     }
 }
 

@@ -412,6 +412,9 @@ std::shared_ptr<std::list<std::string>> MaterialManager::getMaterialFolders(
     const std::shared_ptr<MaterialLibrary>& library
 ) const
 {
+    if (!library) {
+        throw LibraryNotFound();
+    }
     if (library->isLocal()) {
         auto materialLibrary = std::make_shared<MaterialLibraryLocal>(*library);
         return _localManager->getMaterialFolders(materialLibrary);
@@ -422,6 +425,9 @@ std::shared_ptr<std::list<std::string>> MaterialManager::getMaterialFolders(
 
 void MaterialManager::createFolder(const std::shared_ptr<MaterialLibrary>& library, const std::string& path)
 {
+    if (!library) {
+        throw LibraryNotFound();
+    }
     if (library->isLocal()) {
         auto materialLibrary = std::make_shared<MaterialLibraryLocal>(*library);
         _localManager->createFolder(materialLibrary, path);
@@ -442,6 +448,9 @@ void MaterialManager::renameFolder(
     const std::string& newPath
 )
 {
+    if (!library) {
+        throw LibraryNotFound();
+    }
     if (library->isLocal()) {
         auto materialLibrary = std::make_shared<MaterialLibraryLocal>(*library);
         _localManager->renameFolder(materialLibrary, oldPath, newPath);
@@ -463,6 +472,9 @@ void MaterialManager::moveFolder(
     const std::string& destinationPath
 )
 {
+    if (!sourceLibrary || !destinationLibrary) {
+        throw LibraryNotFound();
+    }
     if (sourceLibrary->isReadOnly() || destinationLibrary->isReadOnly()) {
         throw MoveError("Library is read only");
     }
@@ -496,6 +508,9 @@ void MaterialManager::copyFolder(
     const std::string& destinationPath
 )
 {
+    if (!sourceLibrary || !destinationLibrary) {
+        throw LibraryNotFound();
+    }
     if (destinationLibrary->isReadOnly()) {
         throw CopyError("Library is read only");
     }
@@ -506,6 +521,9 @@ void MaterialManager::copyFolder(
 
 void MaterialManager::deleteRecursive(const std::shared_ptr<MaterialLibrary>& library, const std::string& path)
 {
+    if (!library) {
+        throw LibraryNotFound();
+    }
     if (library->isReadOnly()) {
         throw DeleteError("Library is read only");
     }
