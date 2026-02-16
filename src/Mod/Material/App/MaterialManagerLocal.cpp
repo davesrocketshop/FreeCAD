@@ -206,6 +206,32 @@ void MaterialManagerLocal::renameFolder(
     library->renameFolder(oldPath, newPath);
 }
 
+void MaterialManagerLocal::moveFolderLocal(
+    const std::shared_ptr<MaterialLibrary>& sourceLibrary,
+    const std::string& sourcePath,
+    const std::shared_ptr<MaterialLibrary>& destinationLibrary,
+    const std::string& destinationPath
+)
+{
+    if (!sourceLibrary->isLocal() || !destinationLibrary->isLocal()) {
+        throw MoveError("Non-local folder move");
+    }
+    auto from = sourceLibrary->getLocalPath(sourcePath);
+    auto to = destinationLibrary->getLocalPath(destinationPath);
+    try {
+        // 1. Copy the directory recursively
+        fs::copy(from, to, fs::copy_options::recursive | fs::copy_options::overwrite_existing);
+        std::cout << "Copied directory from " << from << " to " << to << std::endl;
+
+        // // 2. Remove the original directory
+        // fs::remove_all(from);
+        // std::cout << "Removed original directory: " << from << std::endl;
+    }
+    catch (const fs::filesystem_error& e) {
+        std::cerr << "Error moving directory: " << e.what() << std::endl;
+    }
+}
+
 void MaterialManagerLocal::deleteRecursive(
     const std::shared_ptr<MaterialLibraryLocal>& library,
     const std::string& path

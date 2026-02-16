@@ -177,10 +177,10 @@ void MaterialsEditor::setupButtonConnections()
             &QPushButton::clicked,
             this,
             &MaterialsEditor::onOk);
-    connect(ui->standardButtons->button(QDialogButtonBox::Cancel),
-            &QPushButton::clicked,
-            this,
-            &MaterialsEditor::onCancel);
+    // connect(ui->standardButtons->button(QDialogButtonBox::Cancel),
+    //         &QPushButton::clicked,
+    //         this,
+    //         &MaterialsEditor::onCancel);
     connect(ui->standardButtons->button(QDialogButtonBox::Save),
             &QPushButton::clicked,
             this,
@@ -600,8 +600,51 @@ void MaterialsEditor::onTreeItemDropped(
     auto destinationItem = static_cast<MaterialTreeItem*>(destination);
     auto sourceItem = static_cast<MaterialTreeItem*>(source);
 
-    auto material = getItemAsMaterial(sourceItem);
+    if (sourceItem->getItemFunction() == TreeFunctionFolder) {
+        folderDropped(action, sourceItem, destinationItem);
+    }
+    else if (sourceItem->getItemFunction() == TreeFunctionMaterial) {
+        materialDropped(action, sourceItem, destinationItem);
+    }
+}
+
+void MaterialsEditor::folderDropped(
+    Qt::DropAction action,
+    MaterialTreeItem* source,
+    MaterialTreeItem* destination
+)
+{
+    auto sourceLibraryName = source->libraryName();
+    auto sourceFolder = getDirectoryForItem(source);
+
+    auto destinationItem = destination;
+    if (destinationItem->getItemFunction() == TreeFunctionMaterial) {
+        destinationItem = destinationItem->parent();
+    }
+    auto destinationLibrary = getLibraryForItem(destinationItem);
+    auto destinationFolder = getDirectoryForItem(destinationItem);
+
+    Base::Console().log(
+        "Source: [%s]%s\n",
+        sourceLibraryName.toStdString().c_str(),
+        sourceFolder.toStdString().c_str()
+    );
+    Base::Console().log(
+        "Destination: [%s]%s\n",
+        destinationLibrary->getName().c_str(),
+        destinationFolder.toStdString().c_str()
+    );
+}
+
+void MaterialsEditor::materialDropped(
+    Qt::DropAction action,
+    MaterialTreeItem* source,
+    MaterialTreeItem* destination
+)
+{
+    auto material = getItemAsMaterial(source);
     auto library = material->getLibrary();
+    auto destinationItem = destination;
     if (destinationItem->getItemFunction() == TreeFunctionMaterial) {
         destinationItem = destinationItem->parent();
     }
@@ -811,12 +854,12 @@ void MaterialsEditor::onOk(bool checked)
     accept();
 }
 
-void MaterialsEditor::onCancel(bool checked)
-{
-    Q_UNUSED(checked)
+// void MaterialsEditor::onCancel(bool checked)
+// {
+//     Q_UNUSED(checked)
 
-    reject();
-}
+//     reject();
+// }
 
 void MaterialsEditor::onSave(bool checked)
 {
@@ -1030,12 +1073,14 @@ void MaterialsEditor::addMaterials(
             if (nodePtr->isOldFormat()) {
                 card->setToolTip(tr("This card uses the old format and must be saved before use"));
             }
+            card->setLibraryName(parent.libraryName());
 
             addExpanded(tree, &parent, card);
         }
         else {
             auto node = new MaterialTreeFolderItem(folderIcon, QString::fromStdString(mat.first));
-            node->setFlags(flags);
+            node->setFlags(flags | Qt::ItemIsSelectable | Qt::ItemIsDragEnabled);
+            node->setLibraryName(parent.libraryName());
             auto treeMap = nodePtr->getFolder();
 
             addExpanded(tree, &parent, node, childParam);
@@ -1209,6 +1254,7 @@ void MaterialsEditor::fillMaterialTree()
                 lib->setFlags(Qt::ItemIsEditable | Qt::ItemIsEnabled | Qt::ItemIsDropEnabled);
             }
             lib->setLibrary(library);
+            lib->setLibraryName(library->getName());
             addExpanded(tree, model, lib, param);
 
             QIcon icon = getIcon(library);
@@ -1532,12 +1578,14 @@ QString MaterialsEditor::getDirectoryForItem(
     const MaterialTreeItem* item
 ) const
 {
-    auto function = item->getItemFunction();
-    if (function == TreeFunctionMaterial) {
-        return getDirectoryForItem(item->parent());
-    }
-    if (function == TreeFunctionFolder) {
-        return getDirectoryForItem(item->parent()) + QStringLiteral("/") + item->text();
+    if (item) {
+        auto function = item->getItemFunction();
+        if (function == TreeFunctionMaterial) {
+            return getDirectoryForItem(item->parent());
+        }
+        if (function == TreeFunctionFolder) {
+            return getDirectoryForItem(item->parent()) + QStringLiteral("/") + item->text();
+        }
     }
     return QString();
 }
@@ -1998,12 +2046,16 @@ void MaterialsEditor::onMenuNewFolder(bool checked)
 
     getMaterialManager().createFolder(library, (path + name).toStdString());
 
-    Qt::ItemFlags flags =
-        (Qt::ItemIsEnabled | Qt::ItemIsEditable | Qt::ItemIsDropEnabled);
+    Qt::ItemFlags flags
+        = (Qt::ItemIsEnabled | Qt::ItemIsEditable | Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled);
     auto node = new MaterialTreeFolderItem(folderIcon, name);
     node->setFlags(flags);
+    node->setLibraryName(libraryName);
 
     addExpanded(ui->treeMaterials, item, node);
+
+    // Start editing
+    ui->treeMaterials->edit(node->index());
 }
 
 void MaterialsEditor::onMenuNewMaterial(bool checked)
@@ -2053,6 +2105,7 @@ void MaterialsEditor::onMenuNewMaterial(bool checked)
         QString::fromStdString(_material->getName()),
         QString::fromStdString(_material->getUUID())
     );
+    card->setLibraryName(libraryName);
 
     addExpanded(ui->treeMaterials, item, card);
 
@@ -2065,6 +2118,9 @@ void MaterialsEditor::onMenuNewMaterial(bool checked)
         QItemSelectionModel* selectionModel = ui->treeMaterials->selectionModel();
         selectionModel->select(index, QItemSelectionModel::ClearAndSelect);
         ui->treeMaterials->scrollTo(index);
+
+        // Start editing
+        ui->treeMaterials->edit(index);
     }
 }
 
@@ -2113,6 +2169,7 @@ void MaterialsEditor::onMenuInheritMaterial(bool checked)
         QString::fromStdString(_material->getName()),
         QString::fromStdString(_material->getUUID())
     );
+    card->setLibraryName(_material->getLibrary()->getName());
 
     addExpanded(ui->treeMaterials, parent, card);
 
@@ -2125,6 +2182,9 @@ void MaterialsEditor::onMenuInheritMaterial(bool checked)
         QItemSelectionModel* selectionModel = ui->treeMaterials->selectionModel();
         selectionModel->select(index, QItemSelectionModel::ClearAndSelect);
         ui->treeMaterials->scrollTo(index);
+
+        // Start editing
+        ui->treeMaterials->edit(index);
     }
 }
 

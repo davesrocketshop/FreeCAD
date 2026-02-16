@@ -456,8 +456,59 @@ void MaterialManager::renameFolder(
 #endif
 }
 
+void MaterialManager::moveFolder(
+    const std::shared_ptr<MaterialLibrary>& sourceLibrary,
+    const std::string& sourcePath,
+    const std::shared_ptr<MaterialLibrary>& destinationLibrary,
+    const std::string& destinationPath
+)
+{
+    if (sourceLibrary->isReadOnly() || destinationLibrary->isReadOnly()) {
+        throw MoveError("Library is read only");
+    }
+    if ((*sourceLibrary == *destinationLibrary) && (sourcePath == destinationPath)) {
+        return;
+    }
+    if (sourceLibrary->isLocal()) {
+        if (destinationLibrary->isLocal()) {
+            // local move
+            _localManager->moveFolderLocal(sourceLibrary, sourcePath, destinationLibrary, destinationPath);
+        }
+        else {
+            // Local to remote
+            // moveFolderToRemote(sourceLibrary, sourcePath, destinationLibrary, destinationPath);
+        }
+    }
+    else if (destinationLibrary->isLocal()) {
+        // Remote to local
+        // moveFolderFromRemote(sourceLibrary, sourcePath, destinationLibrary, destinationPath);
+    }
+    else {
+        // Both are remote
+        // moveFolderRemote(sourceLibrary, sourcePath, destinationLibrary, destinationPath);
+    }
+}
+
+void MaterialManager::copyFolder(
+    const std::shared_ptr<MaterialLibrary>& sourceLibrary,
+    const std::string& sourcePath,
+    const std::shared_ptr<MaterialLibrary>& destinationLibrary,
+    const std::string& destinationPath
+)
+{
+    if (destinationLibrary->isReadOnly()) {
+        throw CopyError("Library is read only");
+    }
+    if (*sourceLibrary == *destinationLibrary) {
+        // throw MaterialExists();
+    }
+}
+
 void MaterialManager::deleteRecursive(const std::shared_ptr<MaterialLibrary>& library, const std::string& path)
 {
+    if (library->isReadOnly()) {
+        throw DeleteError("Library is read only");
+    }
     if (library->isLocal()) {
         auto materialLibrary = std::make_shared<MaterialLibraryLocal>(*library);
         _localManager->deleteRecursive(materialLibrary, path);

@@ -81,6 +81,12 @@ public:
         const std::string& oldPath,
         const std::string& newPath
     );
+    void moveFolderLocal(
+        const std::shared_ptr<MaterialLibrary>& sourceLibrary,
+        const std::string& sourcePath,
+        const std::shared_ptr<MaterialLibrary>& destinationLibrary,
+        const std::string& destinationPath
+    );
     void deleteRecursive(const std::shared_ptr<MaterialLibraryLocal>& library, const std::string& path);
 
     // Material management

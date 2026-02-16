@@ -74,6 +74,21 @@ void MaterialTreeItem::setOriginalName(const QString& name)
     setData(QVariant(name), TreeNameRole);
 }
 
+QString MaterialTreeItem::libraryName() const
+{
+    return data(TreeLibraryNameRole).toString();
+}
+
+void MaterialTreeItem::setLibraryName(const QString& name)
+{
+    setData(QVariant(name), TreeLibraryNameRole);
+}
+
+void MaterialTreeItem::setLibraryName(const std::string& name)
+{
+    setLibraryName(QString::fromStdString(name));
+}
+
 QString MaterialTreeItem::getUniqueName(const QString& name, TreeFunctionType function) const
 {
     Base::UniqueNameManager manager;

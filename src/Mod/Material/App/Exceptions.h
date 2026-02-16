@@ -244,6 +244,16 @@ public:
     ~MoveError() noexcept override;
 };
 
+class MaterialsExport CopyError: public Base::Exception
+{
+public:
+    CopyError();
+    explicit CopyError(const char* msg);
+    explicit CopyError(const std::string& msg);
+    explicit CopyError(const QString& msg);
+    ~CopyError() noexcept override;
+};
+
 class MaterialsExport ConnectionError: public Base::Exception
 {
 public:

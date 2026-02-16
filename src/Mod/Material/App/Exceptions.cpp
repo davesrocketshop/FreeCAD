@@ -152,6 +152,12 @@ MoveError::MoveError(const std::string& msg) : Base::Exception(msg) {}
 MoveError::MoveError(const QString& msg) : Base::Exception(msg.toStdString().c_str()) {}
 MoveError::~MoveError() noexcept = default;
 
+CopyError::CopyError() : Base::Exception("Unable to copy object") {}
+CopyError::CopyError(const char* msg) : Base::Exception(msg) {}
+CopyError::CopyError(const std::string& msg) : Base::Exception(msg) {}
+CopyError::CopyError(const QString& msg) : Base::Exception(msg.toStdString().c_str()) {}
+CopyError::~CopyError() noexcept = default;
+
 ConnectionError::ConnectionError() : Base::Exception("Unable to connect") {}
 ConnectionError::ConnectionError(const char* msg) : Base::Exception(msg) {}
 ConnectionError::ConnectionError(const std::string& msg) : Base::Exception(msg) {}

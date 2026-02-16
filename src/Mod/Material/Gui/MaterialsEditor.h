@@ -97,6 +97,8 @@ public:
 
     void onTreeItemChanged(QStandardItem* item);
     void onTreeItemDropped(Qt::DropAction action, QStandardItem* source, QStandardItem* destination);
+    void folderDropped(Qt::DropAction action, MaterialTreeItem* source, MaterialTreeItem* destination);
+    void materialDropped(Qt::DropAction action, MaterialTreeItem* source, MaterialTreeItem* destination);
 
     void onName(const QString& name);
     void onAuthor(const QString& author);
@@ -112,7 +114,7 @@ public:
     void onAppearanceAdd();
     void onAppearanceRemove(const QString& propertyName);
     void onOk(bool checked);
-    void onCancel(bool checked);
+    // void onCancel(bool checked);
     void onSave(bool checked);
     void accept() override;
     void reject() override;

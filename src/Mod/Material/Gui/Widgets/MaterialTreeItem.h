@@ -34,6 +34,7 @@ namespace MatGui
 const int TreeDataRole = Qt::UserRole;
 const int TreeFunctionRole = Qt::UserRole + 1;
 const int TreeNameRole = Qt::UserRole + 2;
+const int TreeLibraryNameRole = Qt::UserRole + 3;
 
 typedef enum
 {
@@ -66,6 +67,10 @@ public:
 
     QString originalName() const;
     void setOriginalName(const QString& name);
+
+    QString libraryName() const;
+    void setLibraryName(const QString& name);
+    void setLibraryName(const std::string& name);
 
     // This is a very superficial comparison that only works if its peers all have different names
     bool operator==(const MaterialTreeItem& item) const;
