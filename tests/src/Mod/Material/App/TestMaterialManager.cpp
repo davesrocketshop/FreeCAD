@@ -67,14 +67,14 @@ protected:
         _materialManager = &(Materials::MaterialManager::getManager());
 
         // Create test libraries
-        QTemporaryDir dir1;
-        dir1.setAutoRemove(false);
+        // QTemporaryDir dir1;
+        // dir1.setAutoRemove(false);
         auto path = dir1.path().toStdString();
         EXPECT_NO_THROW(library1 = _libraryManager->createLocalLibrary("TestLibrary1", path, path, "icon path", false));
         ASSERT_TRUE(library1);
 
-        QTemporaryDir dir2;
-        dir2.setAutoRemove(false);
+        // QTemporaryDir dir2;
+        // dir2.setAutoRemove(false);
         path = dir2.path().toStdString();
         EXPECT_NO_THROW(library2 = _libraryManager->createLocalLibrary("TestLibrary2", path, path, "icon path", false));
         ASSERT_TRUE(library2);
@@ -103,8 +103,8 @@ protected:
     Materials::ModelManager* _modelManager {};
     Materials::MaterialManager* _materialManager {};
     bool _useExternal {};
-    // QTemporaryDir dir1;
-    // QTemporaryDir dir2;
+    QTemporaryDir dir1;
+    QTemporaryDir dir2;
     std::shared_ptr<Materials::MaterialLibrary> library1;
     std::shared_ptr<Materials::MaterialLibrary> library2;
 };
