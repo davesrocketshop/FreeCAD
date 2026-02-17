@@ -71,8 +71,44 @@ void MaterialManagerLocal::initLibraries()
         }
 
         // Load the libraries
-        MaterialLoader loader(_materialMap, _libraryList);
+        MaterialLoader loader(_libraryList);
+
+        updateMaterialMap();
     }
+}
+
+void MaterialManagerLocal::updateMaterialMap()
+{
+    _materialMap->clear();
+    for (auto library : *_libraryList) {
+        _materialMap->insert(library->materialMap()->begin(), library->materialMap()->end());
+    }
+}
+
+void MaterialManagerLocal::refreshLibraries(
+    const std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>>& libraryList
+)
+{
+    QMutexLocker locker(&_mutex);
+
+    MaterialLoader loader(libraryList);
+    updateMaterialMap();
+}
+
+void MaterialManagerLocal::refreshLibrary(
+    const std::shared_ptr<MaterialLibrary>& library
+)
+{
+    auto list = std::make_shared<std::list<std::shared_ptr<MaterialLibrary>>>();
+    list->push_back(library);
+    refreshLibraries(list);
+}
+
+void MaterialManagerLocal::refreshMaterialMap()
+{
+    QMutexLocker locker(&_mutex);
+
+    updateMaterialMap();
 }
 
 void MaterialManagerLocal::cleanup()
@@ -226,7 +262,11 @@ void MaterialManagerLocal::moveFolderLocal(
 
         // Remove the original directory
         fs::remove_all(from);
-        refresh();
+
+        auto list = std::make_shared<std::list<std::shared_ptr<MaterialLibrary>>>();
+        list->push_back(sourceLibrary);
+        list->push_back(destinationLibrary);
+        refreshLibraries(list);
     }
     catch (const fs::filesystem_error& e) {
         // std::cout << e.what() << "\n";

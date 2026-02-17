@@ -112,8 +112,7 @@ private:
 class MaterialLoader
 {
 public:
-    MaterialLoader(const std::shared_ptr<std::map<std::string, std::shared_ptr<Material>>>& materialMap,
-                   const std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>>& libraryList);
+    MaterialLoader(const std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>>& libraryList);
     ~MaterialLoader() = default;
 
     static std::shared_ptr<std::list<std::string>>
@@ -131,7 +130,6 @@ private:
     MaterialLoader();
 
     void addToTree(std::shared_ptr<MaterialEntry> model);
-    void dereference(const std::shared_ptr<Material>& material);
     std::shared_ptr<MaterialEntry>
     getMaterialFromPath(const std::shared_ptr<MaterialLibraryLocal>& library, const std::string& path) const;
     void addLibrary(const std::shared_ptr<MaterialLibraryLocal>& model);
@@ -140,7 +138,6 @@ private:
         const std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>>& libraryList);
 
     static std::unique_ptr<std::map<std::string, std::shared_ptr<MaterialEntry>>> _materialEntryMap;
-    std::shared_ptr<std::map<std::string, std::shared_ptr<Material>>> _materialMap;
     std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>> _libraryList;
 };
 

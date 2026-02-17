@@ -386,11 +386,9 @@ std::unique_ptr<std::map<std::string, std::shared_ptr<MaterialEntry>>> MaterialL
     = nullptr;
 
 MaterialLoader::MaterialLoader(
-    const std::shared_ptr<std::map<std::string, std::shared_ptr<Material>>>& materialMap,
     const std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>>& libraryList
 )
-    : _materialMap(materialMap)
-    , _libraryList(libraryList)
+    : _libraryList(libraryList)
 {
     loadLibraries(libraryList);
 }
@@ -442,7 +440,7 @@ std::shared_ptr<MaterialEntry> MaterialLoader::getMaterialFromPath(
     if (MaterialConfigLoader::isConfigStyle(path)) {
         auto material = MaterialConfigLoader::getMaterialFromPath(library, clean);
         if (material) {
-            (*_materialMap)[material->getUUID()] = library->addMaterial(material, clean);
+            (*library->materialMap())[material->getUUID()] = library->addMaterial(material, clean);
         }
 
         // Return the nullptr as there are no intermediate steps to take, such
@@ -552,16 +550,12 @@ void MaterialLoader::dereference(
     material->markDereferenced();
 }
 
-void MaterialLoader::dereference(const std::shared_ptr<Material>& material)
-{
-    dereference(_materialMap, material);
-}
-
 void MaterialLoader::loadLibrary(const std::shared_ptr<MaterialLibraryLocal>& library)
 {
     if (_materialEntryMap == nullptr) {
         _materialEntryMap = std::make_unique<std::map<std::string, std::shared_ptr<MaterialEntry>>>();
     }
+    _materialEntryMap->clear();
 
     Base::FileInfo dirInfo(library->getDirectory());
     auto dirList = dirInfo.getDirectoryContentRecursive(); // This needs to be recursive
@@ -584,7 +578,7 @@ void MaterialLoader::loadLibrary(const std::shared_ptr<MaterialLibraryLocal>& li
     }
 
     for (auto& it : *_materialEntryMap) {
-        it.second->addToTree(_materialMap);
+        it.second->addToTree(library->materialMap());
     }
 }
 
@@ -594,16 +588,16 @@ void MaterialLoader::loadLibraries(
 {
     if (libraryList) {
         for (auto& it : *libraryList) {
-            if (it->isLocal() && !it->isDisabled()) {
-                auto materialLibrary = std::make_shared<MaterialLibraryLocal>(*it);
+            auto materialLibrary = std::make_shared<MaterialLibraryLocal>(*it);
+            if (materialLibrary->isLocal() && !materialLibrary->isDisabled()) {
                 loadLibrary(materialLibrary);
             }
-        }
-    }
 
-    for (auto& it : *_materialMap) {
-        dereference(it.second);
-        it.second->resetEditState();
+            for (auto& it : *materialLibrary->materialMap()) {
+                dereference(materialLibrary->materialMap(), it.second);
+                it.second->resetEditState();
+            }
+        }
     }
 }
 

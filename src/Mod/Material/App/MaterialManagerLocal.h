@@ -62,6 +62,10 @@ public:
 
     static void cleanup();
     static void refresh();
+    static void refreshLibraries(
+        const std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>>& libraryList
+    );
+    static void refreshLibrary(const std::shared_ptr<MaterialLibrary>& library);
 
     // Library management
     std::shared_ptr<std::vector<LibraryObject>> libraryMaterials(const std::string& libraryName);
@@ -140,6 +144,8 @@ private:
     static QMutex _mutex;
 
     static void initLibraries();
+    static void updateMaterialMap();
+    static void refreshMaterialMap();
     // void setDisabledOnLibraryList(const std::string& libraryName, bool disabled);
 };
 

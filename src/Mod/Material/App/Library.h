@@ -146,6 +146,11 @@ public:
     static std::string cleanPath(const std::string path);
     static QString cleanPath(const QString& path);
 
+    std::shared_ptr<std::map<std::string, std::shared_ptr<Material>>> materialMap()
+    {
+        return proxy()->_materialMap;
+    }
+
 protected:
     Library();
     Library(const std::shared_ptr<ManagedLibrary>& library);
@@ -165,7 +170,8 @@ protected:
 
     friend class LibraryManager;
 
-    std::shared_ptr<ManagedLibrary> proxy() const {
+    std::shared_ptr<ManagedLibrary> proxy() const
+    {
         return _managedLibrary;
     }
 
