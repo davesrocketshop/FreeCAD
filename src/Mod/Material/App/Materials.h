@@ -139,7 +139,7 @@ public:
     void setColor(const Base::Color& value);
 
     MaterialProperty& operator=(const MaterialProperty& other);
-    friend Base::TextOutputStream& operator<<(Base::TextOutputStream& output, const MaterialProperty& property);
+    friend Base::ofstream& operator<<(Base::ofstream& output, const MaterialProperty& property);
 
     bool operator==(const MaterialProperty& other) const;
     bool operator!=(const MaterialProperty& other) const
@@ -423,7 +423,7 @@ public:
      */
     void inheritedPropertyDiff(const std::string& parent);
 
-    void save(Base::TextOutputStream& stream, bool overwrite, bool saveAsCopy, bool saveInherited);
+    void save(Base::ofstream& stream, bool overwrite, bool saveAsCopy, bool saveInherited);
 
     /*
      * Assignment operator
@@ -460,10 +460,10 @@ protected:
                       const Model& model) const;
     bool modelAppearanceChanged(const Material& parent,
                                 const Model& model) const;
-    void saveGeneral(Base::TextOutputStream& stream) const;
-    void saveInherits(Base::TextOutputStream& stream) const;
-    void saveModels(Base::TextOutputStream& stream, bool saveInherited) const;
-    void saveAppearanceModels(Base::TextOutputStream& stream, bool saveInherited) const;
+    void saveGeneral(Base::ofstream& stream) const;
+    void saveInherits(Base::ofstream& stream) const;
+    void saveModels(Base::ofstream& stream, bool saveInherited) const;
+    void saveAppearanceModels(Base::ofstream& stream, bool saveInherited) const;
 
 private:
     std::shared_ptr<MaterialLibrary> _library;
@@ -488,7 +488,7 @@ private:
     MaterialEdit _editState;
 };
 
-inline Base::TextOutputStream& operator<<(Base::TextOutputStream& output, const MaterialProperty& property)
+inline Base::ofstream& operator<<(Base::ofstream& output, const MaterialProperty& property)
 {
     output << MaterialValue::escapeString(property.getName()) + ":" + property.getYAMLString();
     return output;

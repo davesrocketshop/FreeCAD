@@ -324,17 +324,11 @@ MaterialLibraryLocal::saveMaterial(const std::shared_ptr<Material>& material,
     // if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
     Base::ofstream ostream(file);
     if (ostream) {
-        Base::TextOutputStream stream(ostream);
-// #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-//         stream.setCodec("UTF-8");
-// #endif
-        // stream.setGenerateByteOrderMark(true);??
-
         // Write the contents
         material->setName(file.fileNamePure());
         material->setLibrary(getptr());
         material->setDirectory(getRelativePath(file.dirPath()));
-        material->save(stream, overwrite, saveAsCopy, saveInherited);
+        material->save(ostream, overwrite, saveAsCopy, saveInherited);
     }
     else {
         Base::Console().error("Unable to save material '%s'\n", file.filePath().c_str());

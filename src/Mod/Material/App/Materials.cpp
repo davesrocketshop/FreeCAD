@@ -1355,7 +1355,7 @@ bool Material::isAppearanceModelComplete(const std::string& uuid) const
     return true;
 }
 
-void Material::saveGeneral(Base::TextOutputStream& stream) const
+void Material::saveGeneral(Base::ofstream& stream) const
 {
     stream << "General:\n";
     stream << "  UUID: \"" << _uuid << "\"\n";
@@ -1383,7 +1383,7 @@ void Material::saveGeneral(Base::TextOutputStream& stream) const
     }
 }
 
-void Material::saveInherits(Base::TextOutputStream& stream) const
+void Material::saveInherits(Base::ofstream& stream) const
 {
     if (!_parentUuid.empty()) {
         try {
@@ -1440,7 +1440,7 @@ bool Material::modelAppearanceChanged(const Material& parent,
     return false;
 }
 
-void Material::saveModels(Base::TextOutputStream& stream, bool saveInherited) const
+void Material::saveModels(Base::ofstream& stream, bool saveInherited) const
 {
     if (_physical.empty()) {
         return;
@@ -1486,7 +1486,8 @@ void Material::saveModels(Base::TextOutputStream& stream, bool saveInherited) co
 
                 if (!inherited || !parentProperty || (*property != *parentProperty)) {
                     if (!property->isNull()) {
-                        stream << "    " << *property << "\n";
+                        stream << "    ";
+                        stream << *property << "\n";
                     }
                 }
             }
@@ -1494,7 +1495,7 @@ void Material::saveModels(Base::TextOutputStream& stream, bool saveInherited) co
     }
 }
 
-void Material::saveAppearanceModels(Base::TextOutputStream& stream, bool saveInherited) const
+void Material::saveAppearanceModels(Base::ofstream& stream, bool saveInherited) const
 {
     if (_appearance.empty()) {
         return;
@@ -1538,7 +1539,8 @@ void Material::saveAppearanceModels(Base::TextOutputStream& stream, bool saveInh
 
                 if (!inherited || !parentProperty || (*property != *parentProperty)) {
                     if (!property->isNull()) {
-                        stream << "    " << *property << "\n";
+                        stream << "    ";
+                        stream << *property << "\n";
                     }
                 }
             }
@@ -1569,7 +1571,7 @@ std::string Material::getModelByName(const std::string& name) const
     return {};
 }
 
-void Material::save(Base::TextOutputStream& stream, bool overwrite, bool saveAsCopy, bool saveInherited)
+void Material::save(Base::ofstream& stream, bool overwrite, bool saveAsCopy, bool saveInherited)
 {
     if (saveInherited && !saveAsCopy) {
         // Check to see if we're an original or if we're already in the list of
