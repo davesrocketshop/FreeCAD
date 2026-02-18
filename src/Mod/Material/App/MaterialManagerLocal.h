@@ -135,12 +135,30 @@ protected:
     ) const;
 
 private:
+    /*
+     * List of local libraries
+     */
     static std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>> _libraryList;
+
+    /*
+     * Map of materials using the UUID as the key
+     */
     static std::shared_ptr<std::map<std::string, std::shared_ptr<Material>>> _materialMap;
+
     static QMutex _mutex;
 
     static void initLibraries();
     // void setDisabledOnLibraryList(const std::string& libraryName, bool disabled);
+
+    /*
+     * Update the libraries and paths of affected materials after a move
+     */
+    void updateMovedMaterials(
+        const std::shared_ptr<MaterialLibrary>& sourceLibrary,
+        const std::string& sourcePath,
+        const std::shared_ptr<MaterialLibrary>& destinationLibrary,
+        const std::string& destinationPath
+    );
 };
 
 }  // namespace Materials

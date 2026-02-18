@@ -280,6 +280,14 @@ TEST_F(TestMaterialManager, TestMove)
     EXPECT_EQ(materials->size(), 4);
 
     // Moves within a library
+    EXPECT_EQ(mat1->getLibrary()->getName(), "TestLibrary1");
+    EXPECT_EQ(mat2->getLibrary()->getName(), "TestLibrary1");
+    EXPECT_EQ(mat3->getLibrary()->getName(), "TestLibrary1");
+    EXPECT_EQ(mat4->getLibrary()->getName(), "TestLibrary1");
+    EXPECT_EQ(mat1->getDirectory(), "a");
+    EXPECT_EQ(mat2->getDirectory(), "x/y/z");
+    EXPECT_EQ(mat3->getDirectory(), "b");
+    EXPECT_EQ(mat4->getDirectory(), "b/c");
     EXPECT_THROW(_materialManager->moveFolder(nullptr, "a", nullptr, "b"), Materials::LibraryNotFound);
     EXPECT_THROW(_materialManager->moveFolder(library1, "a", nullptr, "b"), Materials::LibraryNotFound);
     EXPECT_THROW(_materialManager->moveFolder(nullptr, "a", library1, "b"), Materials::LibraryNotFound);
@@ -297,8 +305,24 @@ TEST_F(TestMaterialManager, TestMove)
     EXPECT_FALSE(info1b.exists());
     materials = _materialManager->libraryMaterials("TestLibrary1");
     EXPECT_EQ(materials->size(), 4);
+    EXPECT_EQ(mat1->getLibrary()->getName(), "TestLibrary1");
+    EXPECT_EQ(mat2->getLibrary()->getName(), "TestLibrary1");
+    EXPECT_EQ(mat3->getLibrary()->getName(), "TestLibrary1");
+    EXPECT_EQ(mat4->getLibrary()->getName(), "TestLibrary1");
+    EXPECT_EQ(mat1->getDirectory(), "a");
+    EXPECT_EQ(mat2->getDirectory(), "x/y/z");
+    EXPECT_EQ(mat3->getDirectory(), "b");
+    EXPECT_EQ(mat4->getDirectory(), "a/c");
 
     // Moves across libraries
+    EXPECT_EQ(mat5->getLibrary()->getName(), "TestLibrary2");
+    EXPECT_EQ(mat6->getLibrary()->getName(), "TestLibrary2");
+    EXPECT_EQ(mat7->getLibrary()->getName(), "TestLibrary2");
+    EXPECT_EQ(mat8->getLibrary()->getName(), "TestLibrary2");
+    EXPECT_EQ(mat5->getDirectory(), "a1");
+    EXPECT_EQ(mat6->getDirectory(), "x1/y1/z1");
+    EXPECT_EQ(mat7->getDirectory(), "b1");
+    EXPECT_EQ(mat8->getDirectory(), "b1/c1");
     EXPECT_NO_THROW(_materialManager->moveFolder(library2, "b1", library1, "a"));
     folders = _materialManager->getMaterialFolders(library1);
     ASSERT_EQ(folders->size(), 8);
@@ -315,4 +339,12 @@ TEST_F(TestMaterialManager, TestMove)
     EXPECT_EQ(materials->size(), 6);
     materials = _materialManager->libraryMaterials("TestLibrary2");
     EXPECT_EQ(materials->size(), 2);
+    EXPECT_EQ(mat5->getLibrary()->getName(), "TestLibrary2");
+    EXPECT_EQ(mat6->getLibrary()->getName(), "TestLibrary2");
+    EXPECT_EQ(mat7->getLibrary()->getName(), "TestLibrary1");
+    EXPECT_EQ(mat8->getLibrary()->getName(), "TestLibrary1");
+    EXPECT_EQ(mat5->getDirectory(), "a1");
+    EXPECT_EQ(mat6->getDirectory(), "x1/y1/z1");
+    EXPECT_EQ(mat7->getDirectory(), "a/b1");
+    EXPECT_EQ(mat8->getDirectory(), "a/b1/c1");
 }

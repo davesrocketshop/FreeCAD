@@ -220,19 +220,47 @@ void MaterialManagerLocal::moveFolderLocal(
     Base::FileInfo fromInfo(from);
     auto to = destinationLibrary->getLocalPath(destinationPath + "/" + fromInfo.fileName());
     try {
-        // std::cout << "Copy from " << from << " to " << to << "\n";
+        std::cout << "Copy from " << from << " to " << to << "\n";
         Base::Console().log("Copy from %s to %s\n", from.c_str(), to.c_str());
         // Copy the directory recursively (works across file systems)
         fs::copy(from, to, fs::copy_options::recursive | fs::copy_options::overwrite_existing);
 
         // Remove the original directory
         fs::remove_all(from);
-        // refresh();
+        updateMovedMaterials(sourceLibrary, sourcePath, destinationLibrary, destinationPath);
     }
     catch (const fs::filesystem_error& e) {
         // std::cout << e.what() << "\n";
         Base::Console().log("Move error: %s\n", e.what());
         throw MoveError(e.what());
+    }
+}
+
+void MaterialManagerLocal::updateMovedMaterials(
+    const std::shared_ptr<MaterialLibrary>& sourceLibrary,
+    const std::string& sourcePath,
+    const std::shared_ptr<MaterialLibrary>& destinationLibrary,
+    const std::string& destinationPath
+)
+{
+    auto from = sourceLibrary->getLocalPath(sourcePath);
+    for (auto it : *_materialMap) {
+        auto material = it.second;
+        if (*material->getLibrary() == *sourceLibrary) {
+            if (material->getDirectory().starts_with(sourcePath)) {
+                std::cout << "Moved material " << material->getName() << "\n";
+                Base::Console().log("Moved material %s\n", material->getName().c_str());
+                material->setLibrary(destinationLibrary);
+
+                auto newPath = material->getDirectory();
+                newPath.erase(0, sourcePath.size());
+                Base::FileInfo fromInfo(sourcePath);
+                newPath = destinationPath + "/" + fromInfo.fileName() + newPath;
+                std::cout << "Old path " << material->getDirectory() << " to " << newPath << "\n";
+                material->setDirectory(newPath);
+                std::cout << "Result " << material->getDirectory() << "\n";
+            }
+        }
     }
 }
 
