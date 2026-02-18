@@ -615,7 +615,8 @@ void MaterialsEditor::folderDropped(
 )
 {
     auto sourceLibraryName = source->libraryName();
-    auto sourceFolder = getDirectoryForItem(source);
+    auto sourceLibrary = getMaterialManager().getLibrary(sourceLibraryName.toStdString());
+    auto sourceFolder = source->path(); //getDirectoryForItem(source);
 
     auto destinationItem = destination;
     if (destinationItem->getItemFunction() == TreeFunctionMaterial) {
@@ -634,6 +635,15 @@ void MaterialsEditor::folderDropped(
         destinationLibrary->getName().c_str(),
         destinationFolder.toStdString().c_str()
     );
+
+    getMaterialManager().moveFolder(
+        sourceLibrary,
+        sourceFolder.toStdString(),
+        destinationLibrary,
+        destinationFolder.toStdString()
+    );
+    addExpanded(ui->treeMaterials, destination, source);
+    source->setPath();
 }
 
 void MaterialsEditor::materialDropped(
@@ -747,7 +757,7 @@ void MaterialsEditor::onAppearanceAdd()
     if (dialog.exec() == QDialog::Accepted) {
         QString selected = dialog.selectedModel();
         _material->addAppearance(selected.toStdString());
-        auto model = Materials::ModelManager::getManager().getModel(selected.toStdString());
+        auto model = getModelManager().getModel(selected.toStdString());
         if (selected == Materials::ModelUUIDs::ModelUUID_Rendering_Basic
             || model->inherits(Materials::ModelUUIDs::ModelUUID_Rendering_Basic)) {
             // Add default appearance properties
@@ -1074,6 +1084,7 @@ void MaterialsEditor::addMaterials(
                 card->setToolTip(tr("This card uses the old format and must be saved before use"));
             }
             card->setLibraryName(parent.libraryName());
+            card->setPath(parent.path() + QStringLiteral("/") + QString::fromStdString(mat.first));
 
             addExpanded(tree, &parent, card);
         }
@@ -1081,6 +1092,7 @@ void MaterialsEditor::addMaterials(
             auto node = new MaterialTreeFolderItem(folderIcon, QString::fromStdString(mat.first));
             node->setFlags(flags | Qt::ItemIsSelectable | Qt::ItemIsDragEnabled);
             node->setLibraryName(parent.libraryName());
+            node->setPath(parent.path() + QStringLiteral("/") + QString::fromStdString(mat.first));
             auto treeMap = nodePtr->getFolder();
 
             addExpanded(tree, &parent, node, childParam);
@@ -2051,6 +2063,7 @@ void MaterialsEditor::onMenuNewFolder(bool checked)
     auto node = new MaterialTreeFolderItem(folderIcon, name);
     node->setFlags(flags);
     node->setLibraryName(libraryName);
+    node->setPath(path + QStringLiteral("/") + name);
 
     addExpanded(ui->treeMaterials, item, node);
 
@@ -2106,6 +2119,7 @@ void MaterialsEditor::onMenuNewMaterial(bool checked)
         QString::fromStdString(_material->getUUID())
     );
     card->setLibraryName(libraryName);
+    card->setPath(item->path() + QStringLiteral("/") + QString::fromStdString(_material->getName()));
 
     addExpanded(ui->treeMaterials, item, card);
 
@@ -2170,6 +2184,7 @@ void MaterialsEditor::onMenuInheritMaterial(bool checked)
         QString::fromStdString(_material->getUUID())
     );
     card->setLibraryName(_material->getLibrary()->getName());
+    card->setPath(parent->path() + QStringLiteral("/") + QString::fromStdString(_material->getName()));
 
     addExpanded(ui->treeMaterials, parent, card);
 

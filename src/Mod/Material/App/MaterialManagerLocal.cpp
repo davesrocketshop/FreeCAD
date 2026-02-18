@@ -221,15 +221,17 @@ void MaterialManagerLocal::moveFolderLocal(
     auto to = destinationLibrary->getLocalPath(destinationPath + "/" + fromInfo.fileName());
     try {
         // std::cout << "Copy from " << from << " to " << to << "\n";
+        Base::Console().log("Copy from %s to %s\n", from.c_str(), to.c_str());
         // Copy the directory recursively (works across file systems)
         fs::copy(from, to, fs::copy_options::recursive | fs::copy_options::overwrite_existing);
 
         // Remove the original directory
         fs::remove_all(from);
-        refresh();
+        // refresh();
     }
     catch (const fs::filesystem_error& e) {
         // std::cout << e.what() << "\n";
+        Base::Console().log("Move error: %s\n", e.what());
         throw MoveError(e.what());
     }
 }

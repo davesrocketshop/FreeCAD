@@ -89,6 +89,36 @@ void MaterialTreeItem::setLibraryName(const std::string& name)
     setLibraryName(QString::fromStdString(name));
 }
 
+QString MaterialTreeItem::path() const
+{
+    return data(TreePathRole).toString();
+}
+
+void MaterialTreeItem::setPath(const QString& path)
+{
+    setData(QVariant(path), TreePathRole);
+}
+
+void MaterialTreeItem::setPath(const std::string& path)
+{
+    setPath(QString::fromStdString(path));
+}
+
+void MaterialTreeItem::setPath()
+{
+    QString path;
+    auto parentPtr = parent();
+    if (parentPtr) {
+        path = parentPtr->path();
+    }
+    path += QStringLiteral("/") + originalName();
+    setPath(path);
+
+    for (int i = 0; i < rowCount(); i++) {
+        child(i)->setPath();
+    }
+}
+
 QString MaterialTreeItem::getUniqueName(const QString& name, TreeFunctionType function) const
 {
     Base::UniqueNameManager manager;

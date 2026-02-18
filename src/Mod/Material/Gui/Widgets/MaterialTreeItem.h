@@ -35,6 +35,7 @@ const int TreeDataRole = Qt::UserRole;
 const int TreeFunctionRole = Qt::UserRole + 1;
 const int TreeNameRole = Qt::UserRole + 2;
 const int TreeLibraryNameRole = Qt::UserRole + 3;
+const int TreePathRole = Qt::UserRole + 4;
 
 typedef enum
 {
@@ -71,6 +72,11 @@ public:
     QString libraryName() const;
     void setLibraryName(const QString& name);
     void setLibraryName(const std::string& name);
+
+    QString path() const;
+    void setPath(const QString& path);
+    void setPath(const std::string& path);
+    void setPath();
 
     // This is a very superficial comparison that only works if its peers all have different names
     bool operator==(const MaterialTreeItem& item) const;

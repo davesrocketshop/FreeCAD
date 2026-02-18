@@ -130,6 +130,10 @@ public:
     {
         return Materials::MaterialManager::getManager();
     }
+    Materials::ModelManager& getModelManager()
+    {
+        return Materials::ModelManager::getManager();
+    }
     bool useExternal() const
     {
         return getMaterialManager().useExternal();
