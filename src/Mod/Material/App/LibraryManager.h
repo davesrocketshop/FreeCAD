@@ -226,6 +226,7 @@ private:
     static const char* getResourceRootModules();
     static const char* getResourceRootRemote();
 
+    void updateLibraries();
     void updateLibraryMap();
 
     void renameLibraryLocal(const std::shared_ptr<ManagedLibrary>& library, const std::string& newName);

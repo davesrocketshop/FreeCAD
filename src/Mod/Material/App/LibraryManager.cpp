@@ -87,6 +87,13 @@ void LibraryManager::initManagers()
         _libraryList = std::make_shared<std::list<std::shared_ptr<ManagedLibrary>>>();
     }
 
+    _manager->updateLibraries();
+}
+
+void LibraryManager::updateLibraries()
+{
+    _libraryList->clear();
+
     auto configured = getConfiguredLibraries(true);  // Include disabled
 #if defined(BUILD_MATERIAL_EXTERNAL)
     if (_useExternal) {
@@ -125,7 +132,10 @@ void LibraryManager::cleanup()
 {}
 
 void LibraryManager::refresh()
-{}
+{
+    QMutexLocker locker(&_mutex);
+    _manager->updateLibraries();
+}
 
 //=====
 //

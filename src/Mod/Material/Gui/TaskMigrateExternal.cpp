@@ -87,6 +87,7 @@ void DlgMigrateExternal::migrate()
                 Materials::ModelManager::getManager().migrateToExternal(library);
             }
         }
+        LibraryManager::getManager().refresh();
         statusUpdate(tr("done"));
 
         statusUpdate(tr("Validating models…"));
@@ -111,6 +112,7 @@ void DlgMigrateExternal::migrate()
                 Materials::MaterialManager::getManager().migrateToExternal(library);
             }
         }
+        LibraryManager::getManager().refresh();
         statusUpdate(tr("done"));
 
         statusUpdate(tr("Validating materials…"));

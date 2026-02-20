@@ -101,6 +101,9 @@ std::shared_ptr<Model> ModelManagerExternal::getModel(const std::string& uuid)
         _cache.emplace(uuid, model);
         return model;
     }
+    catch (const LibraryNotFound& e) {
+        return modelNotFound(uuid);
+    }
     catch (const ModelNotFound& e) {
         return modelNotFound(uuid);
     }
