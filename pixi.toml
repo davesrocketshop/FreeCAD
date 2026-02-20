@@ -64,6 +64,8 @@ xlutils = "*"
 yaml-cpp = "*"
 zlib = "*"
 zstd = "*"
+pyodbc = ">=5.3.0,<6"
+python-docx = ">=1.2.0,<2"
 
 ## Linux Dependencies (x86-64)
 [target.linux-64.dependencies]
