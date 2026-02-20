@@ -8,7 +8,7 @@ from typing import Final
 
 
 @export(
-    Include="Mod/Material/App/Materials.h",
+    Include="Mod/Material/App/MaterialProperty.h",
     Namespace="Materials",
     FatherInclude="Mod/Material/App/Model.h",
     FatherNamespace="Materials",

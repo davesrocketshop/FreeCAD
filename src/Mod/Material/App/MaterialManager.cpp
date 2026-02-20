@@ -39,6 +39,7 @@
 # include "MaterialManagerExternal.h"
 #endif
 #include "MaterialManagerLocal.h"
+#include "MaterialProperty.h"
 #include "ModelManager.h"
 #include "ModelUuids.h"
 

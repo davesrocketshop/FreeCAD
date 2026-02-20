@@ -168,10 +168,8 @@ public:
 
 protected:
     friend class ModelLibraryLocal;
-    friend class MaterialLibraryLocal;
 
     std::shared_ptr<std::map<std::string, std::shared_ptr<Model>>> _modelPathMap;
-    std::shared_ptr<std::map<std::string, std::shared_ptr<Material>>> _materialPathMap;
 
 private:
     std::string _repositoryName;

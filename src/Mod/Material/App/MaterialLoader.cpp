@@ -168,9 +168,7 @@ std::shared_ptr<Array3D> MaterialYamlEntry::read3DArray(const YAML::Node& node, 
     return array3d;
 }
 
-void MaterialYamlEntry::addToTree(
-    std::shared_ptr<std::map<std::string, std::shared_ptr<Material>>> materialMap
-)
+std::shared_ptr<Material> MaterialYamlEntry::toMaterial() const
 {
     std::set<std::string> exclude;
     exclude.insert("General");
@@ -376,8 +374,15 @@ void MaterialYamlEntry::addToTree(
         }
     }
 
-    std::string path = ManagedLibrary::cleanPath(directory);
-    (*materialMap)[uuid] = library->addMaterial(finalModel, path);
+    return finalModel;
+}
+
+void MaterialYamlEntry::addToTree(
+    std::shared_ptr<std::map<std::string, std::shared_ptr<Material>>> materialMap
+)
+{
+    auto material = toMaterial();
+    (*materialMap)[material->getUUID()] = getLibrary()->addMaterial(material, material->getDirectory());
 }
 
 //===
@@ -400,13 +405,13 @@ void MaterialLoader::addLibrary(const std::shared_ptr<MaterialLibraryLocal>& mod
     _libraryList->push_back(model);
 }
 
-std::shared_ptr<MaterialEntry> MaterialLoader::getMaterialFromYAML(
+std::shared_ptr<MaterialYamlEntry> MaterialLoader::getMaterialFromYAML(
     const std::shared_ptr<MaterialLibraryLocal>& library,
     YAML::Node& yamlroot,
     const std::string& path
 )
 {
-    std::shared_ptr<MaterialEntry> material = nullptr;
+    std::shared_ptr<MaterialYamlEntry> material = nullptr;
 
     try {
         auto uuid = yamlroot["General"]["UUID"].as<std::string>();
@@ -428,21 +433,53 @@ std::shared_ptr<MaterialEntry> MaterialLoader::getMaterialFromYAML(
     return material;
 }
 
-std::shared_ptr<MaterialEntry> MaterialLoader::getMaterialFromPath(
+std::shared_ptr<Material>
+MaterialLoader::getMaterialFromPath(const std::shared_ptr<MaterialLibraryLocal>& library, const std::string& path)
+{
+    std::string pathName = Library::cleanPath(path);
+    std::shared_ptr<MaterialYamlEntry> material = nullptr;
+
+    if (MaterialConfigLoader::isConfigStyle(path)) {
+        auto material = MaterialConfigLoader::getMaterialFromPath(library, pathName);
+        return material;
+    }
+
+    Base::FileInfo info(pathName);
+    Base::ifstream fin(info);
+    if (!fin) {
+        Base::Console().error("YAML file open error: '%s'\n", pathName.c_str());
+        return nullptr;
+    }
+
+    YAML::Node yamlroot;
+    try {
+        yamlroot = YAML::Load(fin);
+
+        material = getMaterialFromYAML(library, yamlroot, pathName);
+    }
+    catch (YAML::Exception const& e) {
+        Base::Console().error("YAML parsing error: '%s'\n", pathName.c_str());
+        Base::Console().error("\t'%s'\n", e.what());
+        showYaml(yamlroot);
+    }
+
+
+    return material->toMaterial();
+
+}
+
+std::shared_ptr<MaterialYamlEntry> MaterialLoader::getMaterialEntryFromPath(
     const std::shared_ptr<MaterialLibraryLocal>& library,
     const std::string& path
 ) const
 {
-    std::string clean = Library::cleanPath(path);
-    std::shared_ptr<MaterialEntry> material = nullptr;
-
-    // Used for debugging
-    std::string pathName = clean;
+    std::string pathName = Library::cleanPath(path);
+    std::shared_ptr<MaterialYamlEntry> material = nullptr;
 
     if (MaterialConfigLoader::isConfigStyle(path)) {
-        auto material = MaterialConfigLoader::getMaterialFromPath(library, clean);
+        auto material = MaterialConfigLoader::getMaterialFromPath(library, pathName);
         if (material) {
-            (*_materialMap)[material->getUUID()] = library->addMaterial(material, clean);
+            (*_materialMap)[material->getUUID()] = library->addMaterial(material, pathName);
         }
 
         // Return the nullptr as there are no intermediate steps to take, such
@@ -461,7 +498,7 @@ std::shared_ptr<MaterialEntry> MaterialLoader::getMaterialFromPath(
     try {
         yamlroot = YAML::Load(fin);
 
-        material = getMaterialFromYAML(library, yamlroot, clean);
+        material = getMaterialFromYAML(library, yamlroot, pathName);
     }
     catch (YAML::Exception const& e) {
         Base::Console().error("YAML parsing error: '%s'\n", pathName.c_str());
@@ -569,9 +606,12 @@ void MaterialLoader::loadLibrary(const std::shared_ptr<MaterialLibraryLocal>& li
         if (file.isFile()) {
             if (file.hasExtension("FCMat")) {
                 try {
-                    auto model = getMaterialFromPath(library, ManagedLibrary::cleanPath(file.filePath()));
-                    if (model) {
-                        (*_materialEntryMap)[model->getUUID()] = model;
+                    auto material = getMaterialEntryFromPath(
+                        library,
+                        ManagedLibrary::cleanPath(file.filePath())
+                    );
+                    if (material) {
+                        (*_materialEntryMap)[material->getUUID()] = material;
                     }
                 }
                 catch (const MaterialReadError&) {

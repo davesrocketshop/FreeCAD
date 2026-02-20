@@ -204,6 +204,7 @@ void MaterialManagerLocal::renameFolder(
 )
 {
     library->renameFolder(oldPath, newPath);
+    updateMovedMaterials(library, oldPath, library, newPath);
 }
 
 void MaterialManagerLocal::moveFolderLocal(

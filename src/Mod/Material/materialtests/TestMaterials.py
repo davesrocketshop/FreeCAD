@@ -294,7 +294,7 @@ class MaterialTestCases(unittest.TestCase):
         self.assertEqual(steel2.UUID, "92589471-a6cb-4bbc-b748-d425a17dea7d")
 
         steel3 = self._materialManager \
-            .getMaterialByPath('/System/Standard/Metal/Steel/CalculiX-Steel.FCMat', 'System')
+            .getMaterialByPath('[System]/Standard/Metal/Steel/CalculiX-Steel.FCMat', 'System')
         self.assertIsNotNone(steel3)
         self.assertEqual(steel3.Name, "CalculiX-Steel")
         self.assertEqual(steel3.UUID, "92589471-a6cb-4bbc-b748-d425a17dea7d")

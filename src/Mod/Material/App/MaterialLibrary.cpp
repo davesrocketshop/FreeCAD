@@ -216,13 +216,6 @@ void MaterialLibraryLocal::renameFolder(const std::string& oldPath, const std::s
     else {
         throw RenameError("Source doesn't exist");
     }
-
-    Base::Console().log(
-        "updatePaths('%s', '%s)\n",
-        oldPath.c_str(),
-        newPath.c_str()
-    );
-    updatePaths(oldPath, newPath);
 }
 
 void MaterialLibraryLocal::deleteRecursive(const std::string& path)
@@ -265,35 +258,12 @@ void MaterialLibraryLocal::deleteFile(const std::string& path)
         catch (const MaterialNotFound&) {
             Base::Console().log("Unable to remove file from materials list\n");
         }
-        proxy()->_materialPathMap->erase(rPath);
+        // proxy()->_materialPathMap->erase(rPath);
     }
     else {
         std::string error = "DeleteError: Unable to delete " + path;
         throw DeleteError(error);
     }
-}
-
-void MaterialLibraryLocal::updatePaths(const std::string& oldPath, const std::string& newPath)
-{
-    // Update the path map
-    std::string op = getRelativePath(oldPath);
-    std::string np = getRelativePath(newPath);
-    std::unique_ptr<std::map<std::string, std::shared_ptr<Material>>> pathMap =
-        std::make_unique<std::map<std::string, std::shared_ptr<Material>>>();
-    for (auto& itp : *proxy()->_materialPathMap) {
-        std::string path = itp.first;
-        if (path.starts_with(op)) {
-            path = np + QString::fromStdString(path).remove(0, op.size()).toStdString();
-        }
-
-        // Don't include the filename
-        Base::FileInfo filepath(path);
-        itp.second->setDirectory(filepath.dirPath());
-
-        (*pathMap)[path] = itp.second;
-    }
-
-    proxy()->_materialPathMap = std::move(pathMap);
 }
 
 std::shared_ptr<Material>
@@ -351,36 +321,39 @@ MaterialLibraryLocal::addMaterial(const std::shared_ptr<Material>& material, con
 {
     std::string filePath = getRelativePath(path);
     Base::FileInfo info(filePath);
-    std::shared_ptr<Material> newMaterial = std::make_shared<Material>(*material);
-    newMaterial->setLibrary(getptr());
-    newMaterial->setDirectory(getLibraryPath(filePath, info.fileName()));
-    // newMaterial->setFilename(info.fileName());
+    // std::shared_ptr<Material> newMaterial = material;
+    material->setLibrary(getptr());
+    material->setDirectory(getLibraryPath(filePath, info.fileName()));
+    // material->setFilename(info.fileName());
 
-    (*proxy()->_materialPathMap)[filePath] = newMaterial;
+    // std::cout << "File path " << filePath << "\n";
+    // (*proxy()->_materialPathMap)[filePath] = material;
 
-    return newMaterial;
+    return material;
 }
 
-std::shared_ptr<Material> MaterialLibraryLocal::getMaterialByPath(const std::string& path) const
+std::shared_ptr<Material> MaterialLibraryLocal::getMaterialByPath(const std::string& path)
 {
-    std::string filePath = getRelativePath(path);
-
-    auto search = proxy()->_materialPathMap->find(filePath);
-    if (search != proxy()->_materialPathMap->end()) {
-        return search->second;
+    std::string filePath = getLocalPath(path);
+    auto material = MaterialLoader::getMaterialFromPath(
+        std::static_pointer_cast<MaterialLibraryLocal>(getptr()),
+        filePath
+    );
+    if (!material) {
+        throw MaterialNotFound();
     }
-
-    throw MaterialNotFound();
+    return material;
 }
 
-std::string MaterialLibraryLocal::getUUIDFromPath(const std::string& path) const
+std::string MaterialLibraryLocal::getUUIDFromPath(const std::string& path)
 {
-    std::string filePath = getRelativePath(path);
-
-    auto search = proxy()->_materialPathMap->find(filePath);
-    if (search != proxy()->_materialPathMap->end()) {
-        return search->second->getUUID();
+    std::string filePath = getLocalPath(path);
+    auto material = MaterialLoader::getMaterialFromPath(
+        std::static_pointer_cast<MaterialLibraryLocal>(getptr()),
+        filePath
+    );
+    if (!material) {
+        throw MaterialNotFound();
     }
-
-    throw MaterialNotFound();
+    return material->getUUID();
 }

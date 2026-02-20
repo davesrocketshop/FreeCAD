@@ -104,7 +104,7 @@ public:
     bool fileExists(const std::string& path) const;
     std::shared_ptr<Material> addMaterial(const std::shared_ptr<Material>& material,
                                           const std::string& path);
-    std::shared_ptr<Material> getMaterialByPath(const std::string& path) const;
+    std::shared_ptr<Material> getMaterialByPath(const std::string& path);
 
     bool operator==(const MaterialLibrary& library) const
     {
@@ -127,9 +127,8 @@ public:
 protected:
     void deleteDir(const std::string& path);
     void deleteFile(const std::string& path);
-    void updatePaths(const std::string& oldPath, const std::string& newPath);
 
-    std::string getUUIDFromPath(const std::string& path) const;
+    std::string getUUIDFromPath(const std::string& path);
 private:
     MaterialLibraryLocal();
 };

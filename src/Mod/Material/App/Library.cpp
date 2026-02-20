@@ -104,7 +104,8 @@ std::string Library::getLocalPath(const std::string& directoryPath, const std::s
     std::string prefix = "[" + getName() + "]";
     if (clean.starts_with(prefix)) {
         // Remove the library name from the path
-        filePath += clean.erase(clean.length() - prefix.length());
+        // filePath += clean.erase(clean.length() - prefix.length());
+        filePath += clean.erase(0, prefix.length());
     }
     else {
         filePath += clean;

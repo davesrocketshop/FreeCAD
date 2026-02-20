@@ -224,7 +224,7 @@ class ModelTestCases(unittest.TestCase):
         self.assertEqual(prop.Type, "2DArray")
         self.assertEqual(prop.URL, "")
         self.assertEqual(prop.Units, "")
-        self.assertEqual(prop.Description, "2 Dimensional array showing density with temperature\n")
+        self.assertEqual(prop.Description, "2 Dimensional array showing density with temperature")
         self.assertEqual(len(prop.Columns), 2)
         col = prop.Columns[0]
         self.assertIn("Description", dir(col))
@@ -249,7 +249,7 @@ class ModelTestCases(unittest.TestCase):
         self.assertEqual(prop.Type, "2DArray")
         self.assertEqual(prop.URL, "")
         self.assertEqual(prop.Units, "")
-        self.assertEqual(prop.Description, "2 Dimensional array showing density and initial yield stress with temperature\n")
+        self.assertEqual(prop.Description, "2 Dimensional array showing density and initial yield stress with temperature")
         self.assertEqual(len(prop.Columns), 3)
         col = prop.Columns[0]
         self.assertEqual(col.Name, "Temperature")
@@ -268,14 +268,14 @@ class ModelTestCases(unittest.TestCase):
         self.assertEqual(col.Type, "Quantity")
         self.assertEqual(col.URL, "")
         self.assertEqual(col.Units, "kPa")
-        self.assertEqual(col.Description, "Saturation stress for Voce isotropic hardening [FreeCAD Pressure unit]\n")
+        self.assertEqual(col.Description, "Saturation stress for Voce isotropic hardening [FreeCAD Pressure unit]")
 
         prop = model.Properties["TestArray3D"]
         self.assertEqual(prop.Name, "TestArray3D")
         self.assertEqual(prop.Type, "3DArray")
         self.assertEqual(prop.URL, "")
         self.assertEqual(prop.Units, "")
-        self.assertEqual(prop.Description, "3 Dimensional array showing stress and strain as a function of temperature\n")
+        self.assertEqual(prop.Description, "3 Dimensional array showing stress and strain as a function of temperature")
         self.assertEqual(len(prop.Columns), 3)
         col = prop.Columns[0]
         self.assertEqual(col.Name, "Temperature")

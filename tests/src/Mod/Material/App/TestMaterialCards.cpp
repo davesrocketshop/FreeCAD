@@ -24,6 +24,7 @@
 
 #include <QMetaType>
 #include <QString>
+#include <QDir>
 
 #include <App/Application.h>
 #include <Base/Quantity.h>

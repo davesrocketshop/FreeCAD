@@ -104,6 +104,8 @@ SET(Materials_SRCS
     MaterialManager.h
     MaterialManagerLocal.cpp
     MaterialManagerLocal.h
+    MaterialProperty.cpp
+    MaterialProperty.h
     Materials.cpp
     Materials.h
     MaterialValue.cpp
