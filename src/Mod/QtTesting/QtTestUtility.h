@@ -21,51 +21,40 @@
  *                                                                         *
  ***************************************************************************/
 
-#include <QFileDialog>
 
-#include <pqWidgetEventPlayer.h>
-#include <pqWidgetEventTranslator.h>
+#ifndef GUI_QTTESTUTILITY_H
+#define GUI_QTTESTUTILITY_H
 
-#include <Base/Console.h>
+#include <pqTestUtility.h>
 
-#include "QtTestUtility.h"
-#include "XMLEventObserver.h"
-#include "XMLEventSource.h"
+#include <Base/BaseClass.h>
 
-using namespace QtTesting;
+class pqWidgetEventPlayer;
+class pqWidgetEventTranslator;
 
-TYPESYSTEM_SOURCE(QtTesting::QtTestUtility, Base::BaseClass)
-
-QtTestUtility::QtTestUtility(QObject* parent)
-    : pqTestUtility(parent)
+namespace QtTesting
 {
-    addCustomTranslators();
-    addCustomEventPlayers();
 
-    addEventObserver(QStringLiteral("xml"), new QtTesting::XMLEventObserver(this));
-    addEventSource(QStringLiteral("xml"), new QtTesting::XMLEventSource(this));
-}
-
-void QtTestUtility::addWidgetEventTranslator(pqWidgetEventTranslator* translator)
+class QtTestingExport QtTestUtility: public pqTestUtility, public Base::BaseClass
 {
-    if (translator) {
-        eventTranslator()->addWidgetEventTranslator(translator);
-    }
-}
+    TYPESYSTEM_HEADER_WITH_OVERRIDE();
 
-void QtTestUtility::addCustomTranslators()
-{
-    // Add any custom translators here
-}
+public:
+    QtTestUtility(QObject* parent = 0);
+    ~QtTestUtility() = default;
 
-void QtTestUtility::addWidgetEventPlayer(pqWidgetEventPlayer* player)
-{
-    if (player) {
-        eventPlayer()->addWidgetEventPlayer(player);
-    }
-}
+    void addWidgetEventTranslator(pqWidgetEventTranslator* translator);
+    void addWidgetEventPlayer(pqWidgetEventPlayer* player);
 
-void QtTestUtility::addCustomEventPlayers()
-{
-    // Add any custom event players here
-}
+    void addCustomTranslators();
+    void addCustomEventPlayers();
+
+    static QtTestUtility& getTestUtility() const;
+
+private:
+    static std::unique_ptr<QtTesting::QtTestUtility> qtTestUtility;
+};
+
+}  // namespace QtTesting
+
+#endif  // GUI_QTTESTUTILITY_H
