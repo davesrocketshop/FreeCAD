@@ -131,6 +131,7 @@ protected:
     const char* UUIDAluminumMixed =  "5f546608-fcbb-40db-98d7-d8e104eb33ce";
     const char* UUIDAluminumPhysical = "a8e60089-550d-4370-8e7e-1734db12a3a9";
     const char* UUIDBrassAppearance = "fff3d5c8-98c3-4ee2-8fe5-7e17403c48fcc";
+    const char* UUIDCopper230 = "c366ae49-964f-4fb5-96ce-5069d9d7b8b2";
 };
 
 TEST_F(TestMaterialFilter, TestFilters)
@@ -158,6 +159,11 @@ TEST_F(TestMaterialFilter, TestFilters)
     ASSERT_EQ(material->getName(), "TestBrassAppearance");
     ASSERT_EQ(material->getUUID(), UUIDBrassAppearance);
 
+    material = _materialManager->getMaterial(UUIDCopper230);
+    ASSERT_TRUE(material);
+    ASSERT_EQ(material->getName(), "TestCopper-230");
+    ASSERT_EQ(material->getUUID(), UUIDCopper230);
+
     ASSERT_NO_THROW(material = _materialManager->getMaterialByPath("TestAcrylicLegacy.FCMat",
         "__UnitTest"));
     ASSERT_TRUE(material);
@@ -171,11 +177,11 @@ TEST_F(TestMaterialFilter, TestFilters)
 
     options.setIncludeLegacy(false);
     auto tree = _materialManager->getMaterialTree(*_library, filter, options);
-    ASSERT_EQ(tree->size(), 4);
+    ASSERT_EQ(tree->size(), 5);
 
     options.setIncludeLegacy(true);
     tree = _materialManager->getMaterialTree(*_library, filter, options);
-    ASSERT_EQ(tree->size(), 5);
+    ASSERT_EQ(tree->size(), 6);
 
     // Create a basic rendering filter
     filter.setName("Basic Appearance");
@@ -183,11 +189,11 @@ TEST_F(TestMaterialFilter, TestFilters)
     options.setIncludeLegacy(false);
 
     tree = _materialManager->getMaterialTree(*_library, filter, options);
-    ASSERT_EQ(tree->size(), 3);
+    ASSERT_EQ(tree->size(), 4);
 
     options.setIncludeLegacy(true);
     tree = _materialManager->getMaterialTree(*_library, filter, options);
-    ASSERT_EQ(tree->size(), 3);
+    ASSERT_EQ(tree->size(), 4);
 
     // Create an advanced rendering filter
     filter.clear();
@@ -209,11 +215,11 @@ TEST_F(TestMaterialFilter, TestFilters)
     options.setIncludeLegacy(false);
 
     tree = _materialManager->getMaterialTree(*_library, filter, options);
-    ASSERT_EQ(tree->size(), 2);
+    ASSERT_EQ(tree->size(), 3);
 
     options.setIncludeLegacy(true);
     tree = _materialManager->getMaterialTree(*_library, filter, options);
-    ASSERT_EQ(tree->size(), 3);
+    ASSERT_EQ(tree->size(), 4);
 
     // Create a Hardness filter
     filter.clear();
@@ -222,11 +228,11 @@ TEST_F(TestMaterialFilter, TestFilters)
     options.setIncludeLegacy(false);
 
     tree = _materialManager->getMaterialTree(*_library, filter, options);
-    ASSERT_EQ(tree->size(), 0);
+    ASSERT_EQ(tree->size(), 1);
 
     options.setIncludeLegacy(true);
     tree = _materialManager->getMaterialTree(*_library, filter, options);
-    ASSERT_EQ(tree->size(), 0);
+    ASSERT_EQ(tree->size(), 1);
 
     // Create a Density and Basic Rendering filter
     filter.clear();
@@ -236,11 +242,11 @@ TEST_F(TestMaterialFilter, TestFilters)
     options.setIncludeLegacy(false);
 
     tree = _materialManager->getMaterialTree(*_library, filter, options);
-    ASSERT_EQ(tree->size(), 1);
+    ASSERT_EQ(tree->size(), 2);
 
     options.setIncludeLegacy(true);
     tree = _materialManager->getMaterialTree(*_library, filter, options);
-    ASSERT_EQ(tree->size(), 1);
+    ASSERT_EQ(tree->size(), 2);
 
     // Create a Linear Elastic filter
     filter.clear();
@@ -261,9 +267,9 @@ TEST_F(TestMaterialFilter, TestFilters)
     options.setIncludeLegacy(false);
 
     tree = _materialManager->getMaterialTree(*_library, filter, options);
-    ASSERT_EQ(tree->size(), 2);
+    ASSERT_EQ(tree->size(), 3);
 
     options.setIncludeLegacy(true);
     tree = _materialManager->getMaterialTree(*_library, filter, options);
-    ASSERT_EQ(tree->size(), 2);
+    ASSERT_EQ(tree->size(), 3);
 }

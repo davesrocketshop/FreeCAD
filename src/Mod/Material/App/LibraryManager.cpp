@@ -362,7 +362,7 @@ std::shared_ptr<MaterialLibrary> LibraryManager::getMaterialLibrary(
 ) const
 {
     auto library = getLibrary(repositoryName, name);
-    if (!library->getMaterialDirectory().empty()) {
+    if (library->isRemote() || !library->getMaterialDirectory().empty()) {
         return std::make_shared<MaterialLibrary>(library);
     }
 
@@ -374,7 +374,7 @@ std::shared_ptr<MaterialLibrary> LibraryManager::getMaterialLibrary(
 ) const
 {
     auto library = getLibrary(name);
-    if (!library->getMaterialDirectory().empty()) {
+    if (library->isRemote() || !library->getMaterialDirectory().empty()) {
         return std::make_shared<MaterialLibrary>(library);
     }
 

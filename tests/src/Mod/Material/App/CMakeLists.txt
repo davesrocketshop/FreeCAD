@@ -25,6 +25,7 @@ set(MaterialTestData_Files
         Materials/TestAluminumMixed.FCMat
         Materials/TestAluminumPhysical.FCMat
         Materials/TestBrassAppearance.FCMat
+        Materials/TestCopper-230.FCMat
 )
 
 ADD_CUSTOM_TARGET(MaterialTestData ALL
