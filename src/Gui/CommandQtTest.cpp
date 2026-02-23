@@ -55,7 +55,7 @@ StdCmdQtTestRecord::StdCmdQtTestRecord()
     sToolTipText = QT_TR_NOOP("Opens a dialog to record Qt GUI interactions");
     sWhatsThis = "Std_QtTestRecord";
     sStatusTip = sToolTipText;
-    // sPixmap = "media-record";
+    sPixmap = "media-record";
     eType = 0;
 }
 
@@ -97,7 +97,7 @@ StdCmdQtTestPlayback::StdCmdQtTestPlayback()
     sToolTipText = QT_TR_NOOP("Opens a dialog to play back previously recorded Qt GUI interactions");
     sWhatsThis = "Std_QtTestPlayback";
     sStatusTip = sToolTipText;
-    // sPixmap = "media-record";
+    sPixmap = "media-playback-start";
     eType = 0;
 }
 
