@@ -21,33 +21,66 @@
  *                                                                         *
  ***************************************************************************/
 
+#include <QFileDialog>
 
-#ifndef GUI_XMLEVENTSOURCE_H
-#define GUI_XMLEVENTSOURCE_H
+#include <pqWidgetEventPlayer.h>
+#include <pqWidgetEventTranslator.h>
 
-#include <QXmlStreamReader>
+#include <Base/Console.h>
+#include <Gui/MainWindow.h>
 
-#include <pqEventSource.h>
+#include "QtTestUtility.h"
+#include "XMLEventObserver.h"
+#include "XMLEventSource.h"
 
-class pqWidgetEventTranslator;
+using namespace QtTestingGui;
 
-namespace QtTesting
+TYPESYSTEM_SOURCE(QtTestingGui::QtTestUtility, Base::BaseClass)
+
+// Static variable definition
+std::unique_ptr<QtTestUtility> QtTestUtility::qtTestUtility;
+
+QtTestUtility::QtTestUtility(QObject* parent)
+    : pqTestUtility(parent)
 {
+    addCustomTranslators();
+    addCustomEventPlayers();
 
-class XMLEventSource: public pqEventSource
+    addEventObserver(QStringLiteral("xml"), new XMLEventObserver(this));
+    addEventSource(QStringLiteral("xml"), new XMLEventSource(this));
+}
+
+void QtTestUtility::addWidgetEventTranslator(pqWidgetEventTranslator* translator)
 {
-public:
-    XMLEventSource(QObject* p);
-    ~XMLEventSource() override;
+    if (translator) {
+        eventTranslator()->addWidgetEventTranslator(translator);
+    }
+}
 
-protected:
-    void setContent(const QString& xmlfilename) override;
-    int getNextEvent(QString& widget, QString& command, QString& arguments, int& eventType) override;
+void QtTestUtility::addCustomTranslators()
+{
+    // Add any custom translators here
+}
 
-private:
-    QXmlStreamReader* xmlStream;
-};
+void QtTestUtility::addWidgetEventPlayer(pqWidgetEventPlayer* player)
+{
+    if (player) {
+        eventPlayer()->addWidgetEventPlayer(player);
+    }
+}
 
-}  // namespace QtTesting
+void QtTestUtility::addCustomEventPlayers()
+{
+    // Add any custom event players here
+}
 
-#endif  // GUI_XMLEVENTSOURCE_H
+QtTestUtility& QtTestUtility::getTestUtility()
+{
+    if (!qtTestUtility) {
+        auto mainWindow = Gui::getMainWindow();
+        if (mainWindow) {
+            qtTestUtility = std::make_unique<QtTestUtility>(Gui::getMainWindow());
+        }
+    }
+    return *qtTestUtility;
+}

@@ -27,7 +27,7 @@
 
 #include "XMLEventSource.h"
 
-using namespace QtTesting;
+using namespace QtTestingGui;
 
 XMLEventSource::XMLEventSource(QObject* p)
     : pqEventSource(p)

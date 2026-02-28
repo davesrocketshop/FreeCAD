@@ -29,7 +29,7 @@
 
 #include "XMLEventObserver.h"
 
-using namespace QtTesting;
+using namespace QtTestingGui;
 
 XMLEventObserver::XMLEventObserver(QObject* p)
     : pqEventObserver(p)

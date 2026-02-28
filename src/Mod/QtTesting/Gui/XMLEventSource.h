@@ -22,36 +22,32 @@
  ***************************************************************************/
 
 
-#ifndef GUI_XMLEVENTOBSERVER_H
-#define GUI_XMLEVENTOBSERVER_H
+#ifndef GUI_XMLEVENTSOURCE_H
+#define GUI_XMLEVENTSOURCE_H
 
-#include <QXmlStreamWriter>
+#include <QXmlStreamReader>
 
-#include <pqEventObserver.h>
+#include <pqEventSource.h>
 
-namespace QtTesting
+class pqWidgetEventTranslator;
+
+namespace QtTestingGui
 {
 
-class XMLEventObserver: public pqEventObserver
+class XMLEventSource: public pqEventSource
 {
 public:
-    XMLEventObserver(QObject* p);
-    ~XMLEventObserver() override;
+    XMLEventSource(QObject* p);
+    ~XMLEventSource() override;
 
 protected:
-    void setStream(QTextStream* stream) override;
-    void onRecordEvent(
-        const QString& widget,
-        const QString& command,
-        const QString& arguments,
-        const int& eventType
-    ) override;
+    void setContent(const QString& xmlfilename) override;
+    int getNextEvent(QString& widget, QString& command, QString& arguments, int& eventType) override;
 
 private:
-    QXmlStreamWriter* xmlStream;
-    QString xmlString;
+    QXmlStreamReader* xmlStream;
 };
 
-}  // namespace QtTesting
+}  // namespace QtTestingGui
 
-#endif  // GUI_XMLEVENTOBSERVER_H
+#endif  // GUI_XMLEVENTSOURCE_H

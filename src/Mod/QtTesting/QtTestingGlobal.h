@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: LGPL-2.1-or-later
+
 /***************************************************************************
  *   Copyright (c) 2026 David Carter <dcarter@david.carter.ca>             *
  *                                                                         *
@@ -21,40 +22,28 @@
  *                                                                         *
  ***************************************************************************/
 
+#include <FCGlobal.h>
 
-#ifndef GUI_QTTESTUTILITY_H
-#define GUI_QTTESTUTILITY_H
+#ifndef QTTESTING_GLOBAL_H
+# define QTTESTING_GLOBAL_H
 
-#include <pqTestUtility.h>
 
-#include <Base/BaseClass.h>
+// QtTesting
+# ifndef QtTestingExport
+#  ifdef QtTesting_EXPORTS
+#   define QtTestingExport FREECAD_DECL_EXPORT
+#  else
+#   define QtTestingExport FREECAD_DECL_IMPORT
+#  endif
+# endif
 
-class pqWidgetEventPlayer;
-class pqWidgetEventTranslator;
+// QtTestingGui
+# ifndef QtTestingGuiExport
+#  ifdef QtTestingGui_EXPORTS
+#   define QtTestingGuiExport FREECAD_DECL_EXPORT
+#  else
+#   define QtTestingGuiExport FREECAD_DECL_IMPORT
+#  endif
+# endif
 
-namespace QtTesting
-{
-
-class QtTestingExport QtTestUtility: public pqTestUtility, public Base::BaseClass
-{
-    TYPESYSTEM_HEADER_WITH_OVERRIDE();
-
-public:
-    QtTestUtility(QObject* parent = 0);
-    ~QtTestUtility() = default;
-
-    void addWidgetEventTranslator(pqWidgetEventTranslator* translator);
-    void addWidgetEventPlayer(pqWidgetEventPlayer* player);
-
-    void addCustomTranslators();
-    void addCustomEventPlayers();
-
-    static QtTestUtility& getTestUtility() const;
-
-private:
-    static std::unique_ptr<QtTesting::QtTestUtility> qtTestUtility;
-};
-
-}  // namespace QtTesting
-
-#endif  // GUI_QTTESTUTILITY_H
+#endif  // QTTESTING_GLOBAL_H

@@ -31,13 +31,13 @@
 
 #include "MainWindow.h"
 
-#include "QtTesting/QtTestUtility.h"
+#include "QtTestUtility.h"
 
-#include "QtTesting/QtTestUtilityPy.h"
-#include "QtTesting/QtTestUtilityPy.cpp"
+#include "QtTestUtilityPy.h"
+#include "QtTestUtilityPy.cpp"
 
 
-using namespace QtTesting;
+using namespace QtTestingGui;
 
 
 // returns a string which represents the object e.g. when printed in python
@@ -80,8 +80,7 @@ PyObject* QtTestUtilityPy::play(PyObject* args, PyObject* kwds)
         throw Py::TypeError("Expected string, list, or None");
     }
 
-    auto mainWindow = Gui::getMainWindow();
-    auto& testUtility = mainWindow->getTestUtility();
+    auto& testUtility = QtTestUtility::getTestUtility();
     bool pass = false;
     if (!tests.isEmpty()) {
         pass = testUtility.playTests(tests);
@@ -95,8 +94,7 @@ PyObject* QtTestUtilityPy::play(PyObject* args, PyObject* kwds)
 
 PyObject* QtTestUtilityPy::playingTest(PyObject* args)
 {
-    auto mainWindow = Gui::getMainWindow();
-    auto& testUtility = mainWindow->getTestUtility();
+    auto& testUtility = QtTestUtility::getTestUtility();
     auto playing = testUtility.playingTest();
 
     if (playing) {
@@ -109,8 +107,7 @@ PyObject* QtTestUtilityPy::stopTests(PyObject* args)
 {
     Base::Console().log("Stopping playback\n");
 
-    auto mainWindow = Gui::getMainWindow();
-    auto& testUtility = mainWindow->getTestUtility();
+    auto& testUtility = QtTestUtility::getTestUtility();
     testUtility.stopTests();
 
     Py_RETURN_NONE;
@@ -135,7 +132,7 @@ PyObject* QtTestUtilityPy::record(PyObject* args, PyObject* kwds)
     }
 
     auto mainWindow = Gui::getMainWindow();
-    auto& testUtility = mainWindow->getTestUtility();
+    auto& testUtility = QtTestUtility::getTestUtility();
     if (filename.isEmpty()) {
         filename = QFileDialog::getSaveFileName(
             mainWindow,
@@ -156,8 +153,7 @@ PyObject* QtTestUtilityPy::stopRecording(PyObject* args)
 {
     Base::Console().log("Stopping recording\n");
 
-    auto mainWindow = Gui::getMainWindow();
-    auto& testUtility = mainWindow->getTestUtility();
+    auto& testUtility = QtTestUtility::getTestUtility();
     if (testUtility.recorder()->isRecording()) {
         // testUtility.stopRecords(1);
         testUtility.recorder()->stop(1);
@@ -170,8 +166,7 @@ PyObject* QtTestUtilityPy::pauseRecording(PyObject* args)
 {
     Base::Console().log("Pausing recording\n");
 
-    auto mainWindow = Gui::getMainWindow();
-    auto& testUtility = mainWindow->getTestUtility();
+    auto& testUtility = QtTestUtility::getTestUtility();
     testUtility.pauseRecords(true);
 
     Py_RETURN_NONE;
@@ -181,8 +176,7 @@ PyObject* QtTestUtilityPy::resumeRecording(PyObject* args)
 {
     Base::Console().log("Resuming recording\n");
 
-    auto mainWindow = Gui::getMainWindow();
-    auto& testUtility = mainWindow->getTestUtility();
+    auto& testUtility = QtTestUtility::getTestUtility();
     testUtility.pauseRecords(false);
 
     Py_RETURN_NONE;

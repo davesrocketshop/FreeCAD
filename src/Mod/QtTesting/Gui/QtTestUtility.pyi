@@ -7,8 +7,8 @@ from Base.BaseClass import BaseClass
 from typing import Final
 
 @export(
-    Include="Gui/QtTesting/QtTestUtility.h",
-    Namespace="QtTesting",
+    Include="Mod/QtTesting/Gui/QtTestUtility.h",
+    Namespace="QtTestingGui",
     Constructor=False,
     Delete=False,
 )

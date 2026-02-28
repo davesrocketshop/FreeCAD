@@ -29,12 +29,12 @@
 #include <Gui/Language/Translator.h>
 #include <Gui/WidgetFactory.h>
 
-#include "DlgSettingsDefaultQtTesting.h"
-#include "DlgSettingsQtTesting.h"
+// #include "DlgSettingsDefaultQtTesting.h"
+// #include "DlgSettingsQtTesting.h"
 #include "Workbench.h"
 #include "WorkbenchManipulator.h"
-#include "QtTestingTreeWidget.h"
-#include "QtTestingTreeWidgetPy.h"
+#include "QtTestUtility.h"
+#include "QtTestUtilityPy.h"
 
 #if defined(BUILD_QTTESTING_EXTERNAL)
 #include "DlgSettingsExternal.h"
@@ -47,19 +47,19 @@ void loadQtTestingResource()
 {
     // add resources and reloads the translators
     Q_INIT_RESOURCE(QtTesting);
-    Q_INIT_RESOURCE(QtTesting_translation);
+    // Q_INIT_RESOURCE(QtTesting_translation);
     Gui::Translator::instance()->refresh();
 }
 
-namespace QtTesting
+namespace QtTestingGui
 {
 class Module: public Py::ExtensionModule<Module>
 {
 public:
     Module()
-        : Py::ExtensionModule<Module>("QtTesting")
+        : Py::ExtensionModule<Module>("QtTestingGui")
     {
-        initialize("This module is the QtTesting module.");  // register with Python
+        initialize("This module is the QtTestingGui module.");  // register with Python
     }
 
     ~Module() = default;
@@ -72,9 +72,9 @@ PyObject* initModule()
     return Base::Interpreter().addModule(new Module);
 }
 
-}  // namespace QtTesting
+}  // namespace QtTestingGui
 
-PyMOD_INIT_FUNC(QtTesting)
+PyMOD_INIT_FUNC(QtTestingGui)
 {
     if (!Gui::Application::Instance) {
         PyErr_SetString(PyExc_ImportError, "Cannot load Gui module in console application.");
@@ -90,7 +90,7 @@ PyMOD_INIT_FUNC(QtTesting)
     //     PyMOD_Return(nullptr);
     // }
 
-    PyObject* qtTestingModule = QtTesting::initModule();
+    PyObject* qtTestingModule = QtTestingGui::initModule();
 
     Base::Console().log("Loading GUI of QtTesting module… done\n");
 
@@ -118,16 +118,14 @@ PyMOD_INIT_FUNC(QtTesting)
     // add resources and reloads the translators
     loadQtTestingResource();
 
-    Base::Interpreter().addType(&QtTesting::QtTestUtilityPy::Type,
-                                qtTestingModule,
-                                "QtTestUtility",);
+    Base::Interpreter().addType(&QtTestingGui::QtTestUtilityPy::Type, qtTestingModule, "QtTestUtility");
 
 
     // Initialize types
-    QtTesting::QtTestUtility::init();
+    QtTestingGui::QtTestUtility::init();
 
     // Hook in to the main window's event loop to allow for recording and playback of GUI interactions
-    getTestUtility();
+    QtTestingGui::QtTestUtility::getTestUtility();
 
     PyMOD_Return(qtTestingModule);
 }

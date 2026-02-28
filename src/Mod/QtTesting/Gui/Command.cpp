@@ -25,6 +25,7 @@
 #include <QFileDialog>
 #include <QUrl>
 
+#include <Gui/Application.h>
 #include <Gui/Command.h>
 #include <Gui/MainWindow.h>
 
@@ -40,7 +41,7 @@
 // #include "PythonDebugger.h"
 
 
-using namespace QTTesting;
+// using namespace QtTestingGui;
 
 
 //===========================================================================
@@ -75,10 +76,10 @@ void StdCmdQtTestRecord::activated(int iMsg)
     if (!filename.isEmpty()) {
         Base::Console().log("Recording to file '%s'\n", filename.toStdString().c_str());
         QApplication::setActiveWindow(mainWindow);
-        auto& testUtility = QtTestUtility::getTestUtility();
-        if (testUtility) {
+        auto& testUtility = QtTestingGui::QtTestUtility::getTestUtility();
+        // if (testUtility) {
             testUtility.recordTests(filename);
-        }
+        // }
     }
 }
 
@@ -111,10 +112,10 @@ void StdCmdQtTestPlayback::activated(int iMsg)
 
     auto mainWindow = Gui::getMainWindow();
     QApplication::setActiveWindow(mainWindow);
-    auto& testUtility = QtTestUtility::getTestUtility();
-    if (testUtility) {
+    auto& testUtility = QtTestingGui::QtTestUtility::getTestUtility();
+    // if (testUtility) {
         testUtility.openPlayerDialog();
-    }
+    // }
 }
 
 bool StdCmdQtTestPlayback::isActive()
@@ -122,14 +123,14 @@ bool StdCmdQtTestPlayback::isActive()
     return true;
 }
 
-namespace QTTesting
-{
+// namespace QTTesting
+// {
 
 void CreateQtTestingCommands()
 {
-    CommandManager& rcCmdMgr = Application::Instance->commandManager();
+    Gui::CommandManager& rcCmdMgr = Gui::Application::Instance->commandManager();
     rcCmdMgr.addCommand(new StdCmdQtTestRecord());
     rcCmdMgr.addCommand(new StdCmdQtTestPlayback());
 }
 
-}  // namespace QTTesting
+// }  // namespace QTTesting
