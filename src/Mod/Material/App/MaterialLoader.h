@@ -104,6 +104,7 @@ private:
     static std::shared_ptr<std::vector<QVariant>> readList(const YAML::Node& node,
                                                      bool isImageList = false);
     static std::shared_ptr<std::vector<QVariant>> readImageList(const YAML::Node& node);
+    static Base::Quantity quantityFromString(const std::string& valueString);
     static std::shared_ptr<Array2D> read2DArray(const YAML::Node& node, int columns);
     static std::shared_ptr<Array3D> read3DArray(const YAML::Node& node, int columns);
 

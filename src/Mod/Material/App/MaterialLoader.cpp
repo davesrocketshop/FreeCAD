@@ -102,6 +102,20 @@ std::shared_ptr<std::vector<QVariant>> MaterialYamlEntry::readImageList(const YA
     return readList(node, true);
 }
 
+Base::Quantity MaterialYamlEntry::quantityFromString(const std::string& valueString)
+{
+    Base::Quantity qq;
+    auto value = trim_copy(valueString);
+    if (value.empty()) {
+        qq.setInvalid();
+    }
+    else {
+        qq = Base::Quantity::parse(value);
+    }
+    qq.setFormat(MaterialValue::getQuantityFormat());
+    return qq;
+}
+
 std::shared_ptr<Array2D> MaterialYamlEntry::read2DArray(const YAML::Node& node, int columns)
 {
     auto array2d = std::make_shared<Array2D>();
@@ -119,8 +133,7 @@ std::shared_ptr<Array2D> MaterialYamlEntry::read2DArray(const YAML::Node& node, 
 
             auto row = std::make_shared<std::vector<QVariant>>();
             for (std::size_t j = 0; j < yamlRow.size(); j++) {
-                Base::Quantity qq = Base::Quantity::parse(yamlRow[j].as<std::string>());
-                qq.setFormat(MaterialValue::getQuantityFormat());
+                Base::Quantity qq = quantityFromString(yamlRow[j].as<std::string>());
                 row->push_back(QVariant::fromValue(qq));
             }
             array2d->addRow(row);
@@ -155,8 +168,7 @@ std::shared_ptr<Array3D> MaterialYamlEntry::read3DArray(const YAML::Node& node, 
 
                     auto row = std::make_shared<std::vector<Base::Quantity>>();
                     for (std::size_t j = 0; j < yamlRow.size(); j++) {
-                        auto qq = Base::Quantity::parse(yamlRow[j].as<std::string>());
-                        qq.setFormat(MaterialValue::getQuantityFormat());
+                        Base::Quantity qq = quantityFromString(yamlRow[j].as<std::string>());
                         row->push_back(qq);
                     }
                     array3d->addRow(depth, row);

@@ -452,7 +452,17 @@ void Array2D::validate(const Array2D& other) const
     try {
         for (int i = 0; i < rows(); i++) {
             for (int j = 0; j < columns(); j++) {
-                if (getValue(i, j) != other.getValue(i, j)) {
+                auto v1 = getValue(i, j).value<Base::Quantity>();
+                auto v2 = other.getValue(i, j).value<Base::Quantity>();
+                if (!v1.isValid()) {
+                    if (v2.isValid()) {
+                        throw InvalidProperty("Material property values don't match");
+                    }
+                }
+                else if (!v2.isValid()) {
+                    throw InvalidProperty("Material property values don't match");
+                }
+                else if (v1 != v2) {
                     throw InvalidProperty("Material property values don't match");
                 }
             }

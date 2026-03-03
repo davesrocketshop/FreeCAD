@@ -221,8 +221,8 @@ void MaterialManagerLocal::moveFolderLocal(
     Base::FileInfo fromInfo(from);
     auto to = destinationLibrary->getLocalPath(destinationPath + "/" + fromInfo.fileName());
     try {
-        std::cout << "Copy from " << from << " to " << to << "\n";
-        Base::Console().log("Copy from %s to %s\n", from.c_str(), to.c_str());
+        // std::cout << "Copy from " << from << " to " << to << "\n";
+        // Base::Console().log("Copy from %s to %s\n", from.c_str(), to.c_str());
         // Copy the directory recursively (works across file systems)
         fs::copy(from, to, fs::copy_options::recursive | fs::copy_options::overwrite_existing);
 
@@ -249,17 +249,17 @@ void MaterialManagerLocal::updateMovedMaterials(
         auto material = it.second;
         if (*material->getLibrary() == *sourceLibrary) {
             if (material->getDirectory().starts_with(sourcePath)) {
-                std::cout << "Moved material " << material->getName() << "\n";
-                Base::Console().log("Moved material %s\n", material->getName().c_str());
+                // std::cout << "Moved material " << material->getName() << "\n";
+                // Base::Console().log("Moved material %s\n", material->getName().c_str());
                 material->setLibrary(destinationLibrary);
 
                 auto newPath = material->getDirectory();
                 newPath.erase(0, sourcePath.size());
                 Base::FileInfo fromInfo(sourcePath);
                 newPath = destinationPath + "/" + fromInfo.fileName() + newPath;
-                std::cout << "Old path " << material->getDirectory() << " to " << newPath << "\n";
+                // std::cout << "Old path " << material->getDirectory() << " to " << newPath << "\n";
                 material->setDirectory(newPath);
-                std::cout << "Result " << material->getDirectory() << "\n";
+                // std::cout << "Result " << material->getDirectory() << "\n";
             }
         }
     }

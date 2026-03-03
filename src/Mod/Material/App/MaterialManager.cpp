@@ -835,7 +835,12 @@ void MaterialManager::validateMigration(const std::shared_ptr<Materials::Materia
         auto material = _localManager->getMaterial(uuid);
         if (!material->isOldFormat()) {
             auto externalMaterial = _externalManager->getMaterial(uuid);
-            material->validate(*externalMaterial);
+            if (externalMaterial) {
+                material->validate(*externalMaterial);
+            }
+            else {
+                Base::Console().log("Material not found: %s\n", material->getName().c_str());
+            }
         }
     }
 }

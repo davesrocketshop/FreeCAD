@@ -21,6 +21,7 @@
  **************************************************************************/
 
 #include <gtest/gtest.h>
+#include <cmath>
 
 #include <QMetaType>
 #include <QString>
@@ -278,4 +279,11 @@ TEST_F(TestMaterialValue, TestArray3DType)
     EXPECT_THROW(mat2.setValue(0, 2, Base::Quantity::parse("32 C")), Materials::InvalidIndex);
 }
 
+TEST_F(TestMaterialValue, TestInvalidQuantity)
+{
+    Base::Quantity quantity;
+    quantity.setInvalid();
+    // std::cout << "Invalid quantity: '" << quantity.getUserString() << "'\n";
+    EXPECT_TRUE(std::isnan(quantity.getValue()));
+}
 // clang-format on

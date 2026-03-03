@@ -24,7 +24,6 @@
 
 #include <QMetaType>
 #include <QString>
-#include <QDir>
 
 #include <App/Application.h>
 #include <Base/Quantity.h>
@@ -65,10 +64,10 @@ protected:
         // Create a custom library for our test files
         // Ensure the directory exists
         std::string testPath = App::Application::getHomePath() + "/tests/Materials/";
-        QDir directory(QString::fromStdString(testPath));
+        Base::FileInfo directory(testPath);
         ASSERT_TRUE(directory.exists());
         std::string modelPath = App::Application::getResourceDir() + "/Mod/Material/Resources/Models";
-        QDir modelDirectory(QString::fromStdString(modelPath));
+        Base::FileInfo modelDirectory(modelPath);
         ASSERT_TRUE(modelDirectory.exists());
 
         // Remove the library if it exists
@@ -110,6 +109,14 @@ protected:
         _materialManager->setUseExternal(_useExternal);
 
         _materialManager->refresh();
+
+        try {
+            _materialManager->removeLibrary("__UnitTest");
+        }
+        catch (const Materials::LibraryNotFound&) {
+            // ignore
+        }
+        ASSERT_THROW(_materialManager->getLibrary("__UnitTest"), Materials::LibraryNotFound);
     }
 
     Materials::ModelManager* _modelManager {};
@@ -215,11 +222,11 @@ TEST_F(TestMaterialFilter, TestFilters)
     options.setIncludeLegacy(false);
 
     tree = _materialManager->getMaterialTree(*_library, filter, options);
-    ASSERT_EQ(tree->size(), 3);
+    ASSERT_EQ(tree->size(), 2);
 
     options.setIncludeLegacy(true);
     tree = _materialManager->getMaterialTree(*_library, filter, options);
-    ASSERT_EQ(tree->size(), 4);
+    ASSERT_EQ(tree->size(), 3);
 
     // Create a Hardness filter
     filter.clear();
@@ -228,11 +235,11 @@ TEST_F(TestMaterialFilter, TestFilters)
     options.setIncludeLegacy(false);
 
     tree = _materialManager->getMaterialTree(*_library, filter, options);
-    ASSERT_EQ(tree->size(), 1);
+    ASSERT_EQ(tree->size(), 0);
 
     options.setIncludeLegacy(true);
     tree = _materialManager->getMaterialTree(*_library, filter, options);
-    ASSERT_EQ(tree->size(), 1);
+    ASSERT_EQ(tree->size(), 0);
 
     // Create a Density and Basic Rendering filter
     filter.clear();
@@ -242,11 +249,11 @@ TEST_F(TestMaterialFilter, TestFilters)
     options.setIncludeLegacy(false);
 
     tree = _materialManager->getMaterialTree(*_library, filter, options);
-    ASSERT_EQ(tree->size(), 2);
+    ASSERT_EQ(tree->size(), 1);
 
     options.setIncludeLegacy(true);
     tree = _materialManager->getMaterialTree(*_library, filter, options);
-    ASSERT_EQ(tree->size(), 2);
+    ASSERT_EQ(tree->size(), 1);
 
     // Create a Linear Elastic filter
     filter.clear();
@@ -267,9 +274,9 @@ TEST_F(TestMaterialFilter, TestFilters)
     options.setIncludeLegacy(false);
 
     tree = _materialManager->getMaterialTree(*_library, filter, options);
-    ASSERT_EQ(tree->size(), 3);
+    ASSERT_EQ(tree->size(), 2);
 
     options.setIncludeLegacy(true);
     tree = _materialManager->getMaterialTree(*_library, filter, options);
-    ASSERT_EQ(tree->size(), 3);
+    ASSERT_EQ(tree->size(), 2);
 }
