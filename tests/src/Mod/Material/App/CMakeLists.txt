@@ -25,7 +25,7 @@ set(MaterialTestData_Files
         Materials/TestAluminumMixed.FCMat
         Materials/TestAluminumPhysical.FCMat
         Materials/TestBrassAppearance.FCMat
-        Materials/TestCopper-230.FCMat
+        Materials/TestSparseArray.FCMat
 )
 
 ADD_CUSTOM_TARGET(MaterialTestData ALL
@@ -36,6 +36,19 @@ fc_target_copy_resource(MaterialTestData
         ${CMAKE_CURRENT_SOURCE_DIR}
         ${CMAKE_BINARY_DIR}/tests
         ${MaterialTestData_Files})
+
+set(ModelTestData_Files
+        Models/TestSparseModel.yml
+)
+
+ADD_CUSTOM_TARGET(ModelTestData ALL
+        SOURCES ${ModelTestData_Files}
+)
+
+fc_target_copy_resource(ModelTestData
+        ${CMAKE_CURRENT_SOURCE_DIR}
+        ${CMAKE_BINARY_DIR}/tests
+        ${ModelTestData_Files})
 
 # INSTALL(
 #     FILES ${MaterialTest_Files}

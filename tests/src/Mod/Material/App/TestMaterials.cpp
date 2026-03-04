@@ -71,7 +71,8 @@ protected:
         std::string testPath = App::Application::getHomePath() + "/tests/Materials/";
         Base::FileInfo directory(testPath);
         ASSERT_TRUE(directory.exists());
-        std::string modelPath = App::Application::getResourceDir() + "/Mod/Material/Resources/Models";
+        std::string modelPath = App::Application::getHomePath() + "/tests/Models/";
+        // std::string modelPath = App::Application::getResourceDir() + "/Mod/Material/Resources/Models";
         Base::FileInfo modelDirectory(modelPath);
         ASSERT_TRUE(modelDirectory.exists());
 
@@ -88,6 +89,7 @@ protected:
                             modelPath,
                             ":/icons/preferences-general.svg",
                             false);
+        _materialManager->refresh();
 
         ASSERT_NO_THROW(_materialManager->getLibrary("__UnitTest"));
     }
@@ -588,124 +590,223 @@ TEST_F(TestMaterial, TestTestMaterial)
     EXPECT_EQ(url->getValue().toString().toStdString(), "https://www.freecad.org/");
 }
 
-TEST_F(TestMaterial, TestCopper230)
+TEST_F(TestMaterial, TestSparseArrays2D)
 {
-    auto testMaterial = _materialManager->getMaterial("c366ae49-964f-4fb5-96ce-5069d9d7b8b2");
-    EXPECT_EQ(testMaterial->getName(), "TestCopper-230");
-    EXPECT_EQ(testMaterial->getUUID(), "c366ae49-964f-4fb5-96ce-5069d9d7b8b2");
+    // First validate the model
+    std::shared_ptr<Materials::Model> testModel;
+    ASSERT_NO_THROW(testModel = _modelManager->getModel("807a4b37-da41-4b7a-a730-8555cae4146b"));
+    EXPECT_EQ(testModel->getName(), "Test Sparse Model");
+    EXPECT_EQ(testModel->getUUID(), "807a4b37-da41-4b7a-a730-8555cae4146b");
+    EXPECT_TRUE(testModel->hasProperty("TestArray2D"));
+    EXPECT_TRUE(testModel->hasProperty("TestArray3D"));
+
+    auto testMaterial = _materialManager->getMaterial("4704ec99-2914-4a72-9a71-a781d2655ee9");
+    EXPECT_EQ(testMaterial->getName(), "TestSparseArray");
+    EXPECT_EQ(testMaterial->getUUID(), "4704ec99-2914-4a72-9a71-a781d2655ee9");
     EXPECT_EQ(testMaterial->getLibrary()->getName(), "__UnitTest");
     EXPECT_FALSE(testMaterial->isDisabled());
     EXPECT_EQ(testMaterial->getDirectory(), "");
-    // EXPECT_EQ(testMaterial->getFilePath(), ""); - this is installation dependent
-    EXPECT_EQ(testMaterial->getLibraryPath(), "[__UnitTest]/TestCopper-230");
-    EXPECT_EQ(testMaterial->getAuthorAndLicense(), "Joe Da Silva LGPL-2.0-or-later");
-    EXPECT_EQ(testMaterial->getAuthor(), "Joe Da Silva");
+    EXPECT_EQ(testMaterial->getLibraryPath(), "[__UnitTest]/TestSparseArray");
+    EXPECT_EQ(testMaterial->getAuthorAndLicense(), "David Carter LGPL-2.0-or-later");
+    EXPECT_EQ(testMaterial->getAuthor(), "David Carter");
     EXPECT_EQ(testMaterial->getLicense(), "LGPL-2.0-or-later");
-    EXPECT_EQ(testMaterial->getParentUUID(), "ae194589-02d4-4e9b-98a7-f523f660d510"); // Bronze
-    EXPECT_EQ(testMaterial->getDescription(), "Copper-230, Red Brass 85%, CuZn15, Annealed 573°C 3hr. Cu≥84.6% Zn=15.33% Fe=0.02%, Ag,Mg=(trace)."
-        " IACS=37%. Values for 295°K imported from 'cda144-8-mechanical-low-temperature.pdf' with permission and credit to the 'Copper Development Association' (CDA)."
-        " For your own production accuracy, please use values provided by the material vendors you are working with.");
-    EXPECT_EQ(testMaterial->getURL(), "https://copper.org/publications/pub_list/pdf/144-8-mechanical.pdf");
-    EXPECT_EQ(testMaterial->getReference(), "144-8-mechanical.pdf");
+    EXPECT_TRUE(testMaterial->getParentUUID().empty());
+    EXPECT_EQ(testMaterial->getDescription(), "Tests sparse arrays");
+    EXPECT_TRUE(testMaterial->getURL().empty());
+    EXPECT_TRUE(testMaterial->getReference().empty());
 
     // Validate the sparse arrays
-    EXPECT_TRUE(testMaterial->hasPhysicalProperty("ElasticProperties"));
-    auto array2d = testMaterial->getPhysicalProperty("ElasticProperties")->getMaterialValue();
+    EXPECT_TRUE(testMaterial->hasPhysicalProperty("TestArray2D"));
+    auto array2d = testMaterial->getPhysicalProperty("TestArray2D")->getMaterialValue();
     ASSERT_TRUE(array2d);
     EXPECT_EQ(array2d->getType(), Materials::MaterialValue::Array2D);
     auto actual2D = dynamic_cast<Materials::Array2D &>(*array2d);
-    EXPECT_EQ(actual2D.rows(), 5);
-    EXPECT_EQ(actual2D.columns(), 5);
-    
+    EXPECT_EQ(actual2D.rows(), 4);
+    EXPECT_EQ(actual2D.columns(), 3);
+
     EXPECT_TRUE(actual2D.getValue(0, 0).canConvert<Base::Quantity>());
     EXPECT_THROW(actual2D.getValue(-1, 0), Materials::InvalidIndex);
     EXPECT_THROW(actual2D.getValue(0, -1), Materials::InvalidIndex);
-    EXPECT_EQ(actual2D.getValue(0, 0).value<Base::Quantity>(), Base::Quantity::parse("295 K"));
-    EXPECT_FALSE(actual2D.getValue(0, 1).value<Base::Quantity>().isValid());
-    EXPECT_EQ(actual2D.getValue(0, 2).toDouble(), 0.0);
-    EXPECT_EQ(actual2D.getValue(0, 2).toDouble(), QString::fromStdString("").toFloat());
-    EXPECT_EQ(actual2D.getValue(0, 3).value<Base::Quantity>(), Base::Quantity::parse("45.2 GPa"));
-    EXPECT_EQ(actual2D.getValue(0, 4).value<Base::Quantity>(), Base::Quantity::parse("103 GPa"));
+    EXPECT_THROW(actual2D.getValue(-1, -1), Materials::InvalidIndex);
+    EXPECT_EQ(actual2D.getValue(0, 0).value<Base::Quantity>(), Base::Quantity::parse("1 K"));
+    EXPECT_TRUE(actual2D.getValue(0, 1).canConvert<Base::Quantity>());
+    EXPECT_TRUE(actual2D.getValue(0, 1).value<Base::Quantity>().isValid());
+    EXPECT_EQ(actual2D.getValue(0, 1).value<Base::Quantity>(), Base::Quantity::parse("1 kg/mm^3"));
+    EXPECT_TRUE(actual2D.getValue(0, 2).canConvert<Base::Quantity>());
+    EXPECT_TRUE(actual2D.getValue(0, 2).value<Base::Quantity>().isValid());
+    EXPECT_EQ(actual2D.getValue(0, 2).value<Base::Quantity>(), Base::Quantity::parse("1.0"));
+    EXPECT_THROW(actual2D.getValue(0, 3), Materials::InvalidIndex);
     
     EXPECT_TRUE(actual2D.getValue(1, 0).canConvert<Base::Quantity>());
-    EXPECT_EQ(actual2D.getValue(1, 0).value<Base::Quantity>(), Base::Quantity::parse("195 K"));
-    EXPECT_FALSE(actual2D.getValue(1, 1).value<Base::Quantity>().isValid());
-    EXPECT_EQ(actual2D.getValue(1, 2).toDouble(), 0.0);
-    EXPECT_EQ(actual2D.getValue(1, 2).toDouble(), QString::fromStdString("").toFloat());
-    EXPECT_EQ(actual2D.getValue(1, 3).value<Base::Quantity>(), Base::Quantity::parse("46.7 GPa"));
-    EXPECT_EQ(actual2D.getValue(1, 4).value<Base::Quantity>(), Base::Quantity::parse("109 GPa"));
+    EXPECT_EQ(actual2D.getValue(1, 0).value<Base::Quantity>(), Base::Quantity::parse("2 K"));
+    EXPECT_TRUE(actual2D.getValue(1, 1).canConvert<Base::Quantity>());
+    EXPECT_TRUE(actual2D.getValue(1, 1).value<Base::Quantity>().isValid());
+    EXPECT_EQ(actual2D.getValue(1, 1).value<Base::Quantity>(), Base::Quantity::parse("2 kg/mm^3"));
+    EXPECT_TRUE(actual2D.getValue(1, 2).canConvert<Base::Quantity>());
+    EXPECT_FALSE(actual2D.getValue(1, 2).value<Base::Quantity>().isValid());
+    EXPECT_THROW(actual2D.getValue(1, 3), Materials::InvalidIndex);
     
     EXPECT_TRUE(actual2D.getValue(2, 0).canConvert<Base::Quantity>());
-    EXPECT_EQ(actual2D.getValue(2, 0).value<Base::Quantity>(), Base::Quantity::parse("76 K"));
+    EXPECT_EQ(actual2D.getValue(2, 0).value<Base::Quantity>(), Base::Quantity::parse("3 K"));
+    EXPECT_TRUE(actual2D.getValue(2, 1).canConvert<Base::Quantity>());
     EXPECT_FALSE(actual2D.getValue(2, 1).value<Base::Quantity>().isValid());
-    EXPECT_EQ(actual2D.getValue(2, 2).toDouble(), 0.0);
-    EXPECT_EQ(actual2D.getValue(2, 2).toDouble(), QString::fromStdString("").toFloat());
-    EXPECT_EQ(actual2D.getValue(2, 3).value<Base::Quantity>(), Base::Quantity::parse("48.7 GPa"));
-    EXPECT_EQ(actual2D.getValue(2, 4).value<Base::Quantity>(), Base::Quantity::parse("121 GPa"));
+    EXPECT_TRUE(actual2D.getValue(2, 2).canConvert<Base::Quantity>());
+    EXPECT_TRUE(actual2D.getValue(2, 2).value<Base::Quantity>().isValid());
+    EXPECT_EQ(actual2D.getValue(2, 2).value<Base::Quantity>(), Base::Quantity::parse("3.0"));
+    EXPECT_THROW(actual2D.getValue(2, 3), Materials::InvalidIndex);
     
     EXPECT_TRUE(actual2D.getValue(3, 0).canConvert<Base::Quantity>());
-    EXPECT_EQ(actual2D.getValue(3, 0).value<Base::Quantity>(), Base::Quantity::parse("20 K"));
+    EXPECT_EQ(actual2D.getValue(3, 0).value<Base::Quantity>(), Base::Quantity::parse("4 K"));
+    EXPECT_TRUE(actual2D.getValue(3, 1).canConvert<Base::Quantity>());
     EXPECT_FALSE(actual2D.getValue(3, 1).value<Base::Quantity>().isValid());
-    EXPECT_EQ(actual2D.getValue(3, 2).toDouble(), 0.0);
-    EXPECT_EQ(actual2D.getValue(3, 2).toDouble(), QString::fromStdString("").toFloat());
-    EXPECT_EQ(actual2D.getValue(3, 3).value<Base::Quantity>(), Base::Quantity::parse("49.6 GPa"));
-    EXPECT_EQ(actual2D.getValue(3, 4).value<Base::Quantity>(), Base::Quantity::parse("125 GPa"));
-    
-    EXPECT_TRUE(actual2D.getValue(4, 0).canConvert<Base::Quantity>());
-    EXPECT_EQ(actual2D.getValue(4, 0).value<Base::Quantity>(), Base::Quantity::parse("4 K"));
-    EXPECT_FALSE(actual2D.getValue(4, 1).value<Base::Quantity>().isValid());
-    EXPECT_EQ(actual2D.getValue(4, 2).toDouble(), 0.0);
-    EXPECT_EQ(actual2D.getValue(4, 2).toDouble(), QString::fromStdString("").toFloat());
-    EXPECT_FALSE(actual2D.getValue(4, 3).value<Base::Quantity>().isValid());
-    EXPECT_EQ(actual2D.getValue(4, 4).value<Base::Quantity>(), Base::Quantity::parse("125 GPa"));
+    EXPECT_TRUE(actual2D.getValue(3, 2).canConvert<Base::Quantity>());
+    EXPECT_FALSE(actual2D.getValue(3, 2).value<Base::Quantity>().isValid());
+    EXPECT_THROW(actual2D.getValue(3, 3), Materials::InvalidIndex);
 
     // Test the copy constructor
     Materials::Array2D copy2D(actual2D);
-    EXPECT_EQ(copy2D.rows(), 5);
-    EXPECT_EQ(copy2D.columns(), 5);
-    
+    EXPECT_EQ(copy2D.rows(), 4);
+    EXPECT_EQ(copy2D.columns(), 3);
+
     EXPECT_TRUE(copy2D.getValue(0, 0).canConvert<Base::Quantity>());
     EXPECT_THROW(copy2D.getValue(-1, 0), Materials::InvalidIndex);
     EXPECT_THROW(copy2D.getValue(0, -1), Materials::InvalidIndex);
-    EXPECT_EQ(copy2D.getValue(0, 0).value<Base::Quantity>(), Base::Quantity::parse("295 K"));
-    EXPECT_FALSE(copy2D.getValue(0, 1).value<Base::Quantity>().isValid());
-    EXPECT_EQ(copy2D.getValue(0, 2).toDouble(), 0.0);
-    EXPECT_EQ(copy2D.getValue(0, 2).toDouble(), QString::fromStdString("").toFloat());
-    EXPECT_EQ(copy2D.getValue(0, 3).value<Base::Quantity>(), Base::Quantity::parse("45.2 GPa"));
-    EXPECT_EQ(copy2D.getValue(0, 4).value<Base::Quantity>(), Base::Quantity::parse("103 GPa"));
+    EXPECT_THROW(copy2D.getValue(-1, -1), Materials::InvalidIndex);
+    EXPECT_EQ(copy2D.getValue(0, 0).value<Base::Quantity>(), Base::Quantity::parse("1 K"));
+    EXPECT_TRUE(copy2D.getValue(0, 1).canConvert<Base::Quantity>());
+    EXPECT_TRUE(copy2D.getValue(0, 1).value<Base::Quantity>().isValid());
+    EXPECT_EQ(copy2D.getValue(0, 1).value<Base::Quantity>(), Base::Quantity::parse("1 kg/mm^3"));
+    EXPECT_TRUE(copy2D.getValue(0, 2).canConvert<Base::Quantity>());
+    EXPECT_TRUE(copy2D.getValue(0, 2).value<Base::Quantity>().isValid());
+    EXPECT_EQ(copy2D.getValue(0, 2).value<Base::Quantity>(), Base::Quantity::parse("1.0"));
+    EXPECT_THROW(copy2D.getValue(0, 3), Materials::InvalidIndex);
     
     EXPECT_TRUE(copy2D.getValue(1, 0).canConvert<Base::Quantity>());
-    EXPECT_EQ(copy2D.getValue(1, 0).value<Base::Quantity>(), Base::Quantity::parse("195 K"));
-    EXPECT_FALSE(copy2D.getValue(1, 1).value<Base::Quantity>().isValid());
-    EXPECT_EQ(copy2D.getValue(1, 2).toDouble(), 0.0);
-    EXPECT_EQ(copy2D.getValue(1, 2).toDouble(), QString::fromStdString("").toFloat());
-    EXPECT_EQ(copy2D.getValue(1, 3).value<Base::Quantity>(), Base::Quantity::parse("46.7 GPa"));
-    EXPECT_EQ(copy2D.getValue(1, 4).value<Base::Quantity>(), Base::Quantity::parse("109 GPa"));
+    EXPECT_EQ(copy2D.getValue(1, 0).value<Base::Quantity>(), Base::Quantity::parse("2 K"));
+    EXPECT_TRUE(copy2D.getValue(1, 1).canConvert<Base::Quantity>());
+    EXPECT_TRUE(copy2D.getValue(1, 1).value<Base::Quantity>().isValid());
+    EXPECT_EQ(copy2D.getValue(1, 1).value<Base::Quantity>(), Base::Quantity::parse("2 kg/mm^3"));
+    EXPECT_TRUE(copy2D.getValue(1, 2).canConvert<Base::Quantity>());
+    EXPECT_FALSE(copy2D.getValue(1, 2).value<Base::Quantity>().isValid());
+    EXPECT_THROW(copy2D.getValue(1, 3), Materials::InvalidIndex);
     
     EXPECT_TRUE(copy2D.getValue(2, 0).canConvert<Base::Quantity>());
-    EXPECT_EQ(copy2D.getValue(2, 0).value<Base::Quantity>(), Base::Quantity::parse("76 K"));
+    EXPECT_EQ(copy2D.getValue(2, 0).value<Base::Quantity>(), Base::Quantity::parse("3 K"));
+    EXPECT_TRUE(copy2D.getValue(2, 1).canConvert<Base::Quantity>());
     EXPECT_FALSE(copy2D.getValue(2, 1).value<Base::Quantity>().isValid());
-    EXPECT_EQ(copy2D.getValue(2, 2).toDouble(), 0.0);
-    EXPECT_EQ(copy2D.getValue(2, 2).toDouble(), QString::fromStdString("").toFloat());
-    EXPECT_EQ(copy2D.getValue(2, 3).value<Base::Quantity>(), Base::Quantity::parse("48.7 GPa"));
-    EXPECT_EQ(copy2D.getValue(2, 4).value<Base::Quantity>(), Base::Quantity::parse("121 GPa"));
+    EXPECT_TRUE(copy2D.getValue(2, 2).canConvert<Base::Quantity>());
+    EXPECT_TRUE(copy2D.getValue(2, 2).value<Base::Quantity>().isValid());
+    EXPECT_EQ(copy2D.getValue(2, 2).value<Base::Quantity>(), Base::Quantity::parse("3.0"));
+    EXPECT_THROW(copy2D.getValue(2, 3), Materials::InvalidIndex);
     
     EXPECT_TRUE(copy2D.getValue(3, 0).canConvert<Base::Quantity>());
-    EXPECT_EQ(copy2D.getValue(3, 0).value<Base::Quantity>(), Base::Quantity::parse("20 K"));
+    EXPECT_EQ(copy2D.getValue(3, 0).value<Base::Quantity>(), Base::Quantity::parse("4 K"));
+    EXPECT_TRUE(copy2D.getValue(3, 1).canConvert<Base::Quantity>());
     EXPECT_FALSE(copy2D.getValue(3, 1).value<Base::Quantity>().isValid());
+    EXPECT_TRUE(copy2D.getValue(3, 2).canConvert<Base::Quantity>());
     EXPECT_FALSE(copy2D.getValue(3, 2).value<Base::Quantity>().isValid());
-    EXPECT_EQ(copy2D.getValue(3, 2).toDouble(), 0.0);
-    EXPECT_EQ(copy2D.getValue(3, 2).toDouble(), QString::fromStdString("").toFloat());
-    EXPECT_EQ(copy2D.getValue(3, 3).value<Base::Quantity>(), Base::Quantity::parse("49.6 GPa"));
-    EXPECT_EQ(copy2D.getValue(3, 4).value<Base::Quantity>(), Base::Quantity::parse("125 GPa"));
-    
-    EXPECT_TRUE(copy2D.getValue(4, 0).canConvert<Base::Quantity>());
-    EXPECT_EQ(copy2D.getValue(4, 0).value<Base::Quantity>(), Base::Quantity::parse("4 K"));
-    EXPECT_FALSE(copy2D.getValue(4, 1).value<Base::Quantity>().isValid());
-    EXPECT_EQ(copy2D.getValue(4, 2).toDouble(), 0.0);
-    EXPECT_EQ(copy2D.getValue(4, 2).toDouble(), QString::fromStdString("").toFloat());
-    EXPECT_FALSE(copy2D.getValue(4, 3).value<Base::Quantity>().isValid());
-    EXPECT_EQ(copy2D.getValue(4, 4).value<Base::Quantity>(), Base::Quantity::parse("125 GPa"));
+    EXPECT_THROW(copy2D.getValue(3, 3), Materials::InvalidIndex);
+
+}
+
+TEST_F(TestMaterial, TestSparseArrays3D)
+{
+    // First validate the model
+    std::shared_ptr<Materials::Model> testModel;
+    ASSERT_NO_THROW(testModel = _modelManager->getModel("807a4b37-da41-4b7a-a730-8555cae4146b"));
+    EXPECT_EQ(testModel->getName(), "Test Sparse Model");
+    EXPECT_EQ(testModel->getUUID(), "807a4b37-da41-4b7a-a730-8555cae4146b");
+    EXPECT_TRUE(testModel->hasProperty("TestArray2D"));
+    EXPECT_TRUE(testModel->hasProperty("TestArray3D"));
+
+    auto testMaterial = _materialManager->getMaterial("4704ec99-2914-4a72-9a71-a781d2655ee9");
+    EXPECT_EQ(testMaterial->getName(), "TestSparseArray");
+    EXPECT_EQ(testMaterial->getUUID(), "4704ec99-2914-4a72-9a71-a781d2655ee9");
+    EXPECT_EQ(testMaterial->getLibrary()->getName(), "__UnitTest");
+    EXPECT_FALSE(testMaterial->isDisabled());
+    EXPECT_EQ(testMaterial->getDirectory(), "");
+    EXPECT_EQ(testMaterial->getLibraryPath(), "[__UnitTest]/TestSparseArray");
+    EXPECT_EQ(testMaterial->getAuthorAndLicense(), "David Carter LGPL-2.0-or-later");
+    EXPECT_EQ(testMaterial->getAuthor(), "David Carter");
+    EXPECT_EQ(testMaterial->getLicense(), "LGPL-2.0-or-later");
+    EXPECT_TRUE(testMaterial->getParentUUID().empty());
+    EXPECT_EQ(testMaterial->getDescription(), "Tests sparse arrays");
+    EXPECT_TRUE(testMaterial->getURL().empty());
+    EXPECT_TRUE(testMaterial->getReference().empty());
+
+    // Validate the sparse arrays
+    ASSERT_TRUE(testMaterial->hasPhysicalProperty("TestArray3D"));
+    auto array3d = testMaterial->getPhysicalProperty("TestArray3D")->getMaterialValue();
+    ASSERT_TRUE(array3d);
+    EXPECT_EQ(array3d->getType(), Materials::MaterialValue::Array3D);
+    auto actual3D = dynamic_cast<Materials::Array3D &>(*array3d);
+    EXPECT_EQ(actual3D.depth(), 3);
+    EXPECT_EQ(actual3D.rows(0), 4);
+    EXPECT_EQ(actual3D.rows(1), 0);
+    EXPECT_EQ(actual3D.rows(2), 3);
+    EXPECT_EQ(actual3D.columns(), 2);
+
+    EXPECT_THROW(actual3D.getValue(-1, 0, 0), Materials::InvalidIndex);
+    EXPECT_THROW(actual3D.getValue(0, -1, 0), Materials::InvalidIndex);
+    EXPECT_THROW(actual3D.getValue(0, 0, -1), Materials::InvalidIndex);
+    EXPECT_THROW(actual3D.getValue(-1, -1), Materials::InvalidIndex);
+    EXPECT_EQ(actual3D.getDepthValue(0), Base::Quantity::parse("10.00 C"));
+    EXPECT_TRUE(actual3D.getValue(0, 0, 0).isValid());
+    EXPECT_EQ(actual3D.getValue(0, 0, 0), Base::Quantity::parse("11.00 Pa"));
+    EXPECT_TRUE(actual3D.getValue(0, 0, 1).isValid());
+    EXPECT_EQ(actual3D.getValue(0, 0, 1), Base::Quantity::parse("12.00 Pa"));
+    EXPECT_THROW(actual3D.getValue(0, 0, 2), Materials::InvalidIndex);
+
+    EXPECT_TRUE(actual3D.getValue(0, 1, 0).isValid());
+    EXPECT_EQ(actual3D.getValue(0, 1, 0), Base::Quantity::parse("21.00 Pa"));
+    EXPECT_FALSE(actual3D.getValue(0, 1, 1).isValid());
+    EXPECT_THROW(actual3D.getValue(0, 1, 2), Materials::InvalidIndex);
+
+    EXPECT_FALSE(actual3D.getValue(0, 2, 0).isValid());
+    EXPECT_TRUE(actual3D.getValue(0, 2, 1).isValid());
+    EXPECT_EQ(actual3D.getValue(0, 2, 1), Base::Quantity::parse("32.00 Pa"));
+    EXPECT_THROW(actual3D.getValue(0, 2, 2), Materials::InvalidIndex);
+
+    EXPECT_FALSE(actual3D.getValue(0, 3, 0).isValid());
+    EXPECT_FALSE(actual3D.getValue(0, 3, 1).isValid());
+    EXPECT_THROW(actual3D.getValue(0, 3, 2), Materials::InvalidIndex);
+
+    EXPECT_THROW(actual3D.getValue(0, 4, 0), Materials::InvalidIndex);
+
+    // Test the copy constructor
+    Materials::Array3D copy3D(actual3D);
+    EXPECT_EQ(copy3D.depth(), 3);
+    EXPECT_EQ(copy3D.rows(0), 4);
+    EXPECT_EQ(copy3D.rows(1), 0);
+    EXPECT_EQ(copy3D.rows(2), 3);
+    EXPECT_EQ(copy3D.columns(), 2);
+
+    EXPECT_THROW(copy3D.getValue(-1, 0, 0), Materials::InvalidIndex);
+    EXPECT_THROW(copy3D.getValue(0, -1, 0), Materials::InvalidIndex);
+    EXPECT_THROW(copy3D.getValue(0, 0, -1), Materials::InvalidIndex);
+    EXPECT_THROW(copy3D.getValue(-1, -1), Materials::InvalidIndex);
+    EXPECT_EQ(copy3D.getDepthValue(0), Base::Quantity::parse("10.00 C"));
+    EXPECT_TRUE(copy3D.getValue(0, 0, 0).isValid());
+    EXPECT_EQ(copy3D.getValue(0, 0, 0), Base::Quantity::parse("11.00 Pa"));
+    EXPECT_TRUE(copy3D.getValue(0, 0, 1).isValid());
+    EXPECT_EQ(copy3D.getValue(0, 0, 1), Base::Quantity::parse("12.00 Pa"));
+    EXPECT_THROW(copy3D.getValue(0, 0, 2), Materials::InvalidIndex);
+
+    EXPECT_TRUE(copy3D.getValue(0, 1, 0).isValid());
+    EXPECT_EQ(copy3D.getValue(0, 1, 0), Base::Quantity::parse("21.00 Pa"));
+    EXPECT_FALSE(copy3D.getValue(0, 1, 1).isValid());
+    EXPECT_THROW(copy3D.getValue(0, 1, 2), Materials::InvalidIndex);
+
+    EXPECT_FALSE(copy3D.getValue(0, 2, 0).isValid());
+    EXPECT_TRUE(copy3D.getValue(0, 2, 1).isValid());
+    EXPECT_EQ(copy3D.getValue(0, 2, 1), Base::Quantity::parse("32.00 Pa"));
+    EXPECT_THROW(copy3D.getValue(0, 2, 2), Materials::InvalidIndex);
+
+    EXPECT_FALSE(copy3D.getValue(0, 3, 0).isValid());
+    EXPECT_FALSE(copy3D.getValue(0, 3, 1).isValid());
+    EXPECT_THROW(copy3D.getValue(0, 3, 2), Materials::InvalidIndex);
+
+    EXPECT_THROW(copy3D.getValue(0, 4, 0), Materials::InvalidIndex);
 }
 
 // clang-format on
