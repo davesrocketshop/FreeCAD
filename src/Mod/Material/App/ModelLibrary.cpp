@@ -124,13 +124,7 @@ ModelLibraryLocal::ModelLibraryLocal(const Library& other)
 std::shared_ptr<Model> ModelLibraryLocal::getModelByPath(const std::string& path) const
 {
     std::string filePath = getRelativePath(path);
-    try {
-        std::shared_ptr<Model> model = proxy()->_modelPathMap->at(filePath);
-        return model;
-    }
-    catch (std::out_of_range&) {
-        throw ModelNotFound();
-    }
+    return proxy()->getModelByPath(filePath);
 }
 
 std::shared_ptr<Model> ModelLibraryLocal::addModel(const Model& model, const std::string& path)
@@ -142,7 +136,19 @@ std::shared_ptr<Model> ModelLibraryLocal::addModel(const Model& model, const std
     newModel->setDirectory(getLibraryPath(filePath, info.fileName()));
     newModel->setFilename(info.fileName());
 
-    (*proxy()->_modelPathMap)[filePath] = newModel;
+    proxy()->addModel(newModel, filePath);
 
     return newModel;
+}
+
+void ModelLibraryLocal::loadModels()
+{
+    proxy()->loadModels();
+}
+
+void ModelLibraryLocal::remapModels(
+    const std::shared_ptr<std::multimap<std::string, std::shared_ptr<Model>>>& multiMap
+)
+{
+    proxy()->remapModels(multiMap);
 }

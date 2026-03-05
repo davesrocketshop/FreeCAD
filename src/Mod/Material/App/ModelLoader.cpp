@@ -52,12 +52,13 @@ ModelEntry::ModelEntry(
     , _model(modelData)
 {}
 
-std::unique_ptr<std::map<std::string, std::shared_ptr<ModelEntry>>> ModelLoader::_modelEntryMap = nullptr;
-
-ModelLoader::ModelLoader(std::shared_ptr<std::multimap<std::string, std::shared_ptr<Model>>> modelMap)
+ModelLoader::ModelLoader(
+    ManagedLibrary& library,
+    const std::shared_ptr<std::map<std::string, std::shared_ptr<Model>>>& modelMap
+)
     : _modelMap(modelMap)
 {
-    loadLibraries();
+    loadLibrary(library);
 }
 
 const std::string ModelLoader::getUUIDFromPath(const std::string& path)
@@ -84,7 +85,7 @@ const std::string ModelLoader::getUUIDFromPath(const std::string& path)
 }
 
 std::shared_ptr<ModelEntry> ModelLoader::getModelFromPath(
-    std::shared_ptr<ModelLibrary> library,
+    ManagedLibrary& library,
     const std::string& path
 ) const
 {
@@ -111,7 +112,11 @@ std::shared_ptr<ModelEntry> ModelLoader::getModelFromPath(
         throw InvalidModel();
     }
 
-    auto localLibrary = std::make_shared<ModelLibraryLocal>(*library);
+    auto lib = LibraryManager::getManager().getModelLibrary(
+        LibraryManager::RepositoryLocal,
+        library.getLibraryName()
+    );
+    auto localLibrary = std::make_shared<ModelLibraryLocal>(*lib);
     std::shared_ptr<ModelEntry> model
         = std::make_shared<ModelEntry>(localLibrary, base, name, Library::cleanPath(path), uuid, yamlroot);
 
@@ -243,19 +248,15 @@ void ModelLoader::addToTree(std::shared_ptr<ModelEntry> model)
     _modelMap->insert({uuid, sharedModel});
 }
 
-void ModelLoader::loadLibrary(std::shared_ptr<ModelLibraryLocal> library)
+void ModelLoader::loadLibrary(ManagedLibrary& library)
 {
-    if (_modelEntryMap == nullptr) {
-        _modelEntryMap = std::make_unique<std::map<std::string, std::shared_ptr<ModelEntry>>>();
-    }
-
-    Base::FileInfo dirInfo(library->getDirectory());
+    Base::FileInfo dirInfo(library.getModelDirectory());
     for (auto file: dirInfo.getDirectoryContentRecursive()) {
         if (file.isFile()) {
             if (file.hasExtension("yml")) {
                 try {
                     auto model = getModelFromPath(library, file.filePath());
-                    (*_modelEntryMap)[model->getUUID()] = model;
+                    _modelEntryMap[model->getUUID()] = model;
                     // showYaml(model->getModel());
                 }
                 catch (InvalidModel const&) {
@@ -265,19 +266,7 @@ void ModelLoader::loadLibrary(std::shared_ptr<ModelLibraryLocal> library)
         }
     }
 
-    for (auto it = _modelEntryMap->begin(); it != _modelEntryMap->end(); it++) {
-        addToTree(it->second);
-    }
-    _modelEntryMap->clear();
-}
-
-void ModelLoader::loadLibraries()
-{
-    auto libraries = LibraryManager::getManager().getLocalModelLibraries(false);
-    if (libraries) {
-        for (auto it = libraries->begin(); it != libraries->end(); it++) {
-            auto local = std::make_shared<ModelLibraryLocal>(**it);
-            loadLibrary(local);
-        }
+    for (auto it : _modelEntryMap) {
+        addToTree(it.second);
     }
 }

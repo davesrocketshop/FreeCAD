@@ -103,6 +103,11 @@ public:
 
     std::shared_ptr<Model> addModel(const Model& model, const std::string& path);
 
+    void loadModels();
+    void remapModels(
+        const std::shared_ptr<std::multimap<std::string, std::shared_ptr<Model>>>& multiMap
+    );
+
 private:
     ModelLibraryLocal();
 };

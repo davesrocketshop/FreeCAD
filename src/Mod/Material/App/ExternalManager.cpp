@@ -341,7 +341,7 @@ std::shared_ptr<ManagedLibrary> ExternalManager::getLibrary(const std::string& n
             Py::Object result(libraries.apply(args));
 
             auto lib = libraryFromObject(result);
-            return std::make_shared<ManagedLibrary>(*lib);
+            return lib;
         }
         else {
             Base::Console().log("\tgetLibrary() not found\n");

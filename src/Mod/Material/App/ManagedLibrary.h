@@ -25,6 +25,7 @@
 #define MATERIAL_MANAGEDLIBRARY_H
 
 #include <QByteArray>
+#include <QMutex>
 #include <QString>
 
 #include <Base/BaseClass.h>
@@ -166,9 +167,16 @@ public:
     static std::string cleanPath(const std::string path);
     static QString cleanPath(const QString& path);
 
-protected:
-    friend class ModelLibraryLocal;
+    std::shared_ptr<Model> getModelByPath(const std::string& path) const;
+    void addModel(const std::shared_ptr<Model>& model, const std::string& path);
 
+    void loadModels();
+    void remapModels(
+        const std::shared_ptr<std::multimap<std::string, std::shared_ptr<Model>>>& multiMap
+    );
+
+protected:
+    std::shared_ptr<std::map<std::string, std::shared_ptr<Model>>> _modelMap;
     std::shared_ptr<std::map<std::string, std::shared_ptr<Model>>> _modelPathMap;
 
 private:
@@ -183,6 +191,9 @@ private:
 
     bool _local;
     bool _module;
+
+    bool _modelsLoaded;
+    QMutex _modelMutex;
 
     QByteArray loadByteArrayFromFile(const std::string& filePath) const;
 };

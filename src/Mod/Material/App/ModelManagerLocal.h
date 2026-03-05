@@ -66,6 +66,14 @@ public:
 
 private:
     static void initLibraries();
+    static void loadLibraries();
+    static void loadLibraries(
+        const std::shared_ptr<std::vector<std::shared_ptr<ModelLibrary>>>& libraries
+    );
+    static void remapLibraries();
+    static void remapLibraries(
+        const std::shared_ptr<std::vector<std::shared_ptr<ModelLibrary>>>& libraries
+    );
 
     static std::shared_ptr<std::multimap<std::string, std::shared_ptr<Model>>> _modelMap;
     static QMutex _mutex;

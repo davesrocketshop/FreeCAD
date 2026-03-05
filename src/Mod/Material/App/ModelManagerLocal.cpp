@@ -52,7 +52,7 @@ void ModelManagerLocal::initLibraries()
         _modelMap = std::make_shared<std::multimap<std::string, std::shared_ptr<Model>>>();
 
         // Load the libraries
-        ModelLoader loader(_modelMap);
+        loadLibraries();
     }
 }
 
@@ -89,7 +89,44 @@ void ModelManagerLocal::refresh()
     _modelMap->clear();
 
     // Load the libraries
-    ModelLoader loader(_modelMap);
+    remapLibraries();
+}
+
+void ModelManagerLocal::loadLibraries()
+{
+    auto libraries = LibraryManager::getManager().getLocalModelLibraries(false);
+    loadLibraries(libraries);
+}
+
+void ModelManagerLocal::loadLibraries(
+    const std::shared_ptr<std::vector<std::shared_ptr<ModelLibrary>>>& libraries
+)
+{
+    if (libraries) {
+        for (auto it = libraries->begin(); it != libraries->end(); it++) {
+            auto local = std::make_shared<ModelLibraryLocal>(**it);
+            local->loadModels();
+        }
+        remapLibraries(libraries);
+    }
+}
+
+void ModelManagerLocal::remapLibraries()
+{
+    auto libraries = LibraryManager::getManager().getLocalModelLibraries(false);
+    remapLibraries(libraries);
+}
+
+void ModelManagerLocal::remapLibraries(
+    const std::shared_ptr<std::vector<std::shared_ptr<ModelLibrary>>>& libraries
+)
+{
+    if (libraries) {
+        for (auto it = libraries->begin(); it != libraries->end(); it++) {
+            auto local = std::make_shared<ModelLibraryLocal>(**it);
+            local->remapModels(_modelMap);
+        }
+    }
 }
 
 std::shared_ptr<std::vector<LibraryObject>> ModelManagerLocal::libraryModels(const std::string& libraryName)

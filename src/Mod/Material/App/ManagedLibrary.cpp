@@ -31,6 +31,7 @@
 #include "Exceptions.h"
 #include "LibraryManager.h"
 #include "ManagedLibrary.h"
+#include "ModelLoader.h"
 
 
 using namespace Materials;
@@ -44,9 +45,11 @@ ManagedLibrary::ManagedLibrary(const std::string& libraryName, const std::string
     , _disabled(false)
     , _local(false)
     , _module(false)
+    , _modelsLoaded(false)
 {
     setIcon(iconPath);
 
+    _modelMap = std::make_shared<std::map<std::string, std::shared_ptr<Model>>>();
     _modelPathMap = std::make_shared<std::map<std::string, std::shared_ptr<Model>>>();
 }
 
@@ -58,7 +61,9 @@ ManagedLibrary::ManagedLibrary(const std::string& libraryName, const QByteArray&
     , _disabled(false)
     , _local(false)
     , _module(false)
+    , _modelsLoaded(false)
 {
+    _modelMap = std::make_shared<std::map<std::string, std::shared_ptr<Model>>>();
     _modelPathMap = std::make_shared<std::map<std::string, std::shared_ptr<Model>>>();
 }
 
@@ -75,9 +80,11 @@ ManagedLibrary::ManagedLibrary(
     , _disabled(false)
     , _local(false)
     , _module(false)
+    , _modelsLoaded(false)
 {
     setIcon(iconPath);
 
+    _modelMap = std::make_shared<std::map<std::string, std::shared_ptr<Model>>>();
     _modelPathMap = std::make_shared<std::map<std::string, std::shared_ptr<Model>>>();
 }
 
@@ -251,4 +258,47 @@ QString ManagedLibrary::cleanPath(const QString& path)
 {
     QString clean = QDir::cleanPath(path);
     return clean;
+}
+
+std::shared_ptr<Model> ManagedLibrary::getModelByPath(const std::string& path) const
+{
+    try {
+        std::shared_ptr<Model> model = _modelPathMap->at(path);
+        return model;
+    }
+    catch (std::out_of_range&) {
+        throw ModelNotFound();
+    }
+}
+
+void ManagedLibrary::addModel(const std::shared_ptr<Model>& model, const std::string& path)
+{
+    (*_modelPathMap)[path] = model;
+}
+
+void ManagedLibrary::loadModels()
+{
+    QMutexLocker locker(&_modelMutex);
+
+    if (!_modelsLoaded) {
+        ModelLoader loader(*this, _modelMap);
+        _modelsLoaded = true;
+    }
+}
+
+void ManagedLibrary::remapModels(
+    const std::shared_ptr<std::multimap<std::string, std::shared_ptr<Model>>>& multiMap
+)
+{
+    if (!_modelsLoaded) {
+        loadModels();
+    }
+
+    QMutexLocker locker(&_modelMutex);
+
+    if (_modelsLoaded) {
+        for (auto model : *_modelMap) {
+            multiMap->insert({model.first, model.second});
+        }
+    }
 }
