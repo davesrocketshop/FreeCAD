@@ -52,6 +52,12 @@ Gui::MenuItem* Workbench::setupMenuBar() const
     root->insertItem(item, material);
     material->setCommand("&Material");
     *material << "Material_Edit";
+    *material << "Materials_InspectModels";
+
+    // Gui::MenuItem* inspectModels = new Gui::MenuItem;
+    // root->insertItem(item, inspectModels);
+    // inspectModels->setCommand("Inspect Models");
+    // *inspectModels << "Materials_InspectModels";
 
     return root;
 }

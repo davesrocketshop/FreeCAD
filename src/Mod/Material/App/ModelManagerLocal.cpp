@@ -21,19 +21,19 @@
  *                                                                         *
  **************************************************************************/
 
-#include <QDirIterator>
 #include <QMutexLocker>
 
 #include <Base/Console.h>
 
+#include "LibraryManager.h"
 #include "Model.h"
 #include "ModelLoader.h"
+#include "ModelManager.h"
 #include "ModelManagerLocal.h"
 
 using namespace Materials;
 
-std::shared_ptr<std::list<std::shared_ptr<ModelLibraryLocal>>> ModelManagerLocal::_libraryList = nullptr;
-std::shared_ptr<std::map<QString, std::shared_ptr<Model>>> ModelManagerLocal::_modelMap = nullptr;
+std::shared_ptr<std::multimap<std::string, std::shared_ptr<Model>>> ModelManagerLocal::_modelMap = nullptr;
 QMutex ModelManagerLocal::_mutex;
 
 
@@ -49,22 +49,19 @@ void ModelManagerLocal::initLibraries()
     QMutexLocker locker(&_mutex);
 
     if (_modelMap == nullptr) {
-        _modelMap = std::make_shared<std::map<QString, std::shared_ptr<Model>>>();
-        if (_libraryList == nullptr) {
-            _libraryList = std::make_shared<std::list<std::shared_ptr<ModelLibraryLocal>>>();
-        }
+        _modelMap = std::make_shared<std::multimap<std::string, std::shared_ptr<Model>>>();
 
         // Load the libraries
-        ModelLoader loader(_modelMap, _libraryList);
+        ModelLoader loader(_modelMap);
     }
 }
 
-bool ModelManagerLocal::isModel(const QString& file)
+bool ModelManagerLocal::isModel(const std::string& file)
 {
     // if (!fs::is_regular_file(p))
     //     return false;
     // check file extension
-    if (file.endsWith(QStringLiteral(".yml"))) {
+    if (file.ends_with(".yml")) {
         return true;
     }
     return false;
@@ -72,10 +69,6 @@ bool ModelManagerLocal::isModel(const QString& file)
 
 void ModelManagerLocal::cleanup()
 {
-    if (_libraryList) {
-        _libraryList->clear();
-    }
-
     if (_modelMap) {
         for (auto& it : *_modelMap) {
             // This is needed to resolve cyclic dependencies
@@ -87,138 +80,100 @@ void ModelManagerLocal::cleanup()
 
 void ModelManagerLocal::refresh()
 {
+    QMutexLocker locker(&_mutex);
+
+    for (auto& it : *_modelMap) {
+        // This is needed to resolve cyclic dependencies
+        it.second->setLibrary(nullptr);
+    }
     _modelMap->clear();
-    _libraryList->clear();
 
     // Load the libraries
-    ModelLoader loader(_modelMap, _libraryList);
+    ModelLoader loader(_modelMap);
 }
 
-std::shared_ptr<std::list<std::shared_ptr<ModelLibrary>>> ModelManagerLocal::getLibraries()
-{
-    return reinterpret_cast<std::shared_ptr<std::list<std::shared_ptr<ModelLibrary>>>&>(
-        _libraryList);
-}
-
-void ModelManagerLocal::createLibrary(const QString& libraryName,
-                                      const QString& directory,
-                                      const QString& icon,
-                                      bool readOnly)
-{
-    QDir dir;
-    if (!dir.exists(directory)) {
-        if (!dir.mkpath(directory)) {
-            throw CreationError("Unable to create library path");
-        }
-    }
-
-    auto modelLibrary = std::make_shared<ModelLibraryLocal>(libraryName, directory, icon, readOnly);
-    _libraryList->push_back(modelLibrary);
-}
-
-void ModelManagerLocal::renameLibrary(const QString& libraryName, const QString& newName)
-{
-    for (auto& library : *_libraryList) {
-        if (library->isName(libraryName)) {
-            library->setName(newName);
-            return;
-        }
-    }
-
-    throw LibraryNotFound();
-}
-
-void ModelManagerLocal::changeIcon(const QString& libraryName, const QString& icon)
-{
-    for (auto& library : *_libraryList) {
-        if (library->isName(libraryName)) {
-            library->setIcon(icon);
-            return;
-        }
-    }
-
-    throw LibraryNotFound();
-}
-
-void ModelManagerLocal::removeLibrary(const QString& libraryName)
-{
-    for (auto& library : *_libraryList) {
-        if (library->isName(libraryName)) {
-            _libraryList->remove(library);
-
-            // At this point we should rebuild the model map
-            return;
-        }
-    }
-
-    throw LibraryNotFound();
-}
-
-std::shared_ptr<std::vector<LibraryObject>>
-ModelManagerLocal::libraryModels(const QString& libraryName)
+std::shared_ptr<std::vector<LibraryObject>> ModelManagerLocal::libraryModels(const std::string& libraryName)
 {
     auto models = std::make_shared<std::vector<LibraryObject>>();
 
     for (auto& it : *_modelMap) {
         // This is needed to resolve cyclic dependencies
         if (it.second->getLibrary()->isName(libraryName)) {
-            models->push_back(
-                LibraryObject(it.first, it.second->getDirectory(), it.second->getName()));
+            models->push_back(LibraryObject(
+                it.first,
+                it.second->getDirectory(),
+                it.second->getName()
+            ));
         }
     }
 
     return models;
 }
 
-std::shared_ptr<Model> ModelManagerLocal::getModel(const QString& uuid) const
+std::shared_ptr<std::map<std::string, std::shared_ptr<Model>>> ModelManagerLocal::getModels()
+{
+    auto localModels = std::make_shared<std::map<std::string, std::shared_ptr<Model>>>();
+    for (auto& [name, model_ptr] : *_modelMap) {
+        if (!model_ptr->isDisabled()) {
+            localModels->try_emplace(name, model_ptr);
+        }
+    }
+    return localModels;
+}
+
+std::shared_ptr<Model> ModelManagerLocal::getModel(const std::string& uuid) const
 {
     try {
         if (_modelMap == nullptr) {
             throw Uninitialized();
         }
 
-        return _modelMap->at(uuid);
+        auto range = _modelMap->equal_range(uuid);
+        for (auto it = range.first; it != range.second; it++) {
+            auto& model = it->second;
+            if (!model->isDisabled()) {
+                ModelManager::dereference(model);
+                return model;
+            }
+        }
+        throw ModelNotFound();
     }
     catch (std::out_of_range const&) {
         throw ModelNotFound();
     }
 }
 
-std::shared_ptr<Model> ModelManagerLocal::getModelByPath(const QString& path) const
+std::shared_ptr<Model> ModelManagerLocal::getModelByPath(const std::string& path) const
 {
-    QString cleanPath = QDir::cleanPath(path);
+    std::string cleanPath = Library::cleanPath(path);
 
-    for (auto& library : *_libraryList) {
-        if (library->isLocal()) {
-            auto localLibrary = std::static_pointer_cast<Materials::ModelLibraryLocal> (library);
-            if (cleanPath.startsWith(localLibrary->getDirectory())) {
-                return localLibrary->getModelByPath(cleanPath);
-            }
+    auto libraries = LibraryManager::getManager().getLocalModelLibraries(false);
+    for (auto& library : *libraries) {
+        auto localLibrary = std::make_shared<ModelLibraryLocal>(*library);
+        if (cleanPath.starts_with(localLibrary->getDirectory())) {
+            auto model = localLibrary->getModelByPath(cleanPath);
+            ModelManager::dereference(model);
+            return model;
         }
     }
 
     throw ModelNotFound();
 }
 
-std::shared_ptr<Model> ModelManagerLocal::getModelByPath(const QString& path,
-                                                         const QString& lib) const
+std::shared_ptr<Model> ModelManagerLocal::getModelByPath(const std::string& path, const std::string& lib) const
 {
-    auto library = getLibrary(lib);        // May throw LibraryNotFound
+    auto library = getLibrary(lib);  // May throw LibraryNotFound
     if (library->isLocal()) {
-        auto localLibrary = std::static_pointer_cast<Materials::ModelLibraryLocal>(library);
-        return localLibrary->getModelByPath(path);  // May throw ModelNotFound
+        auto localLibrary = std::make_shared<ModelLibraryLocal>(*library);
+        auto model = localLibrary->getModelByPath(path);  // May throw ModelNotFound
+        ModelManager::dereference(model);
+        return model;
     }
 
     throw ModelNotFound();
 }
 
-std::shared_ptr<ModelLibrary> ModelManagerLocal::getLibrary(const QString& name) const
+std::shared_ptr<ModelLibrary> ModelManagerLocal::getLibrary(const std::string& name) const
 {
-    for (auto& library : *_libraryList) {
-        if (library->isName(name)) {
-            return library;
-        }
-    }
-
-    throw LibraryNotFound();
+    return LibraryManager::getManager().getModelLibrary(LibraryManager::RepositoryLocal, name);
 }

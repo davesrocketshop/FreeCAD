@@ -52,29 +52,24 @@ public:
     static const int DEFAULT_CACHE_SIZE = 100;
 
     // Library management
-    std::shared_ptr<std::list<std::shared_ptr<ModelLibrary>>> getLibraries();
-    std::shared_ptr<ModelLibrary> getLibrary(const QString& name) const;
-    void createLibrary(const QString& libraryName,
-                       const QByteArray& icon,
-                       bool readOnly = true);
     std::shared_ptr<std::vector<LibraryObject>>
-    libraryModels(const QString& libraryName);
+    libraryModels(const std::string& libraryName);
 
     // Model management
-    std::shared_ptr<Model> getModel(const QString& uuid);
-    std::shared_ptr<std::map<QString, std::shared_ptr<Model>>> getModels();
+    std::shared_ptr<Model> getModel(const std::string& uuid);
+    std::shared_ptr<std::map<std::string, std::shared_ptr<Model>>> getModels();
     void
-    addModel(const QString& libraryName, const QString& path, const Model& model);
+    addModel(const std::string& libraryName, const std::string& path, const Model& model);
     void
-    migrateModel(const QString& libraryName, const QString& path, const Model& model);
+    migrateModel(const std::string& libraryName, const std::string& path, const Model& model);
 
     // Cache functions
-    void resetCache();
-    double modelHitRate();
+    static void resetCache();
+    static double modelHitRate();
 
 private:
     static void initCache();
-    std::shared_ptr<Model> modelNotFound(const QString& uuid);
+    std::shared_ptr<Model> modelNotFound(const std::string& uuid);
 
     static QMutex _mutex;
 

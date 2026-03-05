@@ -224,7 +224,7 @@ class ModelTestCases(unittest.TestCase):
         self.assertEqual(prop.Type, "2DArray")
         self.assertEqual(prop.URL, "")
         self.assertEqual(prop.Units, "")
-        self.assertEqual(prop.Description, "2 Dimensional array showing density with temperature\n")
+        self.assertEqual(prop.Description, "2 Dimensional array showing density with temperature")
         self.assertEqual(len(prop.Columns), 2)
         col = prop.Columns[0]
         self.assertIn("Description", dir(col))
@@ -249,7 +249,7 @@ class ModelTestCases(unittest.TestCase):
         self.assertEqual(prop.Type, "2DArray")
         self.assertEqual(prop.URL, "")
         self.assertEqual(prop.Units, "")
-        self.assertEqual(prop.Description, "2 Dimensional array showing density and initial yield stress with temperature\n")
+        self.assertEqual(prop.Description, "2 Dimensional array showing density and initial yield stress with temperature")
         self.assertEqual(len(prop.Columns), 3)
         col = prop.Columns[0]
         self.assertEqual(col.Name, "Temperature")
@@ -268,14 +268,14 @@ class ModelTestCases(unittest.TestCase):
         self.assertEqual(col.Type, "Quantity")
         self.assertEqual(col.URL, "")
         self.assertEqual(col.Units, "kPa")
-        self.assertEqual(col.Description, "Saturation stress for Voce isotropic hardening [FreeCAD Pressure unit]\n")
+        self.assertEqual(col.Description, "Saturation stress for Voce isotropic hardening [FreeCAD Pressure unit]")
 
         prop = model.Properties["TestArray3D"]
         self.assertEqual(prop.Name, "TestArray3D")
         self.assertEqual(prop.Type, "3DArray")
         self.assertEqual(prop.URL, "")
         self.assertEqual(prop.Units, "")
-        self.assertEqual(prop.Description, "3 Dimensional array showing stress and strain as a function of temperature\n")
+        self.assertEqual(prop.Description, "3 Dimensional array showing stress and strain as a function of temperature")
         self.assertEqual(len(prop.Columns), 3)
         col = prop.Columns[0]
         self.assertEqual(col.Name, "Temperature")
@@ -303,12 +303,31 @@ class ModelTestCases(unittest.TestCase):
         self.assertEqual(model.Name, "Linear Elastic")
         self.assertEqual(model.UUID, "7b561d1d-fb9b-44f6-9da9-56a4f74d7536")
         self.assertIn("Density", model.Properties)
+
+        # Non-inherited properties
+        prop = model.Properties["AngleOfFriction"]
+        self.assertFalse(prop.Inherited)
+        prop = model.Properties["CompressiveStrength"]
+        self.assertFalse(prop.Inherited)
+        prop = model.Properties["FractureToughness"]
+        self.assertFalse(prop.Inherited)
+        prop = model.Properties["UltimateStrain"]
+        self.assertFalse(prop.Inherited)
+        prop = model.Properties["UltimateTensileStrength"]
+        self.assertFalse(prop.Inherited)
+        prop = model.Properties["YieldStrength"]
+        self.assertFalse(prop.Inherited)
+        prop = model.Properties["Stiffness"]
+        self.assertFalse(prop.Inherited)
+
+        # Inherited properties
         prop = model.Properties["Density"]
         self.assertEqual(prop.Name, "Density")
         self.assertEqual(prop.Type, "Quantity")
         self.assertEqual(prop.URL, "https://en.wikipedia.org/wiki/Density")
         self.assertEqual(prop.Units, "kg/m^3")
         self.assertEqual(prop.Description, "Density in [FreeCAD Density unit]")
+        self.assertTrue(prop.Inherited)
         prop = model.Properties["BulkModulus"]
         self.assertEqual(prop.Name, "BulkModulus")
         self.assertEqual(prop.DisplayName, "Bulk Modulus")
@@ -316,6 +335,7 @@ class ModelTestCases(unittest.TestCase):
         self.assertEqual(prop.URL, "https://en.wikipedia.org/wiki/Bulk_modulus")
         self.assertEqual(prop.Units, "kPa")
         self.assertEqual(prop.Description, "Bulk modulus in [FreeCAD Pressure unit]")
+        self.assertTrue(prop.Inherited)
         prop = model.Properties["PoissonRatio"]
         self.assertEqual(prop.Name, "PoissonRatio")
         self.assertEqual(prop.DisplayName, "Poisson Ratio")
@@ -323,6 +343,7 @@ class ModelTestCases(unittest.TestCase):
         self.assertEqual(prop.URL, "https://en.wikipedia.org/wiki/Poisson%27s_ratio")
         self.assertEqual(prop.Units, "")
         self.assertEqual(prop.Description, "Poisson's ratio [unitless]")
+        self.assertTrue(prop.Inherited)
         prop = model.Properties["ShearModulus"]
         self.assertEqual(prop.Name, "ShearModulus")
         self.assertEqual(prop.DisplayName, "Shear Modulus")
@@ -330,6 +351,7 @@ class ModelTestCases(unittest.TestCase):
         self.assertEqual(prop.URL, "https://en.wikipedia.org/wiki/Shear_modulus")
         self.assertEqual(prop.Units, "kPa")
         self.assertEqual(prop.Description, "Shear modulus in [FreeCAD Pressure unit]")
+        self.assertTrue(prop.Inherited)
         prop = model.Properties["YoungsModulus"]
         self.assertEqual(prop.Name, "YoungsModulus")
         self.assertEqual(prop.DisplayName, "Young's Modulus")
@@ -337,3 +359,4 @@ class ModelTestCases(unittest.TestCase):
         self.assertEqual(prop.URL, "https://en.wikipedia.org/wiki/Young%27s_modulus")
         self.assertEqual(prop.Units, "kPa")
         self.assertEqual(prop.Description, "Young's modulus (or E-Module) in [FreeCAD Pressure unit]")
+        self.assertTrue(prop.Inherited)

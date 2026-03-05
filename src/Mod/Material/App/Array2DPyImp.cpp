@@ -22,7 +22,6 @@
  **************************************************************************/
 
 
-#include <QList>
 #include <QMetaType>
 
 #include <Base/Quantity.h>
@@ -71,9 +70,14 @@ Py::List Array2DPy::getArray() const
     for (auto& row : array) {
         Py::List rowList;
         for (auto& column : *row) {
-            auto quantity =
-                new Base::QuantityPy(new Base::Quantity(column.value<Base::Quantity>()));
-            rowList.append(Py::asObject(quantity));
+            if (!column.value<Base::Quantity>().isValid()) {
+                rowList.append(Py::None());
+            }
+            else {
+                auto quantity =
+                    new Base::QuantityPy(new Base::Quantity(column.value<Base::Quantity>()));
+                rowList.append(Py::asObject(quantity));
+            }
         }
 
         list.append(rowList);
@@ -119,9 +123,15 @@ PyObject* Array2DPy::getRow(PyObject* args) const
 
         auto arrayRow = getArray2DPtr()->getRow(row);
         for (auto& column : *arrayRow) {
-            auto quantity =
-                new Base::QuantityPy(new Base::Quantity(column.value<Base::Quantity>()));
-            list.append(Py::asObject(quantity));
+            if (!column.value<Base::Quantity>().isValid()) {
+                list.append(Py::None());
+            }
+            else {
+                auto quantity = new Base::QuantityPy(
+                    new Base::Quantity(column.value<Base::Quantity>())
+                );
+                list.append(Py::asObject(quantity));
+            }
         }
 
         return Py::new_reference_to(list);
@@ -143,6 +153,9 @@ PyObject* Array2DPy::getValue(PyObject* args) const
 
     try {
         auto value = getArray2DPtr()->getValue(row, column);
+        if (!value.value<Base::Quantity>().isValid()) {
+            Py_RETURN_NONE;
+        }
         return new Base::QuantityPy(new Base::Quantity(value.value<Base::Quantity>()));
     }
     catch (const InvalidIndex&) {
@@ -168,6 +181,24 @@ PyObject* Array2DPy::setValue(PyObject* args)
         catch (const InvalidIndex&) {
             PyErr_SetString(PyExc_IndexError, "Invalid array index");
             return nullptr;
+        }
+        Py_Return;
+    }
+    PyErr_Clear();
+
+    if (PyArg_ParseTuple(args, "iiO", &row, &column, &valueObj)) {
+        if (valueObj == Py_None) {
+            try {
+                Base::Quantity quantity;
+                quantity.setInvalid();
+                quantity.setFormat(MaterialValue::getQuantityFormat());
+                QVariant variant = QVariant::fromValue(quantity);
+                getArray2DPtr()->setValue(row, column, variant);
+            }
+            catch (const InvalidIndex&) {
+                PyErr_SetString(PyExc_IndexError, "Invalid array index");
+                return nullptr;
+            }
         }
         Py_Return;
     }

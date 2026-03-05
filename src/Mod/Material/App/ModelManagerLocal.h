@@ -48,38 +48,26 @@ public:
     static void cleanup();
     void refresh();
 
-    std::shared_ptr<std::list<std::shared_ptr<ModelLibrary>>> getLibraries();
-    void createLibrary(const QString& libraryName,
-                       const QString& directory,
-                       const QString& icon,
-                       bool readOnly = true);
-    void renameLibrary(const QString& libraryName, const QString& newName);
-    void changeIcon(const QString& libraryName, const QString& icon);
-    void removeLibrary(const QString& libraryName);
     std::shared_ptr<std::vector<LibraryObject>>
-    libraryModels(const QString& libraryName);
+    libraryModels(const std::string& libraryName);
 
-    std::shared_ptr<std::map<QString, std::shared_ptr<Model>>> getModels()
-    {
-        return _modelMap;
-    }
-    std::shared_ptr<std::map<QString, std::shared_ptr<ModelTreeNode>>>
+    std::shared_ptr<std::map<std::string, std::shared_ptr<Model>>> getModels();
+    std::shared_ptr<std::map<std::string, std::shared_ptr<ModelTreeNode>>>
     getModelTree(std::shared_ptr<ModelLibrary> library, ModelFilter filter = ModelFilter_None) const
     {
         return library->getModelTree(filter);
     }
-    std::shared_ptr<Model> getModel(const QString& uuid) const;
-    std::shared_ptr<Model> getModelByPath(const QString& path) const;
-    std::shared_ptr<Model> getModelByPath(const QString& path, const QString& lib) const;
-    std::shared_ptr<ModelLibrary> getLibrary(const QString& name) const;
+    std::shared_ptr<Model> getModel(const std::string& uuid) const;
+    std::shared_ptr<Model> getModelByPath(const std::string& path) const;
+    std::shared_ptr<Model> getModelByPath(const std::string& path, const std::string& lib) const;
+    std::shared_ptr<ModelLibrary> getLibrary(const std::string& name) const;
 
-    static bool isModel(const QString& file);
+    static bool isModel(const std::string& file);
 
 private:
     static void initLibraries();
 
-    static std::shared_ptr<std::list<std::shared_ptr<ModelLibraryLocal>>> _libraryList;
-    static std::shared_ptr<std::map<QString, std::shared_ptr<Model>>> _modelMap;
+    static std::shared_ptr<std::multimap<std::string, std::shared_ptr<Model>>> _modelMap;
     static QMutex _mutex;
 };
 

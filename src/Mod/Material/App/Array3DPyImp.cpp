@@ -22,7 +22,6 @@
  **************************************************************************/
 
 
-#include <QList>
 #include <QMetaType>
 
 #include <Base/Quantity.h>
@@ -72,8 +71,13 @@ Py::List Array3DPy::getArray() const
         for (auto& row : *std::get<1>(depth)) {
             Py::List rowList;
             for (auto& column : *row) {
-                auto quantity = new Base::QuantityPy(new Base::Quantity(column));
-                rowList.append(Py::asObject(quantity));
+                if (!column.isValid()) {
+                    rowList.append(Py::None());
+                }
+                else {
+                    auto quantity = new Base::QuantityPy(new Base::Quantity(column));
+                    rowList.append(Py::asObject(quantity));
+                }
             }
 
             depthList.append(rowList);
@@ -130,6 +134,9 @@ PyObject* Array3DPy::getValue(PyObject* args) const
 
     try {
         auto value = getArray3DPtr()->getValue(depth, row, column);
+        if (!value.isValid()) {
+            Py_RETURN_NONE;
+        }
         return new Base::QuantityPy(new Base::Quantity(value));
     }
     catch (const InvalidIndex&) {
@@ -203,6 +210,24 @@ PyObject* Array3DPy::setValue(PyObject* args)
         catch (const InvalidIndex& e) {
             PyErr_SetString(PyExc_IndexError, e.what());
             return nullptr;
+        }
+        Py_Return;
+    }
+    PyErr_Clear();
+
+    if (PyArg_ParseTuple(args, "iiiO", &depth, &row, &column, &valueObj)) {
+        if (valueObj == Py_None) {
+            try {
+                Base::Quantity quantity;
+                quantity.setInvalid();
+                quantity.setFormat(MaterialValue::getQuantityFormat());
+                QVariant variant = QVariant::fromValue(quantity);
+                getArray3DPtr()->setValue(depth, row, column, quantity);
+            }
+            catch (const InvalidIndex&) {
+                PyErr_SetString(PyExc_IndexError, "Invalid array index");
+                return nullptr;
+            }
         }
         Py_Return;
     }

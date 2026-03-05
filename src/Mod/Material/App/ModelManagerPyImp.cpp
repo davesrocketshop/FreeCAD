@@ -22,6 +22,7 @@
  **************************************************************************/
 
 
+#include "LibraryManager.h"
 #include "Model.h"
 #include "ModelLibrary.h"
 #include "ModelManager.h"
@@ -61,21 +62,20 @@ PyObject* ModelManagerPy::getModel(PyObject* args)
     }
 
     try {
-        auto model = getModelManagerPtr()->getModel(QString::fromStdString(uuid));
+        auto model = getModelManagerPtr()->getModel(uuid);
         return new ModelPy(new Model(*model));
     }
     catch (ModelNotFound const&) {
-        QString error = QStringLiteral("Model not found:\n");
+        std::string error = "Model not found:\n";
         auto _modelMap = getModelManagerPtr()->getModels();
-        error += QStringLiteral("ModelMap:\n");
+        error += "ModelMap:\n";
         for (auto itp = _modelMap->begin(); itp != _modelMap->end(); itp++) {
-            error += QStringLiteral("\t_modelMap[") + itp->first
-                + QStringLiteral("] = '") + itp->second->getName()
-                + QStringLiteral("'\n");
+            error += "\t_modelMap[" + itp->first
+                + "] = '" + itp->second->getName()
+                + "'\n";
         }
-        error += QStringLiteral("\tuuid = '") + QString::fromStdString(uuid)
-            + QStringLiteral("'\n");
-        PyErr_SetString(PyExc_LookupError, error.toStdString().c_str());
+        error += "\tuuid = '" + std::string(uuid) + "'\n";
+        PyErr_SetString(PyExc_LookupError, error.c_str());
         return nullptr;
     }
     catch (Uninitialized const&) {
@@ -95,8 +95,7 @@ PyObject* ModelManagerPy::getModelByPath(PyObject* args)
     std::string libPath(lib);
     if (libPath.length() > 0) {
         try {
-            auto model = getModelManagerPtr()->getModelByPath(QString::fromStdString(path),
-                                                              QString::fromStdString(libPath));
+            auto model = getModelManagerPtr()->getModelByPath(path, libPath);
             return new ModelPy(new Model(*model));
         }
         catch (ModelNotFound const&) {
@@ -106,7 +105,7 @@ PyObject* ModelManagerPy::getModelByPath(PyObject* args)
     }
 
     try {
-        auto model = getModelManagerPtr()->getModelByPath(QString::fromStdString(path));
+        auto model = getModelManagerPtr()->getModelByPath(path);
         return new ModelPy(new Model(*model));
     }
     catch (ModelNotFound const&) {
@@ -117,14 +116,15 @@ PyObject* ModelManagerPy::getModelByPath(PyObject* args)
 
 Py::List ModelManagerPy::getModelLibraries() const
 {
-    auto libraries = getModelManagerPtr()->getLibraries();
+    // auto libraries = getModelManagerPtr()->getLibraries();
+    auto libraries = LibraryManager::getManager().getModelLibraries();
     Py::List list;
 
     for (auto it = libraries->begin(); it != libraries->end(); it++) {
         auto lib = *it;
         Py::Tuple libTuple(3);
-        libTuple.setItem(0, Py::String(lib->getName().toStdString()));
-        libTuple.setItem(1, Py::String(lib->getDirectoryPath().toStdString()));
+        libTuple.setItem(0, Py::String(lib->getName()));
+        libTuple.setItem(1, Py::String(lib->getModelDirectoryPath()));
         libTuple.setItem(2, Py::Bytes(lib->getIcon().data(), lib->getIcon().size()));
         libTuple.setItem(3, Py::Boolean(lib->isReadOnly()));
 
@@ -136,14 +136,15 @@ Py::List ModelManagerPy::getModelLibraries() const
 
 Py::List ModelManagerPy::getLocalModelLibraries() const
 {
-    auto libraries = getModelManagerPtr()->getLocalLibraries();
+    // auto libraries = getModelManagerPtr()->getLocalLibraries();
+    auto libraries = LibraryManager::getManager().getLocalModelLibraries();
     Py::List list;
 
     for (auto it = libraries->begin(); it != libraries->end(); it++) {
         auto lib = *it;
         Py::Tuple libTuple(3);
-        libTuple.setItem(0, Py::String(lib->getName().toStdString()));
-        libTuple.setItem(1, Py::String(lib->getDirectoryPath().toStdString()));
+        libTuple.setItem(0, Py::String(lib->getName()));
+        libTuple.setItem(1, Py::String(lib->getModelDirectoryPath()));
         libTuple.setItem(2, Py::Bytes(lib->getIcon().data(), lib->getIcon().size()));
         libTuple.setItem(3, Py::Boolean(lib->isReadOnly()));
 
@@ -159,11 +160,11 @@ Py::Dict ModelManagerPy::getModels() const
     Py::Dict dict;
 
     for (auto it = models->begin(); it != models->end(); it++) {
-        QString key = it->first;
+        std::string key = it->first;
         auto model = it->second;
 
         PyObject* modelPy = new ModelPy(new Model(*model));
-        dict.setItem(Py::String(key.toStdString()), Py::Object(modelPy, true));
+        dict.setItem(Py::String(key), Py::Object(modelPy, true));
     }
 
     return dict;

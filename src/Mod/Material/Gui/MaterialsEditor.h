@@ -25,14 +25,17 @@
 
 #include <memory>
 
+#include <QAction>
 #include <QDialog>
 #include <QDir>
 #include <QIcon>
 #include <QPoint>
 #include <QStandardItem>
+#include <QStandardItemModel>
 #include <QStyledItemDelegate>
 #include <QSvgWidget>
 #include <QTreeView>
+#include <QWidget>
 
 #include <Base/Handle.h>
 #include <Base/Parameter.h>
@@ -41,6 +44,9 @@
 #include <Mod/Material/App/MaterialManager.h>
 #include <Mod/Material/App/Materials.h>
 #include <Mod/Material/App/ModelManager.h>
+#include <Mod/Material/Gui/Models/MaterialTreeModel.h>
+#include <Mod/Material/Gui/Widgets/MaterialTreeItem.h>
+#include <Mod/Material/Gui/Widgets/MaterialTreeView.h>
 
 #include "AppearancePreview.h"
 
@@ -48,6 +54,31 @@ namespace MatGui
 {
 
 class Ui_MaterialsEditor;
+class MaterialPropertiesWidget;
+class PropertiesWidget;
+
+typedef enum
+{
+    MaterialSave_Cancel,
+    MaterialSave_Overwrite,
+    MaterialSave_New,
+    MaterialSave_Inherit
+} MaterialSaveResult;
+
+class ActionError: public Base::Exception
+{
+public:
+    ActionError()
+        : Base::Exception("Invalid action")
+    {}
+    explicit ActionError(const char* msg)
+        : Base::Exception(msg)
+    {}
+    explicit ActionError(const QString& msg)
+        : Base::Exception(msg.toStdString().c_str())
+    {}
+    ~ActionError() noexcept override = default;
+};
 
 class MaterialsEditor: public QDialog
 {
@@ -59,51 +90,57 @@ public:
     explicit MaterialsEditor(QWidget* parent = nullptr);
     ~MaterialsEditor() override = default;
 
-    void onName(const QString& text);
-    void onAuthor(const QString& text);
-    void onLicense(const QString& text);
-    void onSourceURL(const QString& text);
-    void onSourceReference(const QString& text);
-    void onDescription();
+    static QIcon getIcon(const std::shared_ptr<Materials::MaterialLibrary>& library);
+    static QIcon getIcon(const std::shared_ptr<Materials::ModelLibrary>& library);
+    static QIcon getIcon(const std::shared_ptr<Materials::Library>& library);
 
-    void propertyChange(const QString& property, const QVariant& value);
-    void onInheritNewMaterial(bool checked);
-    void onNewMaterial(bool checked);
+    void onTreeItemChanged(QStandardItem* item);
+    void onTreeItemDropped(Qt::DropAction action, QStandardItem* source, QStandardItem* destination);
+    void folderDropped(Qt::DropAction action, MaterialTreeItem* source, MaterialTreeItem* destination);
+    void materialDropped(Qt::DropAction action, MaterialTreeItem* source, MaterialTreeItem* destination);
+
+    void onName(const QString& name);
+    void onAuthor(const QString& author);
+    void onLicense(const QString& license);
+    void onSourceURL(const QString& url);
+    void onSourceReference(const QString& reference);
+    void onDescription(const QString& description);
+
     void onFavourite(bool checked);
-    void onURL(bool checked);
-    void onPhysicalAdd(bool checked);
-    void onPhysicalRemove(bool checked);
-    void onAppearanceAdd(bool checked);
-    void onAppearanceRemove(bool checked);
+    void onAdvancedSearch(bool checked);
+    void onPhysicalAdd();
+    void onPhysicalRemove(const QString& propertyName);
+    void onAppearanceAdd();
+    void onAppearanceRemove(const QString& propertyName);
     void onOk(bool checked);
-    void onCancel(bool checked);
+    // void onCancel(bool checked);
     void onSave(bool checked);
     void accept() override;
     void reject() override;
+
+    void setAdvancedSearchState(bool checked);
+    void setAdvancedSearchState();
 
     Materials::MaterialManager& getMaterialManager()
     {
         return Materials::MaterialManager::getManager();
     }
+    Materials::MaterialManager& getMaterialManager() const
+    {
+        return Materials::MaterialManager::getManager();
+    }
+    Materials::ModelManager& getModelManager()
+    {
+        return Materials::ModelManager::getManager();
+    }
+    bool useExternal() const
+    {
+        return getMaterialManager().useExternal();
+    }
 
-    static QString libraryPath(const std::shared_ptr<Materials::Material>& material);
-
-    static QIcon getIcon(const std::shared_ptr<Materials::MaterialLibrary>& library);
-    static QIcon getIcon(const std::shared_ptr<Materials::ModelLibrary>& library);
-    static QIcon getIcon(const std::shared_ptr<Materials::Library>& library);
-
-    void updateMaterialAppearance();
-    void updateMaterialProperties();
-    void updateMaterialGeneral();
-    void updateMaterial();
     void onSelectMaterial(const QItemSelection& selected, const QItemSelection& deselected);
-    void onDoubleClick(const QModelIndex& index);
     void onContextMenu(const QPoint& pos);
 
-    bool isMaterialSelected() const
-    {
-        return _materialSelected;
-    }
     std::shared_ptr<Materials::Material> getMaterial()
     {
         return _material;
@@ -116,8 +153,6 @@ protected:
 private:
     std::unique_ptr<Ui_MaterialsEditor> ui;
     std::shared_ptr<Materials::Material> _material;
-    AppearancePreview* _rendered;
-    bool _materialSelected;
     std::list<QString> _favorites;
     std::list<QString> _recents;
     int _recentMax;
@@ -125,13 +160,60 @@ private:
     Materials::MaterialFilter _filter;
     Materials::MaterialFilterOptions _filterOptions;
 
-    void setup();
+    // Actions
+    QModelIndex _actionIndex;
+    QAction _actionNewLibrary;
+    QIcon _actionNewLibraryIcon;
+    QAction _actionNewFolder;
+    QIcon _actionNewFolderIcon;
+    QAction _actionNewMaterial;
+    QIcon _actionNewMaterialIcon;
+    QAction _actionInheritMaterial;
+    QIcon _actionInheritMaterialIcon;
+    QAction _actionFavorite;
+    QIcon _actionFavoriteIcon;
+    QAction _actionChangeIcon;
+    QAction _actionCut;
+    QIcon _actionCutIcon;
+    QAction _actionCopy;
+    QIcon _actionCopyIcon;
+    QAction _actionPaste;
+    QIcon _actionPasteIcon;
+    QAction _actionRename;
+    QAction _actionDelete;
+    QIcon _actionDeleteIcon;
+    QAction _actionEnableDisable;
+    QAction _actionLibraryProperties;
 
-    void saveWindow();
+    QAction _actionViewFavorites;
+    QAction _actionViewRecent;
+    QAction _actionViewFolders;
+    QAction _actionViewLibraries;
+    QAction _actionViewLegacy;
+    QAction _actionViewDisabled;
+    QAction _actionViewMasked;
+
+    void setup();
+    void setupStackedWidgets();
+    void setupData();
+    void restoreState();
+    void setupButtonIcons();
+    void setupButtonConnections();
+    void setupEditorCallbacks();
+    void setupSelectionCallbacks();
+    void setupContextMenus();
+    void createActions();
+    void setupModelCallbacks();
+
+    void setLibraryPropertyState();
+    void setFolderPropertyState();
+    void setMaterialPropertyState();
+
+    void saveState();
     void saveMaterialTreeChildren(const Base::Reference<ParameterGrp>& param,
-                                  QTreeView* tree,
-                                  QStandardItemModel* model,
-                                  QStandardItem* item);
+                                  MaterialTreeView* tree,
+                                  MaterialTreeModel* model,
+                                  MaterialTreeItem* item);
     void saveMaterialTree(const Base::Reference<ParameterGrp>& param);
 
     void oldFormatError();
@@ -141,46 +223,106 @@ private:
     void addFavorite(const QString& uuid);
     void removeFavorite(const QString& uuid);
     bool isFavorite(const QString& uuid) const;
+    void favoriteActionAdd();
+    void favoriteActionRemove();
 
     void getRecents();
     void saveRecents();
     void addRecent(const QString& uuid);
     bool isRecent(const QString& uuid) const;
 
+    bool actionHasContext() const;
+    const MaterialTreeModel* getActionModel() const;
+    MaterialTreeItem* getActionItem() const;
+    TreeFunctionType getActionFunction() const;
+    std::shared_ptr<Materials::MaterialLibrary> getItemAsLibrary(const MaterialTreeItem* item) const;
+    std::shared_ptr<Materials::MaterialLibrary> getActionLibrary() const;
+    std::shared_ptr<Materials::Material> getItemAsMaterial(const MaterialTreeItem* item) const;
+    std::shared_ptr<Materials::Material> getActionMaterial() const;
+    MaterialTreeItem* getItemFromRoot(TreeFunctionType function) const;
+    MaterialTreeItem* getFavoritesItem() const;
+    MaterialTreeItem* getRecentsItem() const;
+    MaterialTreeItem* getItemFromLibrary(const Materials::Library& library) const;
+    MaterialTreeItem* getItemFromMaterial(const Materials::Material& material) const;
+    std::shared_ptr<Materials::MaterialLibrary> getLibraryForItem(const MaterialTreeItem* item) const;
+    QString getDirectoryForItem(const MaterialTreeItem* item) const;
+    bool isAncestor(const MaterialTreeItem* item, const Materials::Material& material) const;
+    bool isAncestor(const MaterialTreeItem* item, const MaterialTreeItem* child) const;
+
+    void resetActionContext();
+    void favoriteContextMenu(QMenu& contextMenu);
+    void recentContextMenu(QMenu& contextMenu);
+    void libraryContextMenu(QMenu& contextMenu);
+    void folderContextMenu(QMenu& contextMenu);
+    void materialContextMenu(QMenu& contextMenu);
+    void defaultContextMenu(QMenu& contextMenu);
+    void addViewMenu(QMenu& contextMenu);
+
+    QString getPath(const MaterialTreeItem* item, const QString& path) const;
+    QString getParentPath(const MaterialTreeItem* item) const;
+    QString getLibraryName(const MaterialTreeItem* item) const;
+    QString stripLeadingSeparator(const QString& filePath) const;
+
+    void onMenuNewLibrary(bool checked);
+    void onMenuEnableDisable(bool checked);
+    void onMenuDelete(bool checked);
+    void deleteLibrary(MaterialTreeItem* item);
+    void deleteFolder(MaterialTreeItem* item);
+    void deleteMaterial(MaterialTreeItem* item);
+    void onMenuNewFolder(bool checked);
+    void onMenuNewMaterial(bool checked);
+    void onMenuInheritMaterial(bool checked);
+    void onMenuChangeIcon(bool checked);
     void onInherit(bool checked);
     void onInheritNew(bool checked);
 
-    void setMaterialDefaults();
-    bool updateTexturePreview() const;
-    bool updateMaterialPreview() const;
-    void updatePreview() const;
-    static QString getColorHash(const QString& colorString);
+    void onMenuViewFavorites(bool checked);
+    void onMenuViewRecent(bool checked);
+    void onMenuViewFolders(bool checked);
+    void onMenuViewLibraries(bool checked);
+    void onMenuViewLegacy(bool checked);
+    void onMenuViewDisabled(bool checked);
+    void onMenuViewMasked(bool checked);
 
-    static void addExpanded(QTreeView* tree, QStandardItem* parent, QStandardItem* child);
-    static void addExpanded(QTreeView* tree,
-                            QStandardItem* parent,
-                            QStandardItem* child,
+    void setMaterialDefaults();
+
+    static void addExpanded(MaterialTreeView* tree, MaterialTreeItem* parent, MaterialTreeItem* child);
+    static void addExpanded(MaterialTreeView* tree,
+                            MaterialTreeItem* parent,
+                            MaterialTreeItem* child,
                             const Base::Reference<ParameterGrp>& param);
-    static void addExpanded(QTreeView* tree, QStandardItemModel* parent, QStandardItem* child);
-    static void addExpanded(QTreeView* tree,
-                            QStandardItemModel* parent,
-                            QStandardItem* child,
+    static void addExpanded(MaterialTreeView* tree, MaterialTreeModel* parent, MaterialTreeItem* child);
+    static void addExpanded(MaterialTreeView* tree,
+                            MaterialTreeModel* parent,
+                            MaterialTreeItem* child,
                             const Base::Reference<ParameterGrp>& param);
-    void addRecents(QStandardItem* parent);
-    void addFavorites(QStandardItem* parent);
-    void createPreviews();
-    void createAppearanceTree();
-    void createPhysicalTree();
+    static void removeItem(MaterialTreeItem* parent, MaterialTreeItem* child);
+    void addRecents(MaterialTreeItem* parent);
+    void addFavorites(MaterialTreeItem* parent);
     void createMaterialTree();
     void fillMaterialTree();
     void refreshMaterialTree();
     void addMaterials(
-        QStandardItem& parent,
-        const std::shared_ptr<std::map<QString, std::shared_ptr<Materials::MaterialTreeNode>>>
+        MaterialTreeItem& parent,
+        const std::shared_ptr<std::map<std::string, std::shared_ptr<Materials::MaterialTreeNode>>>
             modelTree,
         const QIcon& folderIcon,
         const QIcon& icon,
         const Base::Reference<ParameterGrp>& param);
+
+    void renameLibrary(MaterialTreeItem* item);
+    void renameFolder(MaterialTreeItem* item);
+    void renameMaterial(MaterialTreeItem* item);
+    void updateMaterialTreeName(const QString& name);
+    void updateFavoritesRecentsName(MaterialTreeItem* parent, const QString& uuid, const QString& name);
+    void updateRecentsName(const QString& uuid, const QString& name);
+    void updateRecentsName();
+    void updateFavoritesName(const QString& uuid, const QString& name);
+    void updateFavoritesName();
+    void discardIfNew();
+
+    MaterialSaveResult overwriteOrCopy();
+
 
     /* Indicates if we should show favourite materials
      */
@@ -191,6 +333,7 @@ private:
     void setIncludeFavorites(bool value)
     {
         _filterOptions.setIncludeFavorites(value);
+        _filterOptions.save();
     }
 
     /* Indicates if we should show recent materials
@@ -202,6 +345,7 @@ private:
     void setIncludeRecent(bool value)
     {
         _filterOptions.setIncludeRecent(value);
+        _filterOptions.save();
     }
 
     /* Indicates if we should include empty folders
@@ -213,6 +357,7 @@ private:
     void setIncludeEmptyFolders(bool value)
     {
         _filterOptions.setIncludeEmptyFolders(value);
+        _filterOptions.save();
     }
 
     /* Indicates if we should include empty libraries
@@ -223,8 +368,8 @@ private:
     }
     void setIncludeEmptyLibraries(bool value)
     {
-        Base::Console().log("setIncludeEmptyLibraries(%s)\n", (value ? "true" : "false"));
         _filterOptions.setIncludeEmptyLibraries(value);
+        _filterOptions.save();
     }
 
     /* Indicates if we should include materials in the older format
@@ -236,7 +381,33 @@ private:
     void setIncludeLegacy(bool legacy)
     {
         _filterOptions.setIncludeLegacy(legacy);
+        _filterOptions.save();
     }
+
+    bool includeDisabled() const
+    {
+        return _filterOptions.includeDisabled();
+    }
+
+    void setIncludeDisabled(bool disabled)
+    {
+        _filterOptions.setIncludeDisabled(disabled);
+        _filterOptions.save();
+    }
+    bool includeMasked() const
+    {
+        return _filterOptions.includeMasked();
+    }
+    void setIncludeMasked(bool masked)
+    {
+        _filterOptions.setIncludeMasked(masked);
+        _filterOptions.save();
+    }
+
+    void updateMaterial();
+    void setMaterialSelected(bool selected);
 };
 
 }  // namespace MatGui
+
+Q_DECLARE_METATYPE(MatGui::TreeFunctionType)

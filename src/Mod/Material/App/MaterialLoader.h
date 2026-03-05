@@ -25,8 +25,6 @@
 
 #include <memory>
 
-#include <QDir>
-#include <QString>
 #include <yaml-cpp/yaml.h>
 
 #include "Materials.h"
@@ -42,50 +40,51 @@ class MaterialEntry
 public:
     MaterialEntry() = default;
     MaterialEntry(const std::shared_ptr<MaterialLibraryLocal>& library,
-                  const QString& modelName,
-                  const QString& dir,
-                  const QString& modelUuid);
+                  const std::string& modelName,
+                  const std::string& dir,
+                  const std::string& modelUuid);
     virtual ~MaterialEntry() = default;
 
     virtual void
-    addToTree(std::shared_ptr<std::map<QString, std::shared_ptr<Material>>> materialMap) = 0;
+    addToTree(std::shared_ptr<std::map<std::string, std::shared_ptr<Material>>> materialMap) = 0;
 
     std::shared_ptr<MaterialLibraryLocal> getLibrary() const
     {
         return _library;
     }
-    QString getName() const
+    std::string getName() const
     {
         return _name;
     }
-    QString getDirectory() const
+    std::string getDirectory() const
     {
         return _directory;
     }
-    QString getUUID() const
+    std::string getUUID() const
     {
         return _uuid;
     }
 
 protected:
     std::shared_ptr<MaterialLibraryLocal> _library;
-    QString _name;
-    QString _directory;
-    QString _uuid;
+    std::string _name;
+    std::string _directory;
+    std::string _uuid;
 };
 
 class MaterialYamlEntry: public MaterialEntry
 {
 public:
     MaterialYamlEntry(const std::shared_ptr<MaterialLibraryLocal>& library,
-                      const QString& modelName,
-                      const QString& dir,
-                      const QString& modelUuid,
+                      const std::string& modelName,
+                      const std::string& dir,
+                      const std::string& modelUuid,
                       const YAML::Node& modelData);
     ~MaterialYamlEntry() override = default;
 
+    std::shared_ptr<Material> toMaterial() const;
     void
-    addToTree(std::shared_ptr<std::map<QString, std::shared_ptr<Material>>> materialMap) override;
+    addToTree(std::shared_ptr<std::map<std::string, std::shared_ptr<Material>>> materialMap) override;
 
     const YAML::Node& getModel() const
     {
@@ -99,11 +98,12 @@ public:
 private:
     MaterialYamlEntry();
 
-    static QString
+    static std::string
     yamlValue(const YAML::Node& node, const std::string& key, const std::string& defaultValue);
-    static std::shared_ptr<QList<QVariant>> readList(const YAML::Node& node,
+    static std::shared_ptr<std::vector<QVariant>> readList(const YAML::Node& node,
                                                      bool isImageList = false);
-    static std::shared_ptr<QList<QVariant>> readImageList(const YAML::Node& node);
+    static std::shared_ptr<std::vector<QVariant>> readImageList(const YAML::Node& node);
+    static Base::Quantity quantityFromString(const std::string& valueString);
     static std::shared_ptr<Array2D> read2DArray(const YAML::Node& node, int columns);
     static std::shared_ptr<Array3D> read3DArray(const YAML::Node& node, int columns);
 
@@ -113,35 +113,38 @@ private:
 class MaterialLoader
 {
 public:
-    MaterialLoader(const std::shared_ptr<std::map<QString, std::shared_ptr<Material>>>& materialMap,
+    MaterialLoader(const std::shared_ptr<std::map<std::string, std::shared_ptr<Material>>>& materialMap,
                    const std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>>& libraryList);
     ~MaterialLoader() = default;
 
-    static std::shared_ptr<std::list<QString>>
+    static std::shared_ptr<std::list<std::string>>
     getMaterialFolders(const MaterialLibraryLocal& library);
     static void showYaml(const YAML::Node& yaml);
     static void
-    dereference(const std::shared_ptr<std::map<QString, std::shared_ptr<Material>>>& materialMap,
+    dereference(const std::shared_ptr<std::map<std::string, std::shared_ptr<Material>>>& materialMap,
                 const std::shared_ptr<Material>& material);
-    static std::shared_ptr<MaterialEntry>
-    getMaterialFromYAML(const std::shared_ptr<MaterialLibraryLocal>& library,
-                        YAML::Node& yamlroot,
-                        const QString& path);
+    static std::shared_ptr<MaterialYamlEntry> getMaterialFromYAML(
+        const std::shared_ptr<MaterialLibraryLocal>& library,
+        YAML::Node& yamlroot,
+        const std::string& path
+    );
+    static std::shared_ptr<Material>
+    getMaterialFromPath(const std::shared_ptr<MaterialLibraryLocal>& library, const std::string& path);
 
 private:
     MaterialLoader();
 
     void addToTree(std::shared_ptr<MaterialEntry> model);
     void dereference(const std::shared_ptr<Material>& material);
-    std::shared_ptr<MaterialEntry>
-    getMaterialFromPath(const std::shared_ptr<MaterialLibraryLocal>& library, const QString& path) const;
+    std::shared_ptr<MaterialYamlEntry>
+    getMaterialEntryFromPath(const std::shared_ptr<MaterialLibraryLocal>& library, const std::string& path) const;
     void addLibrary(const std::shared_ptr<MaterialLibraryLocal>& model);
     void loadLibrary(const std::shared_ptr<MaterialLibraryLocal>& library);
     void loadLibraries(
         const std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>>& libraryList);
 
-    static std::unique_ptr<std::map<QString, std::shared_ptr<MaterialEntry>>> _materialEntryMap;
-    std::shared_ptr<std::map<QString, std::shared_ptr<Material>>> _materialMap;
+    static std::unique_ptr<std::map<std::string, std::shared_ptr<MaterialEntry>>> _materialEntryMap;
+    std::shared_ptr<std::map<std::string, std::shared_ptr<Material>>> _materialMap;
     std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>> _libraryList;
 };
 

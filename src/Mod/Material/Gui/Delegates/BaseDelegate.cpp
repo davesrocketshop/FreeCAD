@@ -46,10 +46,9 @@
 
 #include <Mod/Material/App/Exceptions.h>
 #include <Mod/Material/App/ModelManager.h>
+#include <Mod/Material/Gui/Models/ListModel.h>
 
 #include "BaseDelegate.h"
-#include "ListModel.h"
-#include "MaterialSave.h"
 
 
 using namespace MatGui;

@@ -62,6 +62,7 @@ Testing
 compile_commands.json
 *.sublime-project
 *.sublime-workspace
+callgrind.*
 
 # crowdin file
 files_to_translate.txt

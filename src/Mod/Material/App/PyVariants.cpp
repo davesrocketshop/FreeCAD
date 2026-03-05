@@ -55,7 +55,7 @@ PyObject* Materials::_pyObjectFromVariant(const QVariant& value)
     if (value.userType() == QMetaType::QString) {
         return PyUnicode_FromString(value.toString().toStdString().c_str());
     }
-    if (value.userType() == qMetaTypeId<QList<QVariant>>()) {
+    if (value.userType() == qMetaTypeId<std::vector<QVariant>>()) {
         return Py::new_reference_to(getList(value));
     }
 
@@ -64,7 +64,7 @@ PyObject* Materials::_pyObjectFromVariant(const QVariant& value)
 
 Py::List Materials::getList(const QVariant& value)
 {
-    auto listValue = value.value<QList<QVariant>>();
+    auto listValue = value.value<std::vector<QVariant>>();
     Py::List list;
 
     for (auto& it : listValue) {

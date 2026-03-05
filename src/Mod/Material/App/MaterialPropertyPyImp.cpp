@@ -23,6 +23,7 @@
 
 #include "Model.h"
 #include "PyVariants.h"
+
 #include "ModelPropertyPy.h"
 #include "MaterialPropertyPy.h"
 

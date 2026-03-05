@@ -1,0 +1,26 @@
+﻿---
+# File created by FreeCAD 1.0.2 Revision: 39319 (Git)
+General:
+  UUID: "4704ec99-2914-4a72-9a71-a781d2655ee9"
+  Name: "TestSparseArray"
+  Author: "David Carter"
+  License: "LGPL-2.0-or-later"
+  Description: "Tests sparse arrays"
+Models:
+  Test Sparse Model:
+    UUID: '807a4b37-da41-4b7a-a730-8555cae4146b'
+    TestArray2D:
+      - [["1 K", "1 kg/mm^3", "1.0"],
+         ["2 K", "2 kg/mm^3", ""],
+         ["3 K",  "", "3.0"],
+         ["4 K",  "", ""]]
+    TestArray3D: 
+      - ["10.00 C": [["11.00 Pa", "12.00 Pa"],
+                     ["21.00 Pa", ""],
+                     ["", "32.00 Pa"],
+                     ["", ""]],
+         "20.00 C": [],
+         "30.00 C": [["10.00 Pa", "11.00 Pa"],
+                     ["20.00 Pa", "21.00 Pa"],
+                     ["30.00 Pa", "31.00 Pa"]]]
+#         "": []]

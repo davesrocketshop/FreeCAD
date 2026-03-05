@@ -284,7 +284,7 @@ QWidget* DlgInspectAppearance::makeAppearanceTab(const App::Material& material)
 TaskInspectAppearance::TaskInspectAppearance()
 {
     widget = new DlgInspectAppearance();
-    addTaskBox(Gui::BitmapFactory().pixmap("Part_Loft"), widget);
+    addTaskBox(Gui::BitmapFactory().pixmap("Material_Edit"), widget);
 }
 
 TaskInspectAppearance::~TaskInspectAppearance() = default;

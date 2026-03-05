@@ -32,6 +32,7 @@
 
 #include "Exceptions.h"
 #include "FolderTree.h"
+#include "LibraryManager.h"
 #include "Model.h"
 #include "ModelLibrary.h"
 
@@ -39,8 +40,9 @@ namespace Materials
 {
 class ModelManagerLocal;
 class ModelManagerExternal;
+class MaterialManagerLocal;
 
-class MaterialsExport ModelManager: public Base::BaseClass, ParameterGrp::ObserverType
+class MaterialsExport ModelManager: public Base::BaseClass, ParameterGrp::ObserverType, LibraryManager::ObserverType
 {
     TYPESYSTEM_HEADER_WITH_OVERRIDE();
 
@@ -53,53 +55,50 @@ public:
     void refresh();
 
     // Library management
-    std::shared_ptr<std::list<std::shared_ptr<ModelLibrary>>> getLibraries();
-    std::shared_ptr<std::list<std::shared_ptr<ModelLibrary>>> getLocalLibraries();
-    std::shared_ptr<ModelLibrary> getLibrary(const QString& name) const;
-    void createLibrary(const QString& libraryName,
-                       const QString& iconPath,
-                       bool readOnly = true);
-    void createLocalLibrary(const QString& libraryName,
-                       const QString& directory,
-                       const QString& icon,
-                       bool readOnly = true);
-    void renameLibrary(const QString& libraryName, const QString& newName);
-    void changeIcon(const QString& libraryName, const QString& icon);
-    void removeLibrary(const QString& libraryName);
+    std::shared_ptr<std::vector<std::shared_ptr<ModelLibrary>>> getLibraries(bool includeDisabled = false);
+    std::shared_ptr<std::vector<std::shared_ptr<ModelLibrary>>> getLocalLibraries(bool includeDisabled = false);
+    std::shared_ptr<ModelLibrary> getLibrary(const std::string& name) const;
     std::shared_ptr<std::vector<LibraryObject>>
-    libraryModels(const QString& libraryName);
-    bool isLocalLibrary(const QString& libraryName);
+    libraryModels(const std::string& libraryName);
 
     // Folder management
 
     // Tree management
-    std::shared_ptr<std::map<QString, std::shared_ptr<ModelTreeNode>>>
+    std::shared_ptr<std::map<std::string, std::shared_ptr<ModelTreeNode>>>
     getModelTree(std::shared_ptr<ModelLibrary> library, ModelFilter filter = ModelFilter_None) const
     {
         return library->getModelTree(filter);
     }
 
     // Model management
-    std::shared_ptr<std::map<QString, std::shared_ptr<Model>>> getModels();
-    std::shared_ptr<std::map<QString, std::shared_ptr<Model>>> getLocalModels();
-    std::shared_ptr<Model> getModel(const QString& uuid) const;
-    std::shared_ptr<Model> getModel(const QString& libraryName, const QString& uuid) const;
-    std::shared_ptr<Model> getModelByPath(const QString& path) const;
-    std::shared_ptr<Model> getModelByPath(const QString& path, const QString& lib) const;
+    std::shared_ptr<std::map<std::string, std::shared_ptr<Model>>> getModels();
+    std::shared_ptr<std::map<std::string, std::shared_ptr<Model>>> getLocalModels();
+    std::shared_ptr<Model> getModel(const std::string& uuid) const;
+    std::shared_ptr<Model> getModel(const std::string& libraryName, const std::string& uuid) const;
+    std::shared_ptr<Model> getModelByPath(const std::string& path) const;
+    std::shared_ptr<Model> getModelByPath(const std::string& path, const std::string& lib) const;
 
-    static bool isModel(const QString& file);
+    static void dereference(Model& model);
+    static void dereference(const std::shared_ptr<Model>& model);
+
+    static bool isModel(const std::string& file);
     static bool passFilter(ModelFilter filter, Model::ModelType modelType);
 
     /// Observer message from the ParameterGrp
     void OnChange(ParameterGrp::SubjectType& rCaller, ParameterGrp::MessageType Reason) override;
+    /// Observer message from the LibraryManager
+    void OnChange(LibraryManager::SubjectType& manager, LibraryManager::MessageType reason) override;
 
 #if defined(BUILD_MATERIAL_EXTERNAL)
     void migrateToExternal(const std::shared_ptr<Materials::ModelLibrary>& library);
     void validateMigration(const std::shared_ptr<Materials::ModelLibrary>& library);
 
     // Cache functions
+    static void resetCache();
     static double modelHitRate();
 #endif
+
+protected:
 
 private:
     ModelManager();

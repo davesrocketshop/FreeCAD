@@ -37,11 +37,12 @@
 
 #include <Mod/Material/App/Exceptions.h>
 #include <Mod/Material/App/Materials.h>
+#include <Mod/Material/Gui/Models/ArrayModel.h>
+#include <Mod/Material/Gui/Models/ListModel.h>
 
-#include "ArrayDelegate.h"
-#include "ArrayModel.h"
+#include <Mod/Material/Gui/Delegates/ArrayDelegate.h>
+
 #include "ImageEdit.h"
-#include "ListModel.h"
 #include "ui_ImageEdit.h"
 
 
@@ -115,11 +116,11 @@ ImageEdit::ImageEdit(const QString& propertyName,
 {
     ui->setupUi(this);
 
-    if (material->hasPhysicalProperty(propertyName)) {
-        _property = material->getPhysicalProperty(propertyName);
+    if (material->hasPhysicalProperty(propertyName.toStdString())) {
+        _property = material->getPhysicalProperty(propertyName.toStdString());
     }
-    else if (material->hasAppearanceProperty(propertyName)) {
-        _property = material->getAppearanceProperty(propertyName);
+    else if (material->hasAppearanceProperty(propertyName.toStdString())) {
+        _property = material->getAppearanceProperty(propertyName.toStdString());
     }
     else {
         Base::Console().log("Property '%s' not found\n", propertyName.toStdString().c_str());
@@ -127,11 +128,11 @@ ImageEdit::ImageEdit(const QString& propertyName,
     }
     if (_property) {
         if (_property->getType() == Materials::MaterialValue::SVG) {
-            _svg = _property->getString();
+            _svg = QString::fromStdString(_property->getString());
             showSVG();
         }
         else {
-            QString value = _property->getString();
+            QString value = QString::fromStdString(_property->getString());
             if (!value.isEmpty()) {
                 QByteArray by = QByteArray::fromBase64(value.toUtf8());
                 QImage img = QImage::fromData(by);

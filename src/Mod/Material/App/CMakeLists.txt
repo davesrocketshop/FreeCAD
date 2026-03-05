@@ -88,6 +88,10 @@ SET(Materials_SRCS
     FolderTree.h
     Library.cpp
     Library.h
+    LibraryManager.cpp
+    LibraryManager.h
+    ManagedLibrary.cpp
+    ManagedLibrary.h
     MaterialConfigLoader.cpp
     MaterialConfigLoader.h
     MaterialFilter.cpp
@@ -100,6 +104,8 @@ SET(Materials_SRCS
     MaterialManager.h
     MaterialManagerLocal.cpp
     MaterialManagerLocal.h
+    MaterialProperty.cpp
+    MaterialProperty.h
     Materials.cpp
     Materials.h
     MaterialValue.cpp
@@ -121,6 +127,8 @@ SET(Materials_SRCS
     PropertyMaterial.h
     PyVariants.cpp
     PyVariants.h
+    StringUtility.cpp
+    StringUtility.h
     trim.h
 )
 

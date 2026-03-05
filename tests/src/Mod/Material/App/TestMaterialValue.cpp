@@ -21,6 +21,7 @@
  **************************************************************************/
 
 #include <gtest/gtest.h>
+#include <cmath>
 
 #include <QMetaType>
 #include <QString>
@@ -36,9 +37,9 @@
 // clang-format off
 
 class TestMaterialValue : public ::testing::Test {
- protected:
-  static void SetUpTestSuite() {
-  }
+protected:
+    static void SetUpTestSuite() {
+    }
 };
 
 TEST_F(TestMaterialValue, TestNoneType)
@@ -152,15 +153,15 @@ TEST_F(TestMaterialValue, TestListType)
     EXPECT_EQ(mat1.getType(), Materials::MaterialValue::List);
     EXPECT_TRUE(mat1.isNull());
     auto variant = mat1.getValue();
-    EXPECT_TRUE(variant.value<QList<QVariant>>().isEmpty());
-    EXPECT_EQ(variant.value<QList<QVariant>>().size(), 0);
+    EXPECT_TRUE(variant.value<std::vector<QVariant>>().empty());
+    EXPECT_EQ(variant.value<std::vector<QVariant>>().size(), 0);
     EXPECT_FALSE(variant.isNull());
     EXPECT_FALSE(variant.canConvert<QVariant>());
     EXPECT_TRUE(variant.toString().isNull());
     EXPECT_TRUE(variant.toString().isEmpty());
     EXPECT_EQ(variant.toString().size(), 0);
     auto list = mat1.getList();
-    EXPECT_TRUE(list.isEmpty());
+    EXPECT_TRUE(list.empty());
     EXPECT_EQ(list.size(), 0);
 }
 
@@ -206,7 +207,7 @@ TEST_F(TestMaterialValue, TestArray3DType)
     EXPECT_EQ(mat2.rows(2), 0);
 
     // Add rows
-    auto row = std::make_shared<QList<Base::Quantity>>();
+    auto row = std::make_shared<std::vector<Base::Quantity>>();
     row->push_back(quantity);
     row->push_back(quantity);
 
@@ -278,4 +279,11 @@ TEST_F(TestMaterialValue, TestArray3DType)
     EXPECT_THROW(mat2.setValue(0, 2, Base::Quantity::parse("32 C")), Materials::InvalidIndex);
 }
 
+TEST_F(TestMaterialValue, TestInvalidQuantity)
+{
+    Base::Quantity quantity;
+    quantity.setInvalid();
+    // std::cout << "Invalid quantity: '" << quantity.getUserString() << "'\n";
+    EXPECT_TRUE(std::isnan(quantity.getValue()));
+}
 // clang-format on

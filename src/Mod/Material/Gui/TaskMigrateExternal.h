@@ -31,9 +31,6 @@
 
 #include <Gui/TaskView/TaskDialog.h>
 
-#include <Mod/Material/App/ModelManager.h>
-#include <Mod/Material/App/MaterialManager.h>
-
 namespace MatGui {
 
 class Ui_TaskMigrateExternal;

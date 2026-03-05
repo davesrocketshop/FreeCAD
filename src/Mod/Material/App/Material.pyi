@@ -149,6 +149,10 @@ class Material(BaseClass):
         """Set the value associated with the property"""
         ...
 
+    def addTag(self) -> None:
+        """Add a descriptive tag"""
+        ...
+
     @no_args
     def keys(self) -> list:
         """Property keys"""

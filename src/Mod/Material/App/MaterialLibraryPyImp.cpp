@@ -29,6 +29,7 @@
 #include <Gui/MetaTypes.h>
 
 #include "MaterialLibrary.h"
+#include "MaterialManager.h"
 
 #include "MaterialLibraryPy.h"
 
@@ -64,12 +65,12 @@ int MaterialLibraryPy::PyInit(PyObject* /*args*/, PyObject* /*kwd*/)
 Py::String MaterialLibraryPy::getName() const
 {
     auto filterName = getMaterialLibraryPtr()->getName();
-    return {filterName.toStdString()};
+    return {filterName};
 }
 
 void MaterialLibraryPy::setName(const Py::String value)
 {
-    getMaterialLibraryPtr()->setName(QString::fromStdString(value));
+    getMaterialLibraryPtr()->setName(value);
 }
 
 Py::Object MaterialLibraryPy::getIcon() const
@@ -92,13 +93,8 @@ void MaterialLibraryPy::setIcon(const Py::Object value)
 
 Py::String MaterialLibraryPy::getDirectory() const
 {
-    auto path = getMaterialLibraryPtr()->getDirectory();
-    return {path.toStdString()};
-}
-
-void MaterialLibraryPy::setDirectory(const Py::String value)
-{
-    getMaterialLibraryPtr()->setDirectory(QString::fromStdString(value));
+    auto path = getMaterialLibraryPtr()->getMaterialDirectory();
+    return {path};
 }
 
 Py::Boolean MaterialLibraryPy::getReadOnly() const
@@ -119,6 +115,11 @@ Py::Boolean MaterialLibraryPy::getLocal() const
 void MaterialLibraryPy::setLocal(Py::Boolean value)
 {
     getMaterialLibraryPtr()->setLocal(value);
+}
+
+Py::Boolean MaterialLibraryPy::getDisabled() const
+{
+    return getMaterialLibraryPtr()->isDisabled();
 }
 
 PyObject* MaterialLibraryPy::getCustomAttributes(const char* /*attr*/) const

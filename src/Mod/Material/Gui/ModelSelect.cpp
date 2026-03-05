@@ -33,6 +33,8 @@
 #include <Gui/Command.h>
 #include <Gui/WaitCursor.h>
 
+#include <Mod/Material/App/LibraryManager.h>
+
 #include "MaterialsEditor.h"
 #include "ModelSelect.h"
 #include "ui_ModelSelect.h"
@@ -234,21 +236,21 @@ void ModelSelect::addExpanded(QTreeView* tree, QStandardItemModel* parent, QStan
 
 void ModelSelect::addModels(
     QStandardItem& parent,
-    const std::shared_ptr<std::map<QString, std::shared_ptr<Materials::ModelTreeNode>>> modelTree,
+    const std::shared_ptr<std::map<std::string, std::shared_ptr<Materials::ModelTreeNode>>> modelTree,
     const QIcon& icon)
 {
     auto tree = ui->treeModels;
     for (auto& mod : *modelTree) {
         std::shared_ptr<Materials::ModelTreeNode> nodePtr = mod.second;
         if (nodePtr->getType() == Materials::ModelTreeNode::NodeType::DataNode) {
-            QString uuid = nodePtr->getUUID();
+            QString uuid = QString::fromStdString(nodePtr->getUUID());
             auto model = nodePtr->getData();
             if (!model) {
-                model = Materials::ModelManager::getManager().getModel(uuid);
+                model = Materials::ModelManager::getManager().getModel(uuid.toStdString());
                 nodePtr->setData(model);
             }
 
-            auto card = new QStandardItem(icon, model->getName());
+            auto card = new QStandardItem(icon, QString::fromStdString(model->getName()));
             card->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsDragEnabled
                            | Qt::ItemIsDropEnabled);
             card->setData(QVariant(uuid), Qt::UserRole);
@@ -256,7 +258,7 @@ void ModelSelect::addModels(
             addExpanded(tree, &parent, card);
         }
         else {
-            auto node = new QStandardItem(mod.first);
+            auto node = new QStandardItem(QString::fromStdString(mod.first));
             addExpanded(tree, &parent, node);
             node->setFlags(Qt::ItemIsEnabled | Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled);
             auto treeMap = nodePtr->getFolder();
@@ -270,11 +272,11 @@ void ModelSelect::addRecents(QStandardItem* parent)
     auto tree = ui->treeModels;
     for (auto& uuid : _recents) {
         try {
-            auto model = Materials::ModelManager::getManager().getModel(uuid);
+            auto model = Materials::ModelManager::getManager().getModel(uuid.toStdString());
 
             if (Materials::ModelManager::getManager().passFilter(_filter, model->getType())) {
                 auto icon = MaterialsEditor::getIcon(model->getLibrary());
-                auto card = new QStandardItem(icon, model->getName());
+                auto card = new QStandardItem(icon, QString::fromStdString(model->getName()));
                 card->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsDragEnabled
                                | Qt::ItemIsDropEnabled);
                 card->setData(QVariant(uuid), Qt::UserRole);
@@ -292,11 +294,11 @@ void ModelSelect::addFavorites(QStandardItem* parent)
     auto tree = ui->treeModels;
     for (auto& uuid : _favorites) {
         try {
-            auto model = Materials::ModelManager::getManager().getModel(uuid);
+            auto model = Materials::ModelManager::getManager().getModel(uuid.toStdString());
 
             if (Materials::ModelManager::getManager().passFilter(_filter, model->getType())) {
                 auto icon = MaterialsEditor::getIcon(model->getLibrary());
-                auto card = new QStandardItem(icon, model->getName());
+                auto card = new QStandardItem(icon, QString::fromStdString(model->getName()));
                 card->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsDragEnabled
                                | Qt::ItemIsDropEnabled);
                 card->setData(QVariant(uuid), Qt::UserRole);
@@ -344,9 +346,9 @@ void ModelSelect::fillTree()
     addExpanded(tree, model, lib);
     addRecents(lib);
 
-    auto libraries = Materials::ModelManager::getManager().getLibraries();
+    auto libraries = Materials::LibraryManager::getManager().getLocalModelLibraries();
     for (auto& library : *libraries) {
-        lib = new QStandardItem(library->getName());
+        lib = new QStandardItem(QString::fromStdString(library->getName()));
         lib->setFlags(Qt::ItemIsEnabled | Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled);
         addExpanded(tree, model, lib);
 
@@ -403,7 +405,7 @@ void ModelSelect::updateModelProperties(std::shared_ptr<Materials::Model> model)
     for (auto& itp : *model) {
         QList<QStandardItem*> items;
 
-        QString key = itp.first;
+        QString key = QString::fromStdString(itp.first);
         const Materials::ModelProperty modelProperty =
             static_cast<const Materials::ModelProperty>(itp.second);
 
@@ -415,13 +417,13 @@ void ModelSelect::updateModelProperties(std::shared_ptr<Materials::Model> model)
         auto propertyItem = new QStandardItem(key);
         items.append(propertyItem);
 
-        auto unitsItem = new QStandardItem(modelProperty.getUnits());
+        auto unitsItem = new QStandardItem(QString::fromStdString(modelProperty.getUnits()));
         items.append(unitsItem);
 
-        auto descriptionItem = new QStandardItem(modelProperty.getDescription());
+        auto descriptionItem = new QStandardItem(QString::fromStdString(modelProperty.getDescription()));
         items.append(descriptionItem);
 
-        auto urlItem = new QStandardItem(modelProperty.getURL());
+        auto urlItem = new QStandardItem(QString::fromStdString(modelProperty.getURL()));
         items.append(urlItem);
 
         // addExpanded(tree, modelRoot, propertyItem);
@@ -431,13 +433,13 @@ void ModelSelect::updateModelProperties(std::shared_ptr<Materials::Model> model)
 
 void ModelSelect::updateMaterialModel(const QString& uuid)
 {
-    auto model = Materials::ModelManager::getManager().getModel(uuid);
+    auto model = Materials::ModelManager::getManager().getModel(uuid.toStdString());
 
     // Update the general information
-    ui->editName->setText(model->getName());
-    ui->editURL->setText(model->getURL());
-    ui->editDOI->setText(model->getDOI());
-    ui->editDescription->setText(model->getDescription());
+    ui->editName->setText(QString::fromStdString(model->getName()));
+    ui->editURL->setText(QString::fromStdString(model->getURL()));
+    ui->editDOI->setText(QString::fromStdString(model->getDOI()));
+    ui->editDescription->setText(QString::fromStdString(model->getDescription()));
 
     if (model->getType() == Materials::Model::ModelType_Physical) {
         ui->tabWidget->setTabText(1, tr("Properties"));
