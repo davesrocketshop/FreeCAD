@@ -44,7 +44,6 @@ using namespace Materials;
 
 /* TRANSLATOR Material::Materials */
 
-std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>> MaterialManagerLocal::_libraryList = nullptr;
 std::shared_ptr<std::map<std::string, std::shared_ptr<Material>>> MaterialManagerLocal::_materialMap
     = nullptr;
 QMutex MaterialManagerLocal::_mutex;
@@ -66,23 +65,14 @@ void MaterialManagerLocal::initLibraries()
 
         _materialMap = std::make_shared<std::map<std::string, std::shared_ptr<Material>>>();
 
-        if (_libraryList == nullptr) {
-            _libraryList = getConfiguredLibraries(true);  // Include disabled
-        }
-
         // Load the libraries
-        MaterialLoader loader(_materialMap, _libraryList);
+        loadLibraries();
     }
 }
 
 void MaterialManagerLocal::cleanup()
 {
     QMutexLocker locker(&_mutex);
-
-    if (_libraryList) {
-        _libraryList->clear();
-        _libraryList = nullptr;
-    }
 
     if (_materialMap) {
         for (auto& it : *_materialMap) {
@@ -99,7 +89,46 @@ void MaterialManagerLocal::refresh()
     // This is very expensive and can be improved using observers?
     ModelManager::getManager().refresh();
     cleanup();
-    initLibraries();
+    remapLibraries();
+}
+
+void MaterialManagerLocal::loadLibraries()
+{
+    auto libraries = LibraryManager::getManager().getConfiguredLibraries(true);
+    loadLibraries(libraries);
+}
+
+void MaterialManagerLocal::loadLibraries(
+    const std::shared_ptr<std::vector<std::shared_ptr<ManagedLibrary>>>& libraries
+)
+{
+    if (libraries) {
+        for (auto it = libraries->begin(); it != libraries->end(); it++) {
+            auto local = std::make_shared<MaterialLibraryLocal>(*it);
+            local->loadMaterials();
+        }
+        remapLibraries(libraries);
+    }
+}
+
+void MaterialManagerLocal::remapLibraries()
+{
+    auto libraries = LibraryManager::getManager().getConfiguredLibraries(false);
+    remapLibraries(libraries);
+}
+
+void MaterialManagerLocal::remapLibraries(
+    const std::shared_ptr<std::vector<std::shared_ptr<ManagedLibrary>>>& libraries
+)
+{
+    if (libraries) {
+        for (auto it = libraries->begin(); it != libraries->end(); it++) {
+            auto local = std::make_shared<MaterialLibraryLocal>(*it);
+            if (!local->isDisabled()) {
+                local->remapMaterials(_materialMap);
+            }
+        }
+    }
 }
 
 //=====
@@ -299,7 +328,7 @@ std::shared_ptr<Material> MaterialManagerLocal::getMaterialByPath(const std::str
 {
     std::string cleanPath = Library::cleanPath(path);
 
-    for (auto& library : *_libraryList) {
+    for (auto& library : *getConfiguredLibraries(true)) {
         if (library->isLocal() && !library->isDisabled()) {
             auto materialLibrary = std::make_shared<MaterialLibraryLocal>(*library);
             if (cleanPath.starts_with(materialLibrary->getDirectory())) {
@@ -334,7 +363,7 @@ std::shared_ptr<Material> MaterialManagerLocal::getMaterialByPath(const std::str
         QMutexLocker locker(&_mutex);
 
         if (MaterialConfigLoader::isConfigStyle(path)) {
-            auto material = MaterialConfigLoader::getMaterialFromPath(nullptr, path);
+            auto material = MaterialConfigLoader::getMaterialFromPath(path);
 
             return material;
         }

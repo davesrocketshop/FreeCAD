@@ -135,11 +135,6 @@ protected:
 
 private:
     /*
-     * List of local libraries
-     */
-    static std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>> _libraryList;
-
-    /*
      * Map of materials using the UUID as the key
      */
     static std::shared_ptr<std::map<std::string, std::shared_ptr<Material>>> _materialMap;
@@ -147,7 +142,14 @@ private:
     static QMutex _mutex;
 
     static void initLibraries();
-    // void setDisabledOnLibraryList(const std::string& libraryName, bool disabled);
+    static void loadLibraries();
+    static void loadLibraries(
+        const std::shared_ptr<std::vector<std::shared_ptr<ManagedLibrary>>>& libraries
+    );
+    static void remapLibraries();
+    static void remapLibraries(
+        const std::shared_ptr<std::vector<std::shared_ptr<ManagedLibrary>>>& libraries
+    );
 
     /*
      * Update the libraries and paths of affected materials after a move

@@ -38,6 +38,7 @@
 
 
 #include "Exceptions.h"
+#include "LibraryManager.h"
 #include "MaterialConfigLoader.h"
 #include "MaterialLibrary.h"
 #include "MaterialLoader.h"
@@ -1035,9 +1036,34 @@ void MaterialConfigLoader::addLegacy(std::map<std::string, std::string>& fcmat,
     }
 }
 
-std::shared_ptr<Material>
-MaterialConfigLoader::getMaterialFromPath(const std::shared_ptr<MaterialLibraryLocal>& library,
-                                          const std::string& path)
+std::shared_ptr<Material> MaterialConfigLoader::getMaterialFromPath(
+    ManagedLibrary& library,
+    const std::string& path
+)
+{
+    auto material = getMaterialFromPath(path);
+    auto lib = LibraryManager::getManager().getMaterialLibrary(
+        LibraryManager::RepositoryLocal,
+        library.getLibraryName()
+    );
+    material->setLibrary(lib);
+    return material;
+}
+
+std::shared_ptr<Material> MaterialConfigLoader::getMaterialFromPath(
+    const std::shared_ptr<MaterialLibraryLocal>& library,
+    const std::string& path
+)
+{
+    auto material = getMaterialFromPath(path);
+    auto baseLibrary = std::make_shared<MaterialLibrary>(*library);
+    material->setLibrary(baseLibrary);
+    return material;
+}
+
+std::shared_ptr<Material> MaterialConfigLoader::getMaterialFromPath(
+    const std::string& path
+)
 {
     std::string author = getAuthorAndLicense(path);  // Place them both in the author field
 
@@ -1058,13 +1084,11 @@ MaterialConfigLoader::getMaterialFromPath(const std::shared_ptr<MaterialLibraryL
     std::string sourceReference = value(fcmat, "ReferenceSource", "");
     std::string sourceURL = value(fcmat, "SourceURL", "");
 
-    auto baseLibrary = std::make_shared<MaterialLibrary>(*library);
-    std::shared_ptr<Material> finalModel = std::make_shared<Material>(
-        baseLibrary,
-        path,
-        uuid,
-        name
-    );
+    // std::shared_ptr<Material> finalModel = std::make_shared<Material>(library, path, uuid, name);
+    std::shared_ptr<Material> finalModel = std::make_shared<Material>();
+    finalModel->setDirectory(path);
+    finalModel->setUUID(uuid);
+    finalModel->setName(name);
     finalModel->setOldFormat(true);
 
     finalModel->setAuthor(author);

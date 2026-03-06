@@ -122,6 +122,10 @@ public:
     {
         return !operator==(library);
     }
+    void loadMaterials();
+    void remapMaterials(
+        const std::shared_ptr<std::map<std::string, std::shared_ptr<Material>>>& materialMap
+    );
 
 protected:
     void deleteDir(const std::string& path);

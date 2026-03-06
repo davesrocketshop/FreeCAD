@@ -34,6 +34,7 @@
 namespace Materials
 {
 
+class ManagedLibrary;
 class MaterialLibraryLocal;
 
 class MaterialConfigLoader
@@ -44,13 +45,24 @@ public:
 
 
     static bool isConfigStyle(const std::string& path);
-    static std::shared_ptr<Material>
-    getMaterialFromPath(const std::shared_ptr<MaterialLibraryLocal>& library, const std::string& path);
+    static std::shared_ptr<Material> getMaterialFromPath(
+        ManagedLibrary& library,
+        const std::string& path
+    );
+    static std::shared_ptr<Material> getMaterialFromPath(
+        const std::shared_ptr<MaterialLibraryLocal>& library,
+        const std::string& path
+    );
+    static std::shared_ptr<Material> getMaterialFromPath(
+        const std::string& path
+    );
 
 private:
-    static std::string value(std::map<std::string, std::string>& fcmat,
-                         const std::string& name,
-                         const std::string& defaultValue)
+    static std::string value(
+        std::map<std::string, std::string>& fcmat,
+        const std::string& name,
+        const std::string& defaultValue
+    )
     {
         try {
             return fcmat[name];

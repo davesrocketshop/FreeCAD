@@ -45,25 +45,34 @@ namespace fs = std::filesystem;
 using namespace Materials;
 
 MaterialEntry::MaterialEntry(
-    const std::shared_ptr<MaterialLibraryLocal>& library,
+    const std::string& libraryName,
     const std::string& modelName,
     const std::string& dir,
     const std::string& modelUuid
 )
-    : _library(library)
+    : _libraryName(libraryName)
     , _name(modelName)
     , _directory(Library::cleanPath(dir))
     , _uuid(modelUuid)
 {}
 
+std::shared_ptr<MaterialLibraryLocal> MaterialEntry::getLibrary() const
+{
+    auto lib = LibraryManager::getManager().getMaterialLibrary(
+        LibraryManager::RepositoryLocal,
+        _libraryName
+    );
+    return std::make_shared<MaterialLibraryLocal>(*lib);
+}
+
 MaterialYamlEntry::MaterialYamlEntry(
-    const std::shared_ptr<MaterialLibraryLocal>& library,
+    const std::string& libraryName,
     const std::string& modelName,
     const std::string& dir,
     const std::string& modelUuid,
     const YAML::Node& modelData
 )
-    : MaterialEntry(library, modelName, dir, modelUuid)
+    : MaterialEntry(libraryName, modelName, dir, modelUuid)
     , _model(modelData)
 {}
 
@@ -399,26 +408,17 @@ void MaterialYamlEntry::addToTree(
 
 //===
 
-std::unique_ptr<std::map<std::string, std::shared_ptr<MaterialEntry>>> MaterialLoader::_materialEntryMap
-    = nullptr;
-
 MaterialLoader::MaterialLoader(
-    const std::shared_ptr<std::map<std::string, std::shared_ptr<Material>>>& materialMap,
-    const std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>>& libraryList
+    ManagedLibrary& library,
+    const std::shared_ptr<std::map<std::string, std::shared_ptr<Material>>>& materialMap
 )
     : _materialMap(materialMap)
-    , _libraryList(libraryList)
 {
-    loadLibraries(libraryList);
-}
-
-void MaterialLoader::addLibrary(const std::shared_ptr<MaterialLibraryLocal>& model)
-{
-    _libraryList->push_back(model);
+    loadLibrary(library);
 }
 
 std::shared_ptr<MaterialYamlEntry> MaterialLoader::getMaterialFromYAML(
-    const std::shared_ptr<MaterialLibraryLocal>& library,
+    ManagedLibrary& library,
     YAML::Node& yamlroot,
     const std::string& path
 )
@@ -433,7 +433,7 @@ std::shared_ptr<MaterialYamlEntry> MaterialLoader::getMaterialFromYAML(
         Base::FileInfo filepath(clean);
         std::string name = filepath.fileNamePure();
 
-        material = std::make_shared<MaterialYamlEntry>(library, name, clean, uuid, yamlroot);
+        material = std::make_shared<MaterialYamlEntry>(library.getLibraryName(), name, clean, uuid, yamlroot);
     }
     catch (YAML::Exception const& e) {
         Base::Console().error("YAML parsing error: '%s'\n", path.c_str());
@@ -445,8 +445,10 @@ std::shared_ptr<MaterialYamlEntry> MaterialLoader::getMaterialFromYAML(
     return material;
 }
 
-std::shared_ptr<Material>
-MaterialLoader::getMaterialFromPath(const std::shared_ptr<MaterialLibraryLocal>& library, const std::string& path)
+std::shared_ptr<Material> MaterialLoader::getMaterialFromPath(
+    ManagedLibrary& library,
+    const std::string& path
+)
 {
     std::string pathName = Library::cleanPath(path);
     std::shared_ptr<MaterialYamlEntry> material = nullptr;
@@ -481,7 +483,7 @@ MaterialLoader::getMaterialFromPath(const std::shared_ptr<MaterialLibraryLocal>&
 }
 
 std::shared_ptr<MaterialYamlEntry> MaterialLoader::getMaterialEntryFromPath(
-    const std::shared_ptr<MaterialLibraryLocal>& library,
+    ManagedLibrary& library,
     const std::string& path
 ) const
 {
@@ -491,7 +493,7 @@ std::shared_ptr<MaterialYamlEntry> MaterialLoader::getMaterialEntryFromPath(
     if (MaterialConfigLoader::isConfigStyle(path)) {
         auto material = MaterialConfigLoader::getMaterialFromPath(library, pathName);
         if (material) {
-            (*_materialMap)[material->getUUID()] = library->addMaterial(material, pathName);
+            (*_materialMap)[material->getUUID()] = library.addMaterial(material, pathName);
         }
 
         // Return the nullptr as there are no intermediate steps to take, such
@@ -606,13 +608,9 @@ void MaterialLoader::dereference(const std::shared_ptr<Material>& material)
     dereference(_materialMap, material);
 }
 
-void MaterialLoader::loadLibrary(const std::shared_ptr<MaterialLibraryLocal>& library)
+void MaterialLoader::loadLibrary(ManagedLibrary& library)
 {
-    if (_materialEntryMap == nullptr) {
-        _materialEntryMap = std::make_unique<std::map<std::string, std::shared_ptr<MaterialEntry>>>();
-    }
-
-    Base::FileInfo dirInfo(library->getDirectory());
+    Base::FileInfo dirInfo(library.getMaterialDirectory());
     auto dirList = dirInfo.getDirectoryContentRecursive(); // This needs to be recursive
     for (auto file : dirList) {
         if (file.isFile()) {
@@ -623,7 +621,7 @@ void MaterialLoader::loadLibrary(const std::shared_ptr<MaterialLibraryLocal>& li
                         ManagedLibrary::cleanPath(file.filePath())
                     );
                     if (material) {
-                        (*_materialEntryMap)[material->getUUID()] = material;
+                        _materialEntryMap[material->getUUID()] = material;
                     }
                 }
                 catch (const MaterialReadError&) {
@@ -635,27 +633,8 @@ void MaterialLoader::loadLibrary(const std::shared_ptr<MaterialLibraryLocal>& li
         }
     }
 
-    for (auto& it : *_materialEntryMap) {
+    for (auto& it : _materialEntryMap) {
         it.second->addToTree(_materialMap);
-    }
-}
-
-void MaterialLoader::loadLibraries(
-    const std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>>& libraryList
-)
-{
-    if (libraryList) {
-        for (auto& it : *libraryList) {
-            if (it->isLocal() && !it->isDisabled()) {
-                auto materialLibrary = std::make_shared<MaterialLibraryLocal>(*it);
-                loadLibrary(materialLibrary);
-            }
-        }
-    }
-
-    for (auto& it : *_materialMap) {
-        dereference(it.second);
-        it.second->resetEditState();
     }
 }
 

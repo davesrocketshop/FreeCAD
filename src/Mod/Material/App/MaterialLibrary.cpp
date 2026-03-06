@@ -319,41 +319,32 @@ bool MaterialLibraryLocal::fileExists(const std::string& path) const
 std::shared_ptr<Material>
 MaterialLibraryLocal::addMaterial(const std::shared_ptr<Material>& material, const std::string& path)
 {
-    std::string filePath = getRelativePath(path);
-    Base::FileInfo info(filePath);
-    // std::shared_ptr<Material> newMaterial = material;
-    material->setLibrary(getptr());
-    material->setDirectory(getLibraryPath(filePath, info.fileName()));
-    // material->setFilename(info.fileName());
-
-    // std::cout << "File path " << filePath << "\n";
-    // (*proxy()->_materialPathMap)[filePath] = material;
-
-    return material;
+    return proxy()->addMaterial(material, path);
 }
 
 std::shared_ptr<Material> MaterialLibraryLocal::getMaterialByPath(const std::string& path)
 {
-    std::string filePath = getLocalPath(path);
-    auto material = MaterialLoader::getMaterialFromPath(
-        std::static_pointer_cast<MaterialLibraryLocal>(getptr()),
-        filePath
-    );
-    if (!material) {
-        throw MaterialNotFound();
-    }
-    return material;
+    return proxy()->getMaterialByPath(path);
 }
 
 std::string MaterialLibraryLocal::getUUIDFromPath(const std::string& path)
 {
     std::string filePath = getLocalPath(path);
-    auto material = MaterialLoader::getMaterialFromPath(
-        std::static_pointer_cast<MaterialLibraryLocal>(getptr()),
-        filePath
-    );
+    auto material = MaterialLoader::getMaterialFromPath(*proxy(), filePath);
     if (!material) {
         throw MaterialNotFound();
     }
     return material->getUUID();
+}
+
+void MaterialLibraryLocal::loadMaterials()
+{
+    proxy()->loadMaterials();
+}
+
+void MaterialLibraryLocal::remapMaterials(
+    const std::shared_ptr<std::map<std::string, std::shared_ptr<Material>>>& materialMap
+)
+{
+    proxy()->remapMaterials(materialMap);
 }

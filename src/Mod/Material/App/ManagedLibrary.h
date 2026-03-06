@@ -48,7 +48,7 @@ class MaterialsExport ManagedLibrary: public Base::BaseClass
 
 public:
     ManagedLibrary() = default;
-    ManagedLibrary(const ManagedLibrary& other) = default;
+    ManagedLibrary(const ManagedLibrary& other) = delete;
     ManagedLibrary(const std::string& libraryName, const std::string& icon, bool readOnly = true);
     ManagedLibrary(const std::string& libraryName, const QByteArray& icon, bool readOnly);
     ManagedLibrary(
@@ -175,9 +175,21 @@ public:
         const std::shared_ptr<std::multimap<std::string, std::shared_ptr<Model>>>& multiMap
     );
 
+    std::shared_ptr<Material> addMaterial(
+        const std::shared_ptr<Material>& material,
+        const std::string& path
+    );
+    std::shared_ptr<Material> getMaterialByPath(const std::string& path);
+
+    void loadMaterials();
+    void remapMaterials(
+        const std::shared_ptr<std::map<std::string, std::shared_ptr<Material>>>& materialMap
+    );
+
 protected:
-    std::shared_ptr<std::map<std::string, std::shared_ptr<Model>>> _modelMap;
+    std::shared_ptr<std::map<std::string, std::shared_ptr<Model>>> _modelUuidMap;
     std::shared_ptr<std::map<std::string, std::shared_ptr<Model>>> _modelPathMap;
+    std::shared_ptr<std::map<std::string, std::shared_ptr<Material>>> _materialMap;
 
 private:
     std::string _repositoryName;
@@ -194,6 +206,9 @@ private:
 
     bool _modelsLoaded;
     QMutex _modelMutex;
+
+    bool _materialsLoaded;
+    QMutex _materialMutex;
 
     QByteArray loadByteArrayFromFile(const std::string& filePath) const;
 };

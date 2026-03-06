@@ -32,6 +32,9 @@
 
 namespace Materials
 {
+
+class ManagedLibrary;
+class Material;
 class MaterialLibrary;
 class MaterialLibraryLocal;
 
@@ -39,7 +42,7 @@ class MaterialEntry
 {
 public:
     MaterialEntry() = default;
-    MaterialEntry(const std::shared_ptr<MaterialLibraryLocal>& library,
+    MaterialEntry(const std::string& libraryName,
                   const std::string& modelName,
                   const std::string& dir,
                   const std::string& modelUuid);
@@ -48,10 +51,7 @@ public:
     virtual void
     addToTree(std::shared_ptr<std::map<std::string, std::shared_ptr<Material>>> materialMap) = 0;
 
-    std::shared_ptr<MaterialLibraryLocal> getLibrary() const
-    {
-        return _library;
-    }
+    std::shared_ptr<MaterialLibraryLocal> getLibrary() const;
     std::string getName() const
     {
         return _name;
@@ -66,7 +66,8 @@ public:
     }
 
 protected:
-    std::shared_ptr<MaterialLibraryLocal> _library;
+    // std::shared_ptr<MaterialLibraryLocal> _library;
+    std::string _libraryName;
     std::string _name;
     std::string _directory;
     std::string _uuid;
@@ -75,11 +76,13 @@ protected:
 class MaterialYamlEntry: public MaterialEntry
 {
 public:
-    MaterialYamlEntry(const std::shared_ptr<MaterialLibraryLocal>& library,
-                      const std::string& modelName,
-                      const std::string& dir,
-                      const std::string& modelUuid,
-                      const YAML::Node& modelData);
+    MaterialYamlEntry(
+        const std::string& libraryName,
+        const std::string& modelName,
+        const std::string& dir,
+        const std::string& modelUuid,
+        const YAML::Node& modelData
+    );
     ~MaterialYamlEntry() override = default;
 
     std::shared_ptr<Material> toMaterial() const;
@@ -113,8 +116,10 @@ private:
 class MaterialLoader
 {
 public:
-    MaterialLoader(const std::shared_ptr<std::map<std::string, std::shared_ptr<Material>>>& materialMap,
-                   const std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>>& libraryList);
+    MaterialLoader(
+        ManagedLibrary& library,
+        const std::shared_ptr<std::map<std::string, std::shared_ptr<Material>>>& materialMap
+    );
     ~MaterialLoader() = default;
 
     static std::shared_ptr<std::list<std::string>>
@@ -124,26 +129,28 @@ public:
     dereference(const std::shared_ptr<std::map<std::string, std::shared_ptr<Material>>>& materialMap,
                 const std::shared_ptr<Material>& material);
     static std::shared_ptr<MaterialYamlEntry> getMaterialFromYAML(
-        const std::shared_ptr<MaterialLibraryLocal>& library,
+        ManagedLibrary& library,
         YAML::Node& yamlroot,
         const std::string& path
     );
-    static std::shared_ptr<Material>
-    getMaterialFromPath(const std::shared_ptr<MaterialLibraryLocal>& library, const std::string& path);
+    static std::shared_ptr<Material> getMaterialFromPath(
+        ManagedLibrary& library,
+        const std::string& path
+    );
 
 private:
     MaterialLoader();
 
     void addToTree(std::shared_ptr<MaterialEntry> model);
     void dereference(const std::shared_ptr<Material>& material);
-    std::shared_ptr<MaterialYamlEntry>
-    getMaterialEntryFromPath(const std::shared_ptr<MaterialLibraryLocal>& library, const std::string& path) const;
+    std::shared_ptr<MaterialYamlEntry> getMaterialEntryFromPath(
+        ManagedLibrary& library,
+        const std::string& path
+    ) const;
     void addLibrary(const std::shared_ptr<MaterialLibraryLocal>& model);
-    void loadLibrary(const std::shared_ptr<MaterialLibraryLocal>& library);
-    void loadLibraries(
-        const std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>>& libraryList);
+    void loadLibrary(ManagedLibrary& library);
 
-    static std::unique_ptr<std::map<std::string, std::shared_ptr<MaterialEntry>>> _materialEntryMap;
+    std::map<std::string, std::shared_ptr<MaterialEntry>> _materialEntryMap;
     std::shared_ptr<std::map<std::string, std::shared_ptr<Material>>> _materialMap;
     std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>> _libraryList;
 };

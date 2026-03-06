@@ -31,6 +31,7 @@
 #include "Exceptions.h"
 #include "LibraryManager.h"
 #include "ManagedLibrary.h"
+#include "MaterialLoader.h"
 #include "ModelLoader.h"
 
 
@@ -46,10 +47,11 @@ ManagedLibrary::ManagedLibrary(const std::string& libraryName, const std::string
     , _local(false)
     , _module(false)
     , _modelsLoaded(false)
+    , _materialsLoaded(false)
 {
     setIcon(iconPath);
 
-    _modelMap = std::make_shared<std::map<std::string, std::shared_ptr<Model>>>();
+    _modelUuidMap = std::make_shared<std::map<std::string, std::shared_ptr<Model>>>();
     _modelPathMap = std::make_shared<std::map<std::string, std::shared_ptr<Model>>>();
 }
 
@@ -62,8 +64,9 @@ ManagedLibrary::ManagedLibrary(const std::string& libraryName, const QByteArray&
     , _local(false)
     , _module(false)
     , _modelsLoaded(false)
+    , _materialsLoaded(false)
 {
-    _modelMap = std::make_shared<std::map<std::string, std::shared_ptr<Model>>>();
+    _modelUuidMap = std::make_shared<std::map<std::string, std::shared_ptr<Model>>>();
     _modelPathMap = std::make_shared<std::map<std::string, std::shared_ptr<Model>>>();
 }
 
@@ -81,10 +84,11 @@ ManagedLibrary::ManagedLibrary(
     , _local(false)
     , _module(false)
     , _modelsLoaded(false)
+    , _materialsLoaded(false)
 {
     setIcon(iconPath);
 
-    _modelMap = std::make_shared<std::map<std::string, std::shared_ptr<Model>>>();
+    _modelUuidMap = std::make_shared<std::map<std::string, std::shared_ptr<Model>>>();
     _modelPathMap = std::make_shared<std::map<std::string, std::shared_ptr<Model>>>();
 }
 
@@ -281,7 +285,7 @@ void ManagedLibrary::loadModels()
     QMutexLocker locker(&_modelMutex);
 
     if (!_modelsLoaded) {
-        ModelLoader loader(*this, _modelMap);
+        ModelLoader loader(*this, _modelUuidMap);
         _modelsLoaded = true;
     }
 }
@@ -297,8 +301,62 @@ void ManagedLibrary::remapModels(
     QMutexLocker locker(&_modelMutex);
 
     if (_modelsLoaded) {
-        for (auto model : *_modelMap) {
+        for (auto model : *_modelUuidMap) {
             multiMap->insert({model.first, model.second});
+        }
+    }
+}
+
+std::shared_ptr<Material> ManagedLibrary::addMaterial(
+    const std::shared_ptr<Material>& material,
+    const std::string& path
+)
+{
+    std::string filePath = getRelativePath(path);
+    Base::FileInfo info(filePath);
+    auto lib = LibraryManager::getManager().getMaterialLibrary(
+        LibraryManager::RepositoryLocal,
+        getLibraryName()
+    );
+    material->setLibrary(lib);
+    material->setDirectory(getLibraryPath(filePath, info.fileName()));
+
+    return material;
+}
+
+std::shared_ptr<Material> ManagedLibrary::getMaterialByPath(const std::string& path)
+{
+    std::string filePath = getLocalPath(path);
+    auto material = MaterialLoader::getMaterialFromPath(*this, filePath);
+    if (!material) {
+        throw MaterialNotFound();
+    }
+    return material;
+}
+
+void ManagedLibrary::loadMaterials()
+{
+    QMutexLocker locker(&_materialMutex);
+
+    if (!_materialsLoaded) {
+        MaterialLoader loader(*this, _materialMap);
+        _materialsLoaded = true;
+    }
+}
+
+void ManagedLibrary::remapMaterials(
+    const std::shared_ptr<std::map<std::string, std::shared_ptr<Material>>>& materialMap
+)
+{
+    if (!_materialsLoaded) {
+        loadModels();
+    }
+
+    QMutexLocker locker(&_materialMutex);
+
+    if (_materialsLoaded) {
+        for (auto model : *_materialMap) {
+            (*materialMap)[model.first] = model.second;
         }
     }
 }
