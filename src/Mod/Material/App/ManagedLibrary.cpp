@@ -53,6 +53,7 @@ ManagedLibrary::ManagedLibrary(const std::string& libraryName, const std::string
 
     _modelUuidMap = std::make_shared<std::map<std::string, std::shared_ptr<Model>>>();
     _modelPathMap = std::make_shared<std::map<std::string, std::shared_ptr<Model>>>();
+    _materialMap = std::make_shared<std::map<std::string, std::shared_ptr<Material>>>();
 }
 
 ManagedLibrary::ManagedLibrary(const std::string& libraryName, const QByteArray& icon, bool readOnly)
@@ -68,6 +69,7 @@ ManagedLibrary::ManagedLibrary(const std::string& libraryName, const QByteArray&
 {
     _modelUuidMap = std::make_shared<std::map<std::string, std::shared_ptr<Model>>>();
     _modelPathMap = std::make_shared<std::map<std::string, std::shared_ptr<Model>>>();
+    _materialMap = std::make_shared<std::map<std::string, std::shared_ptr<Material>>>();
 }
 
 ManagedLibrary::ManagedLibrary(
@@ -90,6 +92,7 @@ ManagedLibrary::ManagedLibrary(
 
     _modelUuidMap = std::make_shared<std::map<std::string, std::shared_ptr<Model>>>();
     _modelPathMap = std::make_shared<std::map<std::string, std::shared_ptr<Model>>>();
+    _materialMap = std::make_shared<std::map<std::string, std::shared_ptr<Material>>>();
 }
 
 QByteArray ManagedLibrary::getIcon(const std::string& iconPath)
@@ -349,14 +352,14 @@ void ManagedLibrary::remapMaterials(
 )
 {
     if (!_materialsLoaded) {
-        loadModels();
+        loadMaterials();
     }
 
     QMutexLocker locker(&_materialMutex);
 
     if (_materialsLoaded) {
-        for (auto model : *_materialMap) {
-            (*materialMap)[model.first] = model.second;
+        for (auto material : *_materialMap) {
+            (*materialMap)[material.first] = material.second;
         }
     }
 }
