@@ -925,12 +925,12 @@ private:
 
 // ------------------------------------------------------------------------------
 
-class TagWidget: public QAbstractScrollArea
+class TagWidget: public QTextEdit
 {
     Q_OBJECT
 
-    Q_PROPERTY(std::vector<QString> tags READ getTags WRITE setTags RESET clear)
-    Q_PROPERTY(bool readOnly MEMBER _readOnly WRITE setReadOnly)
+    Q_PROPERTY(QStringList tags READ getTags WRITE setTags RESET clear)
+    Q_PROPERTY(bool readOnly READ isReadOnly WRITE setReadOnly)
     Q_PROPERTY(bool unique MEMBER _uniqueTagsOnly WRITE setUnique)
     Q_PROPERTY(
         bool restoreCursorPositionOnFocusClick MEMBER _restoreCursorPositionOnFocusClick WRITE
@@ -949,10 +949,10 @@ public:
     TagWidget(QWidget* parent = 0);
     virtual ~TagWidget();
 
-    void setTags(std::vector<QString> const& tags);
-    std::vector<QString> getTags() const;
+    void setTags(const QStringList& tags);
+    QStringList getTags() const;
     void clear();
-    
+
     void setReadOnly(bool readOnly);
     void setUnique(bool unique);
     void setRestoreCursorPositionOnFocusClick(bool restore);
@@ -967,9 +967,8 @@ public:
     void setTagColor(const QColor& color);
 
 private:
-    std::vector<QString> m_tags;
+    QStringList m_tags;
     bool _restoreCursorPositionOnFocusClick {false};
-    bool _readOnly {false};
     bool _uniqueTagsOnly {true};
     QMargins _pillThickness = {7, 7, 8, 7};
     int _pillHorizontalSpacing = 7;

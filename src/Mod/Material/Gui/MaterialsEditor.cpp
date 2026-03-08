@@ -1240,7 +1240,7 @@ void MaterialsEditor::updateMaterialGeneral()
     ui->editParent->setReadOnly(true);
     ui->editSourceURL->setText(_material->getURL());
     ui->editSourceReference->setText(_material->getReference());
-    std::vector<QString> tags;
+    QStringList tags;
     for (auto tag : _material->getTags()) {
         tags.push_back(tag);
     }

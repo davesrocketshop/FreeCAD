@@ -30,6 +30,7 @@
 #include <QPainterPath>
 #include <QPoint>
 #include <QScrollBar>
+#include <QStringList>
 #include <QTextLayout>
 #include <QWidget>
 
@@ -48,12 +49,12 @@ struct Tag
 };
 // typedef std::ranges::output_range<Tag> TagRange;
 
-class GuiExport TagWidget: public QAbstractScrollArea
+class GuiExport TagWidget: public QTextEdit
 {
     Q_OBJECT
 
-    Q_PROPERTY(std::vector<QString> tags READ getTags WRITE setTags RESET clear NOTIFY tagsEdited)
-    Q_PROPERTY(bool readOnly MEMBER _readOnly WRITE setReadOnly)
+    Q_PROPERTY(QStringList tags READ getTags WRITE setTags RESET clear NOTIFY tagsEdited)
+    Q_PROPERTY(bool readOnly READ isReadOnly WRITE setReadOnly)
     Q_PROPERTY(bool unique MEMBER _uniqueTagsOnly WRITE setUnique)
     Q_PROPERTY(
         bool restoreCursorPositionOnFocusClick MEMBER _restoreCursorPositionOnFocusClick WRITE
@@ -79,14 +80,15 @@ public:
     int heightForWidth(int width) const override;
 
     /// Tags
-    void setTags(std::vector<QString> const& tags);
-    std::vector<QString> getTags() const;
+    void setTags(QStringList const& tags);
+    QStringList getTags() const;
     void clear();
 
     /// Set list of completions
-    void setCompletions(std::vector<QString> const& completions);
+    void setCompletions(QStringList const& completions);
 
     /// Behaviours
+    bool isReadOnly() const;
     void setReadOnly(bool readOnly);
     void setUnique(bool unique);
     void setRestoreCursorPositionOnFocusClick(bool restore);
@@ -115,7 +117,7 @@ protected:
     void mouseMoveEvent(QMouseEvent* event) override;
 
 private:
-    std::vector<Tag> _tags {Tag {}};
+    QList<Tag> _tags {Tag {}};
     size_t _editingIndex {0};
     int _blinkTimer {0};
     bool _blinkStatus {true};
@@ -128,7 +130,7 @@ private:
 
     // Behaviour config
     bool _restoreCursorPositionOnFocusClick {false};
-    bool _readOnly {false};
+    // bool _readOnly {false};
     bool _uniqueTagsOnly {true};
 
     /// Padding from the text to the the pill border
@@ -160,7 +162,7 @@ private:
     /// Calculate the height that a tag would have with the given text height
     int pillHeight(int textHeight) const;
 
-    void _setTags(std::vector<QString> const& tags);
+    void _setTags(const QStringList& tags);
     bool isCurrentTagADuplicate() const;
     void setupCompleter();
 
@@ -173,7 +175,7 @@ private:
     void removeSelection();
     void removeBackwardOne();
     void removeDuplicates();
-    void removeDuplicates(std::vector<Tag>& tags);
+    void removeDuplicates(QList<Tag>& tags);
 
     void calculateRectangles(QRect rectangle, QPoint& leftTop, QFontMetrics const& metrics);
     QRect calculateRectangles(QRect rectangle);
@@ -242,8 +244,8 @@ private:
     void calculateRectangles(
         QPoint& leftTop,
         Range&& tags,
-        QFontMetrics const& metrics,
-        std::optional<QRect> const& fit,
+        const QFontMetrics& metrics,
+        const std::optional<QRect>& fit,
         bool hasCross
     ) const
     {
@@ -270,8 +272,8 @@ private:
     void calculateRectangles(
         QPoint& leftTop,
         Range&& tags,
-        QFontMetrics const& metrics,
-        std::optional<QRect> const& fit = std::nullopt
+        const QFontMetrics& metrics,
+        const std::optional<QRect>& fit = std::nullopt
     ) const
     {
         calculateRectangles(leftTop, tags, metrics, fit, true);
@@ -281,8 +283,8 @@ private:
     void drawTags(
         QPainter& painter,
         Range&& tags,
-        QFontMetrics const& metrics,
-        QPoint const& offset,
+        const QFontMetrics& metrics,
+        const QPoint& offset,
         bool hasCross
     ) const
     {
@@ -319,7 +321,7 @@ private:
     template<std::ranges::input_range Range>
     void drawTags(QPainter& painter, Range range) const
     {
-        drawTags(painter, range, fontMetrics(), -offset(), !_readOnly);
+        drawTags(painter, range, fontMetrics(), -offset(), !isReadOnly());
     }
 
     QRectF crossRectangle(QRectF const& rectangle, qreal crossSize) const;

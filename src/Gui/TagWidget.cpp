@@ -34,7 +34,7 @@ using namespace Gui;
 /* TRANSLATOR Gui::TagWidget */
 
 TagWidget::TagWidget(QWidget* parent)
-    : QAbstractScrollArea(parent)
+    : QTextEdit(parent)
 {
     QSizePolicy size_policy(QSizePolicy::Ignored, QSizePolicy::Preferred);
     size_policy.setHeightForWidth(true);
@@ -63,8 +63,8 @@ void TagWidget::setupCompleter()
     _completer->setWidget(this);
     QObject::connect(
         _completer.get(),
-        qOverload<QString const&>(&QCompleter::activated),
-        [this](QString const& text) { setEditorText(text); }
+        qOverload<const QString&>(&QCompleter::activated),
+        [this](const QString& text) { setEditorText(text); }
     );
 }
 
@@ -100,10 +100,9 @@ void TagWidget::focusOutEvent(QFocusEvent* event)
 
 void TagWidget::paintEvent(QPaintEvent* e)
 {
-    QAbstractScrollArea::paintEvent(e);
+    QTextEdit::paintEvent(e);
 
     QPainter painter(viewport());
-
     painter.setClipRect(contentsRect());
 
     auto const middle = _tags.cbegin() + static_cast<ptrdiff_t>(_editingIndex);
@@ -169,7 +168,7 @@ void TagWidget::mousePressEvent(QMouseEvent* event)
     }
 
     // add new tag closest to the cursor
-    for (auto it = begin(_tags); it != end(_tags); ++it) {
+    for (auto it = _tags.begin(); it != _tags.end(); ++it) {
         // find the row
         if (it->rectangle.translated(-offset()).bottom() < event->pos().y()) {
             continue;
@@ -177,24 +176,24 @@ void TagWidget::mousePressEvent(QMouseEvent* event)
 
         // find the closest spot
         auto const row = it->rectangle.translated(-offset()).top();
-        while (it != end(_tags) && it->rectangle.translated(-offset()).top() == row
+        while (it != _tags.end() && it->rectangle.translated(-offset()).top() == row
                && event->pos().x() > it->rectangle.translated(-offset()).left()) {
             ++it;
         }
 
-        editNewTag(static_cast<size_t>(std::distance(begin(_tags), it)));
+        editNewTag(static_cast<size_t>(std::distance(_tags.begin(), it)));
         updateTagDisplay(keep_cursor_visible);
         return;
     }
 
-    // append a new nag
+    // append a new tag
     editNewTag(_tags.size());
     updateTagDisplay(keep_cursor_visible);
 }
 
 void TagWidget::keyPressEvent(QKeyEvent* event)
 {
-    if (_readOnly) {
+    if (isReadOnly()) {
         return;
     }
 
@@ -308,7 +307,7 @@ int TagWidget::pillHeight(int textHeight) const
     return textHeight + _pillThickness.top() + _pillThickness.bottom();
 }
 
-void TagWidget::calculateRectangles(QRect rectangle, QPoint& leftTop, QFontMetrics const& metrics)
+void TagWidget::calculateRectangles(QRect rectangle, QPoint& leftTop, const QFontMetrics& metrics)
 {
     auto const middle = _tags.begin() + static_cast<ptrdiff_t>(_editingIndex);
 
@@ -378,9 +377,10 @@ void TagWidget::updateVScrollRange()
 void TagWidget::updateHScrollRange()
 {
     assert(!_tags.empty());  // Invariant-1
-    auto const width = std::max_element(begin(_tags), end(_tags), [](auto const& x, auto const& y) {
-                           return x.rectangle.width() < y.rectangle.width();
-                       })->rectangle.width();
+    auto const width
+        = std::max_element(_tags.begin(), _tags.end(), [](const auto& x, const auto& y) {
+              return x.rectangle.width() < y.rectangle.width();
+          })->rectangle.width();
 
     auto const contents_rect_width = contentsRect().width();
 
@@ -490,17 +490,17 @@ int TagWidget::heightForWidth(int width) const
     return contents_rect.height();
 }
 
-void TagWidget::setTags(std::vector<QString> const& tags)
+void TagWidget::setTags(const QStringList& tags)
 {
     _setTags(tags);
     updateTagDisplay();
 }
 
-std::vector<QString> TagWidget::getTags() const
+QStringList TagWidget::getTags() const
 {
-    std::vector<QString> ret(_tags.size());
-    std::transform(_tags.begin(), _tags.end(), ret.begin(), [](Tag const& _tags) {
-        return _tags.text;
+    QStringList ret;
+    std::transform(_tags.begin(), _tags.end(), std::back_inserter(ret), [](const Tag& tag) {
+        return tag.text;
     });
     assert(!ret.empty());  // Invariant-1
     if (ret[_editingIndex].isEmpty() || (_uniqueTagsOnly && isCurrentTagADuplicate())) {
@@ -512,11 +512,11 @@ std::vector<QString> TagWidget::getTags() const
 void TagWidget::clear()
 {
     // Set tags to an empty list
-    std::vector<QString> tags;
+    QStringList tags;
     _setTags(tags);
 }
 
-void TagWidget::setCompletions(std::vector<QString> const& completions)
+void TagWidget::setCompletions(const QStringList& completions)
 {
     _completer = std::make_unique<QCompleter>([&] {
         QStringList ret;
@@ -526,9 +526,15 @@ void TagWidget::setCompletions(std::vector<QString> const& completions)
     setupCompleter();
 }
 
+bool TagWidget::isReadOnly() const
+{
+    return QTextEdit::isReadOnly();
+}
+
 void TagWidget::setReadOnly(bool readOnly)
 {
-    _readOnly = readOnly;
+    QTextEdit::setReadOnly(readOnly);
+    // _readOnly = readOnly;
     updateTagDisplay();
 }
 
@@ -583,11 +589,11 @@ void TagWidget::setTagColor(const QColor& color)
     _tagColor = color;
 }
 
-void TagWidget::_setTags(std::vector<QString> const& tags)
+void TagWidget::_setTags(const QStringList& tags)
 {
     std::unordered_set<QString> unique_tags;
-    std::vector<Tag> t;
-    for (auto const& x : tags) {
+    QList<Tag> t;
+    for (const auto& x : tags) {
         if (/* Invariant-1 */ !x.isEmpty()
             && /* Invariant-2 */ (!_uniqueTagsOnly || unique_tags.insert(x).second)) {
             t.emplace_back(x, QRect {});
@@ -656,10 +662,11 @@ void TagWidget::removeSelection()
     deselectAll();
 }
 
-void TagWidget::drawEditor(QPainter& painter, QPalette const& palette, QPoint const& offset) const
+void TagWidget::drawEditor(QPainter& painter, const QPalette& palette, const QPoint& offset) const
 {
-    auto const& rectangle = editorRect();
-    auto const& txt_p = rectangle.topLeft() + QPointF(_pillThickness.left(), _pillThickness.top());
+    const auto& rectangle = editorRect();
+    const auto& txt_p = rectangle.topLeft()
+        + QPointF(_pillThickness.left(), _pillThickness.top());
     auto const f = formatting(palette);
     _textLayout.draw(&painter, txt_p - offset, f);
     if (_blinkStatus) {
@@ -667,7 +674,7 @@ void TagWidget::drawEditor(QPainter& painter, QPalette const& palette, QPoint co
     }
 }
 
-QVector<QTextLayout::FormatRange> TagWidget::formatting(QPalette const& palette) const
+QVector<QTextLayout::FormatRange> TagWidget::formatting(const QPalette& palette) const
 {
     if (_selectSize == 0) {
         return {};
@@ -686,7 +693,7 @@ void TagWidget::setEditorIndex(size_t i)
 {
     assert(i < _tags.size());
     if (editorText().isEmpty() || (_uniqueTagsOnly && isCurrentTagADuplicate())) {
-        _tags.erase(std::next(begin(_tags), static_cast<std::ptrdiff_t>(_editingIndex)));
+        _tags.erase(std::next(_tags.begin(), static_cast<std::ptrdiff_t>(_editingIndex)));
         if (_editingIndex <= i) {  // Did we shift `i`?
             --i;
         }
@@ -698,7 +705,7 @@ void TagWidget::setEditorIndex(size_t i)
 void TagWidget::editNewTag(size_t i)
 {
     assert(i <= _tags.size());
-    _tags.insert(begin(_tags) + static_cast<std::ptrdiff_t>(i), Tag {});
+    _tags.insert(_tags.begin() + static_cast<std::ptrdiff_t>(i), Tag {});
     if (i <= _editingIndex) {  // Did we shift `editing_index`?
         ++_editingIndex;
     }
@@ -750,17 +757,17 @@ void TagWidget::removeBackwardOne()
 void TagWidget::removeDuplicates()
 {
     removeDuplicates(_tags);
-    auto const it = std::find_if(_tags.begin(), _tags.end(), [](auto const& x) {
+    auto const it = std::find_if(_tags.begin(), _tags.end(), [](const auto& x) {
         return x.text.isEmpty();  // Thanks to Invariant-1 we can track back the editing_index.
     });
     assert(it != _tags.end());
     _editingIndex = static_cast<size_t>(std::distance(_tags.begin(), it));
 }
 
-void TagWidget::removeDuplicates(std::vector<Tag>& tags)
+void TagWidget::removeDuplicates(QList<Tag>& tags)
 {
     std::unordered_map<QString, size_t> unique;
-    for (auto const i : std::views::iota(size_t {0}, tags.size())) {
+    for (auto const i : std::views::iota(qsizetype {0}, tags.size())) {
         unique.emplace(tags[i].text, i);
     }
 
@@ -774,7 +781,7 @@ void TagWidget::removeDuplicates(std::vector<Tag>& tags)
     }
 }
 
-bool TagWidget::isAcceptableInput(QKeyEvent const& event)
+bool TagWidget::isAcceptableInput(const QKeyEvent& event)
 {
     auto const text = event.text();
     if (text.isEmpty()) {
@@ -803,21 +810,21 @@ bool TagWidget::isAcceptableInput(QKeyEvent const& event)
     return false;
 }
 
-void TagWidget::setEditorText(QString const& text)
+void TagWidget::setEditorText(const QString& text)
 {
     editorText() = text;
     moveCursor(editorText().length(), false);
     updateTagDisplay();
 }
 
-QRectF TagWidget::crossRectangle(QRectF const& rectangle, qreal crossSize) const
+QRectF TagWidget::crossRectangle(const QRectF& rectangle, qreal crossSize) const
 {
     QRectF cross(QPointF {0, 0}, QSizeF {crossSize, crossSize});
     cross.moveCenter(QPointF(rectangle.right() - crossSize, rectangle.center().y()));
     return cross;
 }
 
-QRectF TagWidget::crossRectangle(QRectF const& rectangle) const
+QRectF TagWidget::crossRectangle(const QRectF& rectangle) const
 {
     return crossRectangle(rectangle, _tagCrossSize);
 }

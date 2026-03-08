@@ -2110,7 +2110,7 @@ void PrefFontBox::setParamGrpPath(const QByteArray& name)
 // --------------------------------------------------------------------
 
 TagWidget::TagWidget(QWidget* parent)
-    : QAbstractScrollArea(parent)
+    : QTextEdit(parent)
 {
     QSizePolicy size_policy(QSizePolicy::Ignored, QSizePolicy::Preferred);
     size_policy.setHeightForWidth(true);
@@ -2126,12 +2126,12 @@ TagWidget::TagWidget(QWidget* parent)
 TagWidget::~TagWidget()
 {}
 
-void TagWidget::setTags(std::vector<QString> const& tags)
+void TagWidget::setTags(const QStringList& tags)
 {
     m_tags = tags;
 }
 
-std::vector<QString> TagWidget::getTags() const
+QStringList TagWidget::getTags() const
 {
     return m_tags;
 }
@@ -2141,9 +2141,14 @@ void TagWidget::clear()
     m_tags.clear();
 }
 
+bool TagWidget::isReadOnly() const
+{
+    return QTextEdit::isReadOnly();
+}
+
 void TagWidget::setReadOnly(bool readOnly)
 {
-    _readOnly = readOnly;
+    QTextEdit::setReadOnly(readOnly);
 }
 
 void TagWidget::setUnique(bool unique)
