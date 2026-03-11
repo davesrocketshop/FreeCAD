@@ -214,33 +214,6 @@ bool ManagedLibrary::isRoot(const std::string& path) const
     return (clean == localPath);
 }
 
-std::string ManagedLibrary::getRelativePath(const std::string& path) const
-{
-    std::string filePath;
-    std::string clean = cleanPath(path);
-    std::string prefix = "/" + getLibraryName();
-    if (clean.starts_with(prefix)) {
-        // Remove the library name from the path
-        filePath = clean.erase(clean.length() - prefix.length());
-    }
-    else {
-        filePath = clean;
-    }
-
-    prefix = getMaterialDirectoryPath();
-    if (filePath.starts_with(prefix)) {
-        // Remove the library root from the path
-        filePath = filePath.erase(filePath.length() - prefix.length());
-    }
-
-    // Remove any leading '/'
-    if (filePath.starts_with("/")) {
-        filePath.erase(0, 1);
-    }
-
-    return filePath;
-}
-
 std::string ManagedLibrary::getLibraryPath(const std::string& path, const std::string& filename) const
 {
     std::string filePath(cleanPath(path));
@@ -280,7 +253,23 @@ std::shared_ptr<Model> ManagedLibrary::getModelByPath(const std::string& path) c
 
 void ManagedLibrary::addModel(const std::shared_ptr<Model>& model, const std::string& path)
 {
-    (*_modelPathMap)[path] = model;
+    addModel(getModelLibrary(), model, path);
+}
+
+void ManagedLibrary::addModel(const std::shared_ptr<ModelLibrary>& library, const std::shared_ptr<Model>& model, const std::string& path)
+{
+    std::string filePath = library->getRelativePath(path);
+    Base::FileInfo info(filePath);
+    model->setLibrary(library);
+    model->setDirectory(getLibraryPath(filePath, info.fileName()));
+    model->setFilename(info.fileName());
+
+    (*_modelPathMap)[filePath] = std::make_shared<Model>(*model);
+}
+
+std::shared_ptr<ModelLibrary> ManagedLibrary::getModelLibrary()
+{
+    return LibraryManager::getManager().getModelLibrary(LibraryManager::RepositoryLocal, getLibraryName());
 }
 
 void ManagedLibrary::loadModels()

@@ -38,6 +38,7 @@ namespace Materials
 
 class Model;
 class ModelLoader;
+class ModelLibrary;
 class ModelManagerLocal;
 class Material;
 class MaterialManagerLocal;
@@ -157,7 +158,6 @@ public:
     }
 
     std::string getLocalPath(const std::string& path) const;
-    std::string getRelativePath(const std::string& path) const;
     std::string getLibraryPath(const std::string& path, const std::string& filename) const;
     bool isRoot(const std::string& path) const;
 
@@ -168,6 +168,7 @@ public:
     static QString cleanPath(const QString& path);
 
     std::shared_ptr<Model> getModelByPath(const std::string& path) const;
+    void addModel(const std::shared_ptr<ModelLibrary>& library, const std::shared_ptr<Model>& model, const std::string& path);
     void addModel(const std::shared_ptr<Model>& model, const std::string& path);
 
     void loadModels();
@@ -211,6 +212,7 @@ private:
     QMutex _materialMutex;
 
     QByteArray loadByteArrayFromFile(const std::string& filePath) const;
+    std::shared_ptr<ModelLibrary> getModelLibrary();
 };
 
 }  // namespace Materials

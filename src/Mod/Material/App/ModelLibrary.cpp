@@ -129,14 +129,9 @@ std::shared_ptr<Model> ModelLibraryLocal::getModelByPath(const std::string& path
 
 std::shared_ptr<Model> ModelLibraryLocal::addModel(const Model& model, const std::string& path)
 {
-    std::string filePath = getRelativePath(path);
-    Base::FileInfo info(filePath);
     std::shared_ptr<Model> newModel = std::make_shared<Model>(model);
-    newModel->setLibrary(getptr());
-    newModel->setDirectory(getLibraryPath(filePath, info.fileName()));
-    newModel->setFilename(info.fileName());
 
-    proxy()->addModel(newModel, filePath);
+    proxy()->addModel(getptr(), newModel, path);
 
     return newModel;
 }

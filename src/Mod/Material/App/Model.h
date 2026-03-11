@@ -177,10 +177,7 @@ public:
           const std::string& doi);
     ~Model() override = default;
 
-    std::shared_ptr<ModelLibrary> getLibrary() const
-    {
-        return _library;
-    }
+    std::shared_ptr<ModelLibrary> getLibrary() const;
     bool isDisabled() const;
     std::string getBase() const
     {

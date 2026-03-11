@@ -55,6 +55,8 @@ protected:
 
         _modelManager = &(Materials::ModelManager::getManager());
         _libraryManager = &(Materials::LibraryManager::getManager());
+
+        _modelManager->refresh();
     }
 
     void TearDown() override {
@@ -141,6 +143,7 @@ TEST_F(TestModel, TestModelByPath)
 
     // Test with the file system path
     ASSERT_NO_THROW(linearElastic->getLibrary());
+    ASSERT_TRUE(linearElastic->getLibrary());
     ASSERT_NO_THROW(linearElastic->getLibrary()->getName());
     ASSERT_NO_THROW(linearElastic->getLibrary()->getDirectoryPath());
     EXPECT_EQ(linearElastic->getLibrary()->getName(), "System");
