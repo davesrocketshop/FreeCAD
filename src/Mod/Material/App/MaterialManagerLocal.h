@@ -120,8 +120,8 @@ public:
     std::shared_ptr<std::map<std::string, std::shared_ptr<Material>>> materialsWithModelComplete(
         const std::string& uuid
     ) const;
-    void dereference(std::shared_ptr<Material> material) const;
-    void dereference() const;
+    static void dereference(std::shared_ptr<Material> material);
+    static void dereference();
 
 protected:
     static std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>> getConfiguredLibraries(

@@ -319,7 +319,7 @@ bool MaterialLibraryLocal::fileExists(const std::string& path) const
 std::shared_ptr<Material>
 MaterialLibraryLocal::addMaterial(const std::shared_ptr<Material>& material, const std::string& path)
 {
-    return proxy()->addMaterial(material, path);
+    return proxy()->addMaterial(getptr(), material, path);
 }
 
 std::shared_ptr<Material> MaterialLibraryLocal::getMaterialByPath(const std::string& path)

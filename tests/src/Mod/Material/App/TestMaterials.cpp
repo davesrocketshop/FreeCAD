@@ -163,6 +163,7 @@ TEST_F(TestMaterial, TestMaterialByPath)
     ASSERT_NE(&steel, nullptr);
     EXPECT_EQ(steel->getName(), QStringLiteral("CalculiX-Steel"));
     EXPECT_EQ(steel->getUUID(), QStringLiteral("92589471-a6cb-4bbc-b748-d425a17dea7d"));
+    ASSERT_TRUE(steel->isDereferenced());
 
     // The same but with a leading '/'
     std::shared_ptr<Materials::Material> steel2;
@@ -172,6 +173,7 @@ TEST_F(TestMaterial, TestMaterialByPath)
     ASSERT_NE(&steel2, nullptr);
     EXPECT_EQ(steel2->getName(), QStringLiteral("CalculiX-Steel"));
     EXPECT_EQ(steel2->getUUID(), QStringLiteral("92589471-a6cb-4bbc-b748-d425a17dea7d"));
+    ASSERT_TRUE(steel->isDereferenced());
 
     // Same with the library name as a prefix
     std::shared_ptr<Materials::Material> steel3;
@@ -181,6 +183,7 @@ TEST_F(TestMaterial, TestMaterialByPath)
     ASSERT_NE(&steel3, nullptr);
     EXPECT_EQ(steel3->getName(), QStringLiteral("CalculiX-Steel"));
     EXPECT_EQ(steel3->getUUID(), QStringLiteral("92589471-a6cb-4bbc-b748-d425a17dea7d"));
+    ASSERT_TRUE(steel->isDereferenced());
 }
 
 TEST_F(TestMaterial, TestAddPhysicalModel)
@@ -287,6 +290,7 @@ TEST_F(TestMaterial, TestCalculiXSteel)
     auto steel = _materialManager->getMaterial("92589471-a6cb-4bbc-b748-d425a17dea7d");
     EXPECT_EQ(steel->getName(), "CalculiX-Steel");
     EXPECT_EQ(steel->getUUID(), "92589471-a6cb-4bbc-b748-d425a17dea7d");
+    ASSERT_TRUE(steel->isDereferenced());
 
     EXPECT_TRUE(steel->hasPhysicalModel(Materials::ModelUUIDs::ModelUUID_Mechanical_Density)); // Density
     EXPECT_TRUE(steel->hasPhysicalModel(Materials::ModelUUIDs::ModelUUID_Mechanical_IsotropicLinearElastic)); // IsotropicLinearElastic
@@ -433,6 +437,7 @@ TEST_F(TestMaterial, TestColumns)
 TEST_F(TestMaterial, TestTestMaterial)
 {
     auto testMaterial = _materialManager->getMaterial("c6c64159-19c1-40b5-859c-10561f20f979");
+    ASSERT_TRUE(testMaterial->isDereferenced());
     EXPECT_EQ(testMaterial->getName(), "Test Material");
     EXPECT_EQ(testMaterial->getUUID(), "c6c64159-19c1-40b5-859c-10561f20f979");
     EXPECT_EQ(testMaterial->getLibrary()->getName(), "System");
@@ -595,12 +600,14 @@ TEST_F(TestMaterial, TestSparseArrays2D)
     // First validate the model
     std::shared_ptr<Materials::Model> testModel;
     ASSERT_NO_THROW(testModel = _modelManager->getModel("807a4b37-da41-4b7a-a730-8555cae4146b"));
+    ASSERT_TRUE(testModel->isDereferenced());
     EXPECT_EQ(testModel->getName(), "Test Sparse Model");
     EXPECT_EQ(testModel->getUUID(), "807a4b37-da41-4b7a-a730-8555cae4146b");
     EXPECT_TRUE(testModel->hasProperty("TestArray2D"));
     EXPECT_TRUE(testModel->hasProperty("TestArray3D"));
 
     auto testMaterial = _materialManager->getMaterial("4704ec99-2914-4a72-9a71-a781d2655ee9");
+    ASSERT_TRUE(testMaterial->isDereferenced());
     EXPECT_EQ(testMaterial->getName(), "TestSparseArray");
     EXPECT_EQ(testMaterial->getUUID(), "4704ec99-2914-4a72-9a71-a781d2655ee9");
     EXPECT_EQ(testMaterial->getLibrary()->getName(), "__UnitTest");
@@ -714,12 +721,14 @@ TEST_F(TestMaterial, TestSparseArrays3D)
     // First validate the model
     std::shared_ptr<Materials::Model> testModel;
     ASSERT_NO_THROW(testModel = _modelManager->getModel("807a4b37-da41-4b7a-a730-8555cae4146b"));
+    ASSERT_TRUE(testModel->isDereferenced());
     EXPECT_EQ(testModel->getName(), "Test Sparse Model");
     EXPECT_EQ(testModel->getUUID(), "807a4b37-da41-4b7a-a730-8555cae4146b");
     EXPECT_TRUE(testModel->hasProperty("TestArray2D"));
     EXPECT_TRUE(testModel->hasProperty("TestArray3D"));
 
     auto testMaterial = _materialManager->getMaterial("4704ec99-2914-4a72-9a71-a781d2655ee9");
+    ASSERT_TRUE(testMaterial->isDereferenced());
     EXPECT_EQ(testMaterial->getName(), "TestSparseArray");
     EXPECT_EQ(testMaterial->getUUID(), "4704ec99-2914-4a72-9a71-a781d2655ee9");
     EXPECT_EQ(testMaterial->getLibrary()->getName(), "__UnitTest");

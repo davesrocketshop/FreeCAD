@@ -80,7 +80,7 @@ void MaterialManagerLocal::cleanup()
             it.second->setLibrary(nullptr);
         }
         _materialMap->clear();
-        _materialMap = nullptr;
+        // _materialMap = nullptr;
     }
 }
 
@@ -107,6 +107,7 @@ void MaterialManagerLocal::loadLibraries(
             auto local = std::make_shared<MaterialLibraryLocal>(*it);
             local->loadMaterials();
         }
+        dereference();
         remapLibraries(libraries);
     }
 }
@@ -350,6 +351,7 @@ std::shared_ptr<Material> MaterialManagerLocal::getMaterialByPath(const std::str
                                 = materialLibrary->addMaterial(material, path);
                         }
 
+                        dereference(material);
                         return material;
 
                     }
@@ -365,6 +367,7 @@ std::shared_ptr<Material> MaterialManagerLocal::getMaterialByPath(const std::str
         if (MaterialConfigLoader::isConfigStyle(path)) {
             auto material = MaterialConfigLoader::getMaterialFromPath(path);
 
+            dereference(material);
             return material;
         }
     }
@@ -382,7 +385,9 @@ std::shared_ptr<Material> MaterialManagerLocal::getMaterialByPath(
         auto materialLibrary
             = std::make_shared<Materials::MaterialLibraryLocal>(library);
         if (materialLibrary) {
-            return materialLibrary->getMaterialByPath(path);  // May throw MaterialNotFound
+            auto material = materialLibrary->getMaterialByPath(path);  // May throw MaterialNotFound
+            dereference(material);
+            return material;
         }
     }
 
@@ -530,7 +535,7 @@ std::shared_ptr<std::map<std::string, std::shared_ptr<Material>>> MaterialManage
     return dict;
 }
 
-void MaterialManagerLocal::dereference() const
+void MaterialManagerLocal::dereference()
 {
     // First clear the inheritences
     for (auto& it : *_materialMap) {
@@ -545,7 +550,7 @@ void MaterialManagerLocal::dereference() const
     }
 }
 
-void MaterialManagerLocal::dereference(std::shared_ptr<Material> material) const
+void MaterialManagerLocal::dereference(std::shared_ptr<Material> material)
 {
     MaterialLoader::dereference(_materialMap, material);
 }

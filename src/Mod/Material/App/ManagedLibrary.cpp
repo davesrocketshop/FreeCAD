@@ -187,7 +187,7 @@ void ManagedLibrary::validate(const ManagedLibrary& remote) const
     }
 }
 
-std::string ManagedLibrary::getLocalPath(const std::string& path) const
+std::string ManagedLibrary::getLocalMaterialPath(const std::string& path) const
 {
     std::string filePath = getMaterialDirectoryPath();
     if (!(filePath.ends_with("/") || filePath.ends_with("\\"))) {
@@ -195,10 +195,10 @@ std::string ManagedLibrary::getLocalPath(const std::string& path) const
     }
 
     std::string clean = cleanPath(path);
-    std::string prefix = "/" + getLibraryName();
+    std::string prefix = "[" + getLibraryName() + "]";
     if (clean.starts_with(prefix)) {
         // Remove the library name from the path
-        filePath += clean.erase(clean.length() - prefix.length());
+        filePath += clean.erase(0, prefix.length());
     }
     else {
         filePath += clean;
@@ -209,8 +209,8 @@ std::string ManagedLibrary::getLocalPath(const std::string& path) const
 
 bool ManagedLibrary::isRoot(const std::string& path) const
 {
-    std::string localPath = getLocalPath(cleanPath(path));
-    std::string clean = getLocalPath("");
+    std::string localPath = getLocalMaterialPath(cleanPath(path));
+    std::string clean = getLocalMaterialPath("");
     return (clean == localPath);
 }
 
@@ -304,21 +304,34 @@ std::shared_ptr<Material> ManagedLibrary::addMaterial(
     const std::string& path
 )
 {
-    std::string filePath = getRelativePath(path);
+    return addMaterial(getMaterialLibrary(), material, path);
+}
+
+std::shared_ptr<Material> ManagedLibrary::addMaterial(
+    const std::shared_ptr<MaterialLibrary>& library,
+    const std::shared_ptr<Material>& material,
+    const std::string& path
+)
+{
+    std::string filePath = library->getRelativePath(path);
     Base::FileInfo info(filePath);
-    auto lib = LibraryManager::getManager().getMaterialLibrary(
-        LibraryManager::RepositoryLocal,
-        getLibraryName()
-    );
-    material->setLibrary(lib);
+    material->setLibrary(library);
     material->setDirectory(getLibraryPath(filePath, info.fileName()));
 
     return material;
 }
 
+std::shared_ptr<MaterialLibrary> ManagedLibrary::getMaterialLibrary()
+{
+    return LibraryManager::getManager().getMaterialLibrary(
+        LibraryManager::RepositoryLocal,
+        getLibraryName()
+    );
+}
+
 std::shared_ptr<Material> ManagedLibrary::getMaterialByPath(const std::string& path)
 {
-    std::string filePath = getLocalPath(path);
+    std::string filePath = getLocalMaterialPath(path);
     auto material = MaterialLoader::getMaterialFromPath(*this, filePath);
     if (!material) {
         throw MaterialNotFound();

@@ -252,7 +252,7 @@ public:
 
     std::string getModelByName(const std::string& name) const;
 
-    bool getDereferenced() const
+    bool isDereferenced() const
     {
         return _dereferenced;
     }

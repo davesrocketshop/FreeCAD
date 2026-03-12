@@ -41,6 +41,7 @@ class ModelLoader;
 class ModelLibrary;
 class ModelManagerLocal;
 class Material;
+class MaterialLibrary;
 class MaterialManagerLocal;
 
 class MaterialsExport ManagedLibrary: public Base::BaseClass
@@ -157,7 +158,7 @@ public:
         return !operator==(library);
     }
 
-    std::string getLocalPath(const std::string& path) const;
+    std::string getLocalMaterialPath(const std::string& path) const;
     std::string getLibraryPath(const std::string& path, const std::string& filename) const;
     bool isRoot(const std::string& path) const;
 
@@ -176,6 +177,11 @@ public:
         const std::shared_ptr<std::multimap<std::string, std::shared_ptr<Model>>>& multiMap
     );
 
+    std::shared_ptr<Material> addMaterial(
+        const std::shared_ptr<MaterialLibrary>& library,
+        const std::shared_ptr<Material>& material,
+        const std::string& path
+    );
     std::shared_ptr<Material> addMaterial(
         const std::shared_ptr<Material>& material,
         const std::string& path
@@ -213,6 +219,7 @@ private:
 
     QByteArray loadByteArrayFromFile(const std::string& filePath) const;
     std::shared_ptr<ModelLibrary> getModelLibrary();
+    std::shared_ptr<MaterialLibrary> getMaterialLibrary();
 };
 
 }  // namespace Materials
