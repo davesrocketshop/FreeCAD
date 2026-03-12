@@ -55,6 +55,8 @@ protected:
 
         _modelManager = &(Materials::ModelManager::getManager());
         _libraryManager = &(Materials::LibraryManager::getManager());
+
+        _modelManager->refresh();
     }
 
     void TearDown() override {
@@ -102,6 +104,7 @@ TEST_F(TestModel, TestModelLoad)
     ASSERT_NE(_modelManager, nullptr);
 
     auto density = _modelManager->getModel("454661e5-265b-4320-8e6f-fcf6223ac3af");
+    ASSERT_TRUE(density->isDereferenced());
     EXPECT_EQ(density->getName(), "Density");
     EXPECT_EQ(density->getUUID(), "454661e5-265b-4320-8e6f-fcf6223ac3af");
 
@@ -118,6 +121,7 @@ TEST_F(TestModel, TestModelByPath)
         "Mechanical/LinearElastic.yml",
         "System"));
     EXPECT_NE(&linearElastic, nullptr);
+    ASSERT_TRUE(linearElastic->isDereferenced());
     EXPECT_EQ(linearElastic->getName(), "Linear Elastic");
     EXPECT_EQ(linearElastic->getUUID(), "7b561d1d-fb9b-44f6-9da9-56a4f74d7536");
 
@@ -127,6 +131,7 @@ TEST_F(TestModel, TestModelByPath)
         "/Mechanical/LinearElastic.yml",
         "System"));
     EXPECT_NE(&linearElastic2, nullptr);
+    ASSERT_TRUE(linearElastic2->isDereferenced());
     EXPECT_EQ(linearElastic2->getName(), "Linear Elastic");
     EXPECT_EQ(linearElastic2->getUUID(), "7b561d1d-fb9b-44f6-9da9-56a4f74d7536");
 
@@ -136,11 +141,13 @@ TEST_F(TestModel, TestModelByPath)
         "[System]/Mechanical/LinearElastic.yml",
         "System"));
     EXPECT_NE(&linearElastic3, nullptr);
+    ASSERT_TRUE(linearElastic3->isDereferenced());
     EXPECT_EQ(linearElastic3->getName(), "Linear Elastic");
     EXPECT_EQ(linearElastic3->getUUID(), "7b561d1d-fb9b-44f6-9da9-56a4f74d7536");
 
     // Test with the file system path
     ASSERT_NO_THROW(linearElastic->getLibrary());
+    ASSERT_TRUE(linearElastic->getLibrary());
     ASSERT_NO_THROW(linearElastic->getLibrary()->getName());
     ASSERT_NO_THROW(linearElastic->getLibrary()->getDirectoryPath());
     EXPECT_EQ(linearElastic->getLibrary()->getName(), "System");
@@ -149,6 +156,7 @@ TEST_F(TestModel, TestModelByPath)
     ASSERT_NO_THROW(_modelManager->getModelByPath(path));
     auto linearElastic4 = _modelManager->getModelByPath(path);
     EXPECT_NE(&linearElastic4, nullptr);
+    ASSERT_TRUE(linearElastic4->isDereferenced());
     EXPECT_EQ(linearElastic4->getName(), "Linear Elastic");
     EXPECT_EQ(linearElastic4->getUUID(), "7b561d1d-fb9b-44f6-9da9-56a4f74d7536");
 }
@@ -159,6 +167,7 @@ TEST_F(TestModel, TestTestModel)
 
     // Load 'Test Model.yml'
     auto testModel = _modelManager->getModel("34d0583d-f999-49ba-99e6-aa40bd5c3a6b");
+    ASSERT_TRUE(testModel->isDereferenced());
     EXPECT_EQ(testModel->getName(), "Test Model");
     EXPECT_EQ(testModel->getUUID(), "34d0583d-f999-49ba-99e6-aa40bd5c3a6b");
 

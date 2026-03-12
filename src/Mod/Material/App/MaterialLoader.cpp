@@ -538,7 +538,7 @@ void MaterialLoader::dereference(
 )
 {
     // Avoid recursion
-    if (material->getDereferenced()) {
+    if (material->isDereferenced()) {
         return;
     }
 

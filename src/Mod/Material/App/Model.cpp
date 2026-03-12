@@ -167,9 +167,23 @@ Model::Model(
     , _dereferencing(false)
 {}
 
+std::shared_ptr<ModelLibrary> Model::getLibrary() const
+{
+    if (_library) {
+        return _library;
+    }
+
+    throw InvalidLibrary();
+}
+
 bool Model::isDisabled() const
 {
-    return _library->isDisabled();
+    if (_library) {
+        return _library->isDisabled();
+    }
+
+    // Model is old format
+    return false;
 }
 
 std::string Model::getDirectory() const

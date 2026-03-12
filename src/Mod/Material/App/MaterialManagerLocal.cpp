@@ -317,6 +317,7 @@ std::shared_ptr<Material> MaterialManagerLocal::getMaterialByPath(const std::str
                         auto material
                             = MaterialConfigLoader::getMaterialFromPath(materialLibrary, path);
                         if (material) {
+                            dereference(material);
                             (*_materialMap)[material->getUUID()]
                                 = materialLibrary->addMaterial(material, path);
                         }
@@ -335,6 +336,7 @@ std::shared_ptr<Material> MaterialManagerLocal::getMaterialByPath(const std::str
 
         if (MaterialConfigLoader::isConfigStyle(path)) {
             auto material = MaterialConfigLoader::getMaterialFromPath(nullptr, path);
+            dereference(material);
 
             return material;
         }
@@ -353,7 +355,9 @@ std::shared_ptr<Material> MaterialManagerLocal::getMaterialByPath(
         auto materialLibrary
             = std::make_shared<Materials::MaterialLibraryLocal>(library);
         if (materialLibrary) {
-            return materialLibrary->getMaterialByPath(path);  // May throw MaterialNotFound
+            auto material = materialLibrary->getMaterialByPath(path);  // May throw MaterialNotFound
+            dereference(material);
+            return material;
         }
     }
 
