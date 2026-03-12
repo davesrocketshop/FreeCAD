@@ -33,6 +33,9 @@ class SoMaterial;
 class SoSwitch;
 class SoTexture2;
 class SoTexture3;
+class SoTextureCoordinateEnvironment;
+class SoSeparator;
+class SoSphere;
 
 namespace App
 {
@@ -71,8 +74,12 @@ public:
 private:
     SoSwitch* pcSwitchAppearance {nullptr};
     SoSwitch* pcSwitchTexture {nullptr};
+    SoGroup* pcTextureGroup2D {nullptr};
     SoTexture2* pcShapeTexture2D {nullptr};
     SoGroup* pcTextureGroup3D {nullptr};
+    SoTextureCoordinateEnvironment* pcTextureEnvironment {nullptr};
+
+    SoSphere* pcTextureSphere {nullptr};
 };
 
 class GuiExport ViewProviderFaceTexture: public Gui::ViewProviderTextureExtension

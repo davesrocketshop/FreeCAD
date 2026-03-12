@@ -746,7 +746,7 @@ void ViewProviderPartExt::setHighlightedFaces(const std::vector<App::Material>& 
     }
     else if (size == 1) {
         pcFaceBind->value = SoMaterialBinding::OVERALL;
-        setCoinAppearance(materials[0]);
+        texture.setCoinAppearance(pcShapeMaterial, materials[0]);
     }
 }
 
