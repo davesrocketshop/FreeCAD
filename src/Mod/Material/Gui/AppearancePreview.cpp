@@ -149,6 +149,22 @@ AppearancePreview::AppearancePreview(QWidget* parent)
     _group->addChild(_switch);
     _group->addChild(new SoSphere());
 
+    SoTranslation* coneTranslation = new SoTranslation();
+    coneTranslation->translation.setValue(1.0, 0, 1.0);
+    _group->addChild(coneTranslation);
+    auto cone = new SoCone();
+    cone->bottomRadius.setValue(0.5);
+    _group->addChild(cone);
+
+    SoTranslation* cubeTranslation = new SoTranslation();
+    cubeTranslation->translation.setValue(-2.5, -0.75, 1.0);
+    _group->addChild(cubeTranslation);
+    auto cube = new SoCube();
+    cube->width.setValue(1.0);
+    cube->height.setValue(1.0);
+    cube->depth.setValue(1.0);
+    _group->addChild(cube);
+
     setCameraType(SoOrthographicCamera::getClassTypeId());
     setViewDirection(SbVec3f(1, 1, -5));
     viewAll();
@@ -253,6 +269,7 @@ void AppearancePreview::setTexture(const QImage& image)
     SoSFImage texture;
     Gui::BitmapFactory().convert(image, texture);
     _texture->image = texture;
+    // _texture->model = SoTexture2::DECAL;
 }
 
 void AppearancePreview::setTextureScaling(double scale)
