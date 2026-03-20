@@ -88,18 +88,9 @@ public:
         _readOnly = readOnly;
     }
 
-    QString getDirectory() const
-    {
-        return _directory;
-    }
-    void setDirectory(const QString& directory)
-    {
-        _directory = directory;
-    }
-    QString getDirectoryPath() const
-    {
-        return QDir(_directory).absolutePath();
-    }
+    QString getDirectory() const;
+    void setDirectory(const QString& directory);
+    QString getDirectoryPath() const;
 
     bool operator==(const Library& library) const;
     bool operator!=(const Library& library) const
@@ -115,15 +106,20 @@ public:
     // Validate a remote library against this one (a local library)
     void validate(const Library& remote) const;
 
+    static QString cleanPath(const QString& path);
+
 private:
     QString _name;
     QString _directory;
     QByteArray _icon;
     bool _readOnly;
+    bool _caseSensitivePath;
 
     bool _local;
 
     QByteArray loadByteArrayFromFile(const QString& filePath) const;
+    void setCaseSensitivity();
+    Qt::CaseSensitivity caseSensitivity() const;
 };
 
 class MaterialsExport LibraryObject

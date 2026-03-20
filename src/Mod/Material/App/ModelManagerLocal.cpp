@@ -186,7 +186,7 @@ std::shared_ptr<Model> ModelManagerLocal::getModel(const QString& uuid) const
 
 std::shared_ptr<Model> ModelManagerLocal::getModelByPath(const QString& path) const
 {
-    QString cleanPath = QDir::cleanPath(path);
+    QString cleanPath = Library::cleanPath(path);
 
     for (auto& library : *_libraryList) {
         if (library->isLocal()) {

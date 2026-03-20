@@ -313,7 +313,7 @@ std::shared_ptr<Material> MaterialManagerLocal::getMaterial(const QString& uuid)
 
 std::shared_ptr<Material> MaterialManagerLocal::getMaterialByPath(const QString& path) const
 {
-    QString cleanPath = QDir::cleanPath(path);
+    QString cleanPath = Library::cleanPath(path);
 
     for (auto& library : *_libraryList) {
         if (library->isLocal()) {
