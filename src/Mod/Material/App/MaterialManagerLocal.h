@@ -137,7 +137,7 @@ private:
     /*
      * Map of materials using the UUID as the key
      */
-    static std::shared_ptr<std::map<std::string, std::shared_ptr<Material>>> _materialMap;
+    static std::shared_ptr<std::map<std::string, std::shared_ptr<Material>>> _materialUUIDMap;
 
     static QMutex _mutex;
 

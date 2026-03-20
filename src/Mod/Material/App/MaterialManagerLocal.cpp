@@ -44,7 +44,7 @@ using namespace Materials;
 
 /* TRANSLATOR Material::Materials */
 
-std::shared_ptr<std::map<std::string, std::shared_ptr<Material>>> MaterialManagerLocal::_materialMap
+std::shared_ptr<std::map<std::string, std::shared_ptr<Material>>> MaterialManagerLocal::_materialUUIDMap
     = nullptr;
 QMutex MaterialManagerLocal::_mutex;
 
@@ -59,11 +59,11 @@ void MaterialManagerLocal::initLibraries()
 {
     QMutexLocker locker(&_mutex);
 
-    if (_materialMap == nullptr) {
+    if (_materialUUIDMap == nullptr) {
         // Load the models first
         ModelManager::getManager();
 
-        _materialMap = std::make_shared<std::map<std::string, std::shared_ptr<Material>>>();
+        _materialUUIDMap = std::make_shared<std::map<std::string, std::shared_ptr<Material>>>();
 
         // Load the libraries
         loadLibraries();
@@ -74,13 +74,13 @@ void MaterialManagerLocal::cleanup()
 {
     QMutexLocker locker(&_mutex);
 
-    if (_materialMap) {
-        for (auto& it : *_materialMap) {
+    if (_materialUUIDMap) {
+        for (auto& it : *_materialUUIDMap) {
             // This is needed to resolve cyclic dependencies
             it.second->setLibrary(nullptr);
         }
-        _materialMap->clear();
-        // _materialMap = nullptr;
+        _materialUUIDMap->clear();
+        // _materialUUIDMap = nullptr;
     }
 }
 
@@ -126,7 +126,7 @@ void MaterialManagerLocal::remapLibraries(
         for (auto it = libraries->begin(); it != libraries->end(); it++) {
             auto local = std::make_shared<MaterialLibraryLocal>(*it);
             if (!local->isDisabled()) {
-                local->remapMaterials(_materialMap);
+                local->remapMaterials(_materialUUIDMap);
             }
         }
     }
@@ -144,7 +144,7 @@ std::shared_ptr<std::vector<LibraryObject>> MaterialManagerLocal::libraryMateria
 {
     auto materials = std::make_shared<std::vector<LibraryObject>>();
 
-    for (auto& it : *_materialMap) {
+    for (auto& it : *_materialUUIDMap) {
         // This is needed to resolve cyclic dependencies
         auto library = it.second->getLibrary();
         if (library->isName(libraryName)) {
@@ -180,7 +180,7 @@ std::shared_ptr<std::vector<LibraryObject>> MaterialManagerLocal::libraryMateria
 {
     auto materials = std::make_shared<std::vector<LibraryObject>>();
 
-    for (auto& it : *_materialMap) {
+    for (auto& it : *_materialUUIDMap) {
         // This is needed to resolve cyclic dependencies
         auto library = it.second->getLibrary();
         if (library->isName(libraryName)) {
@@ -275,7 +275,7 @@ void MaterialManagerLocal::updateMovedMaterials(
 )
 {
     auto from = sourceLibrary->getLocalPath(sourcePath);
-    for (auto it : *_materialMap) {
+    for (auto it : *_materialUUIDMap) {
         auto material = it.second;
         if (*material->getLibrary() == *sourceLibrary) {
             if (material->getDirectory().starts_with(sourcePath)) {
@@ -312,13 +312,13 @@ void MaterialManagerLocal::deleteRecursive(
 
 std::shared_ptr<std::map<std::string, std::shared_ptr<Material>>> MaterialManagerLocal::getLocalMaterials() const
 {
-    return _materialMap;
+    return _materialUUIDMap;
 }
 
 std::shared_ptr<Material> MaterialManagerLocal::getMaterial(const std::string& uuid) const
 {
     try {
-        return _materialMap->at(uuid);
+        return _materialUUIDMap->at(uuid);
     }
     catch (std::out_of_range&) {
         throw MaterialNotFound();
@@ -347,8 +347,9 @@ std::shared_ptr<Material> MaterialManagerLocal::getMaterialByPath(const std::str
                         auto material
                             = MaterialConfigLoader::getMaterialFromPath(materialLibrary, path);
                         if (material) {
-                            (*_materialMap)[material->getUUID()]
-                                = materialLibrary->addMaterial(material, path);
+                            // (*_materialUUIDMap)[material->getUUID()]
+                            //     = std::make_shared<Material>(*materialLibrary->addMaterial(material, path));
+                            _materialUUIDMap->insert({material->getUUID(), materialLibrary->addMaterial(material, path)});
                         }
 
                         dereference(material);
@@ -447,7 +448,7 @@ void MaterialManagerLocal::remove(const std::string& uuid)
         if (!file.deleteFile()) {
             Base::Console().log("Unable to remove '%s'\n", path.c_str());
         }
-        _materialMap->erase(uuid);
+        _materialUUIDMap->erase(uuid);
     }
     catch (const MaterialNotFound &) {
         // Nothing to remove
@@ -466,7 +467,7 @@ void MaterialManagerLocal::saveMaterial(
     if (library->isLocal()) {
         auto newMaterial = library->saveMaterial(material, path, overwrite, saveAsCopy, saveInherited);
         newMaterial->resetEditState();
-        (*_materialMap)[newMaterial->getUUID()] = newMaterial;
+        (*_materialUUIDMap)[newMaterial->getUUID()] = newMaterial;
     }
     else {
         throw LibraryNotFound();
@@ -504,7 +505,7 @@ std::shared_ptr<std::map<std::string, std::shared_ptr<Material>>> MaterialManage
     std::shared_ptr<std::map<std::string, std::shared_ptr<Material>>> dict
         = std::make_shared<std::map<std::string, std::shared_ptr<Material>>>();
 
-    for (auto& it : *_materialMap) {
+    for (auto& it : *_materialUUIDMap) {
         std::string key = it.first;
         auto material = it.second;
 
@@ -523,7 +524,7 @@ std::shared_ptr<std::map<std::string, std::shared_ptr<Material>>> MaterialManage
     std::shared_ptr<std::map<std::string, std::shared_ptr<Material>>> dict
         = std::make_shared<std::map<std::string, std::shared_ptr<Material>>>();
 
-    for (auto& it : *_materialMap) {
+    for (auto& it : *_materialUUIDMap) {
         std::string key = it.first;
         auto material = it.second;
 
@@ -538,21 +539,21 @@ std::shared_ptr<std::map<std::string, std::shared_ptr<Material>>> MaterialManage
 void MaterialManagerLocal::dereference()
 {
     // First clear the inheritences
-    for (auto& it : *_materialMap) {
+    for (auto& it : *_materialUUIDMap) {
         auto material = it.second;
         material->clearDereferenced();
         material->clearInherited();
     }
 
     // Run the dereference again
-    for (auto& it : *_materialMap) {
+    for (auto& it : *_materialUUIDMap) {
         dereference(it.second);
     }
 }
 
 void MaterialManagerLocal::dereference(std::shared_ptr<Material> material)
 {
-    MaterialLoader::dereference(_materialMap, material);
+    MaterialLoader::dereference(_materialUUIDMap, material);
 }
 
 std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>> MaterialManagerLocal::getConfiguredLibraries(
