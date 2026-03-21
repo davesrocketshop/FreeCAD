@@ -36,6 +36,8 @@
 #include <Mod/Part/App/PartFeature.h>
 #include <Mod/Part/PartGlobal.h>
 
+#include "ViewProviderPartTextureExtension.h"
+
 
 class TopoDS_Shape;
 class TopoDS_Edge;

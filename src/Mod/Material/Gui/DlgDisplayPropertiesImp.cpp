@@ -28,7 +28,7 @@
 
 #include <Base/Console.h>
 #include <Gui/Application.h>
-#include <Gui/Dialogs/DlgMaterialPropertiesImp.h>
+#include <Gui/Dialogs/DlgAppearancePropertiesImp.h>
 #include <Gui/DockWindowManager.h>
 #include <Gui/Document.h>
 #include <Gui/Selection/Selection.h>
@@ -363,7 +363,7 @@ void DlgDisplayPropertiesImp::reject()
 void DlgDisplayPropertiesImp::onButtonCustomAppearanceClicked()
 {
     std::vector<Gui::ViewProvider*> Provider = getSelection();
-    Gui::Dialog::DlgMaterialPropertiesImp dlg(this);
+    Gui::Dialog::DlgAppearancePropertiesImp dlg(this);
     if (!Provider.empty()) {
         if (auto vp = dynamic_cast<Gui::ViewProviderGeometryObject*>(Provider.front())) {
             App::Material mat = vp->ShapeAppearance[0];
@@ -386,9 +386,9 @@ void DlgDisplayPropertiesImp::onButtonCustomAppearanceClicked()
 void DlgDisplayPropertiesImp::onButtonColorPlotClicked()
 {
     std::vector<Gui::ViewProvider*> Provider = getSelection();
-    static QPointer<Gui::Dialog::DlgMaterialPropertiesImp> dlg = nullptr;
+    static QPointer<Gui::Dialog::DlgAppearancePropertiesImp> dlg = nullptr;
     if (!dlg) {
-        dlg = new Gui::Dialog::DlgMaterialPropertiesImp(this);
+        dlg = new Gui::Dialog::DlgAppearancePropertiesImp(this);
     }
     dlg->setModal(false);
     dlg->setAttribute(Qt::WA_DeleteOnClose);

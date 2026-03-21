@@ -28,12 +28,16 @@
 #include <Inventor/nodes/SoSwitch.h>
 #include <Inventor/nodes/SoTexture2.h>
 #include <Inventor/nodes/SoTexture3.h>
+#include <Inventor/nodes/SoTextureCoordinateEnvironment.h>
+#include <Inventor/nodes/SoSeparator.h>
+#include <Inventor/nodes/SoSphere.h>
 
 
 #include "ViewProviderTextureExtension.h"
-#include <Gui/BitmapFactory.h>
 #include <App/Material.h>
-
+#include <Base/Console.h>
+#include <Gui/BitmapFactory.h>
+#include <Gui/ViewProviderDocumentObject.h>
 
 using namespace Gui;
 
@@ -52,13 +56,23 @@ ViewProviderTextureExtension::ViewProviderTextureExtension()
     pcSwitchTexture->ref();
     pcSwitchTexture->setName("SwitchTexture");
 
+    pcTextureGroup2D = new SoGroup;
+    pcTextureGroup2D->ref();
+    pcTextureGroup2D->setName("TextureGroup2D");
     pcShapeTexture2D = new SoTexture2;
     pcShapeTexture2D->ref();
     pcShapeTexture2D->setName("ShapeTexture2D");
+    pcTextureEnvironment = new SoTextureCoordinateEnvironment();
+    pcTextureEnvironment->ref();
+    pcTextureEnvironment->setName("TextureCoordinateEnvironment");
 
     pcTextureGroup3D = new SoGroup;
     pcTextureGroup3D->ref();
     pcTextureGroup3D->setName("TextureGroup3D");
+
+    pcTextureSphere = new SoSphere;
+    pcTextureSphere->ref();
+    pcTextureSphere->setName("TextureSphere");
 }
 
 void ViewProviderTextureExtension::setup(SoMaterial* pcShapeMaterial)
@@ -66,7 +80,11 @@ void ViewProviderTextureExtension::setup(SoMaterial* pcShapeMaterial)
     // Materials go first, with textured faces drawing over them
     pcSwitchAppearance->addChild(pcShapeMaterial);
     pcSwitchAppearance->addChild(pcSwitchTexture);
-    pcSwitchTexture->addChild(pcShapeTexture2D);
+    pcSwitchTexture->addChild(pcTextureGroup2D);
+    // pcSwitchTexture->addChild(pcShapeTexture2D);
+    pcTextureGroup2D->addChild(pcShapeTexture2D);
+    pcTextureGroup2D->addChild(pcTextureEnvironment);
+    // pcTextureGroup2D->addChild(pcTextureSphere);
     pcSwitchTexture->addChild(pcTextureGroup3D);
     pcSwitchAppearance->whichChild.setValue(0);
     pcSwitchTexture->whichChild.setValue(SO_SWITCH_NONE);
@@ -74,8 +92,11 @@ void ViewProviderTextureExtension::setup(SoMaterial* pcShapeMaterial)
 
 ViewProviderTextureExtension::~ViewProviderTextureExtension()
 {
+    pcTextureSphere->unref();
+    pcTextureEnvironment->unref();
     pcSwitchAppearance->unref();
     pcSwitchTexture->unref();
+    pcTextureGroup2D->unref();
     pcShapeTexture2D->unref();
     pcTextureGroup3D->unref();
 }
@@ -99,7 +120,17 @@ void ViewProviderTextureExtension::setCoinAppearance(
         activateTexture2D();
 
         QByteArray by = QByteArray::fromBase64(QString::fromStdString(source.image).toUtf8());
-        auto image = QImage::fromData(by, "PNG");  //.scaled(64, 64, Qt::KeepAspectRatio);
+        auto image = QImage::fromData(by);  //.scaled(64, 64, Qt::KeepAspectRatio);
+        if (image.isNull()) {
+            Base::Console().log("Failed to load texture image\n");
+            activateMaterial();
+        }
+        else {
+            activateTexture2D();
+            SoSFImage texture;
+            Gui::BitmapFactory().convert(image, texture);
+            pcShapeTexture2D->image = texture;
+            pcShapeTexture2D->model = SoTexture2::DECAL;
 
         SoSFImage texture;
         Gui::BitmapFactory().convert(image, texture);

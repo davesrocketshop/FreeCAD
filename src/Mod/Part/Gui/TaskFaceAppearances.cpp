@@ -47,7 +47,7 @@
 #include <Base/Tools.h>
 #include <Gui/Application.h>
 #include <Gui/Control.h>
-#include <Gui/Dialogs/DlgMaterialPropertiesImp.h>
+#include <Gui/Dialogs/DlgAppearancePropertiesImp.h>
 #include <Gui/Document.h>
 #include <Gui/MainWindow.h>
 #include <Gui/Selection/Selection.h>
@@ -465,7 +465,7 @@ int FaceAppearances::getFirstIndex() const
  */
 void FaceAppearances::onButtonCustomAppearanceClicked()
 {
-    Gui::Dialog::DlgMaterialPropertiesImp dlg(this);
+    Gui::Dialog::DlgAppearancePropertiesImp dlg(this);
     App::Material mat = d->perface[getFirstIndex()];
     dlg.setCustomMaterial(mat);
     dlg.setDefaultMaterial(mat);

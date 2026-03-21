@@ -182,6 +182,9 @@ SET(PartGui_SRCS
     ViewProviderGridExtension.h
     ViewProviderHelixParametric.cpp
     ViewProviderHelixParametric.h
+    ViewProviderPartTextureExtension.cpp
+    ViewProviderPartTextureExtension.h
+    ViewProviderPlaneParametric.h
     ViewProviderPlaneParametric.cpp
     ViewProviderPlaneParametric.h
     ViewProviderSphereParametric.cpp
