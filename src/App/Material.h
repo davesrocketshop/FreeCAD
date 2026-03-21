@@ -62,6 +62,21 @@ public:
         USER_DEFINED
     };
 
+    enum TextureMode
+    {
+        NONE,
+        DECAL,
+        MODULATE,
+        BLEND,
+        REPLACE
+    };
+
+    enum TextureWrapMode
+    {
+        REPEAT,
+        CLAMP
+    };
+
 public:
     /** @name Constructors
      */
@@ -130,10 +145,17 @@ public:
     Base::Color diffuseColor;  /**< Defines the diffuse color. */
     Base::Color specularColor; /**< Defines the specular color. */
     Base::Color emissiveColor; /**< Defines the emissive color. */
+    Base::Color blendColor;    /**< Defines the blend color for textures. */
     float shininess;
     float transparency;
     std::string image;
     std::string imagePath;
+    std::string bumpImage;
+    std::string bumpImagePath;
+    TextureMode textureMode;
+    TextureWrapMode textureRWrap;
+    TextureWrapMode textureSWrap;
+    TextureWrapMode textureTWrap;
     std::string uuid;
     // NOLINTEND
     //@}

@@ -68,6 +68,7 @@
 #include "ViewProviderImport.h"
 #include "ViewProviderLineParametric.h"
 #include "ViewProviderMirror.h"
+#include "ViewProviderPartTextureExtension.h"
 #include "ViewProviderPlaneParametric.h"
 #include "ViewProviderPointParametric.h"
 #include "ViewProviderPreviewExtension.h"
@@ -181,6 +182,7 @@ PyMOD_INIT_FUNC(PartGui)
     PartGui::ViewProviderLCS                        ::init();
     PartGui::ViewProviderPartExt                    ::init();
     PartGui::ViewProviderPart                       ::init();
+    PartGui::ViewProviderPartTextureExtension       ::init();
     PartGui::ViewProviderPrimitive                  ::init();
     PartGui::ViewProviderEllipsoid                  ::init();
     PartGui::ViewProviderPython                     ::init();

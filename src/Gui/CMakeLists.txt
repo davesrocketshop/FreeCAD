@@ -437,6 +437,7 @@ SET(Gui_UIC_SRCS
     DemoMode.ui
     Dialogs/DlgActions.ui
     Dialogs/DlgActivateWindow.ui
+    Dialogs/DlgAppearanceProperties.ui
     Dialogs/DlgUnitsCalculator.ui
     Dialogs/DlgAuthorization.ui
     Dialogs/DlgChooseIcon.ui
@@ -446,7 +447,6 @@ SET(Gui_UIC_SRCS
     Dialogs/DlgMacroExecute.ui
     Dialogs/DlgRunExternal.ui
     Dialogs/DlgMacroRecord.ui
-    Dialogs/DlgMaterialProperties.ui
     Dialogs/DlgOnlineHelp.ui
     Dialogs/DlgParameter.ui
     Dialogs/DlgParameterFind.ui
@@ -557,6 +557,7 @@ SET(Dialog_CPP_SRCS
     DemoMode.cpp
     Dialogs/DlgAbout.cpp
     Dialogs/DlgActivateWindowImp.cpp
+    Dialogs/DlgAppearancePropertiesImp.cpp
     Dialogs/DlgCreateNewPreferencePackImp.cpp
     Dialogs/DlgUnitsCalculatorImp.cpp
     Dialogs/DlgInputDialogImp.cpp
@@ -564,7 +565,6 @@ SET(Dialog_CPP_SRCS
     Dialogs/DlgRunExternal.cpp
     Dialogs/DlgEditFileIncludePropertyExternal.cpp
     Dialogs/DlgMacroRecordImp.cpp
-    Dialogs/DlgMaterialPropertiesImp.cpp
     Dialogs/DlgParameterImp.cpp
     Dialogs/DlgParameterFind.cpp
     Dialogs/DlgPreferencePackManagementImp.cpp
@@ -599,6 +599,7 @@ SET(Dialog_HPP_SRCS
     DemoMode.h
     Dialogs/DlgAbout.h
     Dialogs/DlgActivateWindowImp.h
+    Dialogs/DlgAppearancePropertiesImp.h
     Dialogs/DlgCreateNewPreferencePackImp.h
     Dialogs/DlgUnitsCalculatorImp.h
     Dialogs/DlgInputDialogImp.h
@@ -606,7 +607,6 @@ SET(Dialog_HPP_SRCS
     Dialogs/DlgRunExternal.h
     Dialogs/DlgEditFileIncludePropertyExternal.h
     Dialogs/DlgMacroRecordImp.h
-    Dialogs/DlgMaterialPropertiesImp.h
     Dialogs/DlgParameterImp.h
     Dialogs/DlgParameterFind.h
     Dialogs/DlgPreferencePackManagementImp.h
@@ -643,6 +643,7 @@ SET(Dialog_SRCS
     Clipping.ui
     DemoMode.ui
     Dialogs/DlgActivateWindow.ui
+    Dialogs/DlgAppearanceProperties.ui
     Dialogs/DlgUnitsCalculator.ui
     Dialogs/DlgAuthorization.ui
     Dialogs/DlgInputDialog.ui
@@ -652,7 +653,6 @@ SET(Dialog_SRCS
     Dialogs/DlgMacroExecute.ui
     Dialogs/DlgRunExternal.ui
     Dialogs/DlgMacroRecord.ui
-    Dialogs/DlgMaterialProperties.ui
     Dialogs/DlgParameter.ui
     Dialogs/DlgParameterFind.ui
     Dialogs/DlgPreferencePackManagement.ui
