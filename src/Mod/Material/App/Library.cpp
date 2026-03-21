@@ -22,7 +22,6 @@
  **************************************************************************/
 
 #include <string>
-#include <iostream>
 
 #include <App/Application.h>
 
@@ -107,10 +106,12 @@ void Library::setCaseSensitivity()
 {
     _caseSensitive = true;
     if (QDir(_directory).exists()) {
-        if (!QDir(_directory.toUpper()).exists()) {
+        auto upper = _directory.toUpper();
+        auto lower = _directory.toLower();
+        if ((_directory != upper) && QDir(upper).exists()) {
             _caseSensitive = false;
         }
-        else if (!QDir(_directory.toLower()).exists()) {
+        else if ((_directory != lower) && QDir(_directory.toLower()).exists()) {
             _caseSensitive = false;
         }
     }
