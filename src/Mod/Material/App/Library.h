@@ -115,7 +115,7 @@ private:
     QString _directory;
     QByteArray _icon;
     bool _readOnly;
-    bool _caseSensitivePath;
+    bool _caseSensitive;
 
     bool _local;
 

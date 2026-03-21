@@ -37,7 +37,7 @@ TYPESYSTEM_SOURCE(Materials::Library, Base::BaseClass)
 Library::Library(const QString& libraryName, const QString& iconPath, bool readOnly)
     : _name(libraryName)
     , _readOnly(readOnly)
-    , _caseSensitivePath(true)
+    , _caseSensitive(true)
     , _local(false)
 {
     setIcon(iconPath);
@@ -47,7 +47,7 @@ Library::Library(const QString& libraryName, const QByteArray& icon, bool readOn
     : _name(libraryName)
     , _icon(icon)
     , _readOnly(readOnly)
-    , _caseSensitivePath(true)
+    , _caseSensitive(true)
     , _local(false)
 {}
 
@@ -105,20 +105,20 @@ void Library::setDirectory(const QString& directory)
 
 void Library::setCaseSensitivity()
 {
-    _caseSensitivePath = true;
+    _caseSensitive = true;
     if (QDir(_directory).exists()) {
         if (!QDir(_directory.toUpper()).exists()) {
-            _caseSensitivePath = false;
+            _caseSensitive = false;
         }
         else if (!QDir(_directory.toLower()).exists()) {
-            _caseSensitivePath = false;
+            _caseSensitive = false;
         }
     }
 }
 
 Qt::CaseSensitivity Library::caseSensitivity() const
 {
-    return (_caseSensitivePath ? Qt::CaseSensitive : Qt::CaseInsensitive);
+    return (_caseSensitive ? Qt::CaseSensitive : Qt::CaseInsensitive);
 }
 
 QString Library::getDirectoryPath() const
