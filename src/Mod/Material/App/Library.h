@@ -106,7 +106,9 @@ public:
     // Validate a remote library against this one (a local library)
     void validate(const Library& remote) const;
 
-    static QString cleanPath(const QString& path);
+    static QString canonical(const QString& path);
+
+    Qt::CaseSensitivity caseSensitivity() const;
 
 private:
     QString _name;
@@ -119,7 +121,6 @@ private:
 
     QByteArray loadByteArrayFromFile(const QString& filePath) const;
     void setCaseSensitivity();
-    Qt::CaseSensitivity caseSensitivity() const;
 };
 
 class MaterialsExport LibraryObject

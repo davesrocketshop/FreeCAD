@@ -22,6 +22,7 @@
  **************************************************************************/
 
 #include <string>
+#include <iostream>
 
 #include <App/Application.h>
 
@@ -55,7 +56,7 @@ Library::Library(const QString& libraryName,
                  const QString& iconPath,
                  bool readOnly)
     : _name(libraryName)
-    , _directory(cleanPath(dir))
+    , _directory(canonical(dir))
     , _readOnly(readOnly)
     , _local(false)
 {
@@ -98,7 +99,7 @@ QString Library::getDirectory() const
 
 void Library::setDirectory(const QString& directory)
 {
-    _directory = cleanPath(directory);
+    _directory = canonical(directory);
     setCaseSensitivity();
 }
 
@@ -156,7 +157,7 @@ QString Library::getLocalPath(const QString& path) const
         filePath += QStringLiteral("/");
     }
 
-    QString clean = cleanPath(path);
+    QString clean = QDir::cleanPath(path);
     QString prefix = QStringLiteral("/") + getName();
     if (clean.startsWith(prefix)) {
         // Remove the library name from the path
@@ -179,7 +180,7 @@ bool Library::isRoot(const QString& path) const
 QString Library::getRelativePath(const QString& path) const
 {
     QString filePath;
-    QString clean = cleanPath(path);
+    QString clean = QDir::cleanPath(path);
     QString prefix = QStringLiteral("/") + getName();
     if (clean.startsWith(prefix)) {
         // Remove the library name from the path
@@ -216,7 +217,7 @@ QString Library::getLibraryPath(const QString& path, const QString& filename) co
     return filePath;
 }
 
-QString Library::cleanPath(const QString& path)
+QString Library::canonical(const QString& path)
 {
     QDir dir(path);
     return dir.canonicalPath();
