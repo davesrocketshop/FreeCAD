@@ -66,6 +66,12 @@ DlgAppearancePropertiesImp::DlgAppearancePropertiesImp(QWidget* parent, Qt::Wind
     else {
         ui->blendColor->setEnabled(false);
     }
+
+    ui->sWrapCombo->addItem(tr("Repeat"), static_cast<int>(App::Material::TextureWrapMode::REPEAT));
+    ui->sWrapCombo->addItem(tr("Clamp"), static_cast<int>(App::Material::TextureWrapMode::CLAMP));
+
+    ui->tWrapCombo->addItem(tr("Repeat"), static_cast<int>(App::Material::TextureWrapMode::REPEAT));
+    ui->tWrapCombo->addItem(tr("Clamp"), static_cast<int>(App::Material::TextureWrapMode::CLAMP));
 }
 
 DlgAppearancePropertiesImp::~DlgAppearancePropertiesImp() = default;

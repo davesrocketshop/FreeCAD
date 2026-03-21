@@ -24,6 +24,9 @@
 
 #pragma once
 
+#include <Inventor/nodes/SoTexture2.h>
+
+#include <App/Material.h>
 #include <Gui/ViewProviderExtensionPython.h>
 
 class SoCoordinate3;
@@ -31,16 +34,10 @@ class SoGroup;
 class SoIndexedFaceSet;
 class SoMaterial;
 class SoSwitch;
-class SoTexture2;
 class SoTexture3;
 class SoTextureCoordinateEnvironment;
 class SoSeparator;
 class SoSphere;
-
-namespace App
-{
-class Material;
-}
 
 namespace Gui
 {
@@ -70,6 +67,12 @@ public:
     void activateTexture3D();
     /** Mix of material and 3D textures */
     void activateMixed3D();
+
+protected:
+    SoTexture2::Model textureModel(const App::Material& source);
+    SoTexture2::Wrap textureWrapS(const App::Material& source);
+    SoTexture2::Wrap textureWrapT(const App::Material& source);
+    SoTexture2::Wrap textureWrap(const App::Material::TextureWrapMode& mode);
 
 private:
     SoSwitch* pcSwitchAppearance {nullptr};

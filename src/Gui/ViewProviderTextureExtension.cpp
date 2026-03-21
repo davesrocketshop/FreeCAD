@@ -116,7 +116,7 @@ void ViewProviderTextureExtension::setCoinAppearance(
     const App::Material& source
 )
 {
-    if (!source.image.empty()) {
+    if (source.textureMode != App::Material::NONE && !source.image.empty()) {
         activateTexture2D();
 
         QByteArray by = QByteArray::fromBase64(QString::fromStdString(source.image).toUtf8());
@@ -130,7 +130,11 @@ void ViewProviderTextureExtension::setCoinAppearance(
             SoSFImage texture;
             Gui::BitmapFactory().convert(image, texture);
             pcShapeTexture2D->image = texture;
-            pcShapeTexture2D->model = SoTexture2::DECAL;
+            pcShapeTexture2D->model = textureModel(source);
+            pcShapeTexture2D->wrapS = textureWrapS(source);
+            pcShapeTexture2D->wrapT = textureWrapT(source);
+            pcShapeTexture2D->blendColor
+                .setValue(source.blendColor.r, source.blendColor.g, source.blendColor.b);
         }
     }
     else {
@@ -172,6 +176,43 @@ void ViewProviderTextureExtension::activateMixed3D()
 {
     pcSwitchAppearance->whichChild.setValue(SO_SWITCH_ALL);
     pcSwitchTexture->whichChild.setValue(1);
+}
+
+SoTexture2::Model ViewProviderTextureExtension::textureModel(const App::Material& source)
+{
+    switch (source.textureMode) {
+        case App::Material::DECAL:
+            return SoTexture2::DECAL;
+        case App::Material::BLEND:
+            return SoTexture2::BLEND;
+        case App::Material::MODULATE:
+        case App::Material::REPLACE:  // Not supported in 3D
+        default:
+            break;
+    }
+    return SoTexture2::MODULATE;
+}
+
+SoTexture2::Wrap ViewProviderTextureExtension::textureWrapS(const App::Material& source)
+{
+    return textureWrap(source.textureSWrap);
+}
+
+SoTexture2::Wrap ViewProviderTextureExtension::textureWrapT(const App::Material& source)
+{
+    return textureWrap(source.textureTWrap);
+}
+
+SoTexture2::Wrap ViewProviderTextureExtension::textureWrap(const App::Material::TextureWrapMode& mode)
+{
+    switch (mode) {
+        case App::Material::CLAMP:
+            return SoTexture2::CLAMP;
+        case App::Material::REPEAT:
+        default:
+            break;
+    }
+    return SoTexture2::REPEAT;
 }
 
 // ------------------------------------------------------------------------------------------------

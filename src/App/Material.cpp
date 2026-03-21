@@ -41,6 +41,10 @@ Material::Material()
     : shininess {0.9000F}
     , transparency {}
     , _matType {}
+    , textureMode {NONE}
+    , textureRWrap {REPEAT}
+    , textureSWrap {REPEAT}
+    , textureTWrap {REPEAT}
 {
     setType(DEFAULT);
 }
@@ -49,6 +53,10 @@ Material::Material(const char* MatName)
     : shininess {0.9000F}
     , transparency {}
     , _matType {}
+    , textureMode {NONE}
+    , textureRWrap {REPEAT}
+    , textureSWrap {REPEAT}
+    , textureTWrap {REPEAT}
 {
     set(MatName);
 }
@@ -57,6 +65,10 @@ Material::Material(MaterialType MatType)
     : shininess {0.9000F}
     , transparency {}
     , _matType {}
+    , textureMode {NONE}
+    , textureRWrap {REPEAT}
+    , textureSWrap {REPEAT}
+    , textureTWrap {REPEAT}
 {
     setType(MatType);
 }
