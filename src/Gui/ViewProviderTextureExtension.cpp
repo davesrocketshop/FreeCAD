@@ -131,10 +131,7 @@ void ViewProviderTextureExtension::setCoinAppearance(
             Gui::BitmapFactory().convert(image, texture);
             pcShapeTexture2D->image = texture;
             pcShapeTexture2D->model = SoTexture2::DECAL;
-
-        SoSFImage texture;
-        Gui::BitmapFactory().convert(image, texture);
-        pcShapeTexture2D->image = texture;
+        }
     }
     else {
         activateMaterial();
