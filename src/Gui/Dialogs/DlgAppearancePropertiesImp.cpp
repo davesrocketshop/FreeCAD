@@ -58,7 +58,7 @@ DlgAppearancePropertiesImp::DlgAppearancePropertiesImp(QWidget* parent, Qt::Wind
     ui->textureModeCombo->addItem(tr("Decal"), static_cast<int>(App::Material::TextureMode::DECAL));
     ui->textureModeCombo->addItem(tr("Modulate"), static_cast<int>(App::Material::TextureMode::MODULATE));
     ui->textureModeCombo->addItem(tr("Blend"), static_cast<int>(App::Material::TextureMode::BLEND));
-    ui->textureModeCombo->addItem(tr("Replace"), static_cast<int>(App::Material::TextureMode::REPLACE));
+    // ui->textureModeCombo->addItem(tr("Replace"), static_cast<int>(App::Material::TextureMode::REPLACE));
 
     if (customMaterial.textureMode == App::Material::TextureMode::BLEND) {
         ui->blendColor->setEnabled(true);
@@ -192,9 +192,25 @@ void DlgAppearancePropertiesImp::onTextureModeChanged(int index)
 void DlgAppearancePropertiesImp::onTextureFileSelected(const QString& file)
 {
     customMaterial.imagePath = file.toStdString();
-    if (customMaterial.textureMode == App::Material::TextureMode::NONE) {
+    if (!customMaterial.imagePath.empty()) {
+        auto pixmap = QPixmap(QString::fromStdString(customMaterial.imagePath));
+        QBuffer buffer;
+        buffer.open(QIODevice::WriteOnly);
+        pixmap.save(&buffer, "PNG");
+        QByteArray base64 = buffer.data().toBase64();
+        customMaterial.image = base64.toStdString();
+        if (customMaterial.textureMode == App::Material::TextureMode::NONE) {
+            customMaterial.textureMode = App::Material::TextureMode::DECAL;
+            ui->textureModeCombo->setCurrentIndex(
+                ui->textureModeCombo->findData(static_cast<int>(App::Material::TextureMode::DECAL))
+            );
+        }
+    }
+    else {
+        customMaterial.image.clear();
+        customMaterial.textureMode = App::Material::TextureMode::NONE;
         ui->textureModeCombo->setCurrentIndex(
-            ui->textureModeCombo->findData(static_cast<int>(App::Material::TextureMode::DECAL))
+            ui->textureModeCombo->findData(static_cast<int>(App::Material::TextureMode::NONE))
         );
     }
 }
