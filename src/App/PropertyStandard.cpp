@@ -2812,10 +2812,17 @@ void PropertyMaterial::Save(Base::Writer& writer) const
                     << "\" diffuseColor=\"" << _cMat.diffuseColor.getPackedValue()
                     << "\" specularColor=\"" << _cMat.specularColor.getPackedValue()
                     << "\" emissiveColor=\"" << _cMat.emissiveColor.getPackedValue()
+                    << "\" blendColor=\"" << _cMat.blendColor.getPackedValue()
                     << "\" shininess=\"" << _cMat.shininess
                     << "\" transparency=\"" << _cMat.transparency
                     << "\" image=\"" << _cMat.image
                     << "\" imagePath=\"" << _cMat.imagePath
+                    << "\" bumpImage=\"" << _cMat.bumpImage
+                    << "\" bumpImagePath=\"" << _cMat.bumpImagePath
+                    << "\" textureMode=\"" << _cMat.textureMode
+                    << "\" textureRWrap=\"" << _cMat.textureRWrap
+                    << "\" textureSWrap=\"" << _cMat.textureSWrap
+                    << "\" textureTWrap=\"" << _cMat.textureTWrap
                     << "\" uuid=\"" << _cMat.uuid
                     << "\"/>" << std::endl;
     // clang-format on
@@ -2831,6 +2838,9 @@ void PropertyMaterial::Restore(Base::XMLReader& reader)
     _cMat.diffuseColor.setPackedValue(reader.getAttribute<unsigned long>("diffuseColor"));
     _cMat.specularColor.setPackedValue(reader.getAttribute<unsigned long>("specularColor"));
     _cMat.emissiveColor.setPackedValue(reader.getAttribute<unsigned long>("emissiveColor"));
+    if (reader.hasAttribute("blendColor")) {
+        _cMat.blendColor.setPackedValue(reader.getAttribute<unsigned long>("blendColor"));
+    }
     _cMat.shininess = (float)reader.getAttribute<double>("shininess");
     _cMat.transparency = (float)reader.getAttribute<double>("transparency");
     if (readerRequiresAlphaConversion(reader)) {
@@ -2841,6 +2851,32 @@ void PropertyMaterial::Restore(Base::XMLReader& reader)
     }
     if (reader.hasAttribute("imagePath")) {
         _cMat.imagePath = reader.getAttribute<const char*>("imagePath");
+    }
+    if (reader.hasAttribute("bumpImage")) {
+        _cMat.bumpImage = reader.getAttribute<const char*>("bumpImage");
+    }
+    if (reader.hasAttribute("bumpImagePath")) {
+        _cMat.bumpImagePath = reader.getAttribute<const char*>("bumpImagePath");
+    }
+    if (reader.hasAttribute("textureMode")) {
+        _cMat.textureMode = static_cast<Material::TextureMode>(
+            reader.getAttribute<int>("textureMode")
+        );
+    }
+    if (reader.hasAttribute("textureRWrap")) {
+        _cMat.textureRWrap = static_cast<Material::TextureWrapMode>(
+            reader.getAttribute<int>("textureRWrap")
+        );
+    }
+    if (reader.hasAttribute("textureSWrap")) {
+        _cMat.textureSWrap = static_cast<Material::TextureWrapMode>(
+            reader.getAttribute<int>("textureSWrap")
+        );
+    }
+    if (reader.hasAttribute("textureTWrap")) {
+        _cMat.textureTWrap = static_cast<Material::TextureWrapMode>(
+            reader.getAttribute<int>("textureTWrap")
+        );
     }
     if (reader.hasAttribute("uuid")) {
         _cMat.uuid = reader.getAttribute<const char*>("uuid");
@@ -3366,7 +3402,7 @@ void PropertyMaterialList::Save(Base::Writer& writer) const
     if (!writer.isForceXML()) {
         writer.Stream() << writer.ind() << "<MaterialList file=\""
                         << (getSize() ? writer.addFile(getName(), this) : "") << "\""
-                        << " version=\"3\"/>" << std::endl;
+                        << " version=\"4\"/>" << std::endl;
     }
 }
 
@@ -3398,6 +3434,7 @@ void PropertyMaterialList::SaveDocFile(Base::Writer& writer) const
         str << it.diffuseColor.getPackedValue();
         str << it.specularColor.getPackedValue();
         str << it.emissiveColor.getPackedValue();
+        str << it.blendColor.getPackedValue();
         str << it.shininess;
         str << it.transparency;
     }
@@ -3406,6 +3443,12 @@ void PropertyMaterialList::SaveDocFile(Base::Writer& writer) const
     for (const auto& it : _lValueList) {
         writeString(str, it.image);
         writeString(str, it.imagePath);
+        writeString(str, it.bumpImage);
+        writeString(str, it.bumpImagePath);
+        str << it.textureMode;
+        str << it.textureRWrap;
+        str << it.textureSWrap;
+        str << it.textureTWrap;
         writeString(str, it.uuid);
     }
 }
@@ -3427,8 +3470,10 @@ void PropertyMaterialList::RestoreDocFile(Base::Reader& reader)
         RestoreDocFileV0(count, reader);
     }
     else if (formatVersion == Version_3) {
-        // Default to the latest
         RestoreDocFileV3(reader);
+    }
+    else if (formatVersion == Version_4) {
+        RestoreDocFileV4(reader);
     }
     else {
         int32_t version;
@@ -3497,6 +3542,49 @@ void PropertyMaterialList::RestoreDocFileV3(Base::Reader& reader)
     for (auto& it : values) {
         readString(str, it.image);
         readString(str, it.imagePath);
+        readString(str, it.uuid);
+    }
+    convertAlpha(values);
+    setValues(values);
+}
+
+void PropertyMaterialList::RestoreDocFileV4(Base::Reader& reader)
+{
+    Base::InputStream str(reader);
+    uint32_t count = 0;
+    str >> count;
+    std::vector<Material> values(count);
+    uint32_t value {};  // must be 32 bit long
+    float valueF {};
+    for (auto& it : values) {
+        str >> value;
+        it.ambientColor.setPackedValue(value);
+        str >> value;
+        it.diffuseColor.setPackedValue(value);
+        str >> value;
+        it.specularColor.setPackedValue(value);
+        str >> value;
+        it.emissiveColor.setPackedValue(value);
+        str >> value;
+        it.blendColor.setPackedValue(value);
+        str >> valueF;
+        it.shininess = valueF;
+        str >> valueF;
+        it.transparency = valueF;
+    }
+    for (auto& it : values) {
+        readString(str, it.image);
+        readString(str, it.imagePath);
+        readString(str, it.bumpImage);
+        readString(str, it.bumpImagePath);
+        str >> value;
+        it.textureMode = static_cast<Material::TextureMode>(value);
+        str >> value;
+        it.textureRWrap = static_cast<Material::TextureWrapMode>(value);
+        str >> value;
+        it.textureSWrap = static_cast<Material::TextureWrapMode>(value);
+        str >> value;
+        it.textureTWrap = static_cast<Material::TextureWrapMode>(value);
         readString(str, it.uuid);
     }
     convertAlpha(values);

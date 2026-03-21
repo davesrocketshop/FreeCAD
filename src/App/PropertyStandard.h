@@ -1292,11 +1292,13 @@ private:
         Version_0,
         Version_1,
         Version_2,
-        Version_3
+        Version_3,
+        Version_4
     };
 
     void RestoreDocFileV0(uint32_t count, Base::Reader& reader);
     void RestoreDocFileV3(Base::Reader& reader);
+    void RestoreDocFileV4(Base::Reader& reader);
 
     void writeString(Base::OutputStream& str, const std::string& value) const;
     void readString(Base::InputStream& str, std::string& value);
