@@ -151,6 +151,12 @@ MaterialLibrary::getMaterialTree(const Materials::MaterialFilter& filter,
     return materialTree;
 }
 
+bool MaterialLibrary::ciStartsWith(const std::string& path, const std::string& prefix) const
+{
+    return proxy()->ciMaterialStartsWith(path, prefix);
+}
+
+
 /* TRANSLATOR Material::Materials */
 
 TYPESYSTEM_SOURCE(Materials::MaterialLibraryLocal, Materials::MaterialLibrary)

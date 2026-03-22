@@ -102,6 +102,11 @@ ModelLibrary::getModelTree(ModelFilter filter) const
     return modelTree;
 }
 
+bool ModelLibrary::ciStartsWith(const std::string& path, const std::string& prefix) const
+{
+    return proxy()->ciModelStartsWith(path, prefix);
+}
+
 TYPESYSTEM_SOURCE(Materials::ModelLibraryLocal, Materials::ModelLibrary)
 
 ModelLibraryLocal::ModelLibraryLocal()

@@ -150,7 +150,7 @@ std::shared_ptr<Model> ModelManagerLocal::getModelByPath(const std::string& path
     auto libraries = LibraryManager::getManager().getLocalModelLibraries(false);
     for (auto& library : *libraries) {
         auto localLibrary = std::make_shared<ModelLibraryLocal>(*library);
-        if (cleanPath.starts_with(localLibrary->getDirectory())) {
+        if (localLibrary->ciStartsWith(cleanPath, localLibrary->getDirectory())) {
             auto model = localLibrary->getModelByPath(cleanPath);
             ModelManager::dereference(model);
             return model;

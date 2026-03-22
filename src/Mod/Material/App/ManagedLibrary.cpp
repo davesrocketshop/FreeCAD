@@ -42,6 +42,8 @@ ManagedLibrary::ManagedLibrary(const std::string& libraryName, const std::string
     , _libraryName(libraryName)
     , _readOnly(readOnly)
     , _disabled(false)
+    , _modelCaseSensitive(true)
+    , _materialCaseSensitive(true)
     , _local(false)
     , _module(false)
 {
@@ -56,6 +58,8 @@ ManagedLibrary::ManagedLibrary(const std::string& libraryName, const QByteArray&
     , _icon(icon)
     , _readOnly(readOnly)
     , _disabled(false)
+    , _modelCaseSensitive(true)
+    , _materialCaseSensitive(true)
     , _local(false)
     , _module(false)
 {
@@ -73,10 +77,13 @@ ManagedLibrary::ManagedLibrary(
     , _materialDirectory(cleanPath(dir))
     , _readOnly(readOnly)
     , _disabled(false)
+    , _modelCaseSensitive(true)
+    , _materialCaseSensitive(true)
     , _local(false)
     , _module(false)
 {
     setIcon(iconPath);
+    setMaterialCaseSensitivity();
 
     _modelPathMap = std::make_shared<std::map<std::string, std::shared_ptr<Model>>>();
 }
@@ -251,4 +258,66 @@ QString ManagedLibrary::cleanPath(const QString& path)
 {
     QString clean = QDir::cleanPath(path);
     return clean;
+}
+
+void ManagedLibrary::setMaterialDirectory(const std::string& directory)
+{
+    _materialDirectory = cleanPath(directory);
+    setMaterialCaseSensitivity();
+}
+
+void ManagedLibrary::setModelDirectory(const std::string& directory)
+{
+    _modelDirectory = cleanPath(directory);
+    setModelCaseSensitivity();
+}
+
+void ManagedLibrary::setModelCaseSensitivity()
+{
+    _modelCaseSensitive = isPathCaseSensitive(_modelDirectory);
+}
+
+void ManagedLibrary::setMaterialCaseSensitivity()
+{
+    _materialCaseSensitive = isPathCaseSensitive(_materialDirectory);
+}
+
+bool ManagedLibrary::isPathCaseSensitive(const std::string& path) const
+{
+    bool caseSensitive = true;
+    auto qPath = QString::fromStdString(path);
+    if (QDir(qPath).exists()) {
+        auto upper = qPath.toUpper();
+        auto lower = qPath.toLower();
+        if ((qPath != upper) && QDir(upper).exists()) {
+            caseSensitive = false;
+        }
+        else if ((qPath != lower) && QDir(lower).exists()) {
+            caseSensitive = false;
+        }
+    }
+    return caseSensitive;
+}
+
+bool ManagedLibrary::ciModelStartsWith(const std::string& path, const std::string& prefix) const
+{
+    return ciStartsWith(path, prefix, _modelCaseSensitive);
+}
+
+bool ManagedLibrary::ciMaterialStartsWith(const std::string& path, const std::string& prefix) const
+{
+    return ciStartsWith(path, prefix, _materialCaseSensitive);
+}
+
+bool ManagedLibrary::ciStartsWith(const std::string& path, const std::string& prefix, bool caseSensitive) const
+{
+    if (caseSensitive) {
+        return path.starts_with(prefix);
+    }
+    else {
+        return QString::fromStdString(path).startsWith(
+                    QString::fromStdString(prefix),
+                    Qt::CaseInsensitive
+                );
+    }
 }

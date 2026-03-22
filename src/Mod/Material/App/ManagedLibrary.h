@@ -133,19 +133,13 @@ public:
     {
         return _materialDirectory;
     }
-    void setMaterialDirectory(const std::string& directory)
-    {
-        _materialDirectory = cleanPath(directory);
-    }
+    void setMaterialDirectory(const std::string& directory);
 
     std::string getModelDirectory() const
     {
         return _modelDirectory;
     }
-    void setModelDirectory(const std::string& directory)
-    {
-        _modelDirectory = cleanPath(directory);
-    }
+    void setModelDirectory(const std::string& directory);
     std::string getMaterialDirectoryPath() const;
     std::string getModelDirectoryPath() const;
 
@@ -166,6 +160,9 @@ public:
     static std::string cleanPath(const std::string path);
     static QString cleanPath(const QString& path);
 
+    bool ciModelStartsWith(const std::string& path, const std::string& prefix) const;
+    bool ciMaterialStartsWith(const std::string& path, const std::string& prefix) const;
+
 protected:
     friend class ModelLibraryLocal;
 
@@ -180,11 +177,17 @@ private:
     std::string _iconPath;
     bool _readOnly;
     bool _disabled;
+    bool _modelCaseSensitive;
+    bool _materialCaseSensitive;
 
     bool _local;
     bool _module;
 
     QByteArray loadByteArrayFromFile(const std::string& filePath) const;
+    void setModelCaseSensitivity();
+    void setMaterialCaseSensitivity();
+    bool isPathCaseSensitive(const std::string& path) const;
+    bool ciStartsWith(const std::string& path, const std::string& prefix, bool caseSensitive) const;
 };
 
 }  // namespace Materials

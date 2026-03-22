@@ -145,6 +145,8 @@ public:
     static std::string cleanPath(const std::string path);
     static QString cleanPath(const QString& path);
 
+    virtual bool ciStartsWith(const std::string& path, const std::string& prefix) const = 0;
+
 protected:
     Library();
     Library(const std::shared_ptr<ManagedLibrary>& library);

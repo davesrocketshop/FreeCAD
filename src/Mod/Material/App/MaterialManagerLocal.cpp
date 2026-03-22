@@ -302,7 +302,7 @@ std::shared_ptr<Material> MaterialManagerLocal::getMaterialByPath(const std::str
     for (auto& library : *_libraryList) {
         if (library->isLocal() && !library->isDisabled()) {
             auto materialLibrary = std::make_shared<MaterialLibraryLocal>(*library);
-            if (cleanPath.starts_with(materialLibrary->getDirectory())) {
+            if (materialLibrary->ciStartsWith(cleanPath, materialLibrary->getDirectory())) {
                 try {
                     return materialLibrary->getMaterialByPath(cleanPath);
                 }

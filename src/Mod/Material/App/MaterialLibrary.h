@@ -74,6 +74,9 @@ public:
     {
         return shared_from_this();
     }
+
+    bool ciStartsWith(const std::string& path, const std::string& prefix) const override;
+
 };
 
 class MaterialsExport MaterialLibraryLocal: public MaterialLibrary
