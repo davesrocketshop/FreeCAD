@@ -425,6 +425,24 @@ std::shared_ptr<std::vector<std::string>> MaterialManager::getMaterialFolders(
     return std::make_shared<std::vector<std::string>>();
 }
 
+std::shared_ptr<std::vector<std::string>> MaterialManager::getMaterialSubFolders(
+    const MaterialLibrary& library,
+    const std::string& path
+) const
+{
+    if (library.isLocal()) {
+        // auto materialLibrary = std::make_shared<MaterialLibraryLocal>(library);
+        return _localManager->getMaterialSubFolders(library, path);
+    }
+#if defined(BUILD_MATERIAL_EXTERNAL)
+    else if (_useExternal) {
+        return _externalManager->getMaterialSubFolders(library, path);
+    }
+#endif
+
+    return std::make_shared<std::vector<std::string>>();
+}
+
 void MaterialManager::createFolder(const std::shared_ptr<MaterialLibrary>& library, const std::string& path)
 {
     if (!library) {
@@ -491,12 +509,12 @@ void MaterialManager::moveFolder(
 #if defined(BUILD_MATERIAL_EXTERNAL)
         else {
             // Local to remote
-            moveFolderToRemote(sourceLibrary, sourcePath, destinationLibrary, destinationPath);
+            crossMoveFolder(sourceLibrary, sourcePath, destinationLibrary, destinationPath);
         }
     }
     else if (destinationLibrary->isLocal()) {
         // Remote to local
-        moveFolderToLocal(sourceLibrary, sourcePath, destinationLibrary, destinationPath);
+        crossMoveFolder(sourceLibrary, sourcePath, destinationLibrary, destinationPath);
     }
     else {
         // Both are remote
@@ -505,49 +523,61 @@ void MaterialManager::moveFolder(
     }
 }
 
-std::shared_ptr<std::vector<std::string>> MaterialManager::getMaterialSubFolders(
-    const MaterialLibrary& library,
-    const std::string& path
-) const
-{
-    if (library.isLocal()) {
-        // auto materialLibrary = std::make_shared<MaterialLibraryLocal>(library);
-        return _localManager->getMaterialSubFolders(library, path);
-    }
-#if defined(BUILD_MATERIAL_EXTERNAL)
-    else if (_useExternal) {
-        return _externalManager->getMaterialSubFolders(library, path);
-    }
-#endif
-
-    return std::make_shared<std::vector<std::string>>();
-}
-
 # if defined(BUILD_MATERIAL_EXTERNAL)
-void MaterialManager::moveFolderToRemote(
+void MaterialManager::crossMoveFolder(
     const std::shared_ptr<MaterialLibrary>& sourceLibrary,
     const std::string& sourcePath,
     const std::shared_ptr<MaterialLibrary>& destinationLibrary,
     const std::string& destinationPath
 )
 {
+    Base::Console().log(
+        "Moving folder '%s' from local library '%s' to remote library '%s'\n",
+        sourcePath.c_str(),
+        sourceLibrary->getName().c_str(),
+        destinationLibrary->getName().c_str()
+    );
+    Base::FileInfo fileInfo(sourcePath);
+    std::string subDestinationPath = destinationPath + "/" + fileInfo.fileName();
+    createFolder(destinationLibrary, subDestinationPath);
+
+    crossMoveSubFolder(sourceLibrary, sourcePath, destinationLibrary, subDestinationPath);
+}
+
+void MaterialManager::crossMoveSubFolder(
+    const std::shared_ptr<MaterialLibrary>& sourceLibrary,
+    const std::string& sourcePath,
+    const std::shared_ptr<MaterialLibrary>& destinationLibrary,
+    const std::string& destinationPath
+)
+{
+    auto materials = folderMaterials(*sourceLibrary, sourcePath);
+    for (const auto& material : *materials) {
+        std::string sourceMaterialPath = sourcePath + "/" + material.getName();
+        std::string destinationMaterialPath = destinationPath + "/" + material.getName();
+        Base::Console().log(
+            "Moving material '%s' from '%s' to '%s'\n",
+            material.getName().c_str(),
+            sourceMaterialPath.c_str(),
+            destinationPath.c_str()
+        );
+        saveMaterial(
+            destinationLibrary,
+            std::make_shared<Material>(material),
+            destinationPath,
+            false,
+            false,
+            false
+        );
+    }
+
     auto subFolders = getMaterialSubFolders(*sourceLibrary, sourcePath);
     for (const auto& subFolder : *subFolders) {
         std::string subSourcePath = sourcePath + "/" + subFolder;
         std::string subDestinationPath = destinationPath + "/" + subFolder;
         createFolder(destinationLibrary, subDestinationPath);
-        moveFolderToRemote(sourceLibrary, subSourcePath, destinationLibrary, subDestinationPath);
+        crossMoveSubFolder(sourceLibrary, subSourcePath, destinationLibrary, subDestinationPath);
     }
-}
-
-void MaterialManager::moveFolderToLocal(
-    const std::shared_ptr<MaterialLibrary>& sourceLibrary,
-    const std::string& sourcePath,
-    const std::shared_ptr<MaterialLibrary>& destinationLibrary,
-    const std::string& destinationPath
-)
-{
-
 }
 
 void MaterialManager::moveFolderRemote(
@@ -556,7 +586,10 @@ void MaterialManager::moveFolderRemote(
     const std::shared_ptr<MaterialLibrary>& destinationLibrary,
     const std::string& destinationPath
 )
-{}
+{
+    // For now, do it the hard way
+    crossMoveFolder(sourceLibrary, sourcePath, destinationLibrary, destinationPath);
+}
 #endif
 
 void MaterialManager::copyFolder(
@@ -597,6 +630,26 @@ void MaterialManager::deleteRecursive(const std::shared_ptr<MaterialLibrary>& li
         throw Materials::DeleteError("External materials are not enabled");
     }
 #endif
+}
+
+std::shared_ptr<std::vector<Material>> MaterialManager::folderMaterials(
+    MaterialLibrary& library,
+    const std::string& sourcePath
+) const
+{
+    // This is only used for moving folders between local and remote, so we can assume it's local
+    if (library.isLocal()) {
+        return _localManager->folderMaterials(library, sourcePath);
+    }
+#if defined(BUILD_MATERIAL_EXTERNAL)
+    else if (_useExternal) {
+        return _externalManager->folderMaterials(library, sourcePath);
+    }
+    else {
+        throw Materials::DeleteError("External materials are not enabled");
+    }
+#endif
+    return std::make_shared<std::vector<Material>>();
 }
 
 //=====
@@ -795,7 +848,7 @@ void MaterialManager::saveMaterial(
     }
 #if defined(BUILD_MATERIAL_EXTERNAL)
     else {
-        _externalManager->saveMaterial(library, material, path, overwrite);
+        _externalManager->saveMaterial(*library, *material, path, overwrite);
     }
 #endif
     material->resetEditState();

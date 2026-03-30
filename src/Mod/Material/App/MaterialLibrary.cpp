@@ -338,17 +338,41 @@ MaterialLibraryLocal::addMaterial(const std::shared_ptr<Material>& material, con
     return material;
 }
 
-std::shared_ptr<Material> MaterialLibraryLocal::getMaterialByPath(const std::string& path)
+std::shared_ptr<Material> MaterialLibraryLocal::getMaterialByPath(const std::string& path) const
 {
     std::string filePath = getLocalPath(path);
     auto material = MaterialLoader::getMaterialFromPath(
-        std::static_pointer_cast<MaterialLibraryLocal>(getptr()),
+        std::make_shared<MaterialLibraryLocal>(*this),
         filePath
     );
     if (!material) {
         throw MaterialNotFound();
     }
     return material;
+}
+
+std::shared_ptr<std::vector<Material>> MaterialLibraryLocal::folderMaterials(
+    const std::string& sourcePath
+) const
+{
+    auto materials = std::make_shared<std::vector<Material>>();
+
+    std::string filePath = getLocalPath(sourcePath);
+    Base::Console().log("Looking for materials in folder '%s'\n", filePath.c_str());
+    auto materialPaths = MaterialLoader::folderMaterials(filePath);
+    if (!materialPaths->empty()) {
+        for (auto& path : *materialPaths) {
+            try {
+                auto relativePath = getRelativePath(path);
+                auto material = getMaterialByPath(relativePath);
+                materials->push_back(*material);
+            }
+            catch (const MaterialNotFound&) {
+                Base::Console().log("Unable to load material '%s'\n", path.c_str());
+            }
+        }
+    }
+    return materials;
 }
 
 std::string MaterialLibraryLocal::getUUIDFromPath(const std::string& path)

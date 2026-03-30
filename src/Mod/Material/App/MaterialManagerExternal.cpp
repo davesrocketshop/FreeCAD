@@ -270,6 +270,31 @@ void MaterialManagerExternal::deleteRecursive(const MaterialLibrary& library,
     ExternalManager::getManager()->deleteRecursive(library.getName(), path);
 }
 
+std::shared_ptr<std::vector<Material>> MaterialManagerExternal::folderMaterials(
+    const MaterialLibrary& library,
+    const std::string& sourcePath
+) const
+{
+    if (library.isLocal()) {
+        throw LibraryNotFound("Library is local");
+    }
+
+    auto materials = ExternalManager::getManager()->folderMaterials(library.getName(), sourcePath);
+    auto materialList = std::make_shared<std::vector<Material>>();
+    for (const auto& entry : *materials) {
+        try {
+            auto material = getMaterial(entry.getUUID());
+            if (material) {
+                materialList->push_back(*material);
+            }
+        }
+        catch (const MaterialNotFound& e) {
+            Base::Console().log("Material '%s' not found\n", entry.getUUID().c_str());
+        }
+    }
+    return materialList;
+}
+
 //=====
 //
 // Material management
@@ -354,26 +379,26 @@ void MaterialManagerExternal::remove(const std::string& uuid)
 }
 
 void MaterialManagerExternal::saveMaterial(
-    const std::shared_ptr<MaterialLibrary>& library,
-    const std::shared_ptr<Material>& material,
+    const MaterialLibrary& library,
+    const Material& material,
     const std::string& path,
     bool overwrite
 ) const
 {
-    _cache.erase(material->getUUID());
+    _cache.erase(material.getUUID());
 
-    auto stripped = stripFilename(path, *material);
+    auto stripped = stripFilename(path, material);
     if (ExternalManager::getManager()
-            ->materialExists(library->getName(), material->getUUID())) {
+            ->materialExists(library.getName(), material.getUUID())) {
         if (overwrite) {
-            ExternalManager::getManager()->updateMaterial(library->getName(), stripped, *material);
+            ExternalManager::getManager()->updateMaterial(library.getName(), stripped, material);
         }
         else {
             throw MaterialExists();
         }
     }
     else {
-        ExternalManager::getManager()->addMaterial(library->getName(), stripped, *material);
+        ExternalManager::getManager()->addMaterial(library.getName(), stripped, material);
     }
 }
 

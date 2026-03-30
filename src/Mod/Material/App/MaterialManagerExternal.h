@@ -98,6 +98,10 @@ public:
         const std::string& destinationPath
     );
     void deleteRecursive(const MaterialLibrary& library, const std::string& path);
+    std::shared_ptr<std::vector<Material>> folderMaterials(
+        const MaterialLibrary& library,
+        const std::string& sourcePath
+    ) const;
 
     // Material management
     std::shared_ptr<Material> getMaterial(const std::string& uuid) const;
@@ -117,8 +121,8 @@ public:
     void remove(const std::string& uuid);
 
     void saveMaterial(
-        const std::shared_ptr<MaterialLibrary>& library,
-        const std::shared_ptr<Material>& material,
+        const MaterialLibrary& library,
+        const Material& material,
         const std::string& path,
         bool overwrite
     ) const;

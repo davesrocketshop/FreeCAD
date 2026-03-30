@@ -282,6 +282,21 @@ void MaterialManagerLocal::deleteRecursive(
     dereference();
 }
 
+std::shared_ptr<std::vector<Material>> MaterialManagerLocal::folderMaterials(
+    MaterialLibrary& library,
+    const std::string& sourcePath
+) const
+{
+    if (library.isLocal()) {
+        auto materialLibrary = std::make_shared<Materials::MaterialLibraryLocal>(library);
+        if (materialLibrary) {
+            return materialLibrary->folderMaterials(sourcePath);
+        }
+    }
+
+    return std::make_shared<std::vector<Material>>();
+}
+
 //=====
 //
 // Material management

@@ -86,6 +86,10 @@ public:
         const std::string& destinationPath
     );
     void deleteRecursive(const std::string& libraryName, const std::string& path);
+    std::shared_ptr<std::vector<LibraryObject>> folderMaterials(
+        const std::string& libraryName,
+        const std::string& sourcePath
+    );
 
     // Model management
     std::shared_ptr<Model> getModel(const std::string& uuid);

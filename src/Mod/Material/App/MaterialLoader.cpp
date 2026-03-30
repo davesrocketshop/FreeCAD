@@ -521,6 +521,23 @@ std::shared_ptr<MaterialYamlEntry> MaterialLoader::getMaterialEntryFromPath(
 
     return material;
 }
+std::shared_ptr<std::vector<std::string>> MaterialLoader::folderMaterials(
+    const std::string& sourcePath
+)
+{
+    auto materialPaths = std::make_shared<std::vector<std::string>>();
+    Base::FileInfo dirInfo(sourcePath);
+    auto dirList = dirInfo.getDirectoryContent();  // This needs to be recursive
+    for (auto file : dirList) {
+        if (file.isFile()) {
+            if (file.hasExtension("FCMat")) {
+                materialPaths->push_back(file.filePath());
+            }
+        }
+    }
+
+    return materialPaths;
+}
 
 void MaterialLoader::showYaml(const YAML::Node& yaml)
 {

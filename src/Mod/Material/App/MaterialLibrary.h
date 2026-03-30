@@ -106,7 +106,8 @@ public:
     bool fileExists(const std::string& path) const;
     std::shared_ptr<Material> addMaterial(const std::shared_ptr<Material>& material,
                                           const std::string& path);
-    std::shared_ptr<Material> getMaterialByPath(const std::string& path);
+    std::shared_ptr<Material> getMaterialByPath(const std::string& path) const;
+    std::shared_ptr<std::vector<Material>> folderMaterials(const std::string& sourcePath) const;
 
     bool operator==(const MaterialLibrary& library) const
     {

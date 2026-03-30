@@ -172,6 +172,10 @@ class MaterialManagerExternal(ABC):
     def deleteRecursive(self, libraryName: str, path: str) -> None:
         """Delete the folder and all of its contents"""
 
+    @abstractmethod
+    def folderMaterials(self, libraryName: str, path: str) -> list[MaterialLibraryObjectType]:
+        """Returns a list of materials in the specified folder within the library"""
+
     #
     # Model methods
     #

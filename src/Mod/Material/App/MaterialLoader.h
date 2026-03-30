@@ -135,6 +135,9 @@ public:
     );
     static std::shared_ptr<Material>
     getMaterialFromPath(const std::shared_ptr<MaterialLibraryLocal>& library, const std::string& path);
+    static std::shared_ptr<std::vector<std::string>> folderMaterials(
+        const std::string& sourcePath
+    );
 
 private:
     MaterialLoader();

@@ -89,6 +89,10 @@ public:
         const std::string& destinationPath
     );
     void deleteRecursive(const std::shared_ptr<MaterialLibraryLocal>& library, const std::string& path);
+    std::shared_ptr<std::vector<Material>> folderMaterials(
+        MaterialLibrary& library,
+        const std::string& sourcePath
+    ) const;
 
     // Material management
     std::shared_ptr<std::map<std::string, std::shared_ptr<Material>>> getLocalMaterials() const;

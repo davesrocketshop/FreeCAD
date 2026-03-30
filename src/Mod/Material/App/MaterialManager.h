@@ -159,6 +159,10 @@ public:
         const std::string& destinationPath
     );
     void deleteRecursive(const std::shared_ptr<MaterialLibrary>& library, const std::string& path);
+    std::shared_ptr<std::vector<Material>> folderMaterials(
+        MaterialLibrary& library,
+        const std::string& sourcePath
+    ) const;
 
     // Tree management
     std::shared_ptr<std::map<std::string, std::shared_ptr<MaterialTreeNode>>> getMaterialTree(
@@ -261,13 +265,13 @@ private:
     ParameterGrp::handle _hGrp;
 
 #if defined(BUILD_MATERIAL_EXTERNAL)
-    void moveFolderToRemote(
+    void crossMoveFolder(
         const std::shared_ptr<MaterialLibrary>& sourceLibrary,
         const std::string& sourcePath,
         const std::shared_ptr<MaterialLibrary>& destinationLibrary,
         const std::string& destinationPath
     );
-    void moveFolderToLocal(
+    void crossMoveSubFolder(
         const std::shared_ptr<MaterialLibrary>& sourceLibrary,
         const std::string& sourcePath,
         const std::shared_ptr<MaterialLibrary>& destinationLibrary,

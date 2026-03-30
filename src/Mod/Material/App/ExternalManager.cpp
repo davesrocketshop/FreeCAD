@@ -624,14 +624,12 @@ std::shared_ptr<std::vector<std::string>> ExternalManager::librarySubFolders(con
             Py::List list(folders.apply(args));
             for (auto folder : list) {
                 auto entry = Py::Object(folder);
-                Py::String pyName(entry.getAttr("name"));
 
-                std::string folderName;
+                Py::String pyName(entry);
                 if (!pyName.isNone()) {
-                    folderName = pyName.as_string();
+                    std::string folderName = pyName.as_string();
+                    folderList->push_back(folderName);
                 }
-
-                folderList->push_back(folderName);
             }
         }
         else {
@@ -759,6 +757,45 @@ void ExternalManager::deleteRecursive(const std::string& libraryName, const std:
         Base::PyException e1;  // extract the Python error text
         throw DeleteError(e1.what());
     }
+}
+
+std::shared_ptr<std::vector<LibraryObject>> ExternalManager::folderMaterials(
+    const std::string& libraryName,
+    const std::string& sourcePath
+)
+{
+    auto materialList = std::make_shared<std::vector<LibraryObject>>();
+
+    connect();
+
+    Base::PyGILStateLocker lock;
+    try {
+        if (_managerObject.hasAttr("folderMaterials")) {
+            Py::Callable libraries(_managerObject.getAttr("folderMaterials"));
+            Py::Tuple args(2);
+            args.setItem(0, Py::String(libraryName));
+            args.setItem(1, Py::String(sourcePath));
+            Py::List list(libraries.apply(args));
+            for (auto material : list) {
+                auto entry = Py::Object(material);
+                if (!checkMaterialLibraryObjectType(entry)) {
+                    throw InvalidMaterial();
+                }
+
+                materialList->push_back(materialLibraryObjectTypeFromObject(entry));
+            }
+        }
+        else {
+            Base::Console().log("\tfolderMaterials() not found\n");
+            throw ConnectionError();
+        }
+    }
+    catch (Py::Exception& e) {
+        Base::PyException e1;  // extract the Python error text
+        throw LibraryNotFound(e1.what());
+    }
+
+    return materialList;
 }
 
 //=====
