@@ -43,35 +43,11 @@ DlgAppearancePropertiesImp::DlgAppearancePropertiesImp(QWidget* parent, Qt::Wind
     ui->setupUi(this);
     setupConnections();
 
-    // Not implemented yet
-    ui->faceLabel->setVisible(false);
-    ui->faceCombo->setVisible(false);
-
     ui->ambientColor->setAutoChangeColor(true);
     ui->diffuseColor->setAutoChangeColor(true);
     ui->emissiveColor->setAutoChangeColor(true);
     ui->specularColor->setAutoChangeColor(true);
     ui->blendColor->setAutoChangeColor(true);
-
-    // Set the texture mode combo box
-    ui->textureModeCombo->addItem(tr("None"), static_cast<int>(App::Material::TextureMode::NONE));
-    ui->textureModeCombo->addItem(tr("Decal"), static_cast<int>(App::Material::TextureMode::DECAL));
-    ui->textureModeCombo->addItem(tr("Modulate"), static_cast<int>(App::Material::TextureMode::MODULATE));
-    ui->textureModeCombo->addItem(tr("Blend"), static_cast<int>(App::Material::TextureMode::BLEND));
-    // ui->textureModeCombo->addItem(tr("Replace"), static_cast<int>(App::Material::TextureMode::REPLACE));
-
-    if (customMaterial.textureMode == App::Material::TextureMode::BLEND) {
-        ui->blendColor->setEnabled(true);
-    }
-    else {
-        ui->blendColor->setEnabled(false);
-    }
-
-    ui->sWrapCombo->addItem(tr("Repeat"), static_cast<int>(App::Material::TextureWrapMode::REPEAT));
-    ui->sWrapCombo->addItem(tr("Clamp"), static_cast<int>(App::Material::TextureWrapMode::CLAMP));
-
-    ui->tWrapCombo->addItem(tr("Repeat"), static_cast<int>(App::Material::TextureWrapMode::REPEAT));
-    ui->tWrapCombo->addItem(tr("Clamp"), static_cast<int>(App::Material::TextureWrapMode::CLAMP));
 }
 
 DlgAppearancePropertiesImp::~DlgAppearancePropertiesImp() = default;
@@ -96,16 +72,10 @@ void DlgAppearancePropertiesImp::setupConnections()
     connect(ui->buttonDefault, &QPushButton::clicked,
             this, &DlgAppearancePropertiesImp::onButtonDefault);
 
-    connect(ui->textureModeCombo, &QComboBox::currentIndexChanged,
-            this, &DlgAppearancePropertiesImp::onTextureModeChanged);
     connect(ui->textureFileChooser, &FileChooser::fileNameSelected,
             this, &DlgAppearancePropertiesImp::onTextureFileSelected);
     connect(ui->blendColor, &ColorButton::clicked,
             this, &DlgAppearancePropertiesImp::onBlendColorChanged);
-    connect(ui->sWrapCombo, &QComboBox::currentIndexChanged,
-            this, &DlgAppearancePropertiesImp::onSWrapChanged);
-    connect(ui->tWrapCombo, &QComboBox::currentIndexChanged,
-            this, &DlgAppearancePropertiesImp::onTWrapChanged);
     // clang-format on
 }
 
@@ -180,19 +150,6 @@ void DlgAppearancePropertiesImp::onTransparencyValueChanged(int sh)
 }
 
 /**
- * Sets the current texture mode.
- */
-void DlgAppearancePropertiesImp::onTextureModeChanged(int index)
-{
-    customMaterial.textureMode = static_cast<App::Material::TextureMode>(ui->textureModeCombo->currentData().toInt());
-    if (customMaterial.textureMode == App::Material::TextureMode::BLEND) {
-        ui->blendColor->setEnabled(true);
-    } else {
-        ui->blendColor->setEnabled(false);
-    }
-}
-
-/**
  * Sets the current texture file.
  */
 void DlgAppearancePropertiesImp::onTextureFileSelected(const QString& file)
@@ -205,19 +162,9 @@ void DlgAppearancePropertiesImp::onTextureFileSelected(const QString& file)
         pixmap.save(&buffer, "PNG");
         QByteArray base64 = buffer.data().toBase64();
         customMaterial.image = base64.toStdString();
-        if (customMaterial.textureMode == App::Material::TextureMode::NONE) {
-            customMaterial.textureMode = App::Material::TextureMode::DECAL;
-            ui->textureModeCombo->setCurrentIndex(
-                ui->textureModeCombo->findData(static_cast<int>(App::Material::TextureMode::DECAL))
-            );
-        }
     }
     else {
         customMaterial.image.clear();
-        customMaterial.textureMode = App::Material::TextureMode::NONE;
-        ui->textureModeCombo->setCurrentIndex(
-            ui->textureModeCombo->findData(static_cast<int>(App::Material::TextureMode::NONE))
-        );
     }
 }
 
@@ -227,22 +174,6 @@ void DlgAppearancePropertiesImp::onTextureFileSelected(const QString& file)
 void DlgAppearancePropertiesImp::onBlendColorChanged()
 {
     customMaterial.blendColor.setValue(ui->blendColor->color());
-}
-
-/**
- * Sets the S wrap mode.
- */
-void DlgAppearancePropertiesImp::onSWrapChanged(int index)
-{
-    customMaterial.textureSWrap = static_cast<App::Material::TextureWrapMode>(ui->sWrapCombo->currentIndex());
-}
-
-/**
- * Sets the T wrap mode.
- */
-void DlgAppearancePropertiesImp::onTWrapChanged(int index)
-{
-    customMaterial.textureTWrap = static_cast<App::Material::TextureWrapMode>(ui->tWrapCombo->currentIndex());
 }
 
 /**
@@ -284,12 +215,7 @@ void DlgAppearancePropertiesImp::setButtonColors(const App::Material& mat)
  */
 void DlgAppearancePropertiesImp::setTextureValues(const App::Material& mat)
 {
-    ui->textureModeCombo->setCurrentIndex(
-        ui->textureModeCombo->findData(static_cast<int>(mat.textureMode))
-    );
     ui->textureFileChooser->setFileName(QString::fromStdString(mat.imagePath));
-    ui->sWrapCombo->setCurrentIndex(static_cast<int>(mat.textureSWrap));
-    ui->tWrapCombo->setCurrentIndex(static_cast<int>(mat.textureTWrap));
     ui->blendColor->setColor(mat.blendColor.asValue<QColor>());
     ui->bumpFileChooser->setFileName(QString::fromStdString(mat.bumpImagePath));
 }

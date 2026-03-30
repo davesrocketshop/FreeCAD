@@ -35,9 +35,8 @@ class SoIndexedFaceSet;
 class SoMaterial;
 class SoSwitch;
 class SoTexture3;
-class SoTextureCoordinateEnvironment;
+class SoTextureCoordinatePlane;
 class SoSeparator;
-class SoSphere;
 
 namespace Gui
 {
@@ -79,10 +78,8 @@ private:
     SoSwitch* pcSwitchTexture {nullptr};
     SoGroup* pcTextureGroup2D {nullptr};
     SoTexture2* pcShapeTexture2D {nullptr};
+    SoTextureCoordinatePlane* pcTexturePlane {nullptr};
     SoGroup* pcTextureGroup3D {nullptr};
-    SoTextureCoordinateEnvironment* pcTextureEnvironment {nullptr};
-
-    SoSphere* pcTextureSphere {nullptr};
 };
 
 class GuiExport ViewProviderFaceTexture: public Gui::ViewProviderTextureExtension

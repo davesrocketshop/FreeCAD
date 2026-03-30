@@ -28,6 +28,7 @@
 #include <Inventor/nodes/SoSwitch.h>
 #include <Inventor/nodes/SoTexture2.h>
 #include <Inventor/nodes/SoTexture3.h>
+#include <Inventor/nodes/SoTextureCoordinatePlane.h>
 #include <Inventor/nodes/SoTextureCoordinateEnvironment.h>
 #include <Inventor/nodes/SoSeparator.h>
 #include <Inventor/nodes/SoSphere.h>
@@ -62,17 +63,13 @@ ViewProviderTextureExtension::ViewProviderTextureExtension()
     pcShapeTexture2D = new SoTexture2;
     pcShapeTexture2D->ref();
     pcShapeTexture2D->setName("ShapeTexture2D");
-    pcTextureEnvironment = new SoTextureCoordinateEnvironment();
-    pcTextureEnvironment->ref();
-    pcTextureEnvironment->setName("TextureCoordinateEnvironment");
+    pcTexturePlane = new SoTextureCoordinatePlane;
+    pcTexturePlane->ref();
+    pcTexturePlane->setName("TextureCoordinatePlane");
 
     pcTextureGroup3D = new SoGroup;
     pcTextureGroup3D->ref();
     pcTextureGroup3D->setName("TextureGroup3D");
-
-    pcTextureSphere = new SoSphere;
-    pcTextureSphere->ref();
-    pcTextureSphere->setName("TextureSphere");
 }
 
 void ViewProviderTextureExtension::setup(SoMaterial* pcShapeMaterial)
@@ -81,23 +78,23 @@ void ViewProviderTextureExtension::setup(SoMaterial* pcShapeMaterial)
     pcSwitchAppearance->addChild(pcShapeMaterial);
     pcSwitchAppearance->addChild(pcSwitchTexture);
     pcSwitchTexture->addChild(pcTextureGroup2D);
-    // pcSwitchTexture->addChild(pcShapeTexture2D);
     pcTextureGroup2D->addChild(pcShapeTexture2D);
-    pcTextureGroup2D->addChild(pcTextureEnvironment);
-    // pcTextureGroup2D->addChild(pcTextureSphere);
+    pcTextureGroup2D->addChild(pcTexturePlane);
     pcSwitchTexture->addChild(pcTextureGroup3D);
     pcSwitchAppearance->whichChild.setValue(0);
     pcSwitchTexture->whichChild.setValue(SO_SWITCH_NONE);
+
+    pcTexturePlane->directionS.setValue(SbVec3f(1, 0, 0));
+    pcTexturePlane->directionT.setValue(SbVec3f(0, 0, 1));
 }
 
 ViewProviderTextureExtension::~ViewProviderTextureExtension()
 {
-    pcTextureSphere->unref();
-    pcTextureEnvironment->unref();
     pcSwitchAppearance->unref();
     pcSwitchTexture->unref();
     pcTextureGroup2D->unref();
     pcShapeTexture2D->unref();
+    pcTexturePlane->unref();
     pcTextureGroup3D->unref();
 }
 
