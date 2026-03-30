@@ -72,12 +72,19 @@ public:
                      const MaterialFilter& filter,
                      const MaterialFilterOptions& options);
     std::shared_ptr<std::vector<std::string>> libraryFolders(const std::string& libraryName);
-
+    std::shared_ptr<std::vector<std::string>> librarySubFolders(const std::string& libraryName, const std::string& path);
+    
     // Folder management
     void createFolder(const std::string& libraryName, const std::string& path);
     void renameFolder(const std::string& libraryName,
                       const std::string& oldPath,
                       const std::string& newPath);
+    void moveFolder(
+        const std::string& sourceLibrary,
+        const std::string& sourcePath,
+        const std::string& destinationLibrary,
+        const std::string& destinationPath
+    );
     void deleteRecursive(const std::string& libraryName, const std::string& path);
 
     // Model management

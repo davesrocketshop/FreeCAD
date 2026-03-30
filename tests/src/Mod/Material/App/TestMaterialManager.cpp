@@ -126,22 +126,22 @@ TEST_F(TestMaterialManager, TestInstallation)
 
 TEST_F(TestMaterialManager, TestFolders)
 {
-    auto materials = _materialManager->getMaterialFolders(library1);
+    auto materials = _materialManager->getMaterialFolders(*library1);
     ASSERT_EQ(materials->size(), 0);
-    materials = _materialManager->getMaterialFolders(library2);
+    materials = _materialManager->getMaterialFolders(*library2);
     ASSERT_EQ(materials->size(), 0);
-    EXPECT_THROW(materials = _materialManager->getMaterialFolders(nullptr), Materials::LibraryNotFound);
+    // EXPECT_THROW(materials = _materialManager->getMaterialFolders(nullptr), Materials::LibraryNotFound);
 
     ASSERT_NO_THROW(_materialManager->createFolder(library1, ""));
-    materials = _materialManager->getMaterialFolders(library1);
+    materials = _materialManager->getMaterialFolders(*library1);
     ASSERT_EQ(materials->size(), 0);
 
     ASSERT_NO_THROW(_materialManager->createFolder(library1, "/"));
-    materials = _materialManager->getMaterialFolders(library1);
+    materials = _materialManager->getMaterialFolders(*library1);
     ASSERT_EQ(materials->size(), 0);
 
     EXPECT_THROW(_materialManager->createFolder(nullptr, ""), Materials::LibraryNotFound);
-    materials = _materialManager->getMaterialFolders(library1);
+    materials = _materialManager->getMaterialFolders(*library1);
     ASSERT_EQ(materials->size(), 0);
 
     ASSERT_FALSE(library1->getDirectory().empty());
@@ -152,7 +152,7 @@ TEST_F(TestMaterialManager, TestFolders)
     EXPECT_TRUE(info.isWritable());
 
     ASSERT_NO_THROW(_materialManager->createFolder(library1, "/x/y"));
-    materials = _materialManager->getMaterialFolders(library1);
+    materials = _materialManager->getMaterialFolders(*library1);
     ASSERT_EQ(materials->size(), 2);
     Base::FileInfo info1(library1->getDirectory() + "/x/y");
     EXPECT_TRUE(info1.exists());
@@ -161,7 +161,7 @@ TEST_F(TestMaterialManager, TestFolders)
     EXPECT_TRUE(info1.isWritable());
 
     ASSERT_NO_THROW(_materialManager->createFolder(library1, "/z"));
-    materials = _materialManager->getMaterialFolders(library1);
+    materials = _materialManager->getMaterialFolders(*library1);
     ASSERT_EQ(materials->size(), 3);
     Base::FileInfo info2(library1->getDirectory() + "/z");
     EXPECT_TRUE(info2.exists());
@@ -171,7 +171,7 @@ TEST_F(TestMaterialManager, TestFolders)
 
     // No leading '/'
     ASSERT_NO_THROW(_materialManager->createFolder(library1, "z"));
-    materials = _materialManager->getMaterialFolders(library1);
+    materials = _materialManager->getMaterialFolders(*library1);
     ASSERT_EQ(materials->size(), 3);
     Base::FileInfo info3(library1->getDirectory() + "/z");
     EXPECT_TRUE(info3.exists());
@@ -180,7 +180,7 @@ TEST_F(TestMaterialManager, TestFolders)
     EXPECT_TRUE(info3.isWritable());
 
     ASSERT_NO_THROW(_materialManager->createFolder(library1, "z1"));
-    materials = _materialManager->getMaterialFolders(library1);
+    materials = _materialManager->getMaterialFolders(*library1);
     ASSERT_EQ(materials->size(), 4);
     Base::FileInfo info4(library1->getDirectory() + "/z1");
     EXPECT_TRUE(info4.exists());
@@ -200,7 +200,7 @@ TEST_F(TestMaterialManager, TestFolders)
     ASSERT_EQ(materials->size(), 4);
 
     EXPECT_NO_THROW(_materialManager->renameFolder(library1, "x", "x1"));
-    materials = _materialManager->getMaterialFolders(library1);
+    materials = _materialManager->getMaterialFolders(*library1);
     ASSERT_EQ(materials->size(), 4);
     Base::FileInfo info6(library1->getDirectory() + "/x1/y");
     EXPECT_TRUE(info6.exists());
@@ -210,7 +210,7 @@ TEST_F(TestMaterialManager, TestFolders)
 
     EXPECT_THROW(_materialManager->renameFolder(library1, "y", "y1"), Materials::RenameError);
     EXPECT_NO_THROW(_materialManager->renameFolder(library1, "x1/y", "x1/y1"));
-    materials = _materialManager->getMaterialFolders(library1);
+    materials = _materialManager->getMaterialFolders(*library1);
     ASSERT_EQ(materials->size(), 4);
     Base::FileInfo info7(library1->getDirectory() + "/x1/y1");
     EXPECT_TRUE(info7.exists());
@@ -219,7 +219,7 @@ TEST_F(TestMaterialManager, TestFolders)
     EXPECT_TRUE(info7.isWritable());
 
     EXPECT_NO_THROW(_materialManager->renameFolder(library1, "x1/y1", "y"));
-    materials = _materialManager->getMaterialFolders(library1);
+    materials = _materialManager->getMaterialFolders(*library1);
     ASSERT_EQ(materials->size(), 4);
     Base::FileInfo info8(library1->getDirectory() + "/y");
     EXPECT_TRUE(info8.exists());
@@ -231,9 +231,9 @@ TEST_F(TestMaterialManager, TestFolders)
 
 TEST_F(TestMaterialManager, TestMove)
 {
-    auto folders = _materialManager->getMaterialFolders(library1);
+    auto folders = _materialManager->getMaterialFolders(*library1);
     ASSERT_EQ(folders->size(), 0);
-    folders = _materialManager->getMaterialFolders(library2);
+    folders = _materialManager->getMaterialFolders(*library2);
     ASSERT_EQ(folders->size(), 0);
 
     ASSERT_NO_THROW(_materialManager->createFolder(library1, "x/y/z"));
@@ -252,7 +252,7 @@ TEST_F(TestMaterialManager, TestMove)
     _materialManager->saveMaterial(library1, mat2, "x/y/z/mat2.FCMat", false, true, false);
     _materialManager->saveMaterial(library1, mat3, "b/mat3.FCMat", false, true, false);
     _materialManager->saveMaterial(library1, mat4, "b/c/mat4.FCMat", false, true, false);
-    folders = _materialManager->getMaterialFolders(library1);
+    folders = _materialManager->getMaterialFolders(*library1);
     ASSERT_EQ(folders->size(), 6);
     auto materials = _materialManager->libraryMaterials("TestLibrary1");
     EXPECT_EQ(materials->size(), 4);
@@ -274,7 +274,7 @@ TEST_F(TestMaterialManager, TestMove)
     _materialManager->saveMaterial(library2, mat6, "x1/y1/z1/mat6.FCMat", false, true, false);
     _materialManager->saveMaterial(library2, mat7, "b1/mat7.FCMat", false, true, false);
     _materialManager->saveMaterial(library2, mat8, "b1/c1/mat8.FCMat", false, true, false);
-    folders = _materialManager->getMaterialFolders(library2);
+    folders = _materialManager->getMaterialFolders(*library2);
     ASSERT_EQ(folders->size(), 6);
     materials = _materialManager->libraryMaterials("TestLibrary2");
     EXPECT_EQ(materials->size(), 4);
@@ -292,7 +292,7 @@ TEST_F(TestMaterialManager, TestMove)
     EXPECT_THROW(_materialManager->moveFolder(library1, "a", nullptr, "b"), Materials::LibraryNotFound);
     EXPECT_THROW(_materialManager->moveFolder(nullptr, "a", library1, "b"), Materials::LibraryNotFound);
     EXPECT_NO_THROW(_materialManager->moveFolder(library1, "b/c", library1, "a"));
-    folders = _materialManager->getMaterialFolders(library1);
+    folders = _materialManager->getMaterialFolders(*library1);
     ASSERT_EQ(folders->size(), 6);
     Base::FileInfo info1(library1->getDirectory() + "/b/c");
     EXPECT_FALSE(info1.exists());
@@ -324,9 +324,9 @@ TEST_F(TestMaterialManager, TestMove)
     EXPECT_EQ(mat7->getDirectory(), "b1");
     EXPECT_EQ(mat8->getDirectory(), "b1/c1");
     EXPECT_NO_THROW(_materialManager->moveFolder(library2, "b1", library1, "a"));
-    folders = _materialManager->getMaterialFolders(library1);
+    folders = _materialManager->getMaterialFolders(*library1);
     ASSERT_EQ(folders->size(), 8);
-    folders = _materialManager->getMaterialFolders(library2);
+    folders = _materialManager->getMaterialFolders(*library2);
     ASSERT_EQ(folders->size(), 4);
     Base::FileInfo info2(library1->getDirectory() + "/a/b1/c1");
     EXPECT_TRUE(info2.exists());

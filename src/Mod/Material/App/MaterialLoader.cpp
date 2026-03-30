@@ -659,19 +659,38 @@ void MaterialLoader::loadLibraries(
     }
 }
 
-std::shared_ptr<std::list<std::string>> MaterialLoader::getMaterialFolders(
+std::shared_ptr<std::vector<std::string>> MaterialLoader::getMaterialFolders(
     const MaterialLibraryLocal& library
 )
 {
-    std::shared_ptr<std::list<std::string>> pathList = std::make_shared<std::list<std::string>>();
+    std::shared_ptr<std::vector<std::string>> pathList = std::make_shared<std::vector<std::string>>();
     Base::FileInfo dirInfo(library.getDirectory());
+    auto libraryPath = Base::FileInfo::stringToPath(library.getDirectory());
     for (auto file : dirInfo.getDirectoryContentRecursive()) {
         if (file.isDir()) {
-            auto libraryPath = Base::FileInfo::stringToPath(library.getDirectory());
             auto filePath = Base::FileInfo::stringToPath(file.filePath());
             std::string path = Base::FileInfo::pathToString(fs::relative(filePath, libraryPath));
             if (!path.starts_with(".")) {
                 pathList->push_back(Library::cleanPath(path));
+            }
+        }
+    }
+
+    return pathList;
+}
+
+std::shared_ptr<std::vector<std::string>> MaterialLoader::getMaterialSubFolders(
+    const MaterialLibraryLocal& library,
+    const std::string& path
+)
+{
+    std::shared_ptr<std::vector<std::string>> pathList = std::make_shared<std::vector<std::string>>();
+    Base::FileInfo dirInfo(library.getDirectory() + "/" + path);
+    for (auto file : dirInfo.getDirectoryContent()) {
+        if (file.isDir()) {
+            std::string subPath = file.fileNamePure();
+            if (!subPath.starts_with(".")) {
+                pathList->push_back(subPath);
             }
         }
     }

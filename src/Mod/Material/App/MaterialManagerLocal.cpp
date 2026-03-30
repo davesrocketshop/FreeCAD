@@ -182,11 +182,19 @@ std::shared_ptr<std::vector<LibraryObject>> MaterialManagerLocal::libraryMateria
 //
 //=====
 
-std::shared_ptr<std::list<std::string>> MaterialManagerLocal::getMaterialFolders(
-    const std::shared_ptr<MaterialLibraryLocal>& library
+std::shared_ptr<std::vector<std::string>> MaterialManagerLocal::getMaterialFolders(
+    const MaterialLibrary& library
 ) const
 {
-    return MaterialLoader::getMaterialFolders(*library);
+    return MaterialLoader::getMaterialFolders(library);
+}
+
+std::shared_ptr<std::vector<std::string>> MaterialManagerLocal::getMaterialSubFolders(
+    const MaterialLibrary& library,
+    const std::string& path
+) const
+{
+    return MaterialLoader::getMaterialSubFolders(library, path);
 }
 
 void MaterialManagerLocal::createFolder(

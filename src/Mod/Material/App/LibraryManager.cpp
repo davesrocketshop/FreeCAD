@@ -171,10 +171,13 @@ std::shared_ptr<std::vector<std::shared_ptr<ModelLibrary>>> LibraryManager::getM
 )
 {
     auto libraries = std::make_shared<std::vector<std::shared_ptr<ModelLibrary>>>();
-    for (auto libEntry : *_libraryMap) {
-        if (!libEntry.second->getModelDirectory().empty()) {
-            if (includeDisabled || !libEntry.second->isDisabled()) {
-                libraries->push_back(std::make_shared<ModelLibrary>(libEntry.second));
+    // We want only the first entry for each key
+    for (auto libEntry = _libraryMap->begin(); libEntry != _libraryMap->end();
+         libEntry = _libraryMap->upper_bound(libEntry->first)) {
+        auto library = libEntry->second;
+        if (library->isRemote() || !library->getModelDirectory().empty()) {
+            if (includeDisabled || !library->isDisabled()) {
+                libraries->push_back(std::make_shared<ModelLibrary>(library));
             }
         }
     }
@@ -187,10 +190,13 @@ std::shared_ptr<std::vector<std::shared_ptr<MaterialLibrary>>> LibraryManager::g
 )
 {
     auto libraries = std::make_shared<std::vector<std::shared_ptr<MaterialLibrary>>>();
-    for (auto libEntry : *_libraryMap) {
-        if (!libEntry.second->getMaterialDirectory().empty()) {
-            if (includeDisabled || !libEntry.second->isDisabled()) {
-                libraries->push_back(std::make_shared<MaterialLibrary>(libEntry.second));
+    // We want only the first entry for each key
+    for (auto libEntry = _libraryMap->begin(); libEntry != _libraryMap->end();
+         libEntry = _libraryMap->upper_bound(libEntry->first)) {
+        auto library = libEntry->second;
+        if (library->isRemote() || !library->getMaterialDirectory().empty()) {
+            if (includeDisabled || !library->isDisabled()) {
+                libraries->push_back(std::make_shared<MaterialLibrary>(library));
             }
         }
     }
@@ -416,8 +422,22 @@ void LibraryManager::createRemoteLibrary(
 )
 {
 #if defined(BUILD_MATERIAL_EXTERNAL)
+    try {
+        auto library = getLibrary(RepositoryRemote, libraryName);
+        throw CreationError("Library already exists");
+    }
+    catch (const LibraryNotFound) {
+    }
+
     if (_useExternal) {
         externalManager()->createLibrary(libraryName, icon, readOnly);
+
+        std::shared_ptr<ManagedLibrary> library
+            = std::make_shared<ManagedLibrary>(libraryName, icon, readOnly);
+        library->setLocal(false);
+
+        _libraryList->push_back(library);
+        _manager->updateLibraryMap();
     }
     else {
         throw CreationError("External interface is not enabled");

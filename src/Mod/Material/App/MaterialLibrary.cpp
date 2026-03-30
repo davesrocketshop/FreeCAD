@@ -119,16 +119,15 @@ MaterialLibrary::getMaterialTree(const Materials::MaterialFilter& filter,
     // Empty folders aren't included in _materialPathMap, so we add them by looking at the file
     // system
     if (options.includeEmptyFolders()) {
-        if (isLocal()) {
-            auto& materialLibrary =
-                *(reinterpret_cast<const Materials::MaterialLibraryLocal*>(this));
-            auto folderList = MaterialLoader::getMaterialFolders(materialLibrary);
-            for (auto& folder : *folderList) {
-                auto list = split(folder, '/');
+        std::shared_ptr<std::vector<std::string>> folderList
+            = MaterialManager::getManager().getMaterialFolders(*this);
+        for (auto& folder : *folderList) {
+            auto list = split(folder, '/');
 
-                // Start at the root
-                auto node = materialTree;
-                for (auto& itp : list) {
+            // Start at the root
+            auto node = materialTree;
+            for (auto& itp : list) {
+                if (!itp.empty()) {
                     // Add the folder only if it's not already there
                     if (!node->contains(itp)) {
                         std::shared_ptr<std::map<std::string, std::shared_ptr<MaterialTreeNode>>>
@@ -137,6 +136,7 @@ MaterialLibrary::getMaterialTree(const Materials::MaterialFilter& filter,
                         std::shared_ptr<MaterialTreeNode> child =
                             std::make_shared<MaterialTreeNode>();
                         child->setFolder(mapPtr);
+                        child->setReadOnly(isReadOnly());
                         (*node)[itp] = child;
                         node = mapPtr;
                     }

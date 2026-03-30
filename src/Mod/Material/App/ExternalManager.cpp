@@ -587,6 +587,43 @@ std::shared_ptr<std::vector<std::string>> ExternalManager::libraryFolders(const 
             Py::List list(folders.apply(args));
             for (auto folder : list) {
                 auto entry = Py::Object(folder);
+                
+                Py::String pyName(entry);
+                if (!pyName.isNone()) {
+                    std::string folderName = pyName.as_string();
+                    folderList->push_back(folderName);
+                }
+            }
+        }
+        else {
+            Base::Console().log("\tlibraryFolders() not found\n");
+            throw ConnectionError();
+        }
+    }
+    catch (Py::Exception& e) {
+        Base::PyException e1;  // extract the Python error text
+        throw LibraryNotFound(e1.what());
+    }
+
+    return folderList;
+}
+
+std::shared_ptr<std::vector<std::string>> ExternalManager::librarySubFolders(const std::string& libraryName, const std::string& path)
+{
+    auto folderList = std::make_shared<std::vector<std::string>>();
+
+    connect();
+
+    Base::PyGILStateLocker lock;
+    try {
+        if (_managerObject.hasAttr("librarySubFolders")) {
+            Py::Callable folders(_managerObject.getAttr("librarySubFolders"));
+            Py::Tuple args(2);
+            args.setItem(0, Py::String(libraryName));
+            args.setItem(1, Py::String(path));
+            Py::List list(folders.apply(args));
+            for (auto folder : list) {
+                auto entry = Py::Object(folder);
                 Py::String pyName(entry.getAttr("name"));
 
                 std::string folderName;
@@ -598,7 +635,7 @@ std::shared_ptr<std::vector<std::string>> ExternalManager::libraryFolders(const 
             }
         }
         else {
-            Base::Console().log("\tlibraryFolders() not found\n");
+            Base::Console().log("\tlibrarySubFolders() not found\n");
             throw ConnectionError();
         }
     }
@@ -666,6 +703,37 @@ void ExternalManager::renameFolder(
     catch (Py::Exception& e) {
         Base::PyException e1;  // extract the Python error text
         throw RenameError(e1.what());
+    }
+}
+
+void ExternalManager::moveFolder(
+    const std::string& sourceLibrary,
+    const std::string& sourcePath,
+    const std::string& destinationLibrary,
+    const std::string& destinationPath
+)
+{
+    connect();
+
+    Base::PyGILStateLocker lock;
+    try {
+        if (_managerObject.hasAttr("moveFolder")) {
+            Py::Callable libraries(_managerObject.getAttr("moveFolder"));
+            Py::Tuple args(4);
+            args.setItem(0, Py::String(sourceLibrary));
+            args.setItem(1, Py::String(sourcePath));
+            args.setItem(2, Py::String(destinationLibrary));
+            args.setItem(3, Py::String(destinationPath));
+            Py::Object result(libraries.apply(args));
+        }
+        else {
+            Base::Console().log("\tmoveFolder() not found\n");
+            throw ConnectionError();
+        }
+    }
+    catch (Py::Exception& e) {
+        Base::PyException e1;  // extract the Python error text
+        throw MoveError(e1.what());
     }
 }
 

@@ -117,8 +117,13 @@ public:
                    const std::shared_ptr<std::list<std::shared_ptr<MaterialLibrary>>>& libraryList);
     ~MaterialLoader() = default;
 
-    static std::shared_ptr<std::list<std::string>>
-    getMaterialFolders(const MaterialLibraryLocal& library);
+    static std::shared_ptr<std::vector<std::string>> getMaterialFolders(
+        const MaterialLibraryLocal& library
+    );
+    static std::shared_ptr<std::vector<std::string>> getMaterialSubFolders(
+        const MaterialLibraryLocal& library,
+        const std::string& path
+    );
     static void showYaml(const YAML::Node& yaml);
     static void
     dereference(const std::shared_ptr<std::map<std::string, std::shared_ptr<Material>>>& materialMap,

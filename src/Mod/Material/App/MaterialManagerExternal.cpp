@@ -217,6 +217,21 @@ bool MaterialManagerExternal::exists(const std::string& libraryName)
 //
 //=====
 
+std::shared_ptr<std::vector<std::string>> MaterialManagerExternal::getMaterialFolders(
+    const MaterialLibrary& library
+) const
+{
+    return ExternalManager::getManager()->libraryFolders(library.getName());
+}
+
+std::shared_ptr<std::vector<std::string>> MaterialManagerExternal::getMaterialSubFolders(
+    const MaterialLibrary& library,
+    const std::string& path
+) const
+{
+    return ExternalManager::getManager()->librarySubFolders(library.getName(), path);
+}
+
 void MaterialManagerExternal::createFolder(const MaterialLibrary& library,
                                            const std::string& path)
 {
@@ -231,6 +246,21 @@ void MaterialManagerExternal::renameFolder(const MaterialLibrary& library,
         library.getName(),
         oldPath,
         newPath
+    );
+}
+
+void MaterialManagerExternal::moveFolder(
+    const std::shared_ptr<MaterialLibrary>& sourceLibrary,
+    const std::string& sourcePath,
+    const std::shared_ptr<MaterialLibrary>& destinationLibrary,
+    const std::string& destinationPath
+)
+{
+    ExternalManager::getManager()->moveFolder(
+        sourceLibrary->getName(),
+        sourcePath,
+        destinationLibrary->getName(),
+        destinationPath
     );
 }
 

@@ -409,19 +409,20 @@ bool MaterialManager::isDisabled(const Library& library) const
 //
 //=====
 
-std::shared_ptr<std::list<std::string>> MaterialManager::getMaterialFolders(
-    const std::shared_ptr<MaterialLibrary>& library
+std::shared_ptr<std::vector<std::string>> MaterialManager::getMaterialFolders(
+    const MaterialLibrary& library
 ) const
 {
-    if (!library) {
-        throw LibraryNotFound();
+    if (library.isLocal()) {
+        return _localManager->getMaterialFolders(library);
     }
-    if (library->isLocal()) {
-        auto materialLibrary = std::make_shared<MaterialLibraryLocal>(*library);
-        return _localManager->getMaterialFolders(materialLibrary);
+#if defined(BUILD_MATERIAL_EXTERNAL)
+    else if (_useExternal) {
+        return _externalManager->getMaterialFolders(library);
     }
+#endif
 
-    return std::make_shared<std::list<std::string>>();
+    return std::make_shared<std::vector<std::string>>();
 }
 
 void MaterialManager::createFolder(const std::shared_ptr<MaterialLibrary>& library, const std::string& path)
@@ -487,20 +488,76 @@ void MaterialManager::moveFolder(
             // local move
             _localManager->moveFolderLocal(sourceLibrary, sourcePath, destinationLibrary, destinationPath);
         }
+#if defined(BUILD_MATERIAL_EXTERNAL)
         else {
             // Local to remote
-            // moveFolderToRemote(sourceLibrary, sourcePath, destinationLibrary, destinationPath);
+            moveFolderToRemote(sourceLibrary, sourcePath, destinationLibrary, destinationPath);
         }
     }
     else if (destinationLibrary->isLocal()) {
         // Remote to local
-        // moveFolderFromRemote(sourceLibrary, sourcePath, destinationLibrary, destinationPath);
+        moveFolderToLocal(sourceLibrary, sourcePath, destinationLibrary, destinationPath);
     }
     else {
         // Both are remote
-        // moveFolderRemote(sourceLibrary, sourcePath, destinationLibrary, destinationPath);
+        moveFolderRemote(sourceLibrary, sourcePath, destinationLibrary, destinationPath);
+#endif
     }
 }
+
+std::shared_ptr<std::vector<std::string>> MaterialManager::getMaterialSubFolders(
+    const MaterialLibrary& library,
+    const std::string& path
+) const
+{
+    if (library.isLocal()) {
+        // auto materialLibrary = std::make_shared<MaterialLibraryLocal>(library);
+        return _localManager->getMaterialSubFolders(library, path);
+    }
+#if defined(BUILD_MATERIAL_EXTERNAL)
+    else if (_useExternal) {
+        return _externalManager->getMaterialSubFolders(library, path);
+    }
+#endif
+
+    return std::make_shared<std::vector<std::string>>();
+}
+
+# if defined(BUILD_MATERIAL_EXTERNAL)
+void MaterialManager::moveFolderToRemote(
+    const std::shared_ptr<MaterialLibrary>& sourceLibrary,
+    const std::string& sourcePath,
+    const std::shared_ptr<MaterialLibrary>& destinationLibrary,
+    const std::string& destinationPath
+)
+{
+    auto subFolders = getMaterialSubFolders(*sourceLibrary, sourcePath);
+    for (const auto& subFolder : *subFolders) {
+        std::string subSourcePath = sourcePath + "/" + subFolder;
+        std::string subDestinationPath = destinationPath + "/" + subFolder;
+        createFolder(destinationLibrary, subDestinationPath);
+        moveFolderToRemote(sourceLibrary, subSourcePath, destinationLibrary, subDestinationPath);
+    }
+}
+
+void MaterialManager::moveFolderToLocal(
+    const std::shared_ptr<MaterialLibrary>& sourceLibrary,
+    const std::string& sourcePath,
+    const std::shared_ptr<MaterialLibrary>& destinationLibrary,
+    const std::string& destinationPath
+)
+{
+
+}
+
+void MaterialManager::moveFolderRemote(
+    const std::shared_ptr<MaterialLibrary>& sourceLibrary,
+    const std::string& sourcePath,
+    const std::shared_ptr<MaterialLibrary>& destinationLibrary,
+    const std::string& destinationPath
+)
+{}
+#endif
 
 void MaterialManager::copyFolder(
     const std::shared_ptr<MaterialLibrary>& sourceLibrary,
@@ -515,8 +572,8 @@ void MaterialManager::copyFolder(
     if (destinationLibrary->isReadOnly()) {
         throw CopyError("Library is read only");
     }
-    if (*sourceLibrary == *destinationLibrary) {
-        // throw MaterialExists();
+    if ((*sourceLibrary == *destinationLibrary) && (sourcePath == destinationPath)) {
+        return;
     }
 }
 

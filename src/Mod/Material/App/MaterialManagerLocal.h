@@ -71,8 +71,10 @@ public:
     );
 
     // Folder management
-    std::shared_ptr<std::list<std::string>> getMaterialFolders(
-        const std::shared_ptr<MaterialLibraryLocal>& library
+    std::shared_ptr<std::vector<std::string>> getMaterialFolders(const MaterialLibrary& library) const;
+    std::shared_ptr<std::vector<std::string>> getMaterialSubFolders(
+        const MaterialLibrary& library,
+        const std::string& path
     ) const;
     void createFolder(const std::shared_ptr<MaterialLibraryLocal>& library, const std::string& path);
     void renameFolder(

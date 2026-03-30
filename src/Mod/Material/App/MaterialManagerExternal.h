@@ -83,9 +83,20 @@ public:
     bool exists(const std::string& libraryName);
 
     // Folder management
+    std::shared_ptr<std::vector<std::string>> getMaterialFolders(const MaterialLibrary& library) const;
+    std::shared_ptr<std::vector<std::string>> getMaterialSubFolders(
+        const MaterialLibrary& library,
+        const std::string& path
+    ) const;
     void createFolder(const MaterialLibrary& library, const std::string& path);
     void
     renameFolder(const MaterialLibrary& library, const std::string& oldPath, const std::string& newPath);
+    void moveFolder(
+        const std::shared_ptr<MaterialLibrary>& sourceLibrary,
+        const std::string& sourcePath,
+        const std::shared_ptr<MaterialLibrary>& destinationLibrary,
+        const std::string& destinationPath
+    );
     void deleteRecursive(const MaterialLibrary& library, const std::string& path);
 
     // Material management

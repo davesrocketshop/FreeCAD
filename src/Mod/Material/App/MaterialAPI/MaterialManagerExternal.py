@@ -149,6 +149,13 @@ class MaterialManagerExternal(ABC):
 
         This will return a list of all folders in the library including empty folders"""
 
+    @abstractmethod
+    def librarySubFolders(self, libraryName: str, path: str) -> list[str]:
+        """Returns a list of subfolders in the specified path within the library
+        
+        This does not return a recursive list of all subfolders, only the folders 
+        directly within the specified path."""
+
     #
     # Folder methods
     #

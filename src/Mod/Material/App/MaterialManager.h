@@ -135,8 +135,10 @@ public:
     bool isDisabled(const Library& library) const;
 
     // Folder management
-    std::shared_ptr<std::list<std::string>> getMaterialFolders(
-        const std::shared_ptr<MaterialLibrary>& library
+    std::shared_ptr<std::vector<std::string>> getMaterialFolders(const MaterialLibrary& library) const;
+    std::shared_ptr<std::vector<std::string>> getMaterialSubFolders(
+        const MaterialLibrary& library,
+        const std::string& path
     ) const;
     void createFolder(const std::shared_ptr<MaterialLibrary>& library, const std::string& path);
     void renameFolder(
@@ -257,6 +259,27 @@ private:
     static bool _useExternal;
 
     ParameterGrp::handle _hGrp;
+
+#if defined(BUILD_MATERIAL_EXTERNAL)
+    void moveFolderToRemote(
+        const std::shared_ptr<MaterialLibrary>& sourceLibrary,
+        const std::string& sourcePath,
+        const std::shared_ptr<MaterialLibrary>& destinationLibrary,
+        const std::string& destinationPath
+    );
+    void moveFolderToLocal(
+        const std::shared_ptr<MaterialLibrary>& sourceLibrary,
+        const std::string& sourcePath,
+        const std::shared_ptr<MaterialLibrary>& destinationLibrary,
+        const std::string& destinationPath
+    );
+    void moveFolderRemote(
+        const std::shared_ptr<MaterialLibrary>& sourceLibrary,
+        const std::string& sourcePath,
+        const std::shared_ptr<MaterialLibrary>& destinationLibrary,
+        const std::string& destinationPath
+    );
+#endif
 };
 
 }  // namespace Materials
