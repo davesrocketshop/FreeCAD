@@ -7,6 +7,7 @@ add_executable(Material_tests_run
         TestMaterialFilter.cpp
         TestMaterialManager.cpp
         TestMaterialModification.cpp
+        TestMaterialMoveCopy.cpp
         TestMaterialProperties.cpp
         TestMaterials.cpp
         TestMaterialValue.cpp

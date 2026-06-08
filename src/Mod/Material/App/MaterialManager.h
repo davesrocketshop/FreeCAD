@@ -264,7 +264,7 @@ private:
 
     ParameterGrp::handle _hGrp;
 
-#if defined(BUILD_MATERIAL_EXTERNAL)
+protected:
     void crossMoveFolder(
         const std::shared_ptr<MaterialLibrary>& sourceLibrary,
         const std::string& sourcePath,
@@ -283,6 +283,7 @@ private:
         const std::shared_ptr<MaterialLibrary>& destinationLibrary,
         const std::string& destinationPath
     );
+#if defined(BUILD_MATERIAL_EXTERNAL)
 #endif
 };
 

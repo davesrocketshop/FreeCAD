@@ -523,7 +523,6 @@ void MaterialManager::moveFolder(
     }
 }
 
-# if defined(BUILD_MATERIAL_EXTERNAL)
 void MaterialManager::crossMoveFolder(
     const std::shared_ptr<MaterialLibrary>& sourceLibrary,
     const std::string& sourcePath,
@@ -590,6 +589,7 @@ void MaterialManager::moveFolderRemote(
     // For now, do it the hard way
     crossMoveFolder(sourceLibrary, sourcePath, destinationLibrary, destinationPath);
 }
+# if defined(BUILD_MATERIAL_EXTERNAL)
 #endif
 
 void MaterialManager::copyFolder(
