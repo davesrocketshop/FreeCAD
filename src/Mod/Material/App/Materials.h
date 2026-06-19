@@ -123,19 +123,43 @@ public:
     App::Material getMaterialAppearance() const;
 
     void setLibrary(const std::shared_ptr<MaterialLibrary>& library);
+
     void setDirectory(const std::string& directory);
-    // void setFilename(const std::string& filename);
+    void setDirectory(const QString& directory) { setDirectory(directory.toStdString()); }
+    void setDirectory(const char* directory) { setDirectory(std::string(directory)); }
+
     void setUUID(const std::string& uuid)
     {
         _uuid = uuid;
     }
+
     void setName(const std::string& name);
+    void setName(const QString& name) { setName(name.toStdString()); }
+    void setName(const char* name) { setName(std::string(name)); }
+
     void setAuthor(const std::string& author);
+    void setAuthor(const QString& author) { setAuthor(author.toStdString()); }
+    void setAuthor(const char* author) { setAuthor(std::string(author)); }
+
     void setLicense(const std::string& license);
+    void setLicense(const QString& license) { setLicense(license.toStdString()); }
+    void setLicense(const char* license) { setLicense(std::string(license)); }
+
     void setParentUUID(const std::string& uuid);
+    void setParentUUID(const QString& uuid) { setParentUUID(uuid.toStdString()); }
+    void setParentUUID(const char* uuid) { setParentUUID(std::string(uuid)); }
+
     void setDescription(const std::string& description);
+    void setDescription(const QString& description) { setDescription(description.toStdString()); }
+    void setDescription(const char* description) { setDescription(std::string(description)); }
+
     void setURL(const std::string& url);
+    void setURL(const QString& url) { setURL(url.toStdString()); }
+    void setURL(const char* url) { setURL(std::string(url)); }
+
     void setReference(const std::string& reference);
+    void setReference(const QString& reference) { setReference(reference.toStdString()); }
+    void setReference(const char* reference) { setReference(std::string(reference)); }
 
     void setEditState(MaterialEdit newState);
     void setEditStateInvariantChanged()
@@ -150,23 +174,55 @@ public:
     {
         setEditState(MaterialEdit_New);
     }
+
     void setPropertyEditState(const std::string& name);
+    void setPropertyEditState(const QString& name) { setPropertyEditState(name.toStdString()); }
+    void setPropertyEditState(const char* name) { setPropertyEditState(std::string(name)); }
+
     void setPhysicalEditState(const std::string& name);
+    void setPhysicalEditState(const QString& name) { setPhysicalEditState(name.toStdString()); }
+    void setPhysicalEditState(const char* name) { setPhysicalEditState(std::string(name)); }
+
     void setAppearanceEditState(const std::string& name);
+    void setAppearanceEditState(const QString& name) { setAppearanceEditState(name.toStdString()); }
+    void setAppearanceEditState(const char* name) { setAppearanceEditState(std::string(name)); }
+
     void resetEditState()
     {
         _editState = MaterialEdit_None;
     }
+
     void addTag(const std::string& tag);
+    void addTag(const QString& tag) { addTag(tag.toStdString()); }
+    void addTag(const char* tag) { addTag(std::string(tag)); }
+
     void removeTag(const std::string& tag);
+    void removeTag(const QString& tag) { removeTag(tag.toStdString()); }
+    void removeTag(const char* tag) { removeTag(std::string(tag)); }
+
     bool hasTag(const std::string& tag)
     {
         return _tags.contains(tag);
     }
+    bool hasTag(const QString& tag) { return hasTag(tag.toStdString()); }
+    bool hasTag(const char* tag) { return hasTag(std::string(tag)); }
+
     void addPhysical(const std::string& uuid);
+    void addPhysical(const QString& uuid) { addPhysical(uuid.toStdString()); }
+    void addPhysical(const char* uuid) { addPhysical(std::string(uuid)); }
+
     void removePhysical(const std::string& uuid);
+    void removePhysical(const QString& uuid) { removePhysical(uuid.toStdString()); }
+    void removePhysical(const char* uuid) { removePhysical(std::string(uuid)); }
+
     void addAppearance(const std::string& uuid);
+    void addAppearance(const QString& uuid) { addAppearance(uuid.toStdString()); }
+    void addAppearance(const char* uuid) { addAppearance(std::string(uuid)); }
+
     void removeAppearance(const std::string& uuid);
+    void removeAppearance(const QString& uuid) { removeAppearance(uuid.toStdString()); }
+    void removeAppearance(const char* uuid) { removeAppearance(std::string(uuid)); }
+
     void clearModels();
     void clearInherited();
     void newUuid();
@@ -197,41 +253,93 @@ public:
      */
     void setLegacyValue(const std::string& name, const std::string& value);
 
-    // std::shared_ptr<MaterialProperty> getPhysicalProperty(const std::string& name);
     std::shared_ptr<MaterialProperty> getPhysicalProperty(const std::string& name) const;
-    // std::shared_ptr<MaterialProperty> getAppearanceProperty(const std::string& name);
+    std::shared_ptr<MaterialProperty> getPhysicalProperty(const QString& name) const { return getPhysicalProperty(name.toStdString()); }
+    std::shared_ptr<MaterialProperty> getPhysicalProperty(const char* name) const { return getPhysicalProperty(std::string(name)); }
+
     std::shared_ptr<MaterialProperty> getAppearanceProperty(const std::string& name) const;
-    // std::shared_ptr<MaterialProperty> getProperty(const std::string& name);
+    std::shared_ptr<MaterialProperty> getAppearanceProperty(const QString& name) const { return getAppearanceProperty(name.toStdString()); }
+    std::shared_ptr<MaterialProperty> getAppearanceProperty(const char* name) const { return getAppearanceProperty(std::string(name)); }
+
     std::shared_ptr<MaterialProperty> getProperty(const std::string& name) const;
+    std::shared_ptr<MaterialProperty> getProperty(const QString& name) const { return getProperty(name.toStdString()); }
+    std::shared_ptr<MaterialProperty> getProperty(const char* name) const { return getProperty(std::string(name)); }
+
     QVariant getPhysicalValue(const std::string& name) const;
+    QVariant getPhysicalValue(const QString& name) const { return getPhysicalValue(name.toStdString()); }
+    QVariant getPhysicalValue(const char* name) const { return getPhysicalValue(std::string(name)); }
+
     Base::Quantity getPhysicalQuantity(const std::string& name) const;
     Base::Quantity getPhysicalQuantity(const QString& name) const { return getPhysicalQuantity(name.toStdString()); }
     Base::Quantity getPhysicalQuantity(const char* name) const { return getPhysicalQuantity(std::string(name)); }
+
     std::string getPhysicalValueString(const std::string& name) const;
+    std::string getPhysicalValueString(const QString& name) const { return getPhysicalValueString(name.toStdString()); }
+    std::string getPhysicalValueString(const char* name) const { return getPhysicalValueString(std::string(name)); }
+
     QVariant getAppearanceValue(const std::string& name) const;
+    QVariant getAppearanceValue(const QString& name) const { return getAppearanceValue(name.toStdString()); }
+    QVariant getAppearanceValue(const char* name) const { return getAppearanceValue(std::string(name)); }
+
     Base::Quantity getAppearanceQuantity(const std::string& name) const;
+    Base::Quantity getAppearanceQuantity(const QString& name) const { return getAppearanceQuantity(name.toStdString()); }
+    Base::Quantity getAppearanceQuantity(const char* name) const { return getAppearanceQuantity(std::string(name)); }
+
     std::string getAppearanceValueString(const std::string& name) const;
+    std::string getAppearanceValueString(const QString& name) const { return getAppearanceValueString(name.toStdString()); }
+    std::string getAppearanceValueString(const char* name) const { return getAppearanceValueString(std::string(name)); }
+
     bool hasPhysicalProperty(const std::string& name) const;
     bool hasPhysicalProperty(const QString& name) const { return hasPhysicalProperty(name.toStdString()); }
     bool hasPhysicalProperty(const char* name) const { return hasPhysicalProperty(std::string(name)); }
+
     bool hasAppearanceProperty(const std::string& name) const;
+    bool hasAppearanceProperty(const QString& name) const { return hasAppearanceProperty(name.toStdString()); }
+    bool hasAppearanceProperty(const char* name) const { return hasAppearanceProperty(std::string(name)); }
+
     bool hasNonLegacyProperty(const std::string& name) const;
+    bool hasNonLegacyProperty(const QString& name) const { return hasNonLegacyProperty(name.toStdString()); }
+    bool hasNonLegacyProperty(const char* name) const { return hasNonLegacyProperty(std::string(name)); }
+
     bool hasLegacyProperty(const std::string& name) const;
+    bool hasLegacyProperty(const QString& name) const { return hasLegacyProperty(name.toStdString()); }
+    bool hasLegacyProperty(const char* name) const { return hasLegacyProperty(std::string(name)); }
+
     bool hasLegacyProperties() const;
     bool hasPhysicalProperties() const;
     bool hasAppearanceProperties() const;
 
     // Test if the model is defined, and if values are provided for all properties
     bool hasModel(const std::string& uuid) const;
+    bool hasModel(const QString& uuid) const { return hasModel(uuid.toStdString()); }
+    bool hasModel(const char* uuid) const { return hasModel(std::string(uuid)); }
+
     bool hasPhysicalModel(const std::string& uuid) const;
+    bool hasPhysicalModel(const QString& uuid) const { return hasPhysicalModel(uuid.toStdString()); }
+    bool hasPhysicalModel(const char* uuid) const { return hasPhysicalModel(std::string(uuid)); }
+
     bool hasAppearanceModel(const std::string& uuid) const;
+    bool hasAppearanceModel(const QString& uuid) const { return hasAppearanceModel(uuid.toStdString()); }
+    bool hasAppearanceModel(const char* uuid) const { return hasAppearanceModel(std::string(uuid)); }
+
     bool isInherited(const std::string& uuid) const;
+    bool isInherited(const QString& uuid) const { return isInherited(uuid.toStdString()); }
+    bool isInherited(const char* uuid) const { return isInherited(std::string(uuid)); }
+
     bool isModelComplete(const std::string& uuid) const
     {
         return isPhysicalModelComplete(uuid) || isAppearanceModelComplete(uuid);
     }
+    bool isModelComplete(const QString& uuid) const { return isModelComplete(uuid.toStdString()); }
+    bool isModelComplete(const char* uuid) const { return isModelComplete(std::string(uuid)); }
+
     bool isPhysicalModelComplete(const std::string& uuid) const;
+    bool isPhysicalModelComplete(const QString& uuid) const { return isPhysicalModelComplete(uuid.toStdString()); }
+    bool isPhysicalModelComplete(const char* uuid) const { return isPhysicalModelComplete(std::string(uuid)); }
+    
     bool isAppearanceModelComplete(const std::string& uuid) const;
+    bool isAppearanceModelComplete(const QString& uuid) const { return isAppearanceModelComplete(uuid.toStdString()); }
+    bool isAppearanceModelComplete(const char* uuid) const { return isAppearanceModelComplete(std::string(uuid)); }
 
     std::map<std::string, std::shared_ptr<MaterialProperty>>& getPhysicalProperties()
     {
@@ -255,6 +363,8 @@ public:
     }
 
     std::string getModelByName(const std::string& name) const;
+    std::string getModelByName(const QString& name) const { return getModelByName(name.toStdString()); }
+    std::string getModelByName(const char* name) const { return getModelByName(std::string(name)); }
 
     bool isDereferenced() const
     {

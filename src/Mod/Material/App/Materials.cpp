@@ -760,6 +760,11 @@ bool Material::hasNonLegacyProperty(const std::string& name) const
     return false;
 }
 
+bool Material::hasLegacyProperty(const std::string& name) const
+{
+    return _legacy.find(name) != _legacy.end();
+}
+
 bool Material::hasLegacyProperties() const
 {
     return !_legacy.empty();
