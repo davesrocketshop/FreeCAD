@@ -34,8 +34,7 @@
 #include <QStandardItemModel>
 
 #include <Mod/Material/App/Model.h>
-
-#include "ListModel.h"
+#include <Mod/Material/Gui/Models/ListModel.h>
 
 namespace MatGui
 {
@@ -66,7 +65,7 @@ private:
     std::unique_ptr<Ui_ListEdit> ui;
     std::shared_ptr<Materials::Material> _material;
     std::shared_ptr<Materials::MaterialProperty> _property;
-    QList<QVariant> _value;
+    std::vector<QVariant> _value;
 
     QAction _deleteAction;
 

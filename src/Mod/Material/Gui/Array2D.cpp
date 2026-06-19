@@ -33,9 +33,9 @@
 #include <Mod/Material/App/Exceptions.h>
 #include <Mod/Material/App/Materials.h>
 
+#include <Mod/Material/Gui/Delegates/ArrayDelegate.h>
+
 #include "Array2D.h"
-#include "ArrayDelegate.h"
-#include "ArrayModel.h"
 #include "ui_Array2D.h"
 
 
@@ -52,11 +52,11 @@ Array2D::Array2D(const QString& propertyName,
 {
     ui->setupUi(this);
 
-    if (material->hasPhysicalProperty(propertyName)) {
-        _property = material->getPhysicalProperty(propertyName);
+    if (material->hasPhysicalProperty(propertyName.toStdString())) {
+        _property = material->getPhysicalProperty(propertyName.toStdString());
     }
-    else if (material->hasAppearanceProperty(propertyName)) {
-        _property = material->getAppearanceProperty(propertyName);
+    else if (material->hasAppearanceProperty(propertyName.toStdString())) {
+        _property = material->getAppearanceProperty(propertyName.toStdString());
     }
     else {
         Base::Console().log("Property '%s' not found\n", propertyName.toStdString().c_str());
@@ -65,7 +65,7 @@ Array2D::Array2D(const QString& propertyName,
     if (_property) {
         _value =
             std::static_pointer_cast<Materials::Array2D>(_property->getMaterialValue());
-        setWindowTitle(_property->getDisplayName());
+        setWindowTitle(QString::fromStdString(_property->getDisplayName()));
     }
     else {
         _value = nullptr;
@@ -101,7 +101,8 @@ void Array2D::setColumnDelegates(QTableView* table)
         const Materials::MaterialProperty& column = _property->getColumn(i);
         table->setItemDelegateForColumn(
             i,
-            new ArrayDelegate(column.getType(), column.getUnits(), this));
+            new ArrayDelegate(column.getType(), QString::fromStdString(column.getUnits()), this)
+        );
     }
 }
 
@@ -130,7 +131,7 @@ void Array2D::onDataChanged(const QModelIndex& topLeft,
     Q_UNUSED(bottomRight)
     Q_UNUSED(roles)
 
-    _material->setEditStateAlter();
+    _material->setEditStateInvariantChanged();
 }
 
 void Array2D::onContextMenu(const QPoint& pos)

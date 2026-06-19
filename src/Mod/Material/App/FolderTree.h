@@ -25,8 +25,7 @@
 
 #include <map>
 #include <memory>
-
-#include <QString>
+#include <string>
 
 namespace Materials
 {
@@ -59,12 +58,12 @@ public:
         _type = type;
     }
 
-    std::shared_ptr<std::map<QString, std::shared_ptr<FolderTreeNode<T>>>> getFolder() const
+    std::shared_ptr<std::map<std::string, std::shared_ptr<FolderTreeNode<T>>>> getFolder() const
     {
         assert(_type == NodeType::FolderNode);
         return _folder;
     }
-    std::shared_ptr<std::map<QString, std::shared_ptr<FolderTreeNode<T>>>> getFolder()
+    std::shared_ptr<std::map<std::string, std::shared_ptr<FolderTreeNode<T>>>> getFolder()
     {
         assert(_type == NodeType::FolderNode);
         return _folder;
@@ -74,7 +73,7 @@ public:
         assert(_type == NodeType::DataNode);
         return _data;
     }
-    QString getUUID() const
+    std::string getUUID() const
     {
         assert(_type == NodeType::DataNode);
         return _uuid;
@@ -88,7 +87,7 @@ public:
         return _readOnly;
     }
 
-    void setFolder(std::shared_ptr<std::map<QString, std::shared_ptr<FolderTreeNode<T>>>> folder)
+    void setFolder(std::shared_ptr<std::map<std::string, std::shared_ptr<FolderTreeNode<T>>>> folder)
     {
         setType(NodeType::FolderNode);
         _folder = folder;
@@ -98,7 +97,7 @@ public:
         setType(NodeType::DataNode);
         _data = data;
     }
-    void setUUID(const QString& uuid)
+    void setUUID(const std::string& uuid)
     {
         setType(NodeType::DataNode);
         _uuid = uuid;
@@ -114,8 +113,8 @@ public:
 
 private:
     NodeType _type;
-    std::shared_ptr<std::map<QString, std::shared_ptr<FolderTreeNode<T>>>> _folder;
-    QString _uuid;
+    std::shared_ptr<std::map<std::string, std::shared_ptr<FolderTreeNode<T>>>> _folder;
+    std::string _uuid;
     std::shared_ptr<T> _data;
     bool _oldFormat;
     bool _readOnly;

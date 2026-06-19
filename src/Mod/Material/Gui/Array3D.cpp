@@ -29,10 +29,11 @@
 #include <Gui/MainWindow.h>
 
 #include <Mod/Material/App/Exceptions.h>
+#include <Mod/Material/Gui/Models/ArrayModel.h>
+
+#include <Mod/Material/Gui/Delegates/ArrayDelegate.h>
 
 #include "Array3D.h"
-#include "ArrayDelegate.h"
-#include "ArrayModel.h"
 #include "ui_Array3D.h"
 
 
@@ -47,11 +48,11 @@ Array3D::Array3D(const QString& propertyName,
 {
     ui->setupUi(this);
 
-    if (material->hasPhysicalProperty(propertyName)) {
-        _property = material->getPhysicalProperty(propertyName);
+    if (material->hasPhysicalProperty(propertyName.toStdString())) {
+        _property = material->getPhysicalProperty(propertyName.toStdString());
     }
-    else if (material->hasAppearanceProperty(propertyName)) {
-        _property = material->getAppearanceProperty(propertyName);
+    else if (material->hasAppearanceProperty(propertyName.toStdString())) {
+        _property = material->getAppearanceProperty(propertyName.toStdString());
     }
     else {
         Base::Console().log("Property '%s' not found\n", propertyName.toStdString().c_str());
@@ -106,8 +107,10 @@ bool Array3D::onSplitter(QEvent* e)
 void Array3D::setDepthColumnDelegate(QTableView* table)
 {
     auto& column = _property->getColumn(0);
-    table->setItemDelegateForColumn(0,
-                                    new ArrayDelegate(column.getType(), column.getUnits(), this));
+    table->setItemDelegateForColumn(
+        0,
+        new ArrayDelegate(column.getType(), QString::fromStdString(column.getUnits()), this)
+    );
 }
 
 void Array3D::setDepthColumnWidth(QTableView* table)
@@ -160,7 +163,7 @@ void Array3D::onDataChanged(const QModelIndex& topLeft,
     Q_UNUSED(bottomRight)
     Q_UNUSED(roles)
 
-    _material->setEditStateAlter();
+    _material->setEditStateInvariantChanged();
 }
 
 void Array3D::setColumnWidths(QTableView* table)
@@ -178,7 +181,7 @@ void Array3D::setColumnDelegates(QTableView* table)
         auto& column = _property->getColumn(i);
         table->setItemDelegateForColumn(
             i,
-            new ArrayDelegate(column.getType(), column.getUnits(), this));
+            new ArrayDelegate(column.getType(), QString::fromStdString(column.getUnits()), this));
     }
 }
 

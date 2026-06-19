@@ -1158,6 +1158,7 @@ SET(Widget_CPP_SRCS
     QuantitySpinBox.cpp
     SpinBox.cpp
     SplashScreen.cpp
+    TagWidget.cpp
     PythonWrapper.cpp
     UiLoader.cpp
     WidgetFactory.cpp
@@ -1191,6 +1192,7 @@ SET(Widget_HPP_SRCS
     QuantitySpinBox_p.h
     SpinBox.h
     SplashScreen.h
+    TagWidget.h
     PythonWrapper.h
     UiLoader.h
     WidgetFactory.h

@@ -32,6 +32,7 @@
 
 #include "Exceptions.h"
 #include "ExternalManager.h"
+#include "LibraryManager.h"
 #include "MaterialLibrary.h"
 #include "MaterialLibraryPy.h"
 #include "MaterialManager.h"
@@ -54,7 +55,8 @@ ExternalManager::ExternalManager()
     : _instantiated(false)
 {
     _hGrp = App::GetApplication().GetParameterGroupByPath(
-        "User parameter:BaseApp/Preferences/Mod/Material/ExternalInterface");
+        "User parameter:BaseApp/Preferences/Mod/Material/ExternalInterface"
+    );
     _hGrp->Attach(this);
 
     getConfiguration();
@@ -78,16 +80,14 @@ void ExternalManager::OnChange(ParameterGrp::SubjectType& /*rCaller*/, Parameter
 
 void ExternalManager::getConfiguration()
 {
-    // _hGrp = App::GetApplication().GetParameterGroupByPath(
-    //     "User parameter:BaseApp/Preferences/Mod/Material/ExternalInterface");
     auto current = _hGrp->GetASCII("Current", "None");
     if (current == "None") {
         _moduleName = "";
         _className = "";
     }
     else {
-        auto groupName =
-            "User parameter:BaseApp/Preferences/Mod/Material/ExternalInterface/Interfaces/"
+        auto groupName
+            = "User parameter:BaseApp/Preferences/Mod/Material/ExternalInterface/Interfaces/"
             + current;
         auto hGrp = App::GetApplication().GetParameterGroupByPath(groupName.c_str());
         _moduleName = hGrp->GetASCII("Module", "");
@@ -171,8 +171,7 @@ bool ExternalManager::checkMaterialLibraryType(const Py::Object& entry)
     return entry.hasAttr("name") && entry.hasAttr("icon") && entry.hasAttr("readOnly");
 }
 
-std::shared_ptr<Library>
-ExternalManager::libraryFromObject(const Py::Object& entry)
+std::shared_ptr<ManagedLibrary> ExternalManager::libraryFromObject(const Py::Object& entry)
 {
     if (!checkMaterialLibraryType(entry)) {
         throw InvalidLibrary();
@@ -185,9 +184,9 @@ ExternalManager::libraryFromObject(const Py::Object& entry)
     }
     Py::Boolean pyReadOnly(entry.getAttr("readOnly"));
 
-    QString libraryName;
+    std::string libraryName;
     if (!pyName.isNone()) {
-        libraryName = QString::fromStdString(pyName.as_string());
+        libraryName = pyName.as_string();
     }
     QByteArray icon;
     if (!pyIcon.isNone()) {
@@ -196,7 +195,15 @@ ExternalManager::libraryFromObject(const Py::Object& entry)
 
     bool readOnly = pyReadOnly.as_bool();
 
-    auto library = std::make_shared<Library>(libraryName, icon, readOnly);
+    // Library should already exist
+    std::shared_ptr<ManagedLibrary> library;
+    try {
+        library = LibraryManager::getManager().getLibrary(LibraryManager::RepositoryRemote, libraryName);
+    }
+    catch (const LibraryNotFound&) {
+        library = std::make_shared<ManagedLibrary>(libraryName, icon, readOnly);
+    }
+    library->setLocal(false);
     return library;
 }
 
@@ -228,40 +235,44 @@ LibraryObject ExternalManager::materialLibraryObjectTypeFromObject(const Py::Obj
     return LibraryObject(uuid, path, name);
 }
 
-std::shared_ptr<std::vector<std::shared_ptr<Library>>>
-ExternalManager::libraries()
+std::shared_ptr<std::vector<std::shared_ptr<ManagedLibrary>>> ExternalManager::libraries()
 {
-    auto libList = std::make_shared<std::vector<std::shared_ptr<Library>>>();
+    auto libList = std::make_shared<std::vector<std::shared_ptr<ManagedLibrary>>>();
 
-    connect();
-
-    Base::PyGILStateLocker lock;
     try {
-        if (_managerObject.hasAttr("libraries")) {
-            Py::Callable libraries(_managerObject.getAttr("libraries"));
-            Py::List list(libraries.apply());
-            for (auto lib : list) {
-                auto library = libraryFromObject(Py::Object(lib));
-                libList->push_back(library);
+        connect();
+
+        Base::PyGILStateLocker lock;
+        try {
+            if (_managerObject.hasAttr("libraries")) {
+                Py::Callable libraries(_managerObject.getAttr("libraries"));
+                Py::List list(libraries.apply());
+                for (auto lib : list) {
+                    auto library = libraryFromObject(Py::Object(lib));
+                    libList->push_back(library);
+                }
+            }
+            else {
+                Base::Console().log("\tlibraries() not found\n");
+                throw ConnectionError();
             }
         }
-        else {
-            Base::Console().log("\tlibraries() not found\n");
-            throw ConnectionError();
+        catch (Py::Exception& e) {
+            Base::PyException e1;  // extract the Python error text
+            Base::Console().log("Library error %s", e1.what());
+            throw LibraryNotFound(e1.what());
         }
     }
-    catch (Py::Exception& e) {
-        Base::PyException e1;  // extract the Python error text
-        Base::Console().log("Library error %s", e1.what());
-        throw LibraryNotFound(e1.what());
+    catch (const ConnectionError&) {
+        // Ignore and return an empty list
     }
 
     return libList;
 }
 
-std::shared_ptr<std::vector<std::shared_ptr<Library>>> ExternalManager::modelLibraries()
+std::shared_ptr<std::vector<std::shared_ptr<ModelLibrary>>> ExternalManager::modelLibraries()
 {
-    auto libList = std::make_shared<std::vector<std::shared_ptr<Library>>>();
+    auto libList = std::make_shared<std::vector<std::shared_ptr<ModelLibrary>>>();
 
     connect();
 
@@ -271,7 +282,7 @@ std::shared_ptr<std::vector<std::shared_ptr<Library>>> ExternalManager::modelLib
             Py::Callable libraries(_managerObject.getAttr("modelLibraries"));
             Py::List list(libraries.apply());
             for (auto lib : list) {
-                auto library = libraryFromObject(Py::Tuple(lib));
+                auto library = std::make_shared<ModelLibrary>(libraryFromObject(Py::Object(lib)));
                 libList->push_back(library);
             }
         }
@@ -288,9 +299,9 @@ std::shared_ptr<std::vector<std::shared_ptr<Library>>> ExternalManager::modelLib
     return libList;
 }
 
-std::shared_ptr<std::vector<std::shared_ptr<Library>>> ExternalManager::materialLibraries()
+std::shared_ptr<std::vector<std::shared_ptr<MaterialLibrary>>> ExternalManager::materialLibraries()
 {
-    auto libList = std::make_shared<std::vector<std::shared_ptr<Library>>>();
+    auto libList = std::make_shared<std::vector<std::shared_ptr<MaterialLibrary>>>();
 
     connect();
 
@@ -300,7 +311,7 @@ std::shared_ptr<std::vector<std::shared_ptr<Library>>> ExternalManager::material
             Py::Callable libraries(_managerObject.getAttr("materialLibraries"));
             Py::List list(libraries.apply());
             for (auto lib : list) {
-                auto library = libraryFromObject(Py::Tuple(lib));
+                auto library = std::make_shared<MaterialLibrary>(libraryFromObject(Py::Object(lib)));
                 libList->push_back(library);
             }
         }
@@ -317,9 +328,8 @@ std::shared_ptr<std::vector<std::shared_ptr<Library>>> ExternalManager::material
     return libList;
 }
 
-std::shared_ptr<Library> ExternalManager::getLibrary(const QString& name)
+std::shared_ptr<ManagedLibrary> ExternalManager::getLibrary(const std::string& name)
 {
-    // throw LibraryNotFound("Not yet implemented");
     connect();
 
     Base::PyGILStateLocker lock;
@@ -327,11 +337,11 @@ std::shared_ptr<Library> ExternalManager::getLibrary(const QString& name)
         if (_managerObject.hasAttr("getLibrary")) {
             Py::Callable libraries(_managerObject.getAttr("getLibrary"));
             Py::Tuple args(1);
-            args.setItem(0, Py::String(name.toStdString()));
+            args.setItem(0, Py::String(name));
             Py::Object result(libraries.apply(args));
 
             auto lib = libraryFromObject(result);
-            return std::make_shared<Library>(*lib);
+            return std::make_shared<ManagedLibrary>(*lib);
         }
         else {
             Base::Console().log("\tgetLibrary() not found\n");
@@ -347,7 +357,7 @@ std::shared_ptr<Library> ExternalManager::getLibrary(const QString& name)
     }
 }
 
-void ExternalManager::createLibrary(const QString& libraryName, const QByteArray& icon, bool readOnly)
+void ExternalManager::createLibrary(const std::string& libraryName, const QByteArray& icon, bool readOnly)
 {
     connect();
 
@@ -356,7 +366,7 @@ void ExternalManager::createLibrary(const QString& libraryName, const QByteArray
         if (_managerObject.hasAttr("createLibrary")) {
             Py::Callable libraries(_managerObject.getAttr("createLibrary"));
             Py::Tuple args(3);
-            args.setItem(0, Py::String(libraryName.toStdString()));
+            args.setItem(0, Py::String(libraryName));
             args.setItem(1, Py::Bytes(icon.data(), icon.size()));
             args.setItem(2, Py::Boolean(readOnly));
             libraries.apply(args);  // No return expected
@@ -368,11 +378,12 @@ void ExternalManager::createLibrary(const QString& libraryName, const QByteArray
     }
     catch (Py::Exception& e) {
         Base::PyException e1;  // extract the Python error text
+        Base::Console().log("Python exception type %s", e1.getErrorType().c_str());
         throw CreationError(e1.what());
     }
 }
 
-void ExternalManager::renameLibrary(const QString& libraryName, const QString& newName)
+void ExternalManager::renameLibrary(const std::string& libraryName, const std::string& newName)
 {
     connect();
 
@@ -381,8 +392,8 @@ void ExternalManager::renameLibrary(const QString& libraryName, const QString& n
         if (_managerObject.hasAttr("renameLibrary")) {
             Py::Callable libraries(_managerObject.getAttr("renameLibrary"));
             Py::Tuple args(2);
-            args.setItem(0, Py::String(libraryName.toStdString()));
-            args.setItem(1, Py::String(newName.toStdString()));
+            args.setItem(0, Py::String(libraryName));
+            args.setItem(1, Py::String(newName));
             libraries.apply(args);  // No return expected
         }
         else {
@@ -396,7 +407,7 @@ void ExternalManager::renameLibrary(const QString& libraryName, const QString& n
     }
 }
 
-void ExternalManager::changeIcon(const QString& libraryName, const QByteArray& icon)
+void ExternalManager::changeIcon(const std::string& libraryName, const QByteArray& icon)
 {
     connect();
 
@@ -405,7 +416,7 @@ void ExternalManager::changeIcon(const QString& libraryName, const QByteArray& i
         if (_managerObject.hasAttr("changeIcon")) {
             Py::Callable libraries(_managerObject.getAttr("changeIcon"));
             Py::Tuple args(2);
-            args.setItem(0, Py::String(libraryName.toStdString()));
+            args.setItem(0, Py::String(libraryName));
             args.setItem(1, Py::Bytes(icon.data(), icon.size()));
             libraries.apply(args);  // No return expected
         }
@@ -420,7 +431,7 @@ void ExternalManager::changeIcon(const QString& libraryName, const QByteArray& i
     }
 }
 
-void ExternalManager::removeLibrary(const QString& libraryName)
+void ExternalManager::removeLibrary(const std::string& libraryName)
 {
     connect();
 
@@ -429,7 +440,7 @@ void ExternalManager::removeLibrary(const QString& libraryName)
         if (_managerObject.hasAttr("removeLibrary")) {
             Py::Callable libraries(_managerObject.getAttr("removeLibrary"));
             Py::Tuple args(1);
-            args.setItem(0, Py::String(libraryName.toStdString()));
+            args.setItem(0, Py::String(libraryName));
             libraries.apply(args);  // No return expected
         }
         else {
@@ -443,8 +454,9 @@ void ExternalManager::removeLibrary(const QString& libraryName)
     }
 }
 
-std::shared_ptr<std::vector<LibraryObject>>
-ExternalManager::libraryModels(const QString& libraryName)
+std::shared_ptr<std::vector<LibraryObject>> ExternalManager::libraryModels(
+    const std::string& libraryName
+)
 {
     auto modelList = std::make_shared<std::vector<LibraryObject>>();
 
@@ -455,7 +467,7 @@ ExternalManager::libraryModels(const QString& libraryName)
         if (_managerObject.hasAttr("libraryModels")) {
             Py::Callable libraries(_managerObject.getAttr("libraryModels"));
             Py::Tuple args(1);
-            args.setItem(0, Py::String(libraryName.toStdString()));
+            args.setItem(0, Py::String(libraryName));
             Py::List list(libraries.apply(args));
             for (auto library : list) {
                 auto entry = Py::Object(library);
@@ -479,8 +491,9 @@ ExternalManager::libraryModels(const QString& libraryName)
     return modelList;
 }
 
-std::shared_ptr<std::vector<LibraryObject>>
-ExternalManager::libraryMaterials(const QString& libraryName)
+std::shared_ptr<std::vector<LibraryObject>> ExternalManager::libraryMaterials(
+    const std::string& libraryName
+)
 {
     auto materialList = std::make_shared<std::vector<LibraryObject>>();
 
@@ -491,7 +504,7 @@ ExternalManager::libraryMaterials(const QString& libraryName)
         if (_managerObject.hasAttr("libraryMaterials")) {
             Py::Callable libraries(_managerObject.getAttr("libraryMaterials"));
             Py::Tuple args(1);
-            args.setItem(0, Py::String(libraryName.toStdString()));
+            args.setItem(0, Py::String(libraryName));
             Py::List list(libraries.apply(args));
             for (auto library : list) {
                 auto entry = Py::Object(library);
@@ -515,10 +528,11 @@ ExternalManager::libraryMaterials(const QString& libraryName)
     return materialList;
 }
 
-std::shared_ptr<std::vector<LibraryObject>>
-ExternalManager::libraryMaterials(const QString& libraryName,
-                                  const MaterialFilter& filter,
-                                  const MaterialFilterOptions& options)
+std::shared_ptr<std::vector<LibraryObject>> ExternalManager::libraryMaterials(
+    const std::string& libraryName,
+    const MaterialFilter& filter,
+    const MaterialFilterOptions& options
+)
 {
     auto materialList = std::make_shared<std::vector<LibraryObject>>();
 
@@ -529,11 +543,12 @@ ExternalManager::libraryMaterials(const QString& libraryName,
         if (_managerObject.hasAttr("libraryMaterials")) {
             Py::Callable libraries(_managerObject.getAttr("libraryMaterials"));
             Py::Tuple args(3);
-            args.setItem(0, Py::String(libraryName.toStdString()));
+            args.setItem(0, Py::String(libraryName));
             args.setItem(1, Py::Object(new MaterialFilterPy(new MaterialFilter(filter)), true));
             args.setItem(
                 2,
-                Py::Object(new MaterialFilterOptionsPy(new MaterialFilterOptions(options)), true));
+                Py::Object(new MaterialFilterOptionsPy(new MaterialFilterOptions(options)), true)
+            );
             Py::List list(libraries.apply(args));
             for (auto library : list) {
                 auto entry = Py::Object(library);
@@ -557,9 +572,9 @@ ExternalManager::libraryMaterials(const QString& libraryName,
     return materialList;
 }
 
-std::shared_ptr<std::vector<QString>> ExternalManager::libraryFolders(const QString& libraryName)
+std::shared_ptr<std::vector<std::string>> ExternalManager::libraryFolders(const std::string& libraryName)
 {
-    auto folderList = std::make_shared<std::vector<QString>>();
+    auto folderList = std::make_shared<std::vector<std::string>>();
 
     connect();
 
@@ -568,22 +583,57 @@ std::shared_ptr<std::vector<QString>> ExternalManager::libraryFolders(const QStr
         if (_managerObject.hasAttr("libraryFolders")) {
             Py::Callable folders(_managerObject.getAttr("libraryFolders"));
             Py::Tuple args(1);
-            args.setItem(0, Py::String(libraryName.toStdString()));
+            args.setItem(0, Py::String(libraryName));
             Py::List list(folders.apply(args));
             for (auto folder : list) {
                 auto entry = Py::Object(folder);
-                Py::String pyName(entry.getAttr("name"));
-
-                QString folderName;
+                
+                Py::String pyName(entry);
                 if (!pyName.isNone()) {
-                    folderName = QString::fromStdString(pyName.as_string());
+                    std::string folderName = pyName.as_string();
+                    folderList->push_back(folderName);
                 }
-
-                folderList->push_back(folderName);
             }
         }
         else {
             Base::Console().log("\tlibraryFolders() not found\n");
+            throw ConnectionError();
+        }
+    }
+    catch (Py::Exception& e) {
+        Base::PyException e1;  // extract the Python error text
+        throw LibraryNotFound(e1.what());
+    }
+
+    return folderList;
+}
+
+std::shared_ptr<std::vector<std::string>> ExternalManager::librarySubFolders(const std::string& libraryName, const std::string& path)
+{
+    auto folderList = std::make_shared<std::vector<std::string>>();
+
+    connect();
+
+    Base::PyGILStateLocker lock;
+    try {
+        if (_managerObject.hasAttr("librarySubFolders")) {
+            Py::Callable folders(_managerObject.getAttr("librarySubFolders"));
+            Py::Tuple args(2);
+            args.setItem(0, Py::String(libraryName));
+            args.setItem(1, Py::String(path));
+            Py::List list(folders.apply(args));
+            for (auto folder : list) {
+                auto entry = Py::Object(folder);
+
+                Py::String pyName(entry);
+                if (!pyName.isNone()) {
+                    std::string folderName = pyName.as_string();
+                    folderList->push_back(folderName);
+                }
+            }
+        }
+        else {
+            Base::Console().log("\tlibrarySubFolders() not found\n");
             throw ConnectionError();
         }
     }
@@ -601,7 +651,7 @@ std::shared_ptr<std::vector<QString>> ExternalManager::libraryFolders(const QStr
 //
 //=====
 
-void ExternalManager::createFolder(const QString& libraryName, const QString& path)
+void ExternalManager::createFolder(const std::string& libraryName, const std::string& path)
 {
     connect();
 
@@ -610,8 +660,8 @@ void ExternalManager::createFolder(const QString& libraryName, const QString& pa
         if (_managerObject.hasAttr("createFolder")) {
             Py::Callable libraries(_managerObject.getAttr("createFolder"));
             Py::Tuple args(2);
-            args.setItem(0, Py::String(libraryName.toStdString()));
-            args.setItem(1, Py::String(path.toStdString()));
+            args.setItem(0, Py::String(libraryName));
+            args.setItem(1, Py::String(path));
             Py::Object result(libraries.apply(args));
         }
         else {
@@ -625,9 +675,11 @@ void ExternalManager::createFolder(const QString& libraryName, const QString& pa
     }
 }
 
-void ExternalManager::renameFolder(const QString& libraryName,
-                                   const QString& oldPath,
-                                   const QString& newPath)
+void ExternalManager::renameFolder(
+    const std::string& libraryName,
+    const std::string& oldPath,
+    const std::string& newPath
+)
 {
     connect();
 
@@ -636,9 +688,9 @@ void ExternalManager::renameFolder(const QString& libraryName,
         if (_managerObject.hasAttr("renameFolder")) {
             Py::Callable libraries(_managerObject.getAttr("renameFolder"));
             Py::Tuple args(3);
-            args.setItem(0, Py::String(libraryName.toStdString()));
-            args.setItem(1, Py::String(oldPath.toStdString()));
-            args.setItem(2, Py::String(newPath.toStdString()));
+            args.setItem(0, Py::String(libraryName));
+            args.setItem(1, Py::String(oldPath));
+            args.setItem(2, Py::String(newPath));
             Py::Object result(libraries.apply(args));
         }
         else {
@@ -652,7 +704,38 @@ void ExternalManager::renameFolder(const QString& libraryName,
     }
 }
 
-void ExternalManager::deleteRecursive(const QString& libraryName, const QString& path)
+void ExternalManager::moveFolder(
+    const std::string& sourceLibrary,
+    const std::string& sourcePath,
+    const std::string& destinationLibrary,
+    const std::string& destinationPath
+)
+{
+    connect();
+
+    Base::PyGILStateLocker lock;
+    try {
+        if (_managerObject.hasAttr("moveFolder")) {
+            Py::Callable libraries(_managerObject.getAttr("moveFolder"));
+            Py::Tuple args(4);
+            args.setItem(0, Py::String(sourceLibrary));
+            args.setItem(1, Py::String(sourcePath));
+            args.setItem(2, Py::String(destinationLibrary));
+            args.setItem(3, Py::String(destinationPath));
+            Py::Object result(libraries.apply(args));
+        }
+        else {
+            Base::Console().log("\tmoveFolder() not found\n");
+            throw ConnectionError();
+        }
+    }
+    catch (Py::Exception& e) {
+        Base::PyException e1;  // extract the Python error text
+        throw MoveError(e1.what());
+    }
+}
+
+void ExternalManager::deleteRecursive(const std::string& libraryName, const std::string& path)
 {
     connect();
 
@@ -661,8 +744,8 @@ void ExternalManager::deleteRecursive(const QString& libraryName, const QString&
         if (_managerObject.hasAttr("deleteRecursive")) {
             Py::Callable libraries(_managerObject.getAttr("deleteRecursive"));
             Py::Tuple args(2);
-            args.setItem(0, Py::String(libraryName.toStdString()));
-            args.setItem(1, Py::String(path.toStdString()));
+            args.setItem(0, Py::String(libraryName));
+            args.setItem(1, Py::String(path));
             Py::Object result(libraries.apply(args));
         }
         else {
@@ -676,6 +759,45 @@ void ExternalManager::deleteRecursive(const QString& libraryName, const QString&
     }
 }
 
+std::shared_ptr<std::vector<LibraryObject>> ExternalManager::folderMaterials(
+    const std::string& libraryName,
+    const std::string& sourcePath
+)
+{
+    auto materialList = std::make_shared<std::vector<LibraryObject>>();
+
+    connect();
+
+    Base::PyGILStateLocker lock;
+    try {
+        if (_managerObject.hasAttr("folderMaterials")) {
+            Py::Callable libraries(_managerObject.getAttr("folderMaterials"));
+            Py::Tuple args(2);
+            args.setItem(0, Py::String(libraryName));
+            args.setItem(1, Py::String(sourcePath));
+            Py::List list(libraries.apply(args));
+            for (auto material : list) {
+                auto entry = Py::Object(material);
+                if (!checkMaterialLibraryObjectType(entry)) {
+                    throw InvalidMaterial();
+                }
+
+                materialList->push_back(materialLibraryObjectTypeFromObject(entry));
+            }
+        }
+        else {
+            Base::Console().log("\tfolderMaterials() not found\n");
+            throw ConnectionError();
+        }
+    }
+    catch (Py::Exception& e) {
+        Base::PyException e1;  // extract the Python error text
+        throw LibraryNotFound(e1.what());
+    }
+
+    return materialList;
+}
+
 //=====
 //
 // Model management
@@ -687,8 +809,7 @@ bool ExternalManager::checkModelObjectType(const Py::Object& entry)
     return entry.hasAttr("libraryName") && entry.hasAttr("model");
 }
 
-std::shared_ptr<Model> ExternalManager::modelFromObject(const Py::Object& entry,
-                                                        const QString& uuid)
+std::shared_ptr<Model> ExternalManager::modelFromObject(const Py::Object& entry, const std::string& uuid)
 {
     if (!checkModelObjectType(entry)) {
         throw InvalidModel();
@@ -697,13 +818,14 @@ std::shared_ptr<Model> ExternalManager::modelFromObject(const Py::Object& entry,
     Py::String pyName(entry.getAttr("libraryName"));
     Py::Object modelObject(entry.getAttr("model"));
 
-    QString libraryName;
+    std::string libraryName;
     if (!pyName.isNone()) {
-        libraryName = QString::fromStdString(pyName.as_string());
+        libraryName = pyName.as_string();
     }
 
     // Using this call will use caching, whereas using our class function will not
-    auto library = ModelManager::getManager().getLibrary(libraryName);
+    auto library
+        = LibraryManager::getManager().getModelLibrary(LibraryManager::RepositoryRemote, libraryName);
 
     Model* model = static_cast<ModelPy*>(*modelObject)->getModelPtr();
     model->setUUID(uuid);
@@ -713,7 +835,7 @@ std::shared_ptr<Model> ExternalManager::modelFromObject(const Py::Object& entry,
     return shared;
 }
 
-std::shared_ptr<Model> ExternalManager::getModel(const QString& uuid)
+std::shared_ptr<Model> ExternalManager::getModel(const std::string& uuid)
 {
     connect();
 
@@ -722,7 +844,7 @@ std::shared_ptr<Model> ExternalManager::getModel(const QString& uuid)
         if (_managerObject.hasAttr("getModel")) {
             Py::Callable libraries(_managerObject.getAttr("getModel"));
             Py::Tuple args(1);
-            args.setItem(0, Py::String(uuid.toStdString()));
+            args.setItem(0, Py::String(uuid));
             Py::Object result(libraries.apply(args));  // ignore return for now
 
             auto shared = modelFromObject(result, uuid);
@@ -740,9 +862,7 @@ std::shared_ptr<Model> ExternalManager::getModel(const QString& uuid)
     }
 }
 
-void ExternalManager::addModel(const QString& libraryName,
-                               const QString& path,
-                               const Model& model)
+void ExternalManager::addModel(const std::string& libraryName, const std::string& path, const Model& model)
 {
     connect();
 
@@ -751,8 +871,8 @@ void ExternalManager::addModel(const QString& libraryName,
         if (_managerObject.hasAttr("addModel")) {
             Py::Callable libraries(_managerObject.getAttr("addModel"));
             Py::Tuple args(3);
-            args.setItem(0, Py::String(libraryName.toStdString()));
-            args.setItem(1, Py::String(path.toStdString()));
+            args.setItem(0, Py::String(libraryName));
+            args.setItem(1, Py::String(path));
             args.setItem(2, Py::Object(new ModelPy(new Model(model)), true));
             libraries.apply(args);  // No return expected
         }
@@ -767,9 +887,11 @@ void ExternalManager::addModel(const QString& libraryName,
     }
 }
 
-void ExternalManager::migrateModel(const QString& libraryName,
-                                   const QString& path,
-                                   const Model& model)
+void ExternalManager::migrateModel(
+    const std::string& libraryName,
+    const std::string& path,
+    const Model& model
+)
 {
     connect();
 
@@ -778,8 +900,8 @@ void ExternalManager::migrateModel(const QString& libraryName,
         if (_managerObject.hasAttr("migrateModel")) {
             Py::Callable libraries(_managerObject.getAttr("migrateModel"));
             Py::Tuple args(3);
-            args.setItem(0, Py::String(libraryName.toStdString()));
-            args.setItem(1, Py::String(path.toStdString()));
+            args.setItem(0, Py::String(libraryName));
+            args.setItem(1, Py::String(path));
             args.setItem(2, Py::Object(new ModelPy(new Model(model)), true));
             libraries.apply(args);  // No return expected
         }
@@ -794,9 +916,11 @@ void ExternalManager::migrateModel(const QString& libraryName,
     }
 }
 
-void ExternalManager::updateModel(const QString& libraryName,
-                                  const QString& path,
-                                  const Model& model)
+void ExternalManager::updateModel(
+    const std::string& libraryName,
+    const std::string& path,
+    const Model& model
+)
 {
     connect();
 
@@ -805,8 +929,8 @@ void ExternalManager::updateModel(const QString& libraryName,
         if (_managerObject.hasAttr("updateModel")) {
             Py::Callable libraries(_managerObject.getAttr("updateModel"));
             Py::Tuple args(3);
-            args.setItem(0, Py::String(libraryName.toStdString()));
-            args.setItem(1, Py::String(path.toStdString()));
+            args.setItem(0, Py::String(libraryName));
+            args.setItem(1, Py::String(path));
             args.setItem(2, Py::Object(new ModelPy(new Model(model)), true));
             libraries.apply(args);  // No return expected
         }
@@ -821,9 +945,11 @@ void ExternalManager::updateModel(const QString& libraryName,
     }
 }
 
-void ExternalManager::setModelPath(const QString& libraryName,
-                                   const QString& path,
-                                   const QString& uuid)
+void ExternalManager::setModelPath(
+    const std::string& libraryName,
+    const std::string& path,
+    const std::string& uuid
+)
 {
     connect();
 
@@ -832,9 +958,9 @@ void ExternalManager::setModelPath(const QString& libraryName,
         if (_managerObject.hasAttr("setModelPath")) {
             Py::Callable libraries(_managerObject.getAttr("setModelPath"));
             Py::Tuple args(3);
-            args.setItem(0, Py::String(libraryName.toStdString()));
-            args.setItem(1, Py::String(path.toStdString()));
-            args.setItem(2, Py::String(uuid.toStdString()));
+            args.setItem(0, Py::String(libraryName));
+            args.setItem(1, Py::String(path));
+            args.setItem(2, Py::String(uuid));
             libraries.apply(args);  // No return expected
         }
         else {
@@ -848,9 +974,11 @@ void ExternalManager::setModelPath(const QString& libraryName,
     }
 }
 
-void ExternalManager::renameModel(const QString& libraryName,
-                                  const QString& name,
-                                  const QString& uuid)
+void ExternalManager::renameModel(
+    const std::string& libraryName,
+    const std::string& name,
+    const std::string& uuid
+)
 {
     connect();
 
@@ -859,9 +987,9 @@ void ExternalManager::renameModel(const QString& libraryName,
         if (_managerObject.hasAttr("renameModel")) {
             Py::Callable libraries(_managerObject.getAttr("renameModel"));
             Py::Tuple args(3);
-            args.setItem(0, Py::String(libraryName.toStdString()));
-            args.setItem(1, Py::String(name.toStdString()));
-            args.setItem(2, Py::String(uuid.toStdString()));
+            args.setItem(0, Py::String(libraryName));
+            args.setItem(1, Py::String(name));
+            args.setItem(2, Py::String(uuid));
             libraries.apply(args);  // No return expected
         }
         else {
@@ -875,9 +1003,11 @@ void ExternalManager::renameModel(const QString& libraryName,
     }
 }
 
-void ExternalManager::moveModel(const QString& libraryName,
-                                const QString& path,
-                                const QString& uuid)
+void ExternalManager::moveModel(
+    const std::string& libraryName,
+    const std::string& path,
+    const std::string& uuid
+)
 {
     connect();
 
@@ -886,9 +1016,9 @@ void ExternalManager::moveModel(const QString& libraryName,
         if (_managerObject.hasAttr("moveModel")) {
             Py::Callable libraries(_managerObject.getAttr("moveModel"));
             Py::Tuple args(3);
-            args.setItem(0, Py::String(libraryName.toStdString()));
-            args.setItem(1, Py::String(path.toStdString()));
-            args.setItem(2, Py::String(uuid.toStdString()));
+            args.setItem(0, Py::String(libraryName));
+            args.setItem(1, Py::String(path));
+            args.setItem(2, Py::String(uuid));
             libraries.apply(args);  // No return expected
         }
         else {
@@ -902,7 +1032,7 @@ void ExternalManager::moveModel(const QString& libraryName,
     }
 }
 
-void ExternalManager::removeModel(const QString& uuid)
+void ExternalManager::removeModel(const std::string& uuid)
 {
     connect();
 
@@ -911,7 +1041,7 @@ void ExternalManager::removeModel(const QString& uuid)
         if (_managerObject.hasAttr("removeModel")) {
             Py::Callable libraries(_managerObject.getAttr("removeModel"));
             Py::Tuple args(1);
-            args.setItem(0, Py::String(uuid.toStdString()));
+            args.setItem(0, Py::String(uuid));
             libraries.apply(args);  // No return expected
         }
         else {
@@ -936,8 +1066,10 @@ bool ExternalManager::checkMaterialObjectType(const Py::Object& entry)
     return entry.hasAttr("libraryName") && entry.hasAttr("material");
 }
 
-std::shared_ptr<Material> ExternalManager::materialFromObject(const Py::Object& entry,
-                                                              const QString& uuid)
+std::shared_ptr<Material> ExternalManager::materialFromObject(
+    const Py::Object& entry,
+    const std::string& uuid
+)
 {
     if (!checkMaterialObjectType(entry)) {
         throw InvalidMaterial();
@@ -946,13 +1078,16 @@ std::shared_ptr<Material> ExternalManager::materialFromObject(const Py::Object& 
     Py::String pyName(entry.getAttr("libraryName"));
     Py::Object materialObject(entry.getAttr("material"));
 
-    QString libraryName;
+    std::string libraryName;
     if (!pyName.isNone()) {
-        libraryName = QString::fromStdString(pyName.as_string());
+        libraryName = pyName.as_string();
     }
 
     // Using this call will use caching, whereas using our class function will not
-    auto library = MaterialManager::getManager().getLibrary(libraryName);
+    auto library = LibraryManager::getManager().getMaterialLibrary(
+        LibraryManager::RepositoryRemote,
+        libraryName
+    );
 
     Material* material = static_cast<MaterialPy*>(*materialObject)->getMaterialPtr();
     material->setUUID(uuid);
@@ -962,7 +1097,7 @@ std::shared_ptr<Material> ExternalManager::materialFromObject(const Py::Object& 
     return shared;
 }
 
-std::shared_ptr<Material> ExternalManager::getMaterial(const QString& uuid)
+std::shared_ptr<Material> ExternalManager::getMaterial(const std::string& uuid)
 {
     connect();
 
@@ -971,7 +1106,7 @@ std::shared_ptr<Material> ExternalManager::getMaterial(const QString& uuid)
         if (_managerObject.hasAttr("getMaterial")) {
             Py::Callable libraries(_managerObject.getAttr("getMaterial"));
             Py::Tuple args(1);
-            args.setItem(0, Py::String(uuid.toStdString()));
+            args.setItem(0, Py::String(uuid));
             Py::Object result(libraries.apply(args));
 
             auto shared = materialFromObject(result, uuid);
@@ -989,9 +1124,11 @@ std::shared_ptr<Material> ExternalManager::getMaterial(const QString& uuid)
     }
 }
 
-void ExternalManager::addMaterial(const QString& libraryName,
-                                  const QString& path,
-                                  const Material& material)
+void ExternalManager::addMaterial(
+    const std::string& libraryName,
+    const std::string& path,
+    const Material& material
+)
 {
     connect();
 
@@ -1000,8 +1137,8 @@ void ExternalManager::addMaterial(const QString& libraryName,
         if (_managerObject.hasAttr("addMaterial")) {
             Py::Callable libraries(_managerObject.getAttr("addMaterial"));
             Py::Tuple args(3);
-            args.setItem(0, Py::String(libraryName.toStdString()));
-            args.setItem(1, Py::String(path.toStdString()));
+            args.setItem(0, Py::String(libraryName));
+            args.setItem(1, Py::String(path));
             args.setItem(2, Py::Object(new MaterialPy(new Material(material)), true));
             libraries.apply(args);  // No return expected
         }
@@ -1016,9 +1153,11 @@ void ExternalManager::addMaterial(const QString& libraryName,
     }
 }
 
-void ExternalManager::migrateMaterial(const QString& libraryName,
-                                      const QString& path,
-                                      const Material& material)
+void ExternalManager::migrateMaterial(
+    const std::string& libraryName,
+    const std::string& path,
+    const Material& material
+)
 {
     connect();
 
@@ -1027,8 +1166,8 @@ void ExternalManager::migrateMaterial(const QString& libraryName,
         if (_managerObject.hasAttr("migrateMaterial")) {
             Py::Callable libraries(_managerObject.getAttr("migrateMaterial"));
             Py::Tuple args(3);
-            args.setItem(0, Py::String(libraryName.toStdString()));
-            args.setItem(1, Py::String(path.toStdString()));
+            args.setItem(0, Py::String(libraryName));
+            args.setItem(1, Py::String(path));
             auto mat = new Material(material);
             args.setItem(2, Py::Object(new MaterialPy(mat), true));
             libraries.apply(args);  // No return expected
@@ -1044,9 +1183,11 @@ void ExternalManager::migrateMaterial(const QString& libraryName,
     }
 }
 
-void ExternalManager::updateMaterial(const QString& libraryName,
-                    const QString& path,
-                    const Material& material)
+void ExternalManager::updateMaterial(
+    const std::string& libraryName,
+    const std::string& path,
+    const Material& material
+)
 {
     connect();
 
@@ -1055,8 +1196,8 @@ void ExternalManager::updateMaterial(const QString& libraryName,
         if (_managerObject.hasAttr("updateMaterial")) {
             Py::Callable libraries(_managerObject.getAttr("updateMaterial"));
             Py::Tuple args(3);
-            args.setItem(0, Py::String(libraryName.toStdString()));
-            args.setItem(1, Py::String(path.toStdString()));
+            args.setItem(0, Py::String(libraryName));
+            args.setItem(1, Py::String(path));
             args.setItem(2, Py::Object(new MaterialPy(new Material(material)), true));
             libraries.apply(args);  // No return expected
         }
@@ -1071,9 +1212,11 @@ void ExternalManager::updateMaterial(const QString& libraryName,
     }
 }
 
-void ExternalManager::setMaterialPath(const QString& libraryName,
-                                      const QString& path,
-                                      const QString& uuid)
+void ExternalManager::setMaterialPath(
+    const std::string& libraryName,
+    const std::string& path,
+    const std::string& uuid
+)
 {
     connect();
 
@@ -1082,9 +1225,9 @@ void ExternalManager::setMaterialPath(const QString& libraryName,
         if (_managerObject.hasAttr("setMaterialPath")) {
             Py::Callable libraries(_managerObject.getAttr("setMaterialPath"));
             Py::Tuple args(3);
-            args.setItem(0, Py::String(libraryName.toStdString()));
-            args.setItem(1, Py::String(path.toStdString()));
-            args.setItem(2, Py::String(uuid.toStdString()));
+            args.setItem(0, Py::String(libraryName));
+            args.setItem(1, Py::String(path));
+            args.setItem(2, Py::String(uuid));
             libraries.apply(args);  // No return expected
         }
         else {
@@ -1098,9 +1241,11 @@ void ExternalManager::setMaterialPath(const QString& libraryName,
     }
 }
 
-void ExternalManager::renameMaterial(const QString& libraryName,
-                                     const QString& name,
-                                     const QString& uuid)
+void ExternalManager::renameMaterial(
+    const std::string& libraryName,
+    const std::string& name,
+    const std::string& uuid
+)
 {
     connect();
 
@@ -1109,9 +1254,9 @@ void ExternalManager::renameMaterial(const QString& libraryName,
         if (_managerObject.hasAttr("renameMaterial")) {
             Py::Callable libraries(_managerObject.getAttr("renameMaterial"));
             Py::Tuple args(3);
-            args.setItem(0, Py::String(libraryName.toStdString()));
-            args.setItem(1, Py::String(name.toStdString()));
-            args.setItem(2, Py::String(uuid.toStdString()));
+            args.setItem(0, Py::String(libraryName));
+            args.setItem(1, Py::String(name));
+            args.setItem(2, Py::String(uuid));
             libraries.apply(args);  // No return expected
         }
         else {
@@ -1125,9 +1270,11 @@ void ExternalManager::renameMaterial(const QString& libraryName,
     }
 }
 
-void ExternalManager::moveMaterial(const QString& libraryName,
-                                   const QString& path,
-                                   const QString& uuid)
+void ExternalManager::moveMaterial(
+    const std::string& libraryName,
+    const std::string& path,
+    const std::string& uuid
+)
 {
     connect();
 
@@ -1136,9 +1283,9 @@ void ExternalManager::moveMaterial(const QString& libraryName,
         if (_managerObject.hasAttr("moveMaterial")) {
             Py::Callable libraries(_managerObject.getAttr("moveMaterial"));
             Py::Tuple args(3);
-            args.setItem(0, Py::String(libraryName.toStdString()));
-            args.setItem(1, Py::String(path.toStdString()));
-            args.setItem(2, Py::String(uuid.toStdString()));
+            args.setItem(0, Py::String(libraryName));
+            args.setItem(1, Py::String(path));
+            args.setItem(2, Py::String(uuid));
             libraries.apply(args);  // No return expected
         }
         else {
@@ -1152,7 +1299,7 @@ void ExternalManager::moveMaterial(const QString& libraryName,
     }
 }
 
-void ExternalManager::removeMaterial(const QString& uuid)
+void ExternalManager::removeMaterial(const std::string& uuid)
 {
     connect();
 
@@ -1161,7 +1308,7 @@ void ExternalManager::removeMaterial(const QString& uuid)
         if (_managerObject.hasAttr("removeMaterial")) {
             Py::Callable libraries(_managerObject.getAttr("removeMaterial"));
             Py::Tuple args(1);
-            args.setItem(0, Py::String(uuid.toStdString()));
+            args.setItem(0, Py::String(uuid));
             libraries.apply(args);  // No return expected
         }
         else {
@@ -1172,5 +1319,30 @@ void ExternalManager::removeMaterial(const QString& uuid)
     catch (Py::Exception& e) {
         Base::PyException e1;  // extract the Python error text
         throw DeleteError(e1.what());
+    }
+}
+
+bool ExternalManager::materialExists(const std::string& libraryName, const std::string& uuid)
+{
+    connect();
+
+    Base::PyGILStateLocker lock;
+    try {
+        if (_managerObject.hasAttr("materialExists")) {
+            Py::Callable libraries(_managerObject.getAttr("materialExists"));
+            Py::Tuple args(2);
+            args.setItem(0, Py::String(libraryName));
+            args.setItem(1, Py::String(uuid));
+            Py::Boolean exists(libraries.apply(args));  // No return expected
+            return exists.as_bool();
+        }
+        else {
+            Base::Console().log("\tmaterialExists() not found\n");
+            throw ConnectionError();
+        }
+    }
+    catch (Py::Exception& e) {
+        Base::PyException e1;  // extract the Python error text
+        throw MaterialNotFound(e1.what());
     }
 }

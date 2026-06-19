@@ -35,6 +35,8 @@
 #include <Mod/Material/App/MaterialManager.h>
 #include <Mod/Material/App/ModelManager.h>
 
+#include "ClipboardText.h"
+
 namespace Gui
 {
 class ViewProvider;
@@ -44,7 +46,7 @@ namespace MatGui
 {
 class Ui_DlgInspectMaterial;
 
-class DlgInspectMaterial: public QWidget, public Gui::SelectionSingleton::ObserverType
+class DlgInspectMaterial: public QWidget, public Gui::SelectionSingleton::ObserverType, public ClipboardText
 {
     Q_OBJECT
 
@@ -61,13 +63,6 @@ public:
 
 private:
     std::unique_ptr<Ui_DlgInspectMaterial> ui;
-    QString clipboardText;
-    int clipboardIndent;
-
-    void appendClip(QString text);
-    QStandardItem* clipItem(QString text);
-    void indent();
-    void unindent();
 
     std::vector<Gui::ViewProvider*> getSelection() const;
     void update(std::vector<Gui::ViewProvider*>& views);
@@ -77,14 +72,14 @@ private:
     void addMaterial(QTreeView* tree, QStandardItem* parent, const Materials::Material& material);
     void
     addMaterialDetails(QTreeView* tree, QStandardItem* parent, const Materials::Material& material);
-    void addModels(QTreeView* tree, QStandardItem* parent, const QSet<QString>* models);
+    void addModels(QTreeView* tree, QStandardItem* parent, const QSet<std::string>* models);
     void addModelDetails(QTreeView* tree,
                          QStandardItem* parent,
                          std::shared_ptr<Materials::Model>& model);
     void addProperties(
         QTreeView* tree,
         QStandardItem* parent,
-        const std::map<QString, std::shared_ptr<Materials::MaterialProperty>>& properties);
+        const std::map<std::string, std::shared_ptr<Materials::MaterialProperty>>& properties);
     void addPropertyDetails(QTreeView* tree,
                             QStandardItem* parent,
                             const std::shared_ptr<Materials::MaterialProperty>& property);

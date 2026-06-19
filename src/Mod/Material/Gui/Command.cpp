@@ -32,8 +32,8 @@
 #include "DlgDisplayPropertiesImp.h"
 #include "DlgInspectAppearance.h"
 #include "DlgInspectMaterial.h"
+#include "DlgInspectModels.h"
 #include "DlgMaterialImp.h"
-#include "MaterialSave.h"
 #include "MaterialsEditor.h"
 #include "ModelSelect.h"
 #include "TaskMigrateExternal.h"
@@ -189,6 +189,33 @@ bool CmdInspectMaterial::isActive()
 }
 
 //===========================================================================
+// Materials_InspectModels
+//===========================================================================
+DEF_STD_CMD_A(CmdInspectModels)
+
+CmdInspectModels::CmdInspectModels()
+    : Command("Materials_InspectModels")
+{
+    sGroup = "Standard-View";
+    sMenuText = QT_TR_NOOP("Inspect Models");
+    sToolTipText = QT_TR_NOOP("Inspects the properties and structure of material models");
+    sWhatsThis = "Materials_InspectMaterial";
+    sStatusTip = QT_TR_NOOP("Inspects the properties and structure of material models");
+    // sPixmap = "Material_Edit";
+}
+
+void CmdInspectModels::activated(int iMsg)
+{
+    Q_UNUSED(iMsg);
+    Gui::Control().showDialog(new MatGui::TaskInspectModels());
+}
+
+bool CmdInspectModels::isActive()
+{
+    return (Gui::Control().activeDialog() == nullptr);
+}
+
+//===========================================================================
 // Materials_MigrateToDatabase
 //===========================================================================
 
@@ -230,6 +257,7 @@ void CreateMaterialCommands()
     rcCmdMgr.addCommand(new StdCmdSetMaterial());
     rcCmdMgr.addCommand(new CmdInspectAppearance());
     rcCmdMgr.addCommand(new CmdInspectMaterial());
+    rcCmdMgr.addCommand(new CmdInspectModels());
 #if defined(BUILD_MATERIAL_EXTERNAL)
     rcCmdMgr.addCommand(new CmdMigrateToExternal());
 #endif

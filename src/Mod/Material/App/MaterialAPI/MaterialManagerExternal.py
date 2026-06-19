@@ -149,6 +149,13 @@ class MaterialManagerExternal(ABC):
 
         This will return a list of all folders in the library including empty folders"""
 
+    @abstractmethod
+    def librarySubFolders(self, libraryName: str, path: str) -> list[str]:
+        """Returns a list of subfolders in the specified path within the library
+        
+        This does not return a recursive list of all subfolders, only the folders 
+        directly within the specified path."""
+
     #
     # Folder methods
     #
@@ -164,6 +171,10 @@ class MaterialManagerExternal(ABC):
     @abstractmethod
     def deleteRecursive(self, libraryName: str, path: str) -> None:
         """Delete the folder and all of its contents"""
+
+    @abstractmethod
+    def folderMaterials(self, libraryName: str, path: str) -> list[MaterialLibraryObjectType]:
+        """Returns a list of materials in the specified folder within the library"""
 
     #
     # Model methods
@@ -255,3 +266,10 @@ class MaterialManagerExternal(ABC):
     @abstractmethod
     def removeMaterial(self, uuid: str) -> None:
         """Remove the material from the library"""
+
+    @abstractmethod
+    def materialExists(self, libraryName : str, uuid: str) -> bool:
+        """Returns true if the material exists
+        
+        The library name is required when looking for an instance in a specific library,
+        otherwise it can be an empty string"""

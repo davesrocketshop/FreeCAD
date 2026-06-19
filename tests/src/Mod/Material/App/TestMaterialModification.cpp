@@ -1,0 +1,316 @@
+// SPDX-License-Identifier: LGPL-2.1-or-later
+/***************************************************************************
+ *   Copyright (c) 2026 David Carter <dcarter@david.carter.ca>             *
+ *                                                                         *
+ *   This file is part of FreeCAD.                                         *
+ *                                                                         *
+ *   FreeCAD is free software: you can redistribute it and/or modify it    *
+ *   under the terms of the GNU Lesser General Public License as           *
+ *   published by the Free Software Foundation, either version 2.1 of the  *
+ *   License, or (at your option) any later version.                       *
+ *                                                                         *
+ *   FreeCAD is distributed in the hope that it will be useful, but        *
+ *   WITHOUT ANY WARRANTY; without even the implied warranty of            *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU      *
+ *   Lesser General Public License for more details.                       *
+ *                                                                         *
+ *   You should have received a copy of the GNU Lesser General Public      *
+ *   License along with FreeCAD. If not, see                               *
+ *   <https://www.gnu.org/licenses/>.                                      *
+ *                                                                         *
+ **************************************************************************/
+
+#include <gtest/gtest.h>
+
+#include <QLocale>
+#include <QMetaType>
+#include <QString>
+#include <QDir>
+
+#include <App/Application.h>
+#include <Base/Interpreter.h>
+#include <Base/Quantity.h>
+#include <Gui/MetaTypes.h>
+#include <src/App/InitApplication.h>
+
+#include <Mod/Material/App/MaterialManager.h>
+#include <Mod/Material/App/MaterialValue.h>
+#include <Mod/Material/App/Model.h>
+#include <Mod/Material/App/ModelManager.h>
+#include <Mod/Material/App/ModelUuids.h>
+
+#ifdef _MSC_VER
+# pragma warning(disable : 4834)
+#endif
+
+// clang-format off
+
+class TestMaterialModification : public ::testing::Test {
+
+protected:
+    static void SetUpTestSuite() {
+        if (App::Application::GetARGC() == 0) {
+            tests::initApplication();
+        }
+    }
+
+    void SetUp() override {
+        // Disable the external interface
+        // Using the MaterialManager functions will cause a boot strapping issue so
+        // this needs to access the configuration directly
+        ParameterGrp::handle paramExternal = App::GetApplication().GetParameterGroupByPath(
+            "User parameter:BaseApp/Preferences/Mod/Material/ExternalInterface"
+        );
+
+        _useExternal = paramExternal->GetBool("UseExternal", false);
+        paramExternal->SetBool("UseExternal", false);
+
+        _modelManager = &(Materials::ModelManager::getManager());
+        _materialManager = &(Materials::MaterialManager::getManager());
+
+        // Create a temporary library
+        QString libPath = QDir::tempPath() + QStringLiteral("/TestMaterialCards");
+        QDir libDir(libPath);
+        libDir.removeRecursively(); // Clear any old run data
+        libDir.mkdir(libPath);
+
+        ASSERT_NO_THROW(_library = _materialManager->createLocalLibrary("TestMaterialCards",
+                            libPath.toStdString(),
+                            ":/icons/preferences-general.svg",
+                            false));
+
+        _materialManager->refresh();
+    }
+
+    void TearDown() override {
+        ASSERT_NO_THROW(_materialManager->removeLibrary("TestMaterialCards")); // Remove the library
+        _materialManager->setUseExternal(_useExternal);
+        _materialManager->refresh();
+    }
+
+    Materials::ModelManager* _modelManager;
+    Materials::MaterialManager* _materialManager;
+    std::shared_ptr<Materials::MaterialLibrary> _library;
+    bool _useExternal {};
+};
+
+TEST_F(TestMaterialModification, TestNew)
+{
+    auto library = _materialManager->getLibrary("User");
+    ASSERT_NE(library, nullptr);
+
+    auto material = std::make_shared<Materials::Material>();
+    ASSERT_NE(material, nullptr);
+    ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_None);
+    material->setEditStateNew();
+    ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_New);
+
+    // Set the library and path
+    material->setLibrary(library);
+    ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_New);
+    material->setDirectory("a/b/c");
+    ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_New);
+
+    // Modify basic properties
+    material->setName("Name");
+    ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_New);
+    material->setAuthor("Author");
+    ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_New);
+    material->setLicense("License");
+    ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_New);
+    material->setParentUUID("Author");
+    ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_New);
+    material->setDescription("Description");
+    ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_New);
+    material->setURL("URL");
+    ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_New);
+    material->setReference("Reference");
+    ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_New);
+
+    // Test tags
+    material->addTag("Henry");
+    material->addTag("Ralph");
+    ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_New);
+    material->removeTag("Henry");
+    ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_New);
+
+    // Test adding a model
+    material->addPhysical("454661e5-265b-4320-8e6f-fcf6223ac3af"); // Density
+    ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_New);
+    material->addAppearance("f006c7e4-35b7-43d5-bbf9-c5d572309e6e"); // BasicRendering
+    ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_New);
+
+    // Test modifying a property
+    material->setPhysicalValue("Density", std::string("1.0 kg/m^3"));
+    ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_New);
+    material->setAppearanceValue("DiffuseColor", std::string("(0.7804, 0.5686, 0.1137, 1.0)"));
+    ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_New);
+
+    // Test removing a model
+    material->removePhysical("454661e5-265b-4320-8e6f-fcf6223ac3af"); // Density
+    ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_New);
+    material->removeAppearance("f006c7e4-35b7-43d5-bbf9-c5d572309e6e"); // BasicRendering
+    ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_New);
+
+    // Test save
+    try {
+        _materialManager->saveMaterial(_library,
+                        material,
+                        "/Test Material2.FCMat",
+                        false, // overwrite
+                        true,  // saveAsCopy
+                        false); // saveInherited
+        ASSERT_FALSE(material->getUUID().empty());
+        ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_None);
+        auto reload = _materialManager->getMaterial(material->getUUID());
+        ASSERT_EQ(reload->getEditState(), Materials::Material::MaterialEdit_None);
+    }
+    catch (...) {
+        FAIL() << "An unknown exception has occured\n";
+    }
+}
+
+TEST_F(TestMaterialModification, TestAlter)
+{
+    auto library = _materialManager->getLibrary("User");
+    ASSERT_NE(library, nullptr);
+
+    auto systemMaterial = _materialManager->getMaterial("c6c64159-19c1-40b5-859c-10561f20f979"); // Test Material.FCMat
+    ASSERT_EQ(systemMaterial->getEditState(), Materials::Material::MaterialEdit_None);
+    auto material = std::make_shared<Materials::Material>(*systemMaterial);
+    ASSERT_NE(material, nullptr);
+    ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_None);
+    material->resetEditState();
+
+    // Set the library and path
+    material->setLibrary(library);
+    ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_Changed);
+    material->resetEditState();
+    material->setDirectory("a/b/c");
+    ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_Changed);
+    material->resetEditState();
+
+    // Modify basic properties
+    material->setName("Name");
+    ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_Changed);
+    material->resetEditState();
+    material->setAuthor("Author");
+    ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_Changed);
+    material->resetEditState();
+    material->setLicense("License");
+    ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_Changed);
+    material->resetEditState();
+    material->setParentUUID("Author");
+    ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_Changed);
+    material->resetEditState();
+    material->setDescription("Description");
+    ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_Changed);
+    material->resetEditState();
+    material->setURL("URL");
+    ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_Changed);
+    material->resetEditState();
+    material->setReference("Reference");
+    ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_Changed);
+    material->resetEditState();
+
+    // Test tags
+    material->addTag("Henry");
+    material->addTag("Ralph");
+    ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_Changed);
+    material->resetEditState();
+    material->removeTag("Henry");
+    ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_Changed);
+    material->resetEditState();
+
+    // Test adding a model
+    material->addPhysical("454661e5-265b-4320-8e6f-fcf6223ac3af"); // Density
+    ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_Changed);
+    material->resetEditState();
+    material->addAppearance("f006c7e4-35b7-43d5-bbf9-c5d572309e6e"); // BasicRendering
+    ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_None); // Part of Test Material.FCMat
+    material->addAppearance("bbdcc65b-67ca-489c-bd5c-a36e33d1c160"); // TextureRendering
+    ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_Changed);
+    material->resetEditState();
+
+    // Test modifying a property
+    material->setPhysicalValue("Density", std::string("1.0 kg/m^3")); // No previous value
+    ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_Changed);
+    material->resetEditState();
+    material->setPhysicalValue("TestQuantity", std::string("1.0 kg/m^3"));
+    ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_InvariantChanged);
+    material->resetEditState();
+    material->setAppearanceValue("TextureScaling", std::string("1.0")); // No previous value
+    ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_Changed);
+    material->resetEditState();
+
+    // Test removing a model
+    material->removePhysical("454661e5-265b-4320-8e6f-fcf6223ac3af"); // Density
+    ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_InvariantChanged);
+    material->resetEditState();
+    material->removeAppearance("f006c7e4-35b7-43d5-bbf9-c5d572309e6e"); // BasicRendering
+    ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_None); // Still used by TextureRendering
+    material->removeAppearance("bbdcc65b-67ca-489c-bd5c-a36e33d1c160"); // TextureRendering
+    ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_InvariantChanged);
+    material->resetEditState();
+
+    // Test adding and modifying a model
+    material->addPhysical("454661e5-265b-4320-8e6f-fcf6223ac3af"); // Density
+    ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_Changed);
+    material->addAppearance("f006c7e4-35b7-43d5-bbf9-c5d572309e6e"); // BasicRendering
+    ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_Changed);
+    material->addAppearance("bbdcc65b-67ca-489c-bd5c-a36e33d1c160"); // TextureRendering
+    ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_Changed);
+    material->setPhysicalValue("Density", std::string("1.0 kg/m^3")); // No previous value
+    ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_Changed);
+    material->setPhysicalValue("TestQuantity", std::string("1.0 kg/m^3"));
+    ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_InvariantChanged);
+    material->resetEditState();
+    material->setAppearanceValue("TextureScaling", std::string("1.0")); // No previous value
+    ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_Changed);
+    material->removePhysical("454661e5-265b-4320-8e6f-fcf6223ac3af"); // Density
+    ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_InvariantChanged);
+    material->resetEditState();
+    material->removeAppearance("f006c7e4-35b7-43d5-bbf9-c5d572309e6e"); // BasicRendering
+    ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_None); // Still used by TextureRendering
+    material->removeAppearance("bbdcc65b-67ca-489c-bd5c-a36e33d1c160"); // TextureRendering
+    ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_InvariantChanged);
+    material->resetEditState();
+
+    // Test adding and modifying a model with existing values
+    material->addPhysical("454661e5-265b-4320-8e6f-fcf6223ac3af"); // Density
+    ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_Changed);
+    material->addAppearance("f006c7e4-35b7-43d5-bbf9-c5d572309e6e"); // BasicRendering
+    ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_Changed);
+    material->setPhysicalValue("Density", std::string("1.0 kg/m^3")); // No previous value
+    ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_Changed);
+    material->setPhysicalValue("TestQuantity", std::string("1.0 kg/m^3"));
+    ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_InvariantChanged);
+    material->setAppearanceValue("DiffuseColor", std::string("(0.7804, 0.5686, 0.1137, 1.0)")); // No previous value
+    ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_InvariantChanged);
+    material->setPhysicalValue("TestQuantity", std::string("1.0 kg/m^3"));
+    ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_InvariantChanged);
+    material->removePhysical("454661e5-265b-4320-8e6f-fcf6223ac3af"); // Density
+    ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_InvariantChanged);
+    material->removeAppearance("f006c7e4-35b7-43d5-bbf9-c5d572309e6e"); // BasicRendering
+    ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_InvariantChanged);
+    material->resetEditState();
+
+    // Test save
+    try {
+        _materialManager->saveMaterial(_library,
+                        material,
+                        "/Test Material3.FCMat",
+                        false, // overwrite
+                        true,  // saveAsCopy
+                        false); // saveInherited
+        ASSERT_FALSE(material->getUUID().empty());
+        ASSERT_EQ(material->getEditState(), Materials::Material::MaterialEdit_None);
+        auto reload = _materialManager->getMaterial(material->getUUID());
+        ASSERT_EQ(reload->getEditState(), Materials::Material::MaterialEdit_None);
+    }
+    catch (...) {
+        FAIL() << "An unknown exception has occured\n";
+    }
+}
+
+// clang-format on

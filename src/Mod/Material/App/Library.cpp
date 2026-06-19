@@ -27,142 +27,85 @@
 
 #include "Exceptions.h"
 #include "Library.h"
+#include "ManagedLibrary.h"
 
 
 using namespace Materials;
 
-TYPESYSTEM_SOURCE(Materials::Library, Base::BaseClass)
+TYPESYSTEM_SOURCE_ABSTRACT(Materials::Library, Base::BaseClass)
 
-Library::Library(const QString& libraryName, const QString& iconPath, bool readOnly)
-    : _name(libraryName)
-    , _readOnly(readOnly)
-    , _caseSensitive(true)
-    , _local(false)
+Library::Library()
 {
-    setIcon(iconPath);
+    _managedLibrary = std::make_shared<ManagedLibrary>();
 }
 
-Library::Library(const QString& libraryName, const QByteArray& icon, bool readOnly)
-    : _name(libraryName)
-    , _icon(icon)
-    , _readOnly(readOnly)
-    , _caseSensitive(true)
-    , _local(false)
+Library::Library(const std::shared_ptr<ManagedLibrary>& library)
+    : _managedLibrary(library)
 {}
 
-Library::Library(const QString& libraryName,
-                 const QString& dir,
-                 const QString& iconPath,
-                 bool readOnly)
-    : _name(libraryName)
-    , _directory(canonical(dir))
-    , _readOnly(readOnly)
-    , _local(false)
+Library::Library(const std::string& libraryName, const std::string& iconPath, bool readOnly)
 {
-    setIcon(iconPath);
-    setCaseSensitivity();
+    _managedLibrary = std::make_shared<ManagedLibrary>(libraryName, iconPath, readOnly);
 }
 
-QByteArray Library::getIcon(const QString& iconPath)
+Library::Library(const std::string& libraryName, const QByteArray& icon, bool readOnly)
 {
-    QFile file(iconPath);
-    if (!file.open(QIODevice::ReadOnly)) {
-        Base::Console().log("Failed to open icon file '%s'\n", iconPath.toStdString().c_str());
-        return QByteArray();  // Return an empty QByteArray if file opening fails
-    }
-
-    QByteArray data = file.readAll();
-    file.close();
-    return data;
+    _managedLibrary = std::make_shared<ManagedLibrary>(libraryName, icon, readOnly);
 }
 
-void Library::setIcon(const QString& iconPath)
+Library::Library(const std::string& libraryName, const std::string& dir, const std::string& iconPath, bool readOnly)
 {
-    _icon = getIcon(iconPath);
+    _managedLibrary = std::make_shared<ManagedLibrary>(libraryName, dir, iconPath, readOnly);
+}
+
+void Library::setIcon(const std::string& iconPath)
+{
+    _managedLibrary->setIcon(iconPath);
 }
 
 bool Library::isLocal() const
 {
-    return _local;
+    return _managedLibrary->isLocal();
 }
 
 void Library::setLocal(bool local)
 {
-    _local = local;
+    _managedLibrary->setLocal(local);
 }
 
-QString Library::getDirectory() const
+bool Library::isModule() const
 {
-    return _directory;
+    return _managedLibrary->isModule();
 }
 
-void Library::setDirectory(const QString& directory)
+void Library::setModule(bool module)
 {
-    _directory = canonical(directory);
-    setCaseSensitivity();
-}
-
-void Library::setCaseSensitivity()
-{
-    _caseSensitive = true;
-    if (QDir(_directory).exists()) {
-        auto upper = _directory.toUpper();
-        auto lower = _directory.toLower();
-        if ((_directory != upper) && QDir(upper).exists()) {
-            _caseSensitive = false;
-        }
-        else if ((_directory != lower) && QDir(lower).exists()) {
-            _caseSensitive = false;
-        }
-    }
-}
-
-Qt::CaseSensitivity Library::caseSensitivity() const
-{
-    return (_caseSensitive ? Qt::CaseSensitive : Qt::CaseInsensitive);
-}
-
-QString Library::getDirectoryPath() const
-{
-    return QDir(_directory).canonicalPath();
+    _managedLibrary->setModule(module);
 }
 
 bool Library::operator==(const Library& library) const
 {
-    return (getName() == library.getName()) && (_directory == library._directory);
+    return _managedLibrary->operator==(*library._managedLibrary);
 }
 
 void Library::validate(const Library& remote) const
 {
-    if (getName() != remote.getName()) {
-        throw InvalidLibrary("Library names don't match");
-    }
-    if (getIcon() != remote.getIcon()) {
-        throw InvalidLibrary("Library icons don't match");
-    }
-
-    // Local and remote paths will differ
-    if (!remote.getDirectory().isEmpty()) {
-        throw InvalidLibrary("Remote library should not have a path");
-    }
-
-    if (isReadOnly() != remote.isReadOnly()) {
-        throw InvalidLibrary("Library readonly settings don't match");
-    }
+    _managedLibrary->validate(*remote._managedLibrary);
 }
 
-QString Library::getLocalPath(const QString& path) const
+std::string Library::getLocalPath(const std::string& directoryPath, const std::string& path) const
 {
-    QString filePath = getDirectoryPath();
-    if (!(filePath.endsWith(QStringLiteral("/")) || filePath.endsWith(QStringLiteral("\\")))) {
-        filePath += QStringLiteral("/");
+    std::string filePath = directoryPath;
+    if (!(filePath.ends_with("/") || filePath.ends_with("\\"))) {
+        filePath += "/";
     }
 
-    QString clean = QDir::cleanPath(path);
-    QString prefix = QStringLiteral("/") + getName();
-    if (clean.startsWith(prefix)) {
+    std::string clean = cleanPath(path);
+    std::string prefix = "[" + getName() + "]";
+    if (clean.starts_with(prefix)) {
         // Remove the library name from the path
-        filePath += clean.right(clean.length() - prefix.length());
+        // filePath += clean.erase(clean.length() - prefix.length());
+        filePath += clean.erase(0, prefix.length());
     }
     else {
         filePath += clean;
@@ -171,55 +114,52 @@ QString Library::getLocalPath(const QString& path) const
     return filePath;
 }
 
-bool Library::isRoot(const QString& path) const
+std::string Library::getRelativePath(const std::string& path) const
 {
-    QString localPath = getLocalPath(path);
-    QString cleanPath = getLocalPath(QStringLiteral(""));
-    return (cleanPath == localPath);
-}
-
-QString Library::getRelativePath(const QString& path) const
-{
-    QString filePath;
-    QString clean = QDir::cleanPath(path);
-    QString prefix = QStringLiteral("/") + getName();
-    if (clean.startsWith(prefix)) {
+    std::string filePath;
+    std::string clean = cleanPath(path);
+    std::string prefix = "[" + getName() + "]";
+    if (clean.starts_with(prefix)) {
         // Remove the library name from the path
-        filePath = clean.right(clean.length() - prefix.length());
+        filePath = clean.erase(0, prefix.length());
     }
     else {
         filePath = clean;
     }
 
     prefix = getDirectoryPath();
-    if (filePath.startsWith(prefix, caseSensitivity())) {
+    if (filePath.starts_with(prefix)) {
         // Remove the library root from the path
-        filePath = filePath.right(filePath.length() - prefix.length());
+        filePath = filePath.erase(0, prefix.length());
     }
 
     // Remove any leading '/'
-    if (filePath.startsWith(QStringLiteral("/"))) {
-        filePath.remove(0, 1);
+    if (filePath.starts_with("/")) {
+        filePath.erase(0, 1);
     }
 
     return filePath;
 }
 
-QString Library::getLibraryPath(const QString& path, const QString& filename) const
+std::string Library::getLibraryPath(const std::string& path, const std::string& filename) const
 {
-    QString filePath(path);
-    if (filePath.endsWith(filename)) {
-        filePath = filePath.left(filePath.length() - filename.length());
+    std::string filePath(cleanPath(path));
+    if (filePath.ends_with(filename)) {
+        filePath = filePath.erase(filePath.length() - filename.length());
     }
-    if (filePath.endsWith(QStringLiteral("/"))) {
-        filePath = filePath.left(filePath.length() - 1);
+    if (filePath.ends_with("/")) {
+        filePath = filePath.erase(filePath.length() - 1);
     }
 
     return filePath;
 }
 
-QString Library::canonical(const QString& path)
+std::string Library::cleanPath(const std::string path)
 {
-    QDir dir(path);
-    return dir.canonicalPath();
+    return ManagedLibrary::cleanPath(path);
+}
+
+QString Library::cleanPath(const QString& path)
+{
+    return ManagedLibrary::cleanPath(path);
 }

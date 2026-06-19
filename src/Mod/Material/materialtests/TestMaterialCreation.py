@@ -41,13 +41,19 @@ class MaterialCreationTestCases(unittest.TestCase):
 
     def setUp(self):
         """ Setup function to initialize test data """
-        self.ModelManager = Materials.ModelManager()
-        self.MaterialManager = Materials.MaterialManager()
-        self.uuids = Materials.UUIDs()
+        self._modelManager = Materials.ModelManager()
+        self._materialManager = Materials.MaterialManager()
+        self._uuids = Materials.UUIDs()
+
+        # Disable the external interface
+        self._useExternal = self._materialManager.UseExternal
+        self._materialManager.UseExternal = False
+
+        self._materialManager.refresh()
 
     def tearDown(self):
         try:
-            material = self.MaterialManager.getMaterialByPath("Example/Frakenstein.FCMat", "User")
+            material = self._materialManager.getMaterialByPath("Example/Frakenstein.FCMat", "User")
             os.remove(material.LibraryRoot + "/Example/Frakenstein.FCMat")
             try:
                 os.rmdir(material.LibraryRoot + "/Example")
@@ -56,6 +62,11 @@ class MaterialCreationTestCases(unittest.TestCase):
                 pass
         except LookupError:
             pass
+
+        # Restore the external interface
+        self._materialManager.UseExternal = self._useExternal
+
+        self._materialManager.refresh()
 
     def checkNewMaterial(self, material):
         """ Check the state of a newly created material """
@@ -101,11 +112,11 @@ class MaterialCreationTestCases(unittest.TestCase):
         self.assertEqual(len(material.PhysicalModels), 0)
         self.assertEqual(len(material.AppearanceModels), 0)
 
-        material.addAppearanceModel(self.uuids.TextureRendering)
+        material.addAppearanceModel(self._uuids.TextureRendering)
         self.assertEqual(len(material.AppearanceModels), 1)
         # TextureRendering inherits BasicRendering
-        self.assertTrue(material.hasAppearanceModel(self.uuids.BasicRendering))
-        self.assertTrue(material.hasAppearanceModel(self.uuids.TextureRendering))
+        self.assertTrue(material.hasAppearanceModel(self._uuids.BasicRendering))
+        self.assertTrue(material.hasAppearanceModel(self._uuids.TextureRendering))
 
         # Colors are tuples of 3 (rgb) or 4 (rgba) values between 0 and 1
         # All values are set with strings
@@ -127,9 +138,9 @@ class MaterialCreationTestCases(unittest.TestCase):
         self.assertIsNone(material.getAppearanceValue("TextureImage"))
         self.assertIsNone(material.getAppearanceValue("TextureScaling"))
 
-        material.addPhysicalModel(self.uuids.Density)
+        material.addPhysicalModel(self._uuids.Density)
         self.assertEqual(len(material.PhysicalModels), 1)
-        self.assertTrue(material.hasPhysicalModel(self.uuids.Density))
+        self.assertTrue(material.hasPhysicalModel(self._uuids.Density))
 
         # Quantity properties require units
         with self.assertRaises(ValueError):
@@ -158,11 +169,11 @@ class MaterialCreationTestCases(unittest.TestCase):
         # as inherited without duplicating them. When false, they will be copied as uninherited. Avoid
         # self-inheritance as this creates an invalid model. It will have a different UUID than the original.
         #
-        self.MaterialManager.save("User", material, "Example/Frakenstein.FCMat", overwrite=True)
+        self._materialManager.save("User", material, "Example/Frakenstein.FCMat", overwrite=True)
 
         # Now the UUID is valid
         self.assertEqual(len(material.UUID), 36)
         self.assertEqual(material.UUID, uuid)
-        self.assertIn(uuid, self.MaterialManager.Materials)
-        self.assertIsNotNone(self.MaterialManager.getMaterialByPath("Example/Frakenstein.FCMat", "User"))
-        self.assertIsNotNone(self.MaterialManager.getMaterial(uuid))
+        self.assertIn(uuid, self._materialManager.Materials)
+        self.assertIsNotNone(self._materialManager.getMaterialByPath("Example/Frakenstein.FCMat", "User"))
+        self.assertIsNotNone(self._materialManager.getMaterial(uuid))

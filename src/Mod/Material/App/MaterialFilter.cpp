@@ -42,6 +42,22 @@ MaterialFilterOptions::MaterialFilterOptions()
     _includeFolders = param->GetBool("ShowEmptyFolders", false);
     _includeLibraries = param->GetBool("ShowEmptyLibraries", true);
     _includeLegacy = param->GetBool("ShowLegacy", false);
+    _includeDisabled = param->GetBool("ShowDisabled", false);
+    _includeMasked = param->GetBool("ShowMasked", false);
+}
+
+void MaterialFilterOptions::save() const
+{
+    auto param = App::GetApplication().GetParameterGroupByPath(
+        "User parameter:BaseApp/Preferences/Mod/Material/Editor"
+    );
+    param->SetBool("ShowFavorites", _includeFavorites);
+    param->SetBool("ShowRecent", _includeRecent);
+    param->SetBool("ShowEmptyFolders", _includeFolders);
+    param->SetBool("ShowEmptyLibraries", _includeLibraries);
+    param->SetBool("ShowLegacy", _includeLegacy);
+    param->SetBool("ShowDisabled", _includeDisabled);
+    param->SetBool("ShowMasked", _includeMasked);
 }
 
 MaterialFilterTreeWidgetOptions::MaterialFilterTreeWidgetOptions()
@@ -92,7 +108,7 @@ bool MaterialFilter::modelIncluded(const Material& material) const
     return true;
 }
 
-bool MaterialFilter::modelIncluded(const QString& uuid) const
+bool MaterialFilter::modelIncluded(const std::string& uuid) const
 {
     try {
         auto material = MaterialManager::getManager().getMaterial(uuid);
@@ -103,7 +119,7 @@ bool MaterialFilter::modelIncluded(const QString& uuid) const
     return false;
 }
 
-void MaterialFilter::addRequired(const QString& uuid)
+void MaterialFilter::addRequired(const std::string& uuid)
 {
     // Ignore any uuids already present
     if (!_requiredComplete.contains(uuid)) {
@@ -111,7 +127,7 @@ void MaterialFilter::addRequired(const QString& uuid)
     }
 }
 
-void MaterialFilter::addRequiredComplete(const QString& uuid)
+void MaterialFilter::addRequiredComplete(const std::string& uuid)
 {
     if (_required.contains(uuid)) {
         // Completeness takes priority

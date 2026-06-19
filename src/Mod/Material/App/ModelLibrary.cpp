@@ -22,42 +22,49 @@
  **************************************************************************/
 
 #include <string>
-#include <QLatin1Char>
-
-#include <QFileInfo>
 
 #include <App/Application.h>
+#include <Base/FileInfo.h>
 
 #include "Exceptions.h"
 #include "Model.h"
 #include "ModelLibrary.h"
 #include "ModelManager.h"
+#include "StringUtility.h"
 
 
 using namespace Materials;
 
 TYPESYSTEM_SOURCE(Materials::ModelLibrary, Materials::Library)
 
+ModelLibrary::ModelLibrary()
+{}
+
+ModelLibrary::ModelLibrary(const std::shared_ptr<ManagedLibrary>& library)
+    : Library(library)
+{}
+
 ModelLibrary::ModelLibrary(const Library& other)
     : Library(other)
 {}
 
-ModelLibrary::ModelLibrary(const QString& libraryName,
-                           const QString& dir,
-                           const QString& iconPath,
-                           bool readOnly)
-    : Library(libraryName, dir, iconPath, readOnly)
-{}
-
-ModelLibrary::ModelLibrary()
+bool ModelLibrary::isRoot(const std::string& path) const
 {
+    std::string localPath = getLocalPath(cleanPath(path));
+    std::string clean = getLocalPath("");
+    return (clean == localPath);
 }
 
-std::shared_ptr<std::map<QString, std::shared_ptr<ModelTreeNode>>>
+std::string ModelLibrary::getLocalPath(const std::string& path) const
+{
+    return Library::getLocalPath(getModelDirectoryPath(), path);
+}
+
+std::shared_ptr<std::map<std::string, std::shared_ptr<ModelTreeNode>>>
 ModelLibrary::getModelTree(ModelFilter filter) const
 {
-    std::shared_ptr<std::map<QString, std::shared_ptr<ModelTreeNode>>> modelTree =
-        std::make_shared<std::map<QString, std::shared_ptr<ModelTreeNode>>>();
+    std::shared_ptr<std::map<std::string, std::shared_ptr<ModelTreeNode>>> modelTree =
+        std::make_shared<std::map<std::string, std::shared_ptr<ModelTreeNode>>>();
 
     auto models = ModelManager::getManager().libraryModels(getName());
     for (auto& it : *models) {
@@ -67,15 +74,15 @@ ModelLibrary::getModelTree(ModelFilter filter) const
 
         auto model = ModelManager::getManager().getModel(getName(), uuid);
         if (ModelManager::passFilter(filter, model->getType())) {
-            QStringList list = path.split(QLatin1Char('/'));
+            auto list = split(path, '/');
 
             // Start at the root
-            std::shared_ptr<std::map<QString, std::shared_ptr<ModelTreeNode>>> node = modelTree;
+            std::shared_ptr<std::map<std::string, std::shared_ptr<ModelTreeNode>>> node = modelTree;
             for (auto& itp : list) {
                 // Add the folder only if it's not already there
                 if (!node->contains(itp)) {
                     auto mapPtr =
-                        std::make_shared<std::map<QString, std::shared_ptr<ModelTreeNode>>>();
+                        std::make_shared<std::map<std::string, std::shared_ptr<ModelTreeNode>>>();
                     std::shared_ptr<ModelTreeNode> child = std::make_shared<ModelTreeNode>();
                     child->setFolder(mapPtr);
                     (*node)[itp] = child;
@@ -95,39 +102,35 @@ ModelLibrary::getModelTree(ModelFilter filter) const
     return modelTree;
 }
 
+bool ModelLibrary::ciStartsWith(const std::string& path, const std::string& prefix) const
+{
+    return proxy()->ciModelStartsWith(path, prefix);
+}
+
 TYPESYSTEM_SOURCE(Materials::ModelLibraryLocal, Materials::ModelLibrary)
+
+ModelLibraryLocal::ModelLibraryLocal()
+{
+    setLocal(true);
+}
+
+ModelLibraryLocal::ModelLibraryLocal(const std::shared_ptr<ManagedLibrary>& library)
+    : ModelLibrary(library)
+{
+    setLocal(true);
+}
 
 ModelLibraryLocal::ModelLibraryLocal(const Library& other)
     : ModelLibrary(other)
 {
     setLocal(true);
-
-    _modelPathMap = std::make_unique<std::map<QString, std::shared_ptr<Model>>>();
 }
 
-ModelLibraryLocal::ModelLibraryLocal(const QString& libraryName,
-                                     const QString& dir,
-                                     const QString& iconPath,
-                                     bool readOnly)
-    : ModelLibrary(libraryName, dir, iconPath, readOnly)
+std::shared_ptr<Model> ModelLibraryLocal::getModelByPath(const std::string& path) const
 {
-    setLocal(true);
-
-    _modelPathMap = std::make_unique<std::map<QString, std::shared_ptr<Model>>>();
-}
-
-ModelLibraryLocal::ModelLibraryLocal()
-{
-    setLocal(true);
-
-    _modelPathMap = std::make_unique<std::map<QString, std::shared_ptr<Model>>>();
-}
-
-std::shared_ptr<Model> ModelLibraryLocal::getModelByPath(const QString& path) const
-{
-    QString filePath = getRelativePath(path);
+    std::string filePath = getRelativePath(path);
     try {
-        std::shared_ptr<Model> model = _modelPathMap->at(filePath);
+        std::shared_ptr<Model> model = proxy()->_modelPathMap->at(filePath);
         return model;
     }
     catch (std::out_of_range&) {
@@ -135,16 +138,16 @@ std::shared_ptr<Model> ModelLibraryLocal::getModelByPath(const QString& path) co
     }
 }
 
-std::shared_ptr<Model> ModelLibraryLocal::addModel(const Model& model, const QString& path)
+std::shared_ptr<Model> ModelLibraryLocal::addModel(const Model& model, const std::string& path)
 {
-    QString filePath = getRelativePath(path);
-    QFileInfo info(filePath);
+    std::string filePath = getRelativePath(path);
+    Base::FileInfo info(filePath);
     std::shared_ptr<Model> newModel = std::make_shared<Model>(model);
     newModel->setLibrary(getptr());
     newModel->setDirectory(getLibraryPath(filePath, info.fileName()));
     newModel->setFilename(info.fileName());
 
-    (*_modelPathMap)[filePath] = newModel;
+    (*proxy()->_modelPathMap)[filePath] = newModel;
 
     return newModel;
 }

@@ -23,23 +23,16 @@
 
 #include <memory>
 
-#include <QDir>
-#include <QString>
-#include <QVariant>
-
 #include <Base/BaseClass.h>
 #include <Mod/Material/MaterialGlobal.h>
 
 #include "Library.h"
 #include "Materials.h"
-#include "Model.h"
-#include "ModelLibrary.h"
 
 namespace Materials
 {
 
 class Material;
-class MaterialManager;
 class MaterialFilter;
 class MaterialFilterOptions;
 
@@ -51,16 +44,28 @@ class MaterialsExport MaterialLibrary
 
 public:
     MaterialLibrary() = default;
-    MaterialLibrary(const QString& libraryName, const QString& icon, bool readOnly = true);
-    MaterialLibrary(const QString& libraryName,
-                    const QString& dir,
-                    const QString& iconPath,
+    MaterialLibrary(const std::shared_ptr<ManagedLibrary>& library);
+    MaterialLibrary(const std::string& libraryName, const std::string& icon, bool readOnly = true);
+    MaterialLibrary(const std::string& libraryName,
+                    const std::string& dir,
+                    const std::string& iconPath,
                     bool readOnly = true);
     MaterialLibrary(const Library& library);
-    MaterialLibrary(const MaterialLibrary&) = delete;
     ~MaterialLibrary() override = default;
 
-    virtual std::shared_ptr<std::map<QString, std::shared_ptr<MaterialTreeNode>>>
+
+    bool isRoot(const std::string& path) const override;
+    std::string getDirectory() const override
+    {
+        return getMaterialDirectory();
+    }
+    std::string getDirectoryPath() const override
+    {
+        return getMaterialDirectoryPath();
+    }
+    std::string getLocalPath(const std::string& path) const;
+
+    virtual std::shared_ptr<std::map<std::string, std::shared_ptr<MaterialTreeNode>>>
     getMaterialTree(const Materials::MaterialFilter& filter,
                     const Materials::MaterialFilterOptions& options) const;
 
@@ -69,6 +74,9 @@ public:
     {
         return shared_from_this();
     }
+
+    bool ciStartsWith(const std::string& path, const std::string& prefix) const override;
+
 };
 
 class MaterialsExport MaterialLibraryLocal: public MaterialLibrary
@@ -76,26 +84,30 @@ class MaterialsExport MaterialLibraryLocal: public MaterialLibrary
     TYPESYSTEM_HEADER_WITH_OVERRIDE();
 
 public:
-    MaterialLibraryLocal() = default;
-    MaterialLibraryLocal(const QString& libraryName,
-                         const QString& dir,
-                         const QString& iconPath,
-                         bool readOnly = true);
+    MaterialLibraryLocal(const std::shared_ptr<ManagedLibrary>& library);
+    MaterialLibraryLocal(const Library& other);
+    MaterialLibraryLocal(
+        const std::string& libraryName,
+        const std::string& dir,
+        const std::string& iconPath,
+        bool readOnly = true
+    );
     ~MaterialLibraryLocal() override = default;
 
-    void createFolder(const QString& path);
-    void renameFolder(const QString& oldPath, const QString& newPath);
-    void deleteRecursive(const QString& path);
+    void createFolder(const std::string& path);
+    void renameFolder(const std::string& oldPath, const std::string& newPath);
+    void deleteRecursive(const std::string& path);
 
     std::shared_ptr<Material> saveMaterial(const std::shared_ptr<Material>& material,
-                                           const QString& path,
+                                           const std::string& path,
                                            bool overwrite,
                                            bool saveAsCopy,
                                            bool saveInherited);
-    bool fileExists(const QString& path) const;
+    bool fileExists(const std::string& path) const;
     std::shared_ptr<Material> addMaterial(const std::shared_ptr<Material>& material,
-                                          const QString& path);
-    std::shared_ptr<Material> getMaterialByPath(const QString& path) const;
+                                          const std::string& path);
+    std::shared_ptr<Material> getMaterialByPath(const std::string& path) const;
+    std::shared_ptr<std::vector<Material>> folderMaterials(const std::string& sourcePath) const;
 
     bool operator==(const MaterialLibrary& library) const
     {
@@ -116,13 +128,12 @@ public:
     }
 
 protected:
-    void deleteDir(MaterialManager& manager, const QString& path);
-    void deleteFile(MaterialManager& manager, const QString& path);
-    void updatePaths(const QString& oldPath, const QString& newPath);
+    void deleteDir(const std::string& path);
+    void deleteFile(const std::string& path);
 
-    QString getUUIDFromPath(const QString& path) const;
-
-    std::unique_ptr<std::map<QString, std::shared_ptr<Material>>> _materialPathMap;
+    std::string getUUIDFromPath(const std::string& path);
+private:
+    MaterialLibraryLocal();
 };
 
 }  // namespace Materials

@@ -48,13 +48,13 @@
 #include <Mod/Material/App/Exceptions.h>
 #include <Mod/Material/App/ModelManager.h>
 
-#include "Array2D.h"
-#include "Array3D.h"
-#include "ImageEdit.h"
-#include "ListEdit.h"
+#include <Mod/Material/Gui/Array2D.h>
+#include <Mod/Material/Gui/Array3D.h>
+#include <Mod/Material/Gui/ImageEdit.h>
+#include <Mod/Material/Gui/ListEdit.h>
+#include <Mod/Material/Gui/TextEdit.h>
+
 #include "MaterialDelegate.h"
-#include "MaterialSave.h"
-#include "TextEdit.h"
 
 
 using namespace MatGui;
@@ -87,7 +87,7 @@ Materials::MaterialValue::ValueType MaterialDelegate::getType(const QModelIndex&
         propertyType = group->child(row, 2)->text();
     }
 
-    return Materials::MaterialValue::mapType(propertyType);
+    return Materials::MaterialValue::mapType(propertyType.toStdString());
 }
 
 QString MaterialDelegate::getUnits(const QModelIndex& index) const
@@ -122,7 +122,7 @@ QVariant MaterialDelegate::getValue(const QModelIndex& index) const
         auto material = group->child(row, 1)->data().value<std::shared_ptr<Materials::Material>>();
         // auto propertyName = group->child(row, 0)->text();
         auto propertyName = group->child(row, 0)->data().toString();
-        propertyValue = material->getProperty(propertyName)->getValue();
+        propertyValue = material->getProperty(propertyName.toStdString())->getValue();
     }
     return propertyValue;
 }
@@ -142,8 +142,7 @@ void MaterialDelegate::setValue(QAbstractItemModel* model,
     if (group->child(row, 1)) {
         auto material = group->child(row, 1)->data().value<std::shared_ptr<Materials::Material>>();
         auto propertyName = group->child(row, 0)->data().toString();
-        std::string _name = propertyName.toStdString();
-        auto property = material->getProperty(propertyName);
+        auto property = material->getProperty(propertyName.toStdString());
 
         try {
             property->setValue(value);
@@ -155,22 +154,24 @@ void MaterialDelegate::setValue(QAbstractItemModel* model,
                                 "setting to default property units '%s'\n",
                                 propertyName.toStdString().c_str(),
                                 quantity.getUserString().c_str(),
-                                property->getUnits().toStdString().c_str());
+                                property->getUnits().c_str());
 
             QMessageBox msgBox;
             msgBox.setWindowTitle(QStringLiteral("Property Units Mismatch"));
-            msgBox.setText(QStringLiteral("Units mismatch '%1' = '%2', "
-                           "setting to default property units '%3'\n")
-                           .arg(propertyName)
-                           .arg(QString::fromStdString(quantity.getUserString()))
-                           .arg(property->getUnits()));
+            msgBox.setText(QStringLiteral(
+                               "Units mismatch '%1' = '%2', "
+                               "setting to default property units '%3'\n"
+            )
+                               .arg(propertyName)
+                               .arg(QString::fromStdString(quantity.getUserString()))
+                               .arg(QString::fromStdString(property->getUnits())));
             msgBox.exec();
 
             property->setQuantity(
-                Base::Quantity(quantity.getValue(), property->getUnits().toStdString()));
+                Base::Quantity(quantity.getValue(), property->getUnits()));
         }
 
-        group->child(row, 1)->setText(property->getString());
+        group->child(row, 1)->setText(QString::fromStdString(property->getString()));
     }
 
     notifyChanged(model, index);
@@ -191,8 +192,8 @@ void MaterialDelegate::notifyChanged(const QAbstractItemModel* model,
         auto material = group->child(row, 1)->data().value<std::shared_ptr<Materials::Material>>();
         // auto propertyName = group->child(row, 0)->text();
         auto propertyName = group->child(row, 0)->data().toString();
-        auto propertyValue = material->getProperty(propertyName)->getValue();
-        material->setEditStateAlter();
+        auto propertyValue = material->getProperty(propertyName.toStdString())->getValue();
+        material->setEditStateInvariantChanged();
 
         Q_EMIT const_cast<MaterialDelegate*>(this)->propertyChange(propertyName, propertyValue);
     }
