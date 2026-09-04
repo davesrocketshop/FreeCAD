@@ -66,6 +66,10 @@
 # endif
 #endif
 
+#if defined(BUILD_QTTESTING)
+# include "QtTesting/QtTestUtility.h"
+#endif
+
 #include <algorithm>
 #include <vector>
 #include <boost/algorithm/string/predicate.hpp>
