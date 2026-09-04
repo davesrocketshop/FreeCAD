@@ -22,3 +22,45 @@
 # *   USA                                                                   *
 # *                                                                         *
 # ***************************************************************************/
+
+import FreeCAD as App
+import FreeCADGui as Gui
+
+class QtTestingWorkbench(Gui.Workbench):
+    "QtTesting workbench object"
+
+    def __init__(self):
+        # self.__class__.Icon = (
+        #     FreeCAD.getResourceDir()
+        #     + "Mod/QtTesting/Resources/icons/QtTestingWorkbench.svg"
+        # )
+        self.__class__.MenuText = "QtTesting"
+        self.__class__.ToolTip = (
+            "QtTesting workbench"
+        )
+
+    def Initialize(self):
+        # load the module
+        import QtTestingGui
+
+        commands = [
+            "Separator",
+            "Std_QtTestRecord",
+            "Std_QtTestPlayback",
+        ]
+        self.appendMenu("&Macro", commands)
+
+
+    def GetClassName(self):
+        return "Gui::PythonWorkbench"
+
+
+Gui.addWorkbench(QtTestingWorkbench())
+# import QtTestingGui
+# commands = [
+#     "Separator",
+#     "Std_QtTestRecord",
+#     "Std_QtTestPlayback",
+# ]
+# # self.appendMenu("&Macro", commands)
+# Gui.activeWorkbench().appendMenu("QtTesting", commands)
