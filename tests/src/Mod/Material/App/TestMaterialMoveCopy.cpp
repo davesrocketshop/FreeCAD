@@ -104,6 +104,63 @@ protected:
 
     }
 
+    void buildLibraries() {
+        // Create test libraries
+        auto folders = _materialManager->getMaterialFolders(*library1);
+        ASSERT_EQ(folders->size(), 0);
+        folders = _materialManager->getMaterialFolders(*library2);
+        ASSERT_EQ(folders->size(), 0);
+
+        ASSERT_NO_THROW(_materialManager->createFolder(library1, "x/y/z"));
+        ASSERT_NO_THROW(_materialManager->createFolder(library1, "a"));
+        ASSERT_NO_THROW(_materialManager->createFolder(library1, "b/c"));
+
+        mat1 = std::make_shared<Materials::Material>();
+        mat1->setName("mat1");
+        mat2 = std::make_shared<Materials::Material>();
+        mat2->setName("mat2");
+        mat3 = std::make_shared<Materials::Material>();
+        mat3->setName("mat3");
+        mat4 = std::make_shared<Materials::Material>();
+        mat4->setName("mat4");
+        mat5 = std::make_shared<Materials::Material>();
+        mat5->setName("mat5");
+        _materialManager->saveMaterial(library1, mat1, "a/mat1.FCMat", false, true, false);
+        _materialManager->saveMaterial(library1, mat2, "x/y/z/mat2.FCMat", false, true, false);
+        _materialManager->saveMaterial(library1, mat3, "b/mat3.FCMat", false, true, false);
+        _materialManager->saveMaterial(library1, mat4, "b/c/mat4.FCMat", false, true, false);
+        _materialManager->saveMaterial(library1, mat5, "mat5.FCMat", false, true, false);
+        folders = _materialManager->getMaterialFolders(*library1);
+        ASSERT_EQ(folders->size(), 6);
+        auto materials = _materialManager->libraryMaterials("TestLibrary1");
+        EXPECT_EQ(materials->size(), 5);
+
+
+        ASSERT_NO_THROW(_materialManager->createFolder(library2, "x1/y1/z1"));
+        ASSERT_NO_THROW(_materialManager->createFolder(library2, "a1"));
+        ASSERT_NO_THROW(_materialManager->createFolder(library2, "b1/c1"));
+
+        mat6 = std::make_shared<Materials::Material>();
+        mat6->setName("mat6");
+        mat7 = std::make_shared<Materials::Material>();
+        mat7->setName("mat7");
+        mat8 = std::make_shared<Materials::Material>();
+        mat8->setName("mat8");
+        mat9 = std::make_shared<Materials::Material>();
+        mat9->setName("mat9");
+        mat10 = std::make_shared<Materials::Material>();
+        mat10->setName("mat10");
+        _materialManager->saveMaterial(library2, mat6, "a1/mat6.FCMat", false, true, false);
+        _materialManager->saveMaterial(library2, mat7, "x1/y1/z1/mat7.FCMat", false, true, false);
+        _materialManager->saveMaterial(library2, mat8, "b1/mat8.FCMat", false, true, false);
+        _materialManager->saveMaterial(library2, mat9, "b1/c1/mat9.FCMat", false, true, false);
+        _materialManager->saveMaterial(library2, mat10, "mat10.FCMat", false, true, false);
+        folders = _materialManager->getMaterialFolders(*library2);
+        ASSERT_EQ(folders->size(), 6);
+        materials = _materialManager->libraryMaterials("TestLibrary2");
+        EXPECT_EQ(materials->size(), 5);
+    }
+
     Materials::LibraryManager* _libraryManager;
     Materials::ModelManager* _modelManager {};
     MaterialManagerProxy* _materialManager {};
@@ -112,22 +169,17 @@ protected:
     QTemporaryDir dir2;
     std::shared_ptr<Materials::MaterialLibrary> library1;
     std::shared_ptr<Materials::MaterialLibrary> library2;
+    std::shared_ptr<Materials::Material> mat1;
+    std::shared_ptr<Materials::Material> mat2;
+    std::shared_ptr<Materials::Material> mat3;
+    std::shared_ptr<Materials::Material> mat4;
+    std::shared_ptr<Materials::Material> mat5;
+    std::shared_ptr<Materials::Material> mat6;
+    std::shared_ptr<Materials::Material> mat7;
+    std::shared_ptr<Materials::Material> mat8;
+    std::shared_ptr<Materials::Material> mat9;
+    std::shared_ptr<Materials::Material> mat10;
 };
-
-TEST_F(TestMaterialMoveCopy, TestCrossMoveFolder)
-{
-    ASSERT_NE(_libraryManager, nullptr);
-    ASSERT_NE(_modelManager, nullptr);
-    ASSERT_NE(_materialManager, nullptr);
-
-    // We should have loaded at least the system library
-    auto libraries = _materialManager->getLibraries();
-    ASSERT_GT(libraries->size(), 0);
-
-    // We should have at least one material
-    auto materials = _materialManager->getLocalMaterials();
-    ASSERT_GT(materials->size(), 0);
-}
 
 TEST_F(TestMaterialMoveCopy, TestFolders)
 {
@@ -234,70 +286,28 @@ TEST_F(TestMaterialMoveCopy, TestFolders)
 
 }
 
-TEST_F(TestMaterialMoveCopy, TestMove)
+TEST_F(TestMaterialMoveCopy, TestMoveFolders)
 {
-    auto folders = _materialManager->getMaterialFolders(*library1);
-    ASSERT_EQ(folders->size(), 0);
-    folders = _materialManager->getMaterialFolders(*library2);
-    ASSERT_EQ(folders->size(), 0);
-
-    ASSERT_NO_THROW(_materialManager->createFolder(library1, "x/y/z"));
-    ASSERT_NO_THROW(_materialManager->createFolder(library1, "a"));
-    ASSERT_NO_THROW(_materialManager->createFolder(library1, "b/c"));
-
-    auto mat1 = std::make_shared<Materials::Material>();
-    mat1->setName("mat1");
-    auto mat2 = std::make_shared<Materials::Material>();
-    mat2->setName("mat2");
-    auto mat3 = std::make_shared<Materials::Material>();
-    mat3->setName("mat3");
-    auto mat4 = std::make_shared<Materials::Material>();
-    mat4->setName("mat4");
-    _materialManager->saveMaterial(library1, mat1, "a/mat1.FCMat", false, true, false);
-    _materialManager->saveMaterial(library1, mat2, "x/y/z/mat2.FCMat", false, true, false);
-    _materialManager->saveMaterial(library1, mat3, "b/mat3.FCMat", false, true, false);
-    _materialManager->saveMaterial(library1, mat4, "b/c/mat4.FCMat", false, true, false);
-    folders = _materialManager->getMaterialFolders(*library1);
-    ASSERT_EQ(folders->size(), 6);
-    auto materials = _materialManager->libraryMaterials("TestLibrary1");
-    EXPECT_EQ(materials->size(), 4);
-
-
-    ASSERT_NO_THROW(_materialManager->createFolder(library2, "x1/y1/z1"));
-    ASSERT_NO_THROW(_materialManager->createFolder(library2, "a1"));
-    ASSERT_NO_THROW(_materialManager->createFolder(library2, "b1/c1"));
-
-    auto mat5 = std::make_shared<Materials::Material>();
-    mat1->setName("mat5");
-    auto mat6 = std::make_shared<Materials::Material>();
-    mat2->setName("mat6");
-    auto mat7 = std::make_shared<Materials::Material>();
-    mat3->setName("mat7");
-    auto mat8 = std::make_shared<Materials::Material>();
-    mat4->setName("mat8");
-    _materialManager->saveMaterial(library2, mat5, "a1/mat5.FCMat", false, true, false);
-    _materialManager->saveMaterial(library2, mat6, "x1/y1/z1/mat6.FCMat", false, true, false);
-    _materialManager->saveMaterial(library2, mat7, "b1/mat7.FCMat", false, true, false);
-    _materialManager->saveMaterial(library2, mat8, "b1/c1/mat8.FCMat", false, true, false);
-    folders = _materialManager->getMaterialFolders(*library2);
-    ASSERT_EQ(folders->size(), 6);
-    materials = _materialManager->libraryMaterials("TestLibrary2");
-    EXPECT_EQ(materials->size(), 4);
+    buildLibraries();
 
     // Moves within a library
     EXPECT_EQ(mat1->getLibrary()->getName(), "TestLibrary1");
     EXPECT_EQ(mat2->getLibrary()->getName(), "TestLibrary1");
     EXPECT_EQ(mat3->getLibrary()->getName(), "TestLibrary1");
     EXPECT_EQ(mat4->getLibrary()->getName(), "TestLibrary1");
+    EXPECT_EQ(mat5->getLibrary()->getName(), "TestLibrary1");
     EXPECT_EQ(mat1->getDirectory(), "a");
     EXPECT_EQ(mat2->getDirectory(), "x/y/z");
     EXPECT_EQ(mat3->getDirectory(), "b");
     EXPECT_EQ(mat4->getDirectory(), "b/c");
+    EXPECT_EQ(mat5->getDirectory(), "");
     EXPECT_THROW(_materialManager->moveFolder(nullptr, "a", nullptr, "b"), Materials::LibraryNotFound);
     EXPECT_THROW(_materialManager->moveFolder(library1, "a", nullptr, "b"), Materials::LibraryNotFound);
     EXPECT_THROW(_materialManager->moveFolder(nullptr, "a", library1, "b"), Materials::LibraryNotFound);
+    EXPECT_THROW(_materialManager->moveFolder(library1, "b", library1, "b/c"), Materials::MoveError);
+    EXPECT_THROW(_materialManager->moveFolder(library1, "/", library1, "b/c"), Materials::MoveError);
     EXPECT_NO_THROW(_materialManager->moveFolder(library1, "b/c", library1, "a"));
-    folders = _materialManager->getMaterialFolders(*library1);
+    auto folders = _materialManager->getMaterialFolders(*library1);
     ASSERT_EQ(folders->size(), 6);
     Base::FileInfo info1(library1->getDirectory() + "/b/c");
     EXPECT_FALSE(info1.exists());
@@ -308,26 +318,30 @@ TEST_F(TestMaterialMoveCopy, TestMove)
     EXPECT_TRUE(info1a.isWritable());
     Base::FileInfo info1b(library1->getDirectory() + "/b/c");
     EXPECT_FALSE(info1b.exists());
-    materials = _materialManager->libraryMaterials("TestLibrary1");
-    EXPECT_EQ(materials->size(), 4);
+    auto materials = _materialManager->libraryMaterials("TestLibrary1");
+    EXPECT_EQ(materials->size(), 5);
     EXPECT_EQ(mat1->getLibrary()->getName(), "TestLibrary1");
     EXPECT_EQ(mat2->getLibrary()->getName(), "TestLibrary1");
     EXPECT_EQ(mat3->getLibrary()->getName(), "TestLibrary1");
     EXPECT_EQ(mat4->getLibrary()->getName(), "TestLibrary1");
+    EXPECT_EQ(mat5->getLibrary()->getName(), "TestLibrary1");
     EXPECT_EQ(mat1->getDirectory(), "a");
     EXPECT_EQ(mat2->getDirectory(), "x/y/z");
     EXPECT_EQ(mat3->getDirectory(), "b");
     EXPECT_EQ(mat4->getDirectory(), "a/c");
+    EXPECT_EQ(mat5->getDirectory(), "");
 
     // Moves across libraries
-    EXPECT_EQ(mat5->getLibrary()->getName(), "TestLibrary2");
     EXPECT_EQ(mat6->getLibrary()->getName(), "TestLibrary2");
     EXPECT_EQ(mat7->getLibrary()->getName(), "TestLibrary2");
     EXPECT_EQ(mat8->getLibrary()->getName(), "TestLibrary2");
-    EXPECT_EQ(mat5->getDirectory(), "a1");
-    EXPECT_EQ(mat6->getDirectory(), "x1/y1/z1");
-    EXPECT_EQ(mat7->getDirectory(), "b1");
-    EXPECT_EQ(mat8->getDirectory(), "b1/c1");
+    EXPECT_EQ(mat9->getLibrary()->getName(), "TestLibrary2");
+    EXPECT_EQ(mat10->getLibrary()->getName(), "TestLibrary2");
+    EXPECT_EQ(mat6->getDirectory(), "a1");
+    EXPECT_EQ(mat7->getDirectory(), "x1/y1/z1");
+    EXPECT_EQ(mat8->getDirectory(), "b1");
+    EXPECT_EQ(mat9->getDirectory(), "b1/c1");
+    EXPECT_EQ(mat10->getDirectory(), "");
     EXPECT_NO_THROW(_materialManager->moveFolder(library2, "b1", library1, "a"));
     folders = _materialManager->getMaterialFolders(*library1);
     ASSERT_EQ(folders->size(), 8);
@@ -341,15 +355,137 @@ TEST_F(TestMaterialMoveCopy, TestMove)
     Base::FileInfo info2a(library2->getDirectory() + "/b1");
     EXPECT_FALSE(info2a.exists());
     materials = _materialManager->libraryMaterials("TestLibrary1");
-    EXPECT_EQ(materials->size(), 6);
+    EXPECT_EQ(materials->size(), 7);
     materials = _materialManager->libraryMaterials("TestLibrary2");
-    EXPECT_EQ(materials->size(), 2);
-    EXPECT_EQ(mat5->getLibrary()->getName(), "TestLibrary2");
+    EXPECT_EQ(materials->size(), 3);
     EXPECT_EQ(mat6->getLibrary()->getName(), "TestLibrary2");
-    EXPECT_EQ(mat7->getLibrary()->getName(), "TestLibrary1");
+    EXPECT_EQ(mat7->getLibrary()->getName(), "TestLibrary2");
     EXPECT_EQ(mat8->getLibrary()->getName(), "TestLibrary1");
-    EXPECT_EQ(mat5->getDirectory(), "a1");
-    EXPECT_EQ(mat6->getDirectory(), "x1/y1/z1");
-    EXPECT_EQ(mat7->getDirectory(), "a/b1");
-    EXPECT_EQ(mat8->getDirectory(), "a/b1/c1");
+    EXPECT_EQ(mat9->getLibrary()->getName(), "TestLibrary1");
+    EXPECT_EQ(mat10->getLibrary()->getName(), "TestLibrary2");
+    EXPECT_EQ(mat6->getDirectory(), "a1");
+    EXPECT_EQ(mat7->getDirectory(), "x1/y1/z1");
+    EXPECT_EQ(mat8->getDirectory(), "a/b1");
+    EXPECT_EQ(mat9->getDirectory(), "a/b1/c1");
+    EXPECT_EQ(mat10->getDirectory(), "");
 }
+
+// TEST_F(TestMaterialMoveCopy, TestCopy)
+// {
+//     auto folders = _materialManager->getMaterialFolders(*library1);
+//     ASSERT_EQ(folders->size(), 0);
+//     folders = _materialManager->getMaterialFolders(*library2);
+//     ASSERT_EQ(folders->size(), 0);
+
+//     ASSERT_NO_THROW(_materialManager->createFolder(library1, "x/y/z"));
+//     ASSERT_NO_THROW(_materialManager->createFolder(library1, "a"));
+//     ASSERT_NO_THROW(_materialManager->createFolder(library1, "b/c"));
+
+//     auto mat1 = std::make_shared<Materials::Material>();
+//     mat1->setName("mat1");
+//     auto mat2 = std::make_shared<Materials::Material>();
+//     mat2->setName("mat2");
+//     auto mat3 = std::make_shared<Materials::Material>();
+//     mat3->setName("mat3");
+//     auto mat4 = std::make_shared<Materials::Material>();
+//     mat4->setName("mat4");
+//     _materialManager->saveMaterial(library1, mat1, "a/mat1.FCMat", false, true, false);
+//     _materialManager->saveMaterial(library1, mat2, "x/y/z/mat2.FCMat", false, true, false);
+//     _materialManager->saveMaterial(library1, mat3, "b/mat3.FCMat", false, true, false);
+//     _materialManager->saveMaterial(library1, mat4, "b/c/mat4.FCMat", false, true, false);
+//     folders = _materialManager->getMaterialFolders(*library1);
+//     ASSERT_EQ(folders->size(), 6);
+//     auto materials = _materialManager->libraryMaterials("TestLibrary1");
+//     EXPECT_EQ(materials->size(), 4);
+
+
+//     ASSERT_NO_THROW(_materialManager->createFolder(library2, "x1/y1/z1"));
+//     ASSERT_NO_THROW(_materialManager->createFolder(library2, "a1"));
+//     ASSERT_NO_THROW(_materialManager->createFolder(library2, "b1/c1"));
+
+//     auto mat5 = std::make_shared<Materials::Material>();
+//     mat5->setName("mat5");
+//     auto mat6 = std::make_shared<Materials::Material>();
+//     mat6->setName("mat6");
+//     auto mat7 = std::make_shared<Materials::Material>();
+//     mat7->setName("mat7");
+//     auto mat8 = std::make_shared<Materials::Material>();
+//     mat8->setName("mat8");
+//     _materialManager->saveMaterial(library2, mat5, "a1/mat5.FCMat", false, true, false);
+//     _materialManager->saveMaterial(library2, mat6, "x1/y1/z1/mat6.FCMat", false, true, false);
+//     _materialManager->saveMaterial(library2, mat7, "b1/mat7.FCMat", false, true, false);
+//     _materialManager->saveMaterial(library2, mat8, "b1/c1/mat8.FCMat", false, true, false);
+//     folders = _materialManager->getMaterialFolders(*library2);
+//     ASSERT_EQ(folders->size(), 6);
+//     materials = _materialManager->libraryMaterials("TestLibrary2");
+//     EXPECT_EQ(materials->size(), 4);
+
+//     // Moves within a library
+//     EXPECT_EQ(mat1->getLibrary()->getName(), "TestLibrary1");
+//     EXPECT_EQ(mat2->getLibrary()->getName(), "TestLibrary1");
+//     EXPECT_EQ(mat3->getLibrary()->getName(), "TestLibrary1");
+//     EXPECT_EQ(mat4->getLibrary()->getName(), "TestLibrary1");
+//     EXPECT_EQ(mat1->getDirectory(), "a");
+//     EXPECT_EQ(mat2->getDirectory(), "x/y/z");
+//     EXPECT_EQ(mat3->getDirectory(), "b");
+//     EXPECT_EQ(mat4->getDirectory(), "b/c");
+//     EXPECT_THROW(_materialManager->moveFolder(nullptr, "a", nullptr, "b"), Materials::LibraryNotFound);
+//     EXPECT_THROW(_materialManager->moveFolder(library1, "a", nullptr, "b"), Materials::LibraryNotFound);
+//     EXPECT_THROW(_materialManager->moveFolder(nullptr, "a", library1, "b"), Materials::LibraryNotFound);
+//     EXPECT_NO_THROW(_materialManager->moveFolder(library1, "b/c", library1, "a"));
+//     folders = _materialManager->getMaterialFolders(*library1);
+//     ASSERT_EQ(folders->size(), 6);
+//     Base::FileInfo info1(library1->getDirectory() + "/b/c");
+//     EXPECT_FALSE(info1.exists());
+//     Base::FileInfo info1a(library1->getDirectory() + "/a/c");
+//     EXPECT_TRUE(info1a.exists());
+//     EXPECT_TRUE(info1a.isDir());
+//     EXPECT_TRUE(info1a.isReadable());
+//     EXPECT_TRUE(info1a.isWritable());
+//     Base::FileInfo info1b(library1->getDirectory() + "/b/c");
+//     EXPECT_FALSE(info1b.exists());
+//     materials = _materialManager->libraryMaterials("TestLibrary1");
+//     EXPECT_EQ(materials->size(), 4);
+//     EXPECT_EQ(mat1->getLibrary()->getName(), "TestLibrary1");
+//     EXPECT_EQ(mat2->getLibrary()->getName(), "TestLibrary1");
+//     EXPECT_EQ(mat3->getLibrary()->getName(), "TestLibrary1");
+//     EXPECT_EQ(mat4->getLibrary()->getName(), "TestLibrary1");
+//     EXPECT_EQ(mat1->getDirectory(), "a");
+//     EXPECT_EQ(mat2->getDirectory(), "x/y/z");
+//     EXPECT_EQ(mat3->getDirectory(), "b");
+//     EXPECT_EQ(mat4->getDirectory(), "a/c");
+
+//     // Moves across libraries
+//     EXPECT_EQ(mat5->getLibrary()->getName(), "TestLibrary2");
+//     EXPECT_EQ(mat6->getLibrary()->getName(), "TestLibrary2");
+//     EXPECT_EQ(mat7->getLibrary()->getName(), "TestLibrary2");
+//     EXPECT_EQ(mat8->getLibrary()->getName(), "TestLibrary2");
+//     EXPECT_EQ(mat5->getDirectory(), "a1");
+//     EXPECT_EQ(mat6->getDirectory(), "x1/y1/z1");
+//     EXPECT_EQ(mat7->getDirectory(), "b1");
+//     EXPECT_EQ(mat8->getDirectory(), "b1/c1");
+//     EXPECT_NO_THROW(_materialManager->moveFolder(library2, "b1", library1, "a"));
+//     folders = _materialManager->getMaterialFolders(*library1);
+//     ASSERT_EQ(folders->size(), 8);
+//     folders = _materialManager->getMaterialFolders(*library2);
+//     ASSERT_EQ(folders->size(), 4);
+//     Base::FileInfo info2(library1->getDirectory() + "/a/b1/c1");
+//     EXPECT_TRUE(info2.exists());
+//     EXPECT_TRUE(info2.isDir());
+//     EXPECT_TRUE(info2.isReadable());
+//     EXPECT_TRUE(info2.isWritable());
+//     Base::FileInfo info2a(library2->getDirectory() + "/b1");
+//     EXPECT_FALSE(info2a.exists());
+//     materials = _materialManager->libraryMaterials("TestLibrary1");
+//     EXPECT_EQ(materials->size(), 6);
+//     materials = _materialManager->libraryMaterials("TestLibrary2");
+//     EXPECT_EQ(materials->size(), 2);
+//     EXPECT_EQ(mat5->getLibrary()->getName(), "TestLibrary2");
+//     EXPECT_EQ(mat6->getLibrary()->getName(), "TestLibrary2");
+//     EXPECT_EQ(mat7->getLibrary()->getName(), "TestLibrary1");
+//     EXPECT_EQ(mat8->getLibrary()->getName(), "TestLibrary1");
+//     EXPECT_EQ(mat5->getDirectory(), "a1");
+//     EXPECT_EQ(mat6->getDirectory(), "x1/y1/z1");
+//     EXPECT_EQ(mat7->getDirectory(), "a/b1");
+//     EXPECT_EQ(mat8->getDirectory(), "a/b1/c1");
+// }
