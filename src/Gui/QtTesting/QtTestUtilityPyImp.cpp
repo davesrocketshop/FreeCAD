@@ -71,7 +71,17 @@ PyObject* QtTestUtilityPy::play(PyObject* args, PyObject* kwds)
             }
         }
         else if (PyList_Check(filePy)) {
-
+            int nItems = PyList_Size(filePy);
+            for (int i = 0; i < nItems; ++i) {
+                PyObject* item = PyList_GetItem(filePy, i);
+                if (PyUnicode_Check(item)) {
+                    const char* pItem = PyUnicode_AsUTF8(item);
+                    tests.append(pItem);
+                }
+                else {
+                    continue;
+                }
+            }
         }
         else if (filePy != Py_None) {
             throw Py::TypeError("Expected string, list, or None");
