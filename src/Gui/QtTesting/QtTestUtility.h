@@ -50,6 +50,6 @@ public:
     void addCustomEventPlayers();
 };
 
-}  // namespace Gui
+}  // namespace QtTesting
 
 #endif  // GUI_QTTESTUTILITY_H

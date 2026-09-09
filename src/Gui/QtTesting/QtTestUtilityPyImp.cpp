@@ -94,7 +94,7 @@ PyObject* QtTestUtilityPy::play(PyObject* args, PyObject* kwds)
     Py_RETURN_FALSE;
 }
 
-PyObject* QtTestUtilityPy::playingTest(PyObject *args)
+PyObject* QtTestUtilityPy::playingTest(PyObject* args)
 {
     auto mainWindow = Gui::getMainWindow();
     auto& testUtility = mainWindow->getTestUtility();
@@ -106,7 +106,7 @@ PyObject* QtTestUtilityPy::playingTest(PyObject *args)
     Py_RETURN_FALSE;
 }
 
-PyObject* QtTestUtilityPy::stopTests(PyObject *args)
+PyObject* QtTestUtilityPy::stopTests(PyObject* args)
 {
     Base::Console().log("Stopping playback\n");
 
@@ -153,7 +153,7 @@ PyObject* QtTestUtilityPy::record(PyObject* args, PyObject* kwds)
     Py_RETURN_NONE;
 }
 
-PyObject* QtTestUtilityPy::stopRecording(PyObject *args)
+PyObject* QtTestUtilityPy::stopRecording(PyObject* args)
 {
     Base::Console().log("Stopping recording\n");
 
@@ -167,7 +167,7 @@ PyObject* QtTestUtilityPy::stopRecording(PyObject *args)
     Py_RETURN_NONE;
 }
 
-PyObject* QtTestUtilityPy::pauseRecording(PyObject *args)
+PyObject* QtTestUtilityPy::pauseRecording(PyObject* args)
 {
     Base::Console().log("Pausing recording\n");
 
@@ -178,7 +178,7 @@ PyObject* QtTestUtilityPy::pauseRecording(PyObject *args)
     Py_RETURN_NONE;
 }
 
-PyObject* QtTestUtilityPy::resumeRecording(PyObject *args)
+PyObject* QtTestUtilityPy::resumeRecording(PyObject* args)
 {
     Base::Console().log("Resuming recording\n");
 

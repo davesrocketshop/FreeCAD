@@ -67,7 +67,7 @@
 #endif
 
 #if defined(BUILD_QTTESTING)
-#include "QtTesting/QtTestUtility.h"
+# include "QtTesting/QtTestUtility.h"
 #endif
 
 #include <algorithm>

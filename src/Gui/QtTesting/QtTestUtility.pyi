@@ -22,7 +22,7 @@ class QtTestUtility(BaseClass):
     """
 
     @staticmethod
-    def play(file : str | List[str]) -> Bool:
+    def play(file: str | List[str]) -> Bool:
         """
         Playback a previously recorded test file or list of .xml files.
 
@@ -45,7 +45,7 @@ class QtTestUtility(BaseClass):
         """
 
     @staticmethod
-    def record(filename : str | None = None) -> None:
+    def record(filename: str | None = None) -> None:
         """
         Open the recorder interface and save events.
 

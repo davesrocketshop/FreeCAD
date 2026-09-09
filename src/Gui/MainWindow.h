@@ -38,7 +38,7 @@ class QMdiSubWindow;
 class QMenu;
 
 #if defined(BUILD_QTTESTING)
-#include "QtTesting/QtTestUtility.h"
+# include "QtTesting/QtTestUtility.h"
 #endif
 
 namespace App
